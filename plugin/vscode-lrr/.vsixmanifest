@@ -4,7 +4,7 @@
     <Identity Language="en-US" Id="vscode-lrr" Version="0.0.1" Publisher="trigger_segfault"/>
     <DisplayName>Lego Rock Raiders Script Types</DisplayName>
     <Description xml:space="preserve">Lego Rock Raiders Script Types Languages package for VSCode</Description>
-    <Tags>vscode,lego,rock,raiders,Lego,__ext_cfg,__ext_ol,__ext_ptl</Tags>
+    <Tags>vscode,lego,rock,raiders,Lego,__ext_cfg,__ext_ol,__ext_ptl,__ext_ae</Tags>
     <Categories>Languages</Categories>
     <GalleryFlags>Public</GalleryFlags>
     <Badges></Badges>

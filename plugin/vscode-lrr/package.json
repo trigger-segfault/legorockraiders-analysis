@@ -29,13 +29,14 @@
     "lego",
     "cfg",
     "ol",
-    "ptl"
+    "ptl",
+    "ae"
 	],
   "contributes": {
     "languages": [{
       "id": "lrr-lego-cfg",
       "aliases": ["Lego.cfg Script", "Lego cfg", "cfg"],
-      "extensions": [".cfg", ".ol", ".ptl"],
+      "extensions": [".cfg", ".ol", ".ptl", ".ae"],
       "configuration": "./lrr-lego-cfg-language-configuration.json",
       "filenames": ["Lego.cfg"]
     }],

@@ -206,7 +206,7 @@ CFGProperty* __cdecl CFG_getProperty(CFGProperty* prop, const char* keyPath)
 				break;
 		}
 		prop = prop->propNext;
-	} while (prop != NULL);
+	}
 
 	free(inputPath); // free allocated string for parts comparison
 	return result;
@@ -214,10 +214,12 @@ CFGProperty* __cdecl CFG_getProperty(CFGProperty* prop, const char* keyPath)
 
 
 // <LegoRR.exe @004792b0>
-CFGProperty* __cdecl CFG_getBlock(CFGProperty* prop, const char* keyPath)
+CFGProperty* __cdecl CFG_getBlockFirstChild(CFGProperty* prop, const char* keyPath)
 {
 	prop = CFG_getProperty(prop, keyPath);
-	// A property is only designated a block if it contains children (the next property in the linked list is block->depth + 1)
+	// Nevermind, this is a function to get children...
+	//   ~~A property is only designated a block if it contains children (the next property in the linked list is block->depth + 1)~~
+	// Another instance of a check to propNext without null-checks... *sigh*
 	if (prop != NULL && prop->depth < prop->propNext->depth)
 		return prop->propNext;
 
@@ -264,6 +266,7 @@ char* __cdecl CFG_copyPropertyValue(CFGProperty* prop, const char* keyPath)
 CFGProperty* __cdecl CFG_nextFlatProperty(const CFGProperty* prop)
 {
 	unsigned int currentDepth = prop->depth;
+	// only break on property of lower depth, as that means we've exited the block
 	while (prop != NULL && prop->depth >= currentDepth) {
 		
 		// SANITY: Add null checks before accessing prop->depth
@@ -292,6 +295,84 @@ bool __cdecl CFG_parsePropertyRGB(CFGProperty* prop, const char* keyPath, float*
 		return (numParts == 3);
 	}
 	return false;
+}
+
+// returns 0 or 1 on success, and 2 on failure
+// <LegoRR.exe @004779d0>
+unsigned int __cdecl CFG_parseBoolLiteral(const char* text)
+{
+	if (_stricmp(text, "YES") == 0)
+		return 1; // true
+	
+	if (_stricmp(text, "TRUE") == 0)
+		return 1; // true
+	
+	if (_stricmp(text, "ON") == 0)
+		return 1; // true
+	
+	if (_stricmp(text, "NO") == 0)
+		return 0; // false
+	
+	if (_stricmp(text, "FALSE") == 0)
+		return 0; // false
+	
+	if (_stricmp(text, "OFF") == 0)
+		return 0; // false
+	
+	return 2; // error result
+	
+	// original ending of function. It's cryptic, but it'll return 2 for any iVar1 != 0, otherwise 0
+	//int iVar1 = _stricmp(text,s_OFF_004a5120);
+	//return -(unsigned int)(iVar1 != 0) & 2;
+}
+
+// returns 0 or 1 on success, and 2 on failure
+// <LegoRR.exe @00479390>
+unsigned int __cdecl CFG_getPropertyBool(CFGProperty* prop, constchar* keyPath)
+{
+	unsigned int result = 2; // error result
+	// usage of CFG_copyPropertyValue over CFG_getPropertyValue here seems pointless, since the value is never modified
+	char* value = CFG_copyPropertyValue(prop, keyPath);
+	if (value != NULL) {
+		result = CFG_parseBoolLiteral(value);
+		free(value);
+	}
+	return result;
+}
+
+
+// Not actually using this, it's probably std::string... how old is std::string again?
+// <LegoRR.exe @00477810>
+char* __cdecl allocStringCopy(const char* text);
+
+// <LegoRR.exe @00477850>
+char* __cdecl CFG_formatText(const char* text, ...)
+{
+	char fmtBuffer [256];
+	char replBuffer [256];
+
+	sprintf(fmtBuffer, text, ...); // however the hell these VA ARGS are being passed.....
+
+	const char* fmtStr = fmtBuffer;
+	char* outStr = replBuffer;
+	size_t length = 0;
+	while (*fmtStr != '\0') {
+		char c = *fmtStr;
+		if (c == '\\' && fmtStr[1] == 'n') {
+			*outStr++ = '\n';
+			fmtStr++;
+		}
+		else if (c == '_') {
+			*outStr++ = ' ';
+		}
+		else {
+			*outStr++ = c;
+		}
+	}
+	*outStr = '\0';
+	outStr = malloc(strlen(replBuffer) + 1);
+	return strcpy(outStr, replBuffer);
+	//return allocStringCopy(replBuffer);
 }
 
 
@@ -407,4 +488,25 @@ CFGProperty* __cdecl CFG_readFile(const char *filename)
 		}
 	}
 	return root;
+}
+
+// Return this unused property to the pool
+// <LegoRR.exe @00479580>
+void __cdecl CFG__cleanup_setNextAvail(CFGProperty* prop)
+{
+	prop->nextAvailable = g_CFG_AvailableProperty;
+	g_CFG_AvailableProperty = prop;
+}
+
+// Essentially walk through the tree, and return all unused properties to the pool
+// <LegoRR.exe @00479500>
+void __cdecl CFG__cleanup(CFGProperty* root)
+{
+	free(root->rootFileText); // free the buffer containing the entire CFG file text
+
+	CFGProperty *prop = root;
+	while (prop != NULL) {
+		CFG__cleanup_setNextAvail(prop);
+		prop = prop->propNext;
+	}
 }

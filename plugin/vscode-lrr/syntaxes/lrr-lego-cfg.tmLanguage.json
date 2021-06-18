@@ -5,7 +5,8 @@
   "fileTypes": [
     "cfg",
     "ol",
-    "ptl"
+    "ptl",
+    "ae"
   ],
   "foldingStartMarker": "^\\s*([^\\s\\{\\;]+\\s*)?\\{",
   "foldingStopMarker": "^\\s*\\}",
