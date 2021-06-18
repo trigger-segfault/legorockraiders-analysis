@@ -44,23 +44,23 @@ This assumes the LegoRR Masterpiece executable is being used.
 
 
 #### **Sled:** ASM to replace for both normally unskippable intros
-```
-; NOP (5),    PUSH 0x1
+```asm
+NOP (5),       PUSH 0x1
 90 90 90 90 90 6a 01
 ```
 
 #### **LegoAvi:** Search & Replace the first 7 bytes with sled
-```
+```asm
 f7 d8 1b c0 f7 d8 50 68 5c 4b 4a 00
-|  |  |  |  |  |  |   \___________\__ search for this as its unique
-v  v  v  v  v  v  v
+;|  |  |  |  |  |  |  \___________\__ search for this as its unique
+;v  v  v  v  v  v  v
 90 90 90 90 90 6a 01
 ```
 
 #### **LMILogo:** Search & Replace the first 7 bytes with sled
-```
+```asm
 f7 d8 1b c0 f7 d8 50 68 24 4b 4a 00
-|  |  |  |  |  |  |   \___________\__ search for this as its unique
-v  v  v  v  v  v  v
+;|  |  |  |  |  |  |  \___________\__ search for this as its unique
+;v  v  v  v  v  v  v
 90 90 90 90 90 6a 01
 ```
