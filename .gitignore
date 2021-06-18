@@ -1,3 +1,28 @@
+###########################################
+## Added to .gitignore
+
+## Copyright + sensitive data
+
+/data/gamedata
+/data/copyright
+/docs/copyright
+# Lego.cfg file
+[Ll][Ee][Gg][Oo]*.[Cc][Ff][Gg]
+# *.WAD files
+*.[Ww][Aa][Dd]
+
+# Programs
+*.exe
+*.dll
+
+
+## Uncommitted lazy backups
+_backup/
+
+
+###########################################
+## Original .gitignore
+
 # Prerequisites
 *.d
 

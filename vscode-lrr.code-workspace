@@ -1,0 +1,18 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+  ],
+  "settings": {
+    "[plaintext]": {
+      "files.eol": "\r\n",
+    },
+    "[lrr-lego-cfg]": {
+      "files.eol": "\r\n",
+    },
+    "[json|jsonc|python]": {
+      "files.eol": "\n"
+    }
+  }
+}

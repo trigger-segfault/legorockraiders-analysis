@@ -1,0 +1,48 @@
+{
+  "name": "vscode-lrr",
+  "displayName": "Lego Rock Raiders Script Types",
+  "description": "Lego Rock Raiders Script languages support for VS Code",
+  "version": "0.1.0",
+	"publisher": "trigger_segfault",
+  "license": "LICENSE.md",
+  "readme": "README.md",
+  "icon": "icon.png",
+  "engines": {
+    "vscode": "^1.32.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+	"galleryBanner": {
+		"color": "#aaee00",
+    "theme": "dark"
+  },
+  "homepage": "https://github.com/trigger-segfault/legorockraiders-analysis",
+  "author": {
+    "name": "trigger_segfault",
+    "email": "triggerstools@gmail.com",
+    "url": "https://trigger-segfault.github.io"
+  },
+	"keywords": [
+    "lego-rock-raiders",
+    "lrr",
+    "lego",
+    "cfg",
+    "ol",
+    "ptl"
+	],
+  "contributes": {
+    "languages": [{
+      "id": "lrr-lego-cfg",
+      "aliases": ["Lego.cfg Script", "Lego cfg", "cfg"],
+      "extensions": [".cfg", ".ol", ".ptl"],
+      "configuration": "./lrr-lego-cfg-language-configuration.json",
+      "filenames": ["Lego.cfg"]
+    }],
+    "grammars": [{
+      "language": "lrr-lego-cfg",
+      "scopeName": "source.lrr.lego-cfg",
+      "path": "./syntaxes/lrr-lego-cfg.tmLanguage.json"
+    }]
+  }
+}

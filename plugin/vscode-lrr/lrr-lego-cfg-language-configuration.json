@@ -1,0 +1,39 @@
+{
+  "comments": {
+    // NOTE: "//" comments ARE NOT supported, even though they appear a few times in Lego.cfg as "// ROCK FOG"
+    "lineComment": ";"
+  },
+  // symbols used as brackets
+  "brackets": [
+    ["{", "}"],
+
+    // used in comments to document property value formats
+    ["<", ">"],
+    ["[", "]"]
+  ],
+  // symbols that are auto closed when typing
+  "autoClosingPairs": [
+    { "open": "{", "close": "}", "notIn": ["string", "comment"] }
+  ],
+  // symbols that that can be used to surround a selection
+  "surroundingPairs": [ ],
+  // behavior for foldable blocks of code
+  "folding": {
+    // fold based on change in indentation (which is increased inside functions -> labels -> instructions)
+    "offSide": false,
+    "markers": {
+      "start": "^\\s*([^\\s\\{\\;]+\\s*)?\\{",
+      // "end": "^.*(?=\n\\s*\\})"
+      "end": "^\\s*\\}"
+    }
+  },
+  "indentationRules": {
+    "increaseIndentPattern": "^\\s*([^\\s\\{\\;]+\\s*)?\\{",
+    "decreaseIndentPattern": "^\\s*\\}",
+
+    "unIndentedLinePattern": "^\\s*;"  // is this usage correct?
+  },
+  // Special prefixes "!|@"\
+  "wordPattern": "([\\s\\{\\}\\|\\:\\,\\;]+)"
+  //"wordPattern": "(-?\\d*\\.\\d\\w*)|([\\@\\!\\*]?[\\@\\#\\%\\^\\&\\*\\(\\)\\[\\]\\{\\}\\|\\;\\:\\,\\<\\>\\s]+)"
+}
