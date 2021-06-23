@@ -10,33 +10,204 @@
 // Flags at <LegoRR.exe @00557ecc>
 enum GameFlags : unsigned int
 {
-	GAME_UNK_4                = 0x4, // Set when loading level?
-	GAME_HAS_FOGCOLOURRGB     = 0x8000, // FogColourRGB property found
-	GAME_HAS_HIGHFOGCOLOURRGB = 0x10000, // HighFogColourRGB property found
-
-	GAME_SOUNDON          = 0x10,     // Lego*::Main::SoundOn           TRUE
-	GAME_ONLYBUILDONPATHS = 0x400000, // Lego*::Main::OnlyBuildOnPaths  TRUE
-	GAME_ALWAYSROCKFALL   = 0x800000, // Lego*::Main::AlwaysRockFall    TRUE
-
-	GAME_STREAMNERPSSPEACH = 0x4000000, // Lego*::Main::StreamNERPSSpeach   TRUE
-
 	GAME_UNK_FLAGS_GROUP_A = 0x80c20, // unconditionally set in Game_loadLegoCFG
+
+	//GAME_UNK_1 = 0x1,
+	GAME_UNK_2 = 0x2, // see Game_unkGameLoop?_FUN_00426450
+	GAME_UNK_4 = 0x4, // Set when loading level? (used in & ~mask)
+	GAME_UNK_8 = 0x8, // see Boot_initFuncPtr__00423210
+	
+	GAME_SOUNDON = 0x10,     // Lego*::Main::SoundOn           TRUE
+	//GAME_UNK_20 = 0x20,
+	//GAME_UNK_40 = 0x40,
+	//GAME_UNK_80 = 0x80,
+
+	GAME_UNK_100 = 0x100, // see Game_unkGameLoop?_FUN_00426450 (masked together with 0x200)
+	GAME_UNK_200 = 0x200, // see Game_unkGameLoop?_FUN_00426450 (masked together with 0x100)
+	//GAME_UNK_400 = 0x400,
+	GAME_UNK_800 = 0x800, // see Boot_initFuncPtr__00423210
+
+	GAME_UNK_1000 = 0x1000, // see Boot_initFuncPtr__00423210
+	GAME_UNK_2000 = 0x2000, // see Game_unkGameLoop?_FUN_00426450
+	//GAME_UNK_4000 = 0x4000,
+	GAME_HAS_FOGCOLOURRGB = 0x8000, // FogColourRGB property found
+
+	GAME_HAS_HIGHFOGCOLOURRGB = 0x10000, // HighFogColourRGB property found
+	GAME_UNK_20000 = 0x20000, // see Boot_initFuncPtr__00423210
+	GAME_UNK_40000 = 0x40000, // see Game_unkGameLoop?_FUN_00426450, Boot_initFuncPtr__00423210
+	//GAME_UNK_80000 = 0x80000,
+
+	GAME_UNK_100000 = 0x100000, // see FUN_0041cc60, Boot_initFuncPtr__00423210
+	GAME_UNK_200000 = 0x200000, // see FUN_0042dd70, Boot_initFuncPtr__00423210
+	GAME_ONLYBUILDONPATHS = 0x400000, // Lego*::Main::OnlyBuildOnPaths  TRUE
+	GAME_ALWAYSROCKFALL = 0x800000, // Lego*::Main::AlwaysRockFall    TRUE
+
+	GAME_UNK_1000000 = 0x1000000, // see Game_unkDebugKeysInput__00428810 (masked / toggled)
+	GAME_UNK_2000000 = 0x2000000, // see Boot_initFuncPtr__00423210
+	GAME_STREAMNERPSSPEACH = 0x4000000, // Lego*::Main::StreamNERPSSpeach   TRUE
+	GAME_UNK_8000000 = 0x8000000, // see Game_unkGameLoop?_FUN_00426450
+
+	GAME_UNK_10000000 = 0x10000000, // see Game_unkGameLoop?_FUN_00426450
+	GAME_UNK_20000000 = 0x20000000, // see Boot_initFuncPtr__00423210
+	//GAME_UNK_40000000 = 0x40000000,
+	GAME_UNK_80000000 = 0x80000000, // see Boot_initFuncPtr__00423210 (used as & ~mask)
 };
+
 // Flags at <LegoRR.exe @00557ed0>
 enum GameFlags2 : unsigned int
 {
-	GAME2_SHOWDEBUGTOOLTIPS   = 0x8, // Lego*::Main::ShowDebugToolTips   TRUE  ; if ProgrammerMode != 0
-	GAME2_ALLOWDEBUGKEYS      = 0x10, // Lego*::Main::AllowDebugKeys   TRUE  ; if ProgrammerMode != 0
-	GAME2_ALLOWEDITMODE       = 0x20, // Lego*::Main::AllowEditMode   TRUE  ; if ProgrammerMode != 0
-	GAME2_MUSICON             = 0x800, // Lego*::Main::MusicOn           TRUE
+	GAME2_UNK_1 = 0x1, // see Boot_initFuncPtr__00423210
+	//GAME2_UNK_2 = 0x2,
+	GAME2_UNK_4 = 0x4, // see Game_unkGameLoop?_FUN_00426450 (used as & ~mask)
+	GAME2_SHOWDEBUGTOOLTIPS = 0x8, // Lego*::Main::ShowDebugToolTips   TRUE  ; if ProgrammerMode != 0
+	
+	GAME2_ALLOWDEBUGKEYS = 0x10, // Lego*::Main::AllowDebugKeys   TRUE  ; if ProgrammerMode != 0
+	GAME2_ALLOWEDITMODE = 0x20, // Lego*::Main::AllowEditMode   TRUE  ; if ProgrammerMode != 0
+	GAME2_UNK_40 = 0x40, // see Game_unkGameLoop?_FUN_00426450
+	GAME2_UNK_80 = 0x80, // see Game_unkGameLoop?_FUN_00426450
+	
+	GAME2_UNK_100 = 0x100, // see Boot_initFuncPtr__00423210
+	GAME2_UNK_200 = 0x200, // see Boot_initFuncPtr__00423210
+	GAME2_UNK_400 = 0x400, // see Game_unkGameLoop?_FUN_00426450
+	GAME2_MUSICON = 0x800, // Lego*::Main::MusicOn           TRUE
 
-	GAME2_NOMULTISELECT       = 0x2000, // NoMultiSelect
-	GAME2_ALLOWRENAME         = 0x20000, // AllowRename
-	GAME2_RECALLOLOBJECTS     = 0x40000, // RecallOLObjects
-	GAME2_GENERATESPIDERS     = 0x80000, // GenerateSpiders
+	GAME2_UNK_1000 = 0x1000, // see Game_unkGameLoop?_FUN_00426450
+	GAME2_NOMULTISELECT = 0x2000, // NoMultiSelect   (used in Game_unkGameLoop?_FUN_00426450)
+	GAME2_UNK_4000 = 0x4000, // see Boot_initFuncPtr__00423210
+	GAME2_UNK_8000 = 0x8000, // see Boot_initFuncPtr__00423210
+
+	//GAME2_UNK_10000 = 0x10000,
+	GAME2_ALLOWRENAME = 0x20000, // AllowRename
+	GAME2_RECALLOLOBJECTS = 0x40000, // RecallOLObjects
+	GAME2_GENERATESPIDERS = 0x80000, // GenerateSpiders
+
 	GAME2_DISABLETOOLTIPSOUND = 0x100000, // DisableToolTipSound
-	GAME2_NOAUTOEAT           = 0x200000, // NoAutoEat
+	GAME2_NOAUTOEAT = 0x200000, // NoAutoEat
+	//GAME2_UNK_400000 = 0x400000,
+	//GAME2_UNK_800000 = 0x800000,
+	
+	//GAME2_UNK_1000000 = 0x1000000,
+	//GAME2_UNK_2000000 = 0x2000000,
+	//GAME2_UNK_4000000 = 0x4000000,
+	//GAME2_UNK_8000000 = 0x8000000,
+	
+	//GAME2_UNK_10000000 = 0x10000000,
+	//GAME2_UNK_20000000 = 0x20000000,
+	//GAME2_UNK_40000000 = 0x40000000,
+	//GAME2_UNK_80000000 = 0x80000000,
+
 };
+// Flags at <LegoRR.exe @00557ed4>
+enum GameFlags3 : unsigned int
+{
+	GAME3_UNK_1 = 0x1,
+	GAME3_UNK_2 = 0x2,
+	GAME3_UNK_4 = 0x4,
+	GAME3_UNK_8 = 0x8,
+
+	GAME3_UNK_10 = 0x10,
+	GAME3_UNK_20 = 0x20,
+	GAME3_UNK_40 = 0x40,
+	GAME3_UNK_80 = 0x80, // see FUN_00434db0
+
+	_GAME3_MASK_ff = 0xff, // see FUN_00435950 (used in & ~mask)
+
+	// flags only seem to go up to 0xff
+
+	//GAME3_UNK_100 = 0x100,
+	//GAME3_UNK_200 = 0x200,
+	//GAME3_UNK_400 = 0x400,
+	//GAME3_UNK_800 = 0x800,
+
+	//GAME3_UNK_1000 = 0x1000,
+	//GAME3_UNK_2000 = 0x2000,
+	//GAME3_UNK_4000 = 0x4000,
+	//GAME3_UNK_8000 = 0x8000,
+
+
+	//GAME3_UNK_10000 = 0x10000,
+	//GAME3_UNK_20000 = 0x20000,
+	//GAME3_UNK_40000 = 0x40000,
+	//GAME3_UNK_80000 = 0x80000,
+
+	//GAME3_UNK_100000 = 0x100000,
+	//GAME3_UNK_200000 = 0x200000,
+	//GAME3_UNK_400000 = 0x400000,
+	//GAME3_UNK_800000 = 0x800000,
+	
+	//GAME3_UNK_1000000 = 0x1000000,
+	//GAME3_UNK_2000000 = 0x2000000,
+	//GAME3_UNK_4000000 = 0x4000000,
+	//GAME3_UNK_8000000 = 0x8000000,
+	
+	//GAME3_UNK_10000000 = 0x10000000,
+	//GAME3_UNK_20000000 = 0x20000000,
+	//GAME3_UNK_40000000 = 0x40000000,
+	//GAME3_UNK_80000000 = 0x80000000,
+};
+
+
+//DAT_00500e68
+enum ObjInfoFlags : unsigned int
+{
+	OBJINFO_HUNGERIMAGES = 0x1,
+	OBJINFO_HEALTHBAR = 0x2, // always set on success? (flag HEALTHBAR)
+	OBJINFO_HEALTHBAR_VERTICAL = 0x8,
+	OBJINFO_BUBBLEIMAGES = 0x10,
+}
+
+
+
+enum Textures : unsigned int
+{
+	ROCK = 0,
+	LAVA = 1,
+	ICE = 2,
+};
+
+// enum GameFlags4 : unsigned int
+// {
+// 	//GAME4_UNK_1 = 0x1,
+// 	//GAME4_UNK_2 = 0x2,
+// 	//GAME4_UNK_4 = 0x4,
+// 	//GAME4_UNK_8 = 0x8,
+
+// 	//GAME4_UNK_10 = 0x10,
+// 	//GAME4_UNK_20 = 0x20,
+// 	//GAME4_UNK_40 = 0x40,
+// 	//GAME4_UNK_80 = 0x80,
+
+// 	//GAME4_UNK_100 = 0x100,
+// 	//GAME4_UNK_200 = 0x200,
+// 	//GAME4_UNK_400 = 0x400,
+// 	//GAME4_UNK_800 = 0x800,
+
+// 	//GAME4_UNK_1000 = 0x1000,
+// 	//GAME4_UNK_2000 = 0x2000,
+// 	//GAME4_UNK_4000 = 0x4000,
+// 	//GAME4_UNK_8000 = 0x8000,
+
+
+// 	//GAME4_UNK_10000 = 0x10000,
+// 	//GAME4_UNK_20000 = 0x20000,
+// 	//GAME4_UNK_40000 = 0x40000,
+// 	//GAME4_UNK_80000 = 0x80000,
+
+// 	//GAME4_UNK_100000 = 0x100000,
+// 	//GAME4_UNK_200000 = 0x200000,
+// 	//GAME4_UNK_400000 = 0x400000,
+// 	//GAME4_UNK_800000 = 0x800000,
+	
+// 	//GAME4_UNK_1000000 = 0x1000000,
+// 	//GAME4_UNK_2000000 = 0x2000000,
+// 	//GAME4_UNK_4000000 = 0x4000000,
+// 	//GAME4_UNK_8000000 = 0x8000000,
+	
+// 	//GAME4_UNK_10000000 = 0x10000000,
+// 	//GAME4_UNK_20000000 = 0x20000000,
+// 	//GAME4_UNK_40000000 = 0x40000000,
+// 	//GAME4_UNK_80000000 = 0x80000000,
+// };
 
 // ???
 enum MiscObjectType : int

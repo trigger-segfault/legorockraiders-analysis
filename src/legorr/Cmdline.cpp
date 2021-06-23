@@ -6,6 +6,7 @@
 
 
 /// TYPES ////////////////////////////////
+// <https://kb.rockraidersunited.com/Command-line_parameters>
 enum CmdlineFlags : unsigned int
 {
 	// Assigned by FUN_00478370 when param_1 != 0
@@ -16,7 +17,7 @@ enum CmdlineFlags : unsigned int
 	//CMD_UNK_2           = 0x2,  // Non-zero to adjust window rect?
 
 
-	CMD_NM              = 0x20, // -nm
+	CMD_NM              = 0x20, // -nm  ("no management"?, Disables texture management for Voodoo2-based cards. Incorrectly listed as -nom in the readme file.)
 	CMD_BEST            = 0x40, // -best
 	CMD_WINDOW          = 0x100, // -window
 	CMD_STARTLEVEL      = 0x200, // -startlevel

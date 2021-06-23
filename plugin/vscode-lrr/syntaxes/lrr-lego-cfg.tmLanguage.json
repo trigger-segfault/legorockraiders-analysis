@@ -29,13 +29,16 @@
       "comment": "https://kb.rockraidersunited.com/Config_documentation"
     },
     "constants": {
-      "match": "(?<=[\\s\\{\\}\\|\\:\\,]|^)(NULL|TRUE|FALSE|YES|NO)(?=[\\s\\{\\}\\|\\:\\,]|$)",
+      "match": "(?<=[\\s\\{\\}\\|\\:\\,]|^)(NULL|TRUE|FALSE|YES|NO|ON|OFF|SFX_NULL)(?=[\\s\\{\\}\\|\\:\\,]|$)",
       "captures": {
         "1": { "name": "constant.language.null" },
         "2": { "name": "constant.language.true" },
         "3": { "name": "constant.language.false" },
         "4": { "name": "constant.language.yes" },
-        "5": { "name": "constant.language.no" }
+        "5": { "name": "constant.language.no" },
+        "6": { "name": "constant.language.on" },
+        "7": { "name": "constant.language.off" },
+        "8": { "name": "constant.language.sfx_null" }
       }
     },
     "block": {

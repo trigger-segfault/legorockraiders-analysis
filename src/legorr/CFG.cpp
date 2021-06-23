@@ -4,6 +4,10 @@
 #include <string.h>
 #include <windows.h>  // for extended case-insensitive str API?
 
+#include "Common.h"
+#include "Files.h"
+#include "Util.h"
+
 
 /// TYPES ////////////////////////////////
 // CFG Property (node) structure
@@ -85,6 +89,7 @@ unsigned char* __cdecl readAllFile(const char* filename, size_t* out_length, boo
 		fseek(file, 0, SEEK_END); // seek to end to guage file length
 		long int fileLength = ftell(file);
 
+		//NOTE: This is undoubtedly a method for reading data from WAD files(?)
 		// if (DAT_005353ac != NULL) {
 		// 	(*DAT_005353ac)(filename, fileLength, DAT_005353b0);
 		// }
@@ -299,27 +304,27 @@ bool __cdecl CFG_parsePropertyRGB(CFGProperty* prop, const char* keyPath, float*
 
 // returns 0 or 1 on success, and 2 on failure
 // <LegoRR.exe @004779d0>
-unsigned int __cdecl CFG_parseBoolLiteral(const char* text)
+BOOL3 __cdecl CFG_parseBoolLiteral(const char* text)
 {
 	if (_stricmp(text, "YES") == 0)
-		return 1; // true
+		return BOOL3_TRUE /*1*/; // true
 	
 	if (_stricmp(text, "TRUE") == 0)
-		return 1; // true
+		return BOOL3_TRUE /*1*/; // true
 	
 	if (_stricmp(text, "ON") == 0)
-		return 1; // true
+		return BOOL3_TRUE /*1*/; // true
 	
 	if (_stricmp(text, "NO") == 0)
-		return 0; // false
+		return BOOL3_FALSE /*0*/; // false
 	
 	if (_stricmp(text, "FALSE") == 0)
-		return 0; // false
+		return BOOL3_FALSE /*0*/; // false
 	
 	if (_stricmp(text, "OFF") == 0)
-		return 0; // false
+		return BOOL3_FALSE /*0*/; // false
 	
-	return 2; // error result
+	return BOOL3_ERROR /*2*/; // error result
 	
 	// original ending of function. It's cryptic, but it'll return 2 for any iVar1 != 0, otherwise 0
 	//int iVar1 = _stricmp(text,s_OFF_004a5120);
@@ -328,9 +333,9 @@ unsigned int __cdecl CFG_parseBoolLiteral(const char* text)
 
 // returns 0 or 1 on success, and 2 on failure
 // <LegoRR.exe @00479390>
-unsigned int __cdecl CFG_getPropertyBool(CFGProperty* prop, constchar* keyPath)
+BOOL3 __cdecl CFG_getPropertyBool(CFGProperty* prop, constchar* keyPath)
 {
-	unsigned int result = 2; // error result
+	BOOL3 result = BOOL3_ERROR /*2*/; // error result
 	// usage of CFG_copyPropertyValue over CFG_getPropertyValue here seems pointless, since the value is never modified
 	char* value = CFG_copyPropertyValue(prop, keyPath);
 	if (value != NULL) {
@@ -341,10 +346,9 @@ unsigned int __cdecl CFG_getPropertyBool(CFGProperty* prop, constchar* keyPath)
 }
 
 
-// Not actually using this, it's probably std::string... how old is std::string again?
-// <LegoRR.exe @00477810>
-char* __cdecl allocStringCopy(const char* text);
-
+// Quite a lot of functions call this even when nothing in that block uses format strings.
+// Guess this means we'll need to sanitize basically anything using '%' characters...
+// 
 // <LegoRR.exe @00477850>
 char* __cdecl CFG_formatText(const char* text, ...)
 {
@@ -370,9 +374,7 @@ char* __cdecl CFG_formatText(const char* text, ...)
 		}
 	}
 	*outStr = '\0';
-	outStr = malloc(strlen(replBuffer) + 1);
-	return strcpy(outStr, replBuffer);
-	//return allocStringCopy(replBuffer);
+	return _strdup(outStr, replBuffer);
 }
 
 
@@ -439,7 +441,7 @@ CFGProperty* __cdecl CFG_readFile(const char *filename)
 {
 	// read entire cfg file, it looks like...
 	size_t length;
-	text = (char*)readAllBytes(filename, &length);
+	char* text = (char*)readAllBytes(filename, &length);
 	if (text == NULL)
 		return NULL;  // failed to read file, return null
 
