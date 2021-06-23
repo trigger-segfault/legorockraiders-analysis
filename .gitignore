@@ -19,6 +19,12 @@
 ## Uncommitted lazy backups
 _backup/
 
+###########################################
+## Python
+
+*.pyc
+__pycache__/
+
 
 ###########################################
 ## Original .gitignore
