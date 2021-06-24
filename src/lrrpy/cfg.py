@@ -177,11 +177,11 @@ class CFG(CFGProp):
     def _parse(cls, reader:io.BufferedReader, root:Optional['CFG']=None, *, _Prop=CFGProp) -> Tuple[bytes, Tuple[str,...], List[CFGProp]]:
         textdata = reader.read()
         tokens = cls._tokenize(textdata)
-        root.tokens = tokens
 
         props = []
-
-        if root is None:
+        if root is not None:
+            root.tokens = tokens
+        else:
             root = CFGProp()
         p = root
 

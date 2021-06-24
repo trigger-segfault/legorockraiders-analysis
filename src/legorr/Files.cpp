@@ -372,7 +372,7 @@ BOOL __cdecl File_Exist(const char* filename)
 	else if (location == FILELOC_WAD /*0*/) {
 		// brilliant! This fails regardless because the data directory wasn't stripped before calling this...
 		// this is really dumb, invalid values from this return -1, and valids values can be 0.
-		return WAD_FindEntry(dataFilename, g_WAD_ANYINDEX /*-1*/);
+		return WAD_FindEntry(dataFilename, c_WAD_ANYINDEX /*-1*/);
 	}
 	return false; // meanwhile we return 0 here on failure... GAHHH
 }
@@ -427,7 +427,7 @@ LegoFileLocation __cdecl File_FindLocation(const char* filename, const char* mod
 	if (filename != NULL && mode != NULL && strlen(filename) != 0 && strlen(mode) != 0) {
 		if (*mode != 'w' && *mode != 'W') {
 			filename = Path_StripDataDir(filename);
-			int entryIndex = WAD_FindEntry(filename, g_WAD_ANYINDEX /*-1*/);
+			int entryIndex = WAD_FindEntry(filename, c_WAD_ANYINDEX /*-1*/);
 			if (entryIndex != -1)
 				return FILELOC_WAD /*0*/; //false /*0*/;
 		}
@@ -441,7 +441,7 @@ BOOL __cdecl WAD_EntryOpen__internal(LegoWADStream* wadStream, const char* filen
 {  
 	wadStream->field_8 = 0;
 	wadStream->position = 0;
-	int sharedIndex = WAD_SharedOpen(filename, g_WAD_ANYINDEX /*-1*/);
+	int sharedIndex = WAD_SharedOpen(filename, c_WAD_ANYINDEX /*-1*/);
 	wadStream->sharedIndex = sharedIndex;
 	return (sharedIndex != -1);
 }
@@ -524,9 +524,9 @@ const char* __cdecl Path_StripDataDir(const char* filename)
 	char c = filename[datadirLen]; // backup original char here (which *should* be path separator, but could potentially be something else)
 	filename[datadirLen] = '\0';   // then replace that char with null-terminator
 	if (_stricmp(filename, g_FILEPATH_DATADIR_1) == 0) { // compare filename and datadir (could be replaced with strnicmp)
-		sprintf(g_TMP_FILEPATH_STRIPDATADIR, "%s", filename + datadirLen + 1);
+		sprintf(tmp_FILEPATH_STRIPDATADIR, "%s", filename + datadirLen + 1);
 		filename[datadirLen] = c; // restore char
-		return g_TMP_FILEPATH_STRIPDATADIR;
+		return tmp_FILEPATH_STRIPDATADIR;
 	}
 	filename[datadirLen] = c; // restore char
 	return filename;
@@ -590,10 +590,10 @@ const char* __cdecl Path_JoinDataDir(const char* filename)
 			filename++;
 
 		sprintf(buffer, "%s\\%s", g_FILEPATH_DATADIR_2, filename);
-		if (_fullpath(g_TMP_FILEPATH_JOINDATADIR, buffer, MAX_PATH /*260*/) != NULL) {
+		if (_fullpath(tmp_FILEPATH_JOINDATADIR, buffer, MAX_PATH /*260*/) != NULL) {
 
-			if (_strncmp(g_TMP_FILEPATH_JOINDATADIR, g_FILEPATH_DATADIR_2, strlen(g_FILEPATH_DATADIR_2)) == 0) {
-				return g_TMP_FILEPATH_JOINDATADIR;
+			if (_strncmp(tmp_FILEPATH_JOINDATADIR, g_FILEPATH_DATADIR_2, strlen(g_FILEPATH_DATADIR_2)) == 0) {
+				return tmp_FILEPATH_JOINDATADIR;
 			}
 		}
 	}

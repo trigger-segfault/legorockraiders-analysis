@@ -1,13 +1,23 @@
 
+#ifndef LEGORR__UTIL_H
+#define LEGORR__UTIL_H
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <windows.h>  // for BOOL typedef?
+
+
 
 // Does what it says on the tin, returns str.
 // 
 // <LegoRR.exe @00413e30>
 char* __cdecl stringReplaceChar(char* str, char origChar, char newChar);
 
+// Split string into parts at the appearance of each delimiter (cannot overlap)
+// parts are stored in out_parts, which MUST contain enough room for the number of parts found.
+//   (this can cause a buttload of issues with malformed CFG values)
+// if the input string is empty, 0 is returned, and out_parts[0] is not assigned.
+// 
 // Returns the number of matches/
 // Changes str by zeroing all found delimiters (case sensitive).
 // Found parts are output to parts, which points to an array of strings,
@@ -41,3 +51,6 @@ void __cdecl nocall(void); // what signature is detected as
 // 
 // <LegoRR.exe @0048b760>
 BOOL __cdecl freadstr(FILE* file, char* out_str);
+
+
+#endif /* LEGORR__UTIL_H */

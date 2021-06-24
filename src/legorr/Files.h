@@ -2,19 +2,26 @@
 // Many of the standard File_ functions that have C f_ counterparts are the REAL-deal names.
 //  Their names are present in log strings, and a log string also list the file definition as Files.c
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <errno.h>
-#include <windows.h>  // for BOOL typedef?
+#ifndef LEGORR__FILES_H
+#define LEGORR__FILES_H
+
+#define s_Dev_SourceSafe__Files_c "C:\\Dev\\SourceSafe\\gods98_dx6\\gods98\\src\\Files.c"
+
 #include "Common.h"
 
 
 #pragma region /// TYPES ////////////////////////////////
 
+enum LegoFileLocation
+{
+	FILELOC_WAD = 0,
+	FILELOC_REAL = 1,
+	FILELOC_ERROR = 2,
+};
+
 struct LegoWADEntry
 {
-	/*00,4*/ unsigned int version; // field_0;
+	/*00,4*/ unsigned int version; // field_0; // might actually be flags, 0x2 has special meaning that causes some extra functions to get called
 	/*04,4*/ unsigned int size; // field_4;
 	/*08,4*/ unsigned int size2; // field_8;
 	/*0c,4*/ unsigned int offset; // field_c;
@@ -84,27 +91,29 @@ struct LegoFileBuffer;
 
 
 #pragma region /// CONSTANTS ////////////////////////////
+
 // <LegoRR.exe @004abf00>
-static int g_WAD_ANYINDEX = -1; // constant that states WAD entry lookup will check every WAD file
+static int c_WAD_ANYINDEX = -1; // constant that states WAD entry lookup will check every WAD file
 
 #pragma endregion
 
 
 #pragma region /// GLOBALS //////////////////////////////
+
 // <LegoRR.exe @00576500>
 static LegoWADFile g_WADFILES_TABLE[WADFILES_COUNT /*10*/];
 
 // <LegoRR.exe @005349a0>
 static char g_FILEPATH_DATADIR_1[0x400 /*1024*/];
 // <LegoRR.exe @00534da0>
-static char g_TMP_FILEPATH_STRIPDATADIR[0x400 /*1024*/];
+static char tmp_FILEPATH_STRIPDATADIR[0x400 /*1024*/];
 
 // <LegoRR.exe @005351a0>
-static char g_TMP_FILEPATH_JOINDATADIR[0x108 /*264*/]; // is this actually MAX_PATH /*0x104*/ /*260*/ ??
+static char tmp_FILEPATH_JOINDATADIR[0x108 /*264*/]; // is this actually MAX_PATH /*0x104*/ /*260*/ ??
 // <LegoRR.exe @005352a8>
 static char g_FILEPATH_DATADIR_2[MAX_PATH /*0x104*/ /*260*/];
 
-// no clue on these two value yet...
+// no clue on these two value yet... (maybe actually SafeDisc DRM stuff?)
 // <LegoRR.exe @005353ac>
 static void* g_WAD_unkFuncPtr_A_005353ac;
 // <LegoRR.exe @005353b0>
@@ -347,3 +356,6 @@ size_t __cdecl WAD_UNK_Decompress__0049ca80(unsigned char* srcBuffer, unsigned c
 int __cdecl WAD_UNK_Decompress__internal__0049cb00(unsigned char* srcBuffer, unsigned char* dstBuffer);
 
 #pragma endregion
+
+
+#endif /* LEGORR__FILES_H */

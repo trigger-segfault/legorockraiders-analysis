@@ -56,7 +56,8 @@ enum GameFlags : unsigned int
 // Flags at <LegoRR.exe @00557ed0>
 enum GameFlags2 : unsigned int
 {
-	GAME2_UNK_1 = 0x1, // see Boot_initFuncPtr__00423210
+	GAME2_CALLTOARMS = 0x1, // CallToArms "Action Stations" is on
+	// GAME2_ACTIONSTATIONS = 0x1, // CallToArms "Action Stations" is on (alias)
 	//GAME2_UNK_2 = 0x2,
 	GAME2_UNK_4 = 0x4, // see Game_unkGameLoop?_FUN_00426450 (used as & ~mask)
 	GAME2_SHOWDEBUGTOOLTIPS = 0x8, // Lego*::Main::ShowDebugToolTips   TRUE  ; if ProgrammerMode != 0

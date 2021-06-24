@@ -5,11 +5,13 @@
 #include <windows.h>  // for extended case-insensitive str API?
 
 #include "Common.h"
+#include "CFG.h"
 #include "Files.h"
 #include "Util.h"
 
 
-/// TYPES ////////////////////////////////
+#pragma region /// TYPES ////////////////////////////////
+
 // CFG Property (node) structure
 // this type is used for the root, block properties, and key/value properties.
 struct CFGProperty
@@ -23,10 +25,14 @@ struct CFGProperty
 	/*18,4*/ CFGProperty* propPrevious;  // init: NULL (if root)
 
 	/*1c,4*/ CFGProperty* nextAvailable; // probably STL linked list thing(?), if so, then it's not an accessible part of the structure.
+	/*20*/
 };
 
+#pragma endregion
 
-/// GLOBALS //////////////////////////////
+
+#pragma region /// GLOBALS //////////////////////////////
+
 // global singleton string buffer returned by CFG_joinPath
 // <LegoRR.exe @00507098>
 static char tmp_CFG_JOINPATH[1024];
@@ -35,99 +41,16 @@ static char tmp_CFG_JOINPATH[1024];
 // <LegoRR.exe @00507518>
 static CFGProperty* g_CFG_AvailableProperty = NULL;
 
-
-/// HELPERS //////////////////////////////
-
-// Split string into parts at the appearance of each delimiter (cannot overlap)
-// parts are stored in out_parts, which MUST contain enough room for the number of parts found.
-//   (this can cause a buttload of issues with malformed CFG values)
-// if the input string is empty, 0 is returned, and out_parts[0] is not assigned.
-//
-// all 3 arguments are required (except out_parts when input is empty)
-// <LegoRR.exe @00477700>
-int __cdecl stringSplit(char* input, char** out_parts, const char* delimiter)
-{
-	size_t delimiterLength = strlen(delimiter);
-
-	int numParts = 0; // zero parts if empty string
-	if (*input != '\0') {
-		// assign first part (minimum of 1 when string is not empty)
-		out_parts[numParts++] = input;
-		do {
-			// check for match with delimiter
-			if (strncmp(delimiter, input, delimiterLength) == 0) {
-				*input = '\0'; // erase start of delimiter, terminate string
-				out_parts[numParts++] = input + delimiterLength;
-			}
-			input++;
-		} while (*input != '\0');
-	}
-	return numParts;
-}
+#pragma endregion
 
 
-// <LegoRR.exe @00413e30>
-char* __cdecl stringReplaceChar(char* text, char origChar, char newChar)
-{
-	for (char* str = text; *str != '\0'; str++) {
-
-		if (*str == origChar)
-			*str = newChar;
-	}
-	return text;
-}
-
-
-// Read all data from a file in binary or text mode
-// 
-// out_length if optional
-// <LegoRR.exe @00480380>
-unsigned char* __cdecl readAllFile(const char* filename, size_t* out_length, bool isBinary)
-{
-	FILE* file = fopen(filename, isBinary ? "rb" : "r");
-	if (file != NULL) {
-		fseek(file, 0, SEEK_END); // seek to end to guage file length
-		long int fileLength = ftell(file);
-
-		//NOTE: This is undoubtedly a method for reading data from WAD files(?)
-		// if (DAT_005353ac != NULL) {
-		// 	(*DAT_005353ac)(filename, fileLength, DAT_005353b0);
-		// }
-
-		// SANITY: malloc(fileLength + 1) for enforced null-terminator.
-		//   errors will occur if the file does not end in whitespace or a comment.
-		//   well... except there's no possible scenario where a properly formatted config file should fail anyways.
-		unsigned char* buffer = (unsigned char*)malloc(fileLength);
-		if (buffer != NULL) {
-			fseek(file, 0, SEEK_SET); // seek back to start, only if we successfully allocated the buffer
-			fread(buffer, 1, fileLength, file);
-			if (out_length != NULL) {
-				*out_length = (size_t)fileLength;
-			}
-		}
-		fclose(file);
-		return buffer;
-	}
-	return NULL;
-}
-
-// Read all data from a file in binary mode
-// 
-// out_length if optional
-// <LegoRR.exe @00480360>
-unsigned char* __cdecl readAllBytes(const char* filename, size_t* out_length)
-{
-	return readAllFile(filename, out_length, true);
-}
-
-
-
-/// CFG FUNCTIONS ////////////////////////
+#pragma region /// CFG FUNCTIONS ////////////////////////
 
 // REQUIRED: pass NULL as final argument (except if keyPath2 == NULL)
 // returns a temporary global string that must be used or copied before the next call to this function.
 //
 // I have no idea if this VA Args handling is implemented correctly, let's hope so.
+// 
 // <LegoRR.exe @00479210>
 const char* __cdecl CFG_joinPath(const char* keyPath1, const char* keyPath2, const char* keyPath3, ...)
 {
@@ -168,6 +91,7 @@ bool __cdecl CFG_isKeyMatch(const CFGProperty* prop, const char* keyName, bool* 
 }
 
 // prop points to the starting property to search from, it DOES NOT need to be the Lego* root property block
+// 
 // <LegoRR.exe @004795a0>
 CFGProperty* __cdecl CFG_getProperty(CFGProperty* prop, const char* keyPath)
 {
@@ -183,7 +107,7 @@ CFGProperty* __cdecl CFG_getProperty(CFGProperty* prop, const char* keyPath)
 		bool isWildcard = false;
 		unsigned int depth = numParts - 1;
 		// check for top-level key match
-		if (prop->depth != depth || !CFG_isKeyMatch(prop, parts[numParts - 1], &isWildcard)) {
+		if (prop->depth != depth || !CFG_isKeyMatch(prop, parts[depth], &isWildcard)) {
 			prop = prop->propNext;
 			continue;
 		}
@@ -217,7 +141,6 @@ CFGProperty* __cdecl CFG_getProperty(CFGProperty* prop, const char* keyPath)
 	return result;
 }
 
-
 // <LegoRR.exe @004792b0>
 CFGProperty* __cdecl CFG_getBlockFirstChild(CFGProperty* prop, const char* keyPath)
 {
@@ -230,7 +153,6 @@ CFGProperty* __cdecl CFG_getBlockFirstChild(CFGProperty* prop, const char* keyPa
 
 	return NULL;
 }
-
 
 // <LegoRR.exe @00479370>
 char* __cdecl CFG_getPropertyValue(CFGProperty* prop, const char* keyPath)
@@ -283,6 +205,7 @@ CFGProperty* __cdecl CFG_nextFlatProperty(const CFGProperty* prop)
 }
 
 // Converts RGB channels from int [0-255], -> float [0.0f-1.0f]
+// 
 // <LegoRR.exe @00479430>
 bool __cdecl CFG_parsePropertyRGB(CFGProperty* prop, const char* keyPath, float* out_r, float* out_g, float* out_b)
 {
@@ -303,6 +226,7 @@ bool __cdecl CFG_parsePropertyRGB(CFGProperty* prop, const char* keyPath, float*
 }
 
 // returns 0 or 1 on success, and 2 on failure
+// 
 // <LegoRR.exe @004779d0>
 BOOL3 __cdecl CFG_parseBoolLiteral(const char* text)
 {
@@ -332,8 +256,9 @@ BOOL3 __cdecl CFG_parseBoolLiteral(const char* text)
 }
 
 // returns 0 or 1 on success, and 2 on failure
+// 
 // <LegoRR.exe @00479390>
-BOOL3 __cdecl CFG_getPropertyBool(CFGProperty* prop, constchar* keyPath)
+BOOL3 __cdecl CFG_getPropertyBool(CFGProperty* prop, const char* keyPath)
 {
 	BOOL3 result = BOOL3_ERROR /*2*/; // error result
 	// usage of CFG_copyPropertyValue over CFG_getPropertyValue here seems pointless, since the value is never modified
@@ -344,7 +269,6 @@ BOOL3 __cdecl CFG_getPropertyBool(CFGProperty* prop, constchar* keyPath)
 	}
 	return result;
 }
-
 
 // Quite a lot of functions call this even when nothing in that block uses format strings.
 // Guess this means we'll need to sanitize basically anything using '%' characters...
@@ -359,7 +283,6 @@ char* __cdecl CFG_formatText(const char* text, ...)
 
 	const char* fmtStr = fmtBuffer;
 	char* outStr = replBuffer;
-	size_t length = 0;
 	while (*fmtStr != '\0') {
 		char c = *fmtStr;
 		if (c == '\\' && fmtStr[1] == 'n') {
@@ -376,7 +299,6 @@ char* __cdecl CFG_formatText(const char* text, ...)
 	*outStr = '\0';
 	return _strdup(outStr, replBuffer);
 }
-
 
 // <LegoRR.exe @00479530>
 CFGProperty* __cdecl CFG_allocNextProperty(CFGProperty* previous)
@@ -411,7 +333,6 @@ CFGProperty* __cdecl CFG_allocNextProperty(CFGProperty* previous)
 	return prop;
 }
 
-
 // Normalize whitespace characters -> '\0'
 // includes handling of ';' comments
 // newlines only require '\n' (no '\r' is needed)
@@ -419,10 +340,10 @@ CFGProperty* __cdecl CFG_allocNextProperty(CFGProperty* previous)
 //
 // NOTE: This function has been isolated from CFG_readFile
 // <LegoRR.exe -> CFG_readFile>
-void __cdecl CFG_zeroWhiteSpace(char* text, size_t length)
+void __cdecl CFG_zeroWhiteSpace(char* text, unsigned int length)
 {
 	bool isComment = false;
-	for (size_t i = 0; i < length; i++, text++) {
+	for (unsigned int i = 0; i < length; i++, text++) {
 		char c = *text;
 		if (c == ';')
 			isComment = true; // whitespace until EOL
@@ -436,12 +357,13 @@ void __cdecl CFG_zeroWhiteSpace(char* text, size_t length)
 }
 
 // Open and read all the properties of a CFG file, and return the root property.
+// 
 // <LegoRR.exe @00479120>
 CFGProperty* __cdecl CFG_readFile(const char *filename)
 {
 	// read entire cfg file, it looks like...
-	size_t length;
-	char* text = (char*)readAllBytes(filename, &length);
+	unsigned int length;
+	char* text = (char*)File_ReadAllBytes(filename, &length);
 	if (text == NULL)
 		return NULL;  // failed to read file, return null
 
@@ -493,6 +415,7 @@ CFGProperty* __cdecl CFG_readFile(const char *filename)
 }
 
 // Return this unused property to the pool
+// 
 // <LegoRR.exe @00479580>
 void __cdecl CFG__cleanup_setNextAvail(CFGProperty* prop)
 {
@@ -501,6 +424,7 @@ void __cdecl CFG__cleanup_setNextAvail(CFGProperty* prop)
 }
 
 // Essentially walk through the tree, and return all unused properties to the pool
+// 
 // <LegoRR.exe @00479500>
 void __cdecl CFG__cleanup(CFGProperty* root)
 {
@@ -512,3 +436,5 @@ void __cdecl CFG__cleanup(CFGProperty* root)
 		prop = prop->propNext;
 	}
 }
+
+#pragma endregion
