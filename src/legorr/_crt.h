@@ -38,12 +38,16 @@ char* strstr(const char* str, const char* strSearch);
 // <https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/strlen-wcslen-mbslen-mbslen-l-mbstrlen-mbstrlen-l>
 size_t strlen(const char* str);
 
+// <https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/strcat-wcscat-mbscat>
+char* strcat(char* strDestination, const char* strSource);
+
 // <https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/strcpy-wcscpy-mbscpy>
 char* strcpy(char* strDestination, const char* strource);
 
-// <https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/memcmp-wmemcmp>
-int memcmp(const void* buffer1, const void* buffer2, size_t count);
+// <https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/memcpy-wmemcpy>
+void* memcpy(void* dest, const void* src, size_t count);
 
+// Generally used to zero-out memory
 // <https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/memset-wmemset>
 void* memset(void* dest, int c, size_t count);
 
