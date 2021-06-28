@@ -1,0 +1,286 @@
+EAX = 000
+ECX = 001
+EDX = 010
+EBX = 011
+ESP = 100
+EBP = 101
+ESI = 110
+EDI = 111
+
+
+
+-       00465003 0f 86 bd        JBE        LAB_004650c6
+-                00 00 00
++       00465003 0f 86 bf        JBE        LAB_004650c8
++                00 00 00
+
+
+
+        00465069 e8 c2 5a        CALL       lego::snd::SFX_Load__0047ab30                    int SFX_Load__0047ab30(char * in
+                 01 00
+        0046506e 83 c4 10        ADD        ESP,0x10
+        00465071 83 f8 ff        CMP        EAX,-0x1
+-       00465074 89 07           MOV        dword ptr [EDI],EAX=>SFXProperty->sfxIndex   = ??
++       00465074 8b d0           MOV        EDX,EAX
+-       00465076 74 2a           JZ         LAB_004650a2
++       00465076 74 2c           JZ         LAB_004650a4
+        00465080 a1 28 3a        MOV        EAX,[lego::globals::g_SFXGroup_COUNT]            = ??
+                 50 00
+        00465085 8d 3c c5        LEA        EDI,[EAX*0x8 + lego::globals::g_SFXGroup_TABLE]  = ??
+                 e0 33 50 00
+        0046508c 40              INC        EAX
+        0046508d a3 28 3a        MOV        [lego::globals::g_SFXGroup_COUNT],EAX            = ??
+                 50 00
+        00465092 89 79 04        MOV        dword ptr [ECX + 0x4],EDI
+        00465095 c7 47 04        MOV        dword ptr [EDI + 0x4],0x0=>g_SFXGroup_TABLE[0]   = null
+                 00 00 00 00
+                             LAB_0046509c                                    XREF[1]:     0046507e(j)  
+        0046509c 89 7c 24 1c     MOV        dword ptr [ESP + lastItem],EDI
++       004650a0 89 17           MOV        dword ptr [EDI],EDX=>SFXProperty->sfxIndex   = ??
+-       004650a0 eb 08           JMP        LAB_004650aa
++       004650a2 eb 08           JMP        LAB_004650ac
+-                            LAB_004650a2                                    XREF[1]:     00465076(j)  
++                            LAB_004650a4                                    XREF[1]:     00465076(j)  
+        004650a2 c7 44 24        MOV        dword ptr [ESP + success],0x0
+                 18 00 00 
+                 00 00
+-                            LAB_004650aa                                    XREF[1]:     004650a0(j)  
++                            LAB_004650ac                                    XREF[1]:     004650a2(j)  
+        004650aa 8b 4c 24 10     MOV        ECX,dword ptr [ESP + local_1e0]
+        004650ae 8b 44 24 14     MOV        EAX,dword ptr [ESP + numParts]
+        004650b2 83 c1 04        ADD        ECX,0x4
+        004650b5 48              DEC        EAX
+        004650b6 89 4c 24 10     MOV        dword ptr [ESP + local_1e0],ECX
+        004650ba 89 44 24 14     MOV        dword ptr [ESP + numParts],EAX
+-       004650be 0f 85 53        JNZ        LAB_00465017
+-                ff ff ff
++       004650c1 0f 85 51        JNZ        LAB_00465017
++                ff ff ff
+        004650c4 5b              POP        EBX
+        004650c5 5e              POP        ESI
+-                            LAB_004650c6                                    XREF[1]:     00465003(j)  
++                            LAB_004650c8                                    XREF[1]:     00465003(j)  
+        004650c6 8b 44 24 10     MOV        EAX,dword ptr [ESP + success]
+        004650ca 5f              POP        EDI
+        004650cb 5d              POP        EBP
+        004650cc 81 c4 e0        ADD        ESP,0x1e0
+                 01 00 00
+        004650d2 c3              RET
+
+
+
+
++       00465074 89 17           MOV        dword ptr [EDI],EDX=>lego::globals::g_SFXPrope   = ??
+
+        00465105 8b c7           MOV        EAX,EDI
+
+
+
+        00465074 89 07           MOV        dword ptr [EDI],EAX=>lego::globals::g_SFXPrope   = ??
+
+
+
+
+
+
+
+        00465069 e8 c2 5a        CALL       lego::snd::SFX_Load__0047ab30                    int SFX_Load__0047ab30(char * in
+                 01 00
+        0046506e 83 c4 10        ADD        ESP,0x10
+        00465071 83 f8 ff        CMP        EAX,-0x1
+        00465074 89 07           MOV        dword ptr [EDI],EAX=>lego::globals::g_SFXPrope   = ??
+        00465076 74 2a           JZ         LAB_004650a2
+        00465078 8b 4c 24 1c     MOV        ECX,dword ptr [ESP + lastItem]
+        0046507c 85 c9           TEST       ECX,ECX
+        0046507e 74 1c           JZ         LAB_0046509c
+        00465080 a1 28 3a        MOV        EAX,[lego::globals::g_SFXGroup_COUNT]            = ??
+                 50 00
+        00465085 8d 3c c5        LEA        EDI,[EAX*0x8 + lego::globals::g_SFXGroup_TABLE]  = ??
+                 e0 33 50 00
+        0046508c 40              INC        EAX
+        0046508d a3 28 3a        MOV        [lego::globals::g_SFXGroup_COUNT],EAX            = ??
+                 50 00
+        00465092 89 79 04        MOV        dword ptr [ECX + 0x4],EDI
+        00465095 c7 47 04        MOV        dword ptr [EDI + 0x4],0x0=>g_SFXGroup_TABLE[0]   = null
+                 00 00 00 00
+                             LAB_0046509c                                    XREF[1]:     0046507e(j)  
+        0046509c 89 7c 24 1c     MOV        dword ptr [ESP + lastItem],EDI
+        004650a0 eb 08           JMP        LAB_004650aa
+                             LAB_004650a2                                    XREF[1]:     00465076(j)  
+        004650a2 c7 44 24        MOV        dword ptr [ESP + success],0x0
+                 18 00 00 
+                 00 00
+                             LAB_004650aa                                    XREF[1]:     004650a0(j)  
+        004650aa 8b 4c 24 10     MOV        ECX,dword ptr [ESP + local_1e0]
+        004650ae 8b 44 24 14     MOV        EAX,dword ptr [ESP + numParts]
+        004650b2 83 c1 04        ADD        ECX,0x4
+        004650b5 48              DEC        EAX
+        004650b6 89 4c 24 10     MOV        dword ptr [ESP + local_1e0],ECX
+        004650ba 89 44 24 14     MOV        dword ptr [ESP + numParts],EAX
+        004650be 0f 85 53        JNZ        LAB_00465017
+                 ff ff ff
+        004650c4 5b              POP        EBX
+        004650c5 5e              POP        ESI
+
+
+                             **************************************************************
+                             *                          FUNCTION                          *
+                             **************************************************************
+                             undefined4 __cdecl SFX_LoadProperty__00464fc0(char * val
+             undefined4        EAX:4          <RETURN>
+             char *            Stack[0x4]:4   value                                   XREF[1]:     00464fcd(R)  
+             int               Stack[0x8]:4   index                                   XREF[1]:     00464fc6(R)  
+             undefined1[400]   Stack[-0x190   filename_parts                          XREF[2]:     00464fd6(*), 
+                                                                                                   00465009(*)  
+             undefined1[64]    Stack[-0x1d0   pound_buffer                            XREF[3]:     0046503d(*), 
+                                                                                                   00465041(*), 
+                                                                                                   0046504c(*)  
+             undefined4        Stack[-0x1d4   lastItem                                XREF[3]:     00464ff2(W), 
+                                                                                                   00465078(R), 
+                                                                                                   0046509c(W)  
+             BOOL              Stack[-0x1d8   success                                 XREF[3]:     00464fea(W), 
+                                                                                                   004650a2(W), 
+                                                                                                   004650c6(R)  
+             undefined4        Stack[-0x1dc   numParts                                XREF[3]:     00465013(W), 
+                                                                                                   004650ae(R), 
+                                                                                                   004650ba(W)  
+             undefined4        Stack[-0x1e0   local_1e0                               XREF[4]:     0046500f(W), 
+                                                                                                   00465017(R), 
+                                                                                                   004650aa(R), 
+                                                                                                   004650b6(W)  
+                             lego::snd::SFX_LoadProperty__00464fc0           XREF[1]:     Boot_Load_Samples:004349ed(c)  
+        00464fc0 81 ec e0        SUB        ESP,0x1e0
+                 01 00 00
+        00464fc6 8b 84 24        MOV        EAX,dword ptr [ESP + index]
+                 e8 01 00 00
+        00464fcd 8b 94 24        MOV        EDX,dword ptr [ESP + value]
+                 e4 01 00 00
+        00464fd4 55              PUSH       EBP
+        00464fd5 57              PUSH       EDI
+        00464fd6 8d 4c 24 58     LEA        ECX=>filename_parts,[ESP + 0x58]
+        00464fda 8d 3c c5        LEA        EDI,[EAX*0x8 + lego::globals::g_SFXProperty_TA   = ??
+                 68 24 50 00
+        00464fe1 68 e4 23        PUSH       s_,_004a23e4                                     = ","
+                 4a 00
+        00464fe6 33 ed           XOR        EBP,EBP
+        00464fe8 51              PUSH       ECX
+        00464fe9 52              PUSH       EDX
+        00464fea c7 44 24        MOV        dword ptr [ESP + success],0x1
+                 1c 01 00 
+                 00 00
+        00464ff2 89 6c 24 20     MOV        dword ptr [ESP + lastItem],EBP
+        00464ff6 89 6f 04        MOV        dword ptr [EDI + 0x4],EBP=>g_SFXProperty_TABLE   = null
+        00464ff9 e8 02 27        CALL       lego::util::stringSplit                          int stringSplit(char * input, ch
+                 01 00
+        00464ffe 83 c4 0c        ADD        ESP,0xc
+        00465001 3b c5           CMP        EAX,EBP
+        00465003 0f 86 bd        JBE        LAB_004650c6
+                 00 00 00
+        00465009 8d 4c 24 58     LEA        ECX=>filename_parts,[ESP + 0x58]
+        0046500d 56              PUSH       ESI
+        0046500e 53              PUSH       EBX
+        0046500f 89 4c 24 10     MOV        dword ptr [ESP + local_1e0],ECX
+        00465013 89 44 24 14     MOV        dword ptr [ESP + numParts],EAX
+                             LAB_00465017                                    XREF[1]:     004650be(j)  
+        00465017 8b 54 24 10     MOV        EDX,dword ptr [ESP + local_1e0]
+        0046501b 8b 32           MOV        ESI,dword ptr [EDX]
+        0046501d 80 3e 2a        CMP        byte ptr [ESI],0x2a
+        00465020 75 08           JNZ        LAB_0046502a
+        00465022 bb 01 00        MOV        EBX,0x1
+                 00 00
+        00465027 46              INC        ESI
+        00465028 eb 02           JMP        LAB_0046502c
+                             LAB_0046502a                                    XREF[1]:     00465020(j)  
+        0046502a 33 db           XOR        EBX,EBX
+                             LAB_0046502c                                    XREF[1]:     00465028(j)  
+        0046502c 8a 0e           MOV        CL,byte ptr [ESI]
+        0046502e 33 c0           XOR        EAX,EAX
+        00465030 80 f9 23        CMP        CL,0x23
+        00465033 75 25           JNZ        LAB_0046505a
+        00465035 8a 46 01        MOV        AL,byte ptr [ESI + 0x1]
+        00465038 46              INC        ESI
+        00465039 3c 23           CMP        AL,0x23
+        0046503b 74 0f           JZ         LAB_0046504c
+        0046503d 8d 4c 24 20     LEA        ECX=>pound_buffer,[ESP + 0x20]
+                             LAB_00465041                                    XREF[1]:     0046504a(j)  
+        00465041 88 01           MOV        byte ptr [ECX]=>pound_buffer,AL
+        00465043 8a 46 01        MOV        AL,byte ptr [ESI + 0x1]
+        00465046 41              INC        ECX
+        00465047 46              INC        ESI
+        00465048 3c 23           CMP        AL,0x23
+        0046504a 75 f5           JNZ        LAB_00465041
+                             LAB_0046504c                                    XREF[1]:     0046503b(j)  
+        0046504c 8d 44 24 20     LEA        EAX=>pound_buffer,[ESP + 0x20]
+        00465050 50              PUSH       EAX
+        00465051 e8 da 8d        CALL       msvc::atoi                                       int atoi(char * text)
+                 02 00
+        00465056 83 c4 04        ADD        ESP,0x4
+        00465059 46              INC        ESI
+                             LAB_0046505a                                    XREF[1]:     00465033(j)  
+        0046505a 80 3e 40        CMP        byte ptr [ESI],0x40
+        0046505d 75 06           JNZ        LAB_00465065
+        0046505f bd 01 00        MOV        EBP,0x1
+                 00 00
+        00465064 46              INC        ESI
+                             LAB_00465065                                    XREF[1]:     0046505d(j)  
+        00465065 50              PUSH       EAX
+        00465066 53              PUSH       EBX
+        00465067 55              PUSH       EBP
+        00465068 56              PUSH       ESI
+        00465069 e8 c2 5a        CALL       lego::snd::SFX_Load__0047ab30                    int SFX_Load__0047ab30(char * in
+                 01 00
+        0046506e 83 c4 10        ADD        ESP,0x10
+        00465071 83 f8 ff        CMP        EAX,-0x1
+        00465074 89 07           MOV        dword ptr [EDI],EAX=>lego::globals::g_SFXPrope   = ??
+        00465076 74 2a           JZ         LAB_004650a2
+        00465078 8b 4c 24 1c     MOV        ECX,dword ptr [ESP + lastItem]
+        0046507c 85 c9           TEST       ECX,ECX
+        0046507e 74 1c           JZ         LAB_0046509c
+        00465080 a1 28 3a        MOV        EAX,[lego::globals::g_SFXGroup_COUNT]            = ??
+                 50 00
+        00465085 8d 3c c5        LEA        EDI,[EAX*0x8 + lego::globals::g_SFXGroup_TABLE]  = ??
+                 e0 33 50 00
+        0046508c 40              INC        EAX
+        0046508d a3 28 3a        MOV        [lego::globals::g_SFXGroup_COUNT],EAX            = ??
+                 50 00
+        00465092 89 79 04        MOV        dword ptr [ECX + 0x4],EDI
+        00465095 c7 47 04        MOV        dword ptr [EDI + 0x4],0x0=>g_SFXGroup_TABLE[0]   = null
+                 00 00 00 00
+                             LAB_0046509c                                    XREF[1]:     0046507e(j)  
+        0046509c 89 7c 24 1c     MOV        dword ptr [ESP + lastItem],EDI
+        004650a0 eb 08           JMP        LAB_004650aa
+                             LAB_004650a2                                    XREF[1]:     00465076(j)  
+        004650a2 c7 44 24        MOV        dword ptr [ESP + success],0x0
+                 18 00 00 
+                 00 00
+                             LAB_004650aa                                    XREF[1]:     004650a0(j)  
+        004650aa 8b 4c 24 10     MOV        ECX,dword ptr [ESP + local_1e0]
+        004650ae 8b 44 24 14     MOV        EAX,dword ptr [ESP + numParts]
+        004650b2 83 c1 04        ADD        ECX,0x4
+        004650b5 48              DEC        EAX
+        004650b6 89 4c 24 10     MOV        dword ptr [ESP + local_1e0],ECX
+        004650ba 89 44 24 14     MOV        dword ptr [ESP + numParts],EAX
+        004650be 0f 85 53        JNZ        LAB_00465017
+                 ff ff ff
+        004650c4 5b              POP        EBX
+        004650c5 5e              POP        ESI
+                             LAB_004650c6                                    XREF[1]:     00465003(j)  
+        004650c6 8b 44 24 10     MOV        EAX,dword ptr [ESP + success]
+        004650ca 5f              POP        EDI
+        004650cb 5d              POP        EBP
+        004650cc 81 c4 e0        ADD        ESP,0x1e0
+                 01 00 00
+        004650d2 c3              RET
+        004650d3 90              ??         90h
+        004650d4 90              ??         90h
+        004650d5 90              ??         90h
+        004650d6 90              ??         90h
+        004650d7 90              ??         90h
+        004650d8 90              ??         90h
+        004650d9 90              ??         90h
+        004650da 90              ??         90h
+        004650db 90              ??         90h
+        004650dc 90              ??         90h
+        004650dd 90              ??         90h
+        004650de 90              ??         90h
+        004650df 90              ??         90h
