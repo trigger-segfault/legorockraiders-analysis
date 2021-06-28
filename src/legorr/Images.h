@@ -7,5 +7,9 @@
 #include "Common.h"
 
 
+// Make a screen capture at the end of a level (used when creating saves)
+// <LegoRR.exe @0047e5c0>
+void __cdecl Image_CreateCapture(undefined4 param_1, int captureWidth, int captureHeight);
+
 
 #endif /* LEGORR__IMAGES_H */

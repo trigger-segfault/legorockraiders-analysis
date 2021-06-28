@@ -7,9 +7,8 @@
 #include "Common.h"
 
 
-
-void __cdecl FUN_00477410(float param_1, undefined4* param_2, undefined4 param_3);
-
+// <LegoRR.exe @00477410>
+void __cdecl Viewport_FUN_00477410(float param_1, undefined4* param_2, undefined4 param_3);
 
 
 #endif /* LEGORR__VIEWPORTS_H */
