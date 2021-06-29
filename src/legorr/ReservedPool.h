@@ -68,8 +68,24 @@ public:
 		}
 		ReservedPool<T>* current = ReservedPool<T>::g_NEXT;
 		ReservedPool<T>::g_NEXT = ReservedPool<T>::g_NEXT->m_next; // move to next available
+		// A pool item whose's m_next field points to itself,
+		// is an item that has been loaned out.
+		assert(current->m_next != current);
 		current->m_next = current; // sever link to next available in our returned item
 		return &current->m_item;
+	}
+	// Release a loaned item, and return it to the pool
+	static void __cdecl Release(T* item) {
+		// Cast to the full ReservedPool<T> container type
+		//  (which always starts at the same address as item)
+		ReservedPool<T>* current = (ReservedPool<T>*)item;
+
+		// This behavior treats g_NEXT like a linked list stack.
+		// Released items get pushed on top, and link back to
+		// previously released/unused pool items.
+		assert(current->m_next == current);
+		current->m_next = ReservedPool<T>::g_NEXT; // restore link to next available in our released item
+		ReservedPool<T>::g_NEXT = current; // change next available to our released item
 	}
 };
 template <typename T> ReservedPool<T>* ReservedPool<T>::g_TABLE[32];
@@ -95,11 +111,6 @@ struct CFGProperty {
 	/*1c*/
 };
 
-template <typename T> ReservedPool<T>* ReservedPool<T>::g_TABLE[32];
-template <typename T> ReservedPool<T>* ReservedPool<T>::g_NEXT = NULL;
-template <typename T> unsigned int ReservedPool<T>::g_COUNT = 0U;
-template <typename T> BOOL ReservedPool<T>::g_ISINIT = false /*0*/;
-
 // <LegoRR.exe @00507498>
 static ReservedPool<CFGProperty>* ReservedPool<CFGProperty>::g_TABLE[32];
 // <LegoRR.exe @00507518>
@@ -118,6 +129,8 @@ static void __cdecl ReservedPool<CFGProperty>::Alloc();
 // (this function always seems to be inlined within the structure's initialize function)
 // <LegoRR.exe -> CFG_allocNextProperty @00479530>
 static CFGProperty* __cdecl ReservedPool<CFGProperty>::Next();
+// <LegoRR.exe @00479580>
+static void __cdecl ReservedPool<CFGProperty>::Release(CFGProperty* item);
 
 // <LegoRR.exe @00479530>
 CFGProperty* __cdecl CFG_allocNextProperty(CFGProperty* previous)
@@ -140,11 +153,34 @@ CFGProperty* __cdecl CFG_allocNextProperty(CFGProperty* previous)
 	return prop;
 }
 
+// <LegoRR.exe @00479500>
+void __cdecl CFG__cleanup(CFGProperty* root)
+{
+	free(root->rootFileText); // free the buffer containing the entire CFG file text
+
+	CFGProperty *prop = root;
+	while (prop != NULL) {
+		ReservedPool<CFGProperty>::Release(prop);
+		prop = prop->propNext;
+	}
+}
+
 // <LegoRR.exe @00477a60>
-int WinEntry(HINSTANCE hInstance) {
+int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+	// Initialize the pool once at the beginning of the program
 	ReservedPool<CFGProperty>::Init();
 
 
+	// Loan out CFGProperty from the pool
+	CFGProperty* prop = ReservedPool<CFGProperty>::Next();
+
+	// Do whatever with the item...
+
+	// Return the item to the pool when done, so it can be reused
+	ReservedPool<CFGProperty>::Release(prop);
+
+
+	// Uninitialize the pool once at the end of the program
 	ReservedPool<CFGProperty>::Cleanup();
 }
 
