@@ -15,13 +15,13 @@
     {
       "include": "#comments"
     },{
+      "include": "#block_punctuation"
+    },{
       "include": "#block"
     },{
       "include": "#property-rgb"
     },{
       "include": "#property"
-    },{
-      "include": "#block_punctuation"
     }
   ],
   "repository": {
@@ -29,25 +29,39 @@
       "comment": "https://kb.rockraidersunited.com/Config_documentation"
     },
     "constants": {
-      "match": "(?<=[\\s\\{\\}\\|\\:\\,]|^)(NULL|TRUE|FALSE|YES|NO|ON|OFF|SFX_NULL)(?=[\\s\\{\\}\\|\\:\\,]|$)",
+      "match": "(?i)(?<=[\\s\\|\\:\\,]|^)(TRUE|YES|ON|FALSE|NO|OFF|NULL|SFX_NULL)(?=[\\s\\|\\:\\,]|$)",
       "captures": {
-        "1": { "name": "constant.language.null" },
-        "2": { "name": "constant.language.true" },
-        "3": { "name": "constant.language.false" },
-        "4": { "name": "constant.language.yes" },
-        "5": { "name": "constant.language.no" },
-        "6": { "name": "constant.language.on" },
-        "7": { "name": "constant.language.off" },
-        "8": { "name": "constant.language.sfx_null" }
+        "1": { "name": "constant.language.true.true" },
+        "2": { "name": "constant.language.true.yes" },
+        "3": { "name": "constant.language.true.on" },
+        "4": { "name": "constant.language.false.false" },
+        "5": { "name": "constant.language.false.no" },
+        "6": { "name": "constant.language.false.off" },
+        "7": { "name": "constant.language.null" },
+        "8": { "name": "constant.language.null.sfx" }
       }
     },
     "block": {
-      "comment": "Is a space required between block name and open brace?",
-      "match": "^\\s*([^\\s{}]+)\\s*(?=\\{|$)",
-      "captures": { "1": { "name": "entity.name.namespace" } }
+      "comment": "SPACE IS REQUIRED between block name and open brace",
+      "match": "^\\s*([^\\s\\;]{2,}|[^\\s\\;\\{\\}])(?=\\s+[\\{\\;]|\\s*$)",
+      "captures": {
+        "1": {
+          "name": "entity.name.namespace",
+          "patterns": [
+            {
+              "match": ".*[\\{\\}].*",
+              "name": "invalid.entity.name.namespace"
+            },
+            {
+              "match": "(\\*).*",
+              "name": "keyword.other.wildcard"
+            }
+          ]
+        }
+      }
     },
     "block_punctuation": {
-      "match": "(\\{)|(\\})",
+      "match": "(?<=\\s|^)(\\{)|(\\})(?=[\\s\\;]|$)",
       "captures": {
         "1": { "name": "punctuation.section.block.begin.bracket.curly" },
         "2": { "name": "punctuation.section.block.end.bracket.curly" }
@@ -73,7 +87,7 @@
     },
     "namespace": {
       "comment": "Referenced names, such as `Levels::Level01`",
-      "match": "(([^\\s\\{\\}\\|\\:\\,]+)(::))(?=[^\\s\\{\\}\\|\\:\\,\\;]|$)",
+      "match": "(([^\\s\\|\\:\\,]+)(::))(?=[^\\s\\|\\:\\,\\;]|$)",
       "captures": {
         "1": { "name": "meta.namespace.value" },
         "2": { "name": "entity.name.namespace" },
@@ -89,20 +103,52 @@
         "3": { "name": "punctuation.separator.namespace" }
       }
     },
+    "key_prefix": {
+      "comment": "This only contains hardcoded prefix names for Dependencies block (AlwaysCheck isn't a 'real' prefix, but is the standard)",
+      "match": "(?i)(?<=[\\s\\|\\:\\,]|^)((AlwaysCheck)|(HitOnceStay))(:)",
+      "captures": {
+        "1": { "name": "meta.entity.name.prefix" },
+        "2": { "name": "entity.name.function.dependency.always" },
+        "3": { "name": "entity.name.function.dependency.once" },
+        "4": { "patterns": [ { "include": "#delimiter_punctuation" } ] }
+      }
+    },
+    "value_prefix": {
+      "patterns": [
+        {
+          "comment": "old: (?<=[\\s\\|\\:\\,]|^)(\\*)?(#([+\\-]?[0-9]+)#)?(@)?(?![\\s\\|\\:\\,\\;]|$)",
+          "match": "(?<=[\\s\\|\\:\\,]|^)(?=[\\*#@])(\\*)?(#([+\\-]?[0-9]+)#|(#(?:[^\\s\\|\\:\\,\\;]*#|[^\\s\\|\\:\\,\\;]*)))?(@)?",
+          "captures": {
+            "1": { "name": "keyword.other.operator.sound.multiple" },
+            "2": { "name": "keyword.other.operator.sound.volume" },
+            "3": { "name": "keyword.other.operator.sound.volume.number" },
+            "4": { "name": "invalid.keyword.other.operator.sound.volume" },
+            "5": { "name": "keyword.other.operator.sound.streamed keyword.other.operator.tooltip.image" }
+          }
+        },
+        {
+          "comment": "Interface control item types",
+          "match": "(?i)(?<=[\\s\\|\\:\\,]|^)(Cycle|TextInput|Trigger|Next|Slider|RealSlider)(?=$)",
+          "captures": {
+            "1": { "name": "entity.name.class.interface.type" }
+          }
+        }
+      ]
+    },
     "property-rgb": {
-      "comment": "",
-      "match": "^\\s*(([!@\\*])?([^\\s\\{\\}\\;]+RGB))\\s+([0-9]{1,3}:[0-9]{1,3}:[0-9]{1,3})(?=\\s|$)",
+      "comment": "A fancy handling for properties with RGB, (not exactly useful at the moment)",
+      "match": "(?i)^\\s*((!)?([^\\s\\;]+RGB))\\s+([0-9]{1,3}:[0-9]{1,3}:[0-9]{1,3})(?=\\s|$)",
       "captures": {
         "1": {
           "name": "meta.property.key.rgb"
         },
-        "2": { "name": "keyword.other.operator" },
+        "2": { "name": "keyword.other.operator.reduce" },
         "3": {
           "patterns": [
             { "include": "#namespace" },
             {
               "name": "entity.name.variable.rgb",
-              "match": "([^\\s\\{\\}\\|\\:\\,\\;]+)(?!=\\:\\:)"
+              "match": "([^\\s\\|\\:\\,\\;]+)(?!\\:\\:)"
             }
           ]
         },
@@ -110,6 +156,7 @@
           "name": "constant.other.rgb-value",
           "patterns": [
             { "include": "#comments" },
+            { "include": "#value_prefix" },
             { "include": "#constants" },
             { "include": "#numbers" },
             { "include": "#paths" },
@@ -121,19 +168,20 @@
       }
     },
     "property": {
-      "comment": "",
-      "match": "^\\s*(([!@\\*])?([^\\s\\{\\}\\;]+))\\s+([^\\s\\{\\}\\;]+)(?=\\s|$)",
+      "comment": "Standard key/value property matching (on a single line)",
+      "match": "^\\s*((!)?([^\\s\\;]+))\\s+([^\\s\\;]+)(?=\\s|$)",
       "captures": {
         "1": {
           "name": "meta.property.key"
         },
-        "2": { "name": "keyword.other.operator" },
+        "2": { "name": "keyword.other.operator.reduce" },
         "3": {
           "patterns": [
+            { "include": "#key_prefix" },
             { "include": "#namespace" },
             {
               "name": "entity.name.variable",
-              "match": "([^\\s\\{\\}\\|\\:\\,\\;]+)(?!=\\:\\:)"
+              "match": "([^\\s\\|\\:\\,\\;]+)(?!\\:\\:)"
             }
           ]
         },
@@ -154,15 +202,15 @@
     "references": {
       "comment": "match old: (?<=\\W|^)(?=.*\\:\\:)([!@\\*])?((?:[^\\s\\{\\}\\|\\:\\,\\;]|\\:\\:)+)(?=[\\s\\{\\}\\|\\:\\,]|\\:[^\\s\\{\\}\\|\\:\\,]|$)",
       "name": "meta.property.string.reference",
-      "match": "(?<=\\W|^)(?=[^\\s\\{\\}\\|\\:\\,\\;]*\\:\\:)([!@\\*])?((?:[^\\s\\{\\}\\|\\:\\,\\;]|\\:\\:)+)(?=[\\s\\{\\}\\|\\:\\,]|$)",
+      "match": "(?<=[\\s\\|\\:\\,]|[\\s\\|\\:\\,]|^)(?=[^\\s\\|\\:\\,\\;]*\\:\\:)((?:[^\\s\\|\\:\\,\\;]|\\:\\:)+)(?=[\\s\\|\\:\\,]|$)",
       "captures": {
-        "1": { "name": "keyword.other.operator" },
-        "2": {
+        "1": {
           "patterns": [
+            { "include": "#value_prefix" },
             { "include": "#namespace" },
             {
               "name": "variable.other.enummember.reference",
-              "match": "([^\\s\\{\\}\\|\\:\\,\\;]+)(?!=\\:\\:)"
+              "match": "([^\\s\\|\\:\\,\\;]+)(?!\\:\\:)"
             },
             { "include": "#printf-formatting" }
           ]
@@ -171,12 +219,12 @@
     },
     "paths": {
       "name": "meta.property.string.path",
-      "match": "(?<=\\W|^)(?=[^\\s\\{\\}\\|\\:\\,\\;]*\\\\)([!@\\*])?([^\\s\\{\\}\\|\\:\\,\\;]+)(?=[\\s\\{\\}\\|\\:\\,]|$)",
+      "match": "(?<=[\\s\\|\\:\\,]|^)(?=[^\\s\\|\\:\\,\\;]*\\\\)([^\\s\\|\\:\\,\\;]+)(?=[\\s\\|\\:\\,]|$)",
       "captures": {
-        "1": { "name": "keyword.other.operator" },
-        "2": {
+        "1": {
           "name": "string.unquoted.path",
           "patterns": [
+            { "include": "#value_prefix" },
             { "include": "#printf-formatting" }
           ]
         }
@@ -184,12 +232,12 @@
     },
     "strings": {
       "comment": "meta.property.string.value",
-      "match": "(?<=\\W|^)([!@\\*])?([^\\s\\{\\}\\|\\:\\,\\;]+)(?=[\\s\\{\\}\\|\\:\\,]|$)",
+      "match": "(?<=[\\s\\|\\:\\,]|^)([^\\s\\|\\:\\,\\;]+)(?=[\\s\\|\\:\\,]|$)",
       "captures": {
-        "1": { "name": "keyword.other.operator" },
-        "2": {
+        "1": {
           "name": "string.unquoted.value",
           "patterns": [
+            { "include": "#value_prefix" },
             {
               "name": "constant.character.escape.space",
               "match": "_"
@@ -286,7 +334,7 @@
 			}
 		},
     "numbers": {
-      "match": "(?<=[\\s\\{\\}\\|\\:\\,]|^)(?:([+\\-]?[0-9]+)|([+\\-]?[0-9]*)(\\.)([0-9]+))(f)?(?=[\\s\\{\\}\\|\\:\\,]|$)",
+      "match": "(?<=[\\s\\|\\:\\,]|^)(?:([+\\-]?[0-9]+)|([+\\-]?[0-9]*)(\\.)([0-9]+))([fF])?(?=[\\s\\|\\:\\,]|$)",
       "captures": {
         "1": { "name": "constant.numeric.decimal" },
         "2": { "name": "constant.numeric.decimal" },
