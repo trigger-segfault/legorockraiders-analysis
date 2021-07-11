@@ -2,7 +2,7 @@
 
 Bundled with the PC version of LEGO Rock Raiders is the program `CLGen.exe`, the ***Command Line Generator*** *(presumably)*. This tool is a simple GUI interface for choosing default command-line arguments *("based on your Video Card")* that will automatically be inserted by LEGO Rock Raiders on boot. In actuality this tool is much more simple, and can even be reconfigured using the `CLGen.dat` configuration file. The program takes an input registry key / value name, and gives options to choose from to modify the registry value (although the resulting command-line options are not shown in the dropdown display).
 
-<p align="center"><img src="../../../assets/CLGen/CLGen_preview.png"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/trigger-segfault/legorockraiders-analysis/main/assets/CLGen/CLGen_preview.png"></p>
 
 
 ## CLGen.dat file
