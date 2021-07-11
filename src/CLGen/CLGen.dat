@@ -1,0 +1,6 @@
+TITLE|Video Card selector
+INSTRUCTION|Select Video Card type:
+ACTION|WRITEKEY|HKEY_LOCAL_MACHINE\SOFTWARE\LEGO Media\Games\Rock Raiders\StandardParameters
+ADDITEM|Default|
+ADDITEM|Voodoo2|-ftm
+ADDITEM|Savage3D|-fvf

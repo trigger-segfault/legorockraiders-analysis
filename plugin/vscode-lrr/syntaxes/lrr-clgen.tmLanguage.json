@@ -1,0 +1,123 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Command Line Generator Script",
+  "scopeName": "source.lrr.clgen",
+  "patterns": [
+    {
+      "include": "#item-title"
+    },{
+      "include": "#item-instruction"
+    },{
+      "include": "#item-action"
+    },{
+      "include": "#item-additem"
+    },{
+      "include": "#item-invalid"
+    },
+    
+    {
+      "include": "#delimiter_punctuation"
+    },{
+      "include": "#numbers"
+    }
+  ],
+  "repository": {
+    "_info_": {
+      "comment": ""
+    },
+    "item-title": {
+      "comment": "Usage TITLE|<Window title text>",
+      "match": "(?i)^(TITLE)(?:(\\|)(.*))?$",
+      "captures": {
+        "1": { "name": "keyword.other.title" },
+        "2": { "patterns": [ { "include": "#delimiter_punctuation" } ] },
+        "3": {
+          "name": "string.unquoted.text.title",
+          "patterns": [ {
+              "name": "invalid.illegal.character",
+              "match": "\\|"
+          },{
+            "include": "#numbers"
+          } ]
+        }
+      }
+    },
+    "item-instruction": {
+      "comment": "Usage INSTRUCTION|<Instruction message text>",
+      "match": "(?i)^(INSTRUCTION)(?:(\\|)(.*))?$",
+      "captures": {
+        "1": { "name": "keyword.other.label" },
+        "2": { "patterns": [ { "include": "#delimiter_punctuation" } ] },
+        "3": {
+          "name": "string.unquoted.text.label",
+          "patterns": [ {
+              "name": "invalid.illegal.character",
+              "match": "\\|"
+          },{
+            "include": "#numbers"
+          } ]
+        }
+      }
+    },
+    "item-action": {
+      "comment": "Usage ACTION|WRITEKEY|<registry key>",
+      "match": "(?i)^(ACTION)(?:(\\|)(?:(WRITEKEY)|([^\\|]+(?=\\|))|[^\\|]*)(?:(\\|)(.*))?)?$",
+      "captures": {
+        "1": { "name": "keyword.other.action" },
+        "2": { "patterns": [ { "include": "#delimiter_punctuation" } ] },
+        "3": { "name": "entity.name.function.action.writekey" },
+        "4": { "name": "invalid.entity.name.function.action" },
+        "5": { "patterns": [ { "include": "#delimiter_punctuation" } ] },
+        "6": {
+          "name": "string.unquoted.registry-key",
+          "patterns": [ {
+              "name": "invalid.illegal.character",
+              "match": "\\|"
+          },{
+            "include": "#numbers"
+          } ]
+        }
+      }
+    },
+    "item-additem": {
+      "comment": "Usage ADDITEM|<Mode Name>|<Options>",
+      "match": "(?i)^(ADDITEM)(?:(\\|)([^\\|]*)(?:(\\|)(.*))?)?$",
+      "captures": {
+        "1": { "name": "keyword.control.additem" },
+        "2": { "patterns": [ { "include": "#delimiter_punctuation" } ] },
+        "3": { "name": "entity.name.variable" },
+        "4": { "patterns": [ { "include": "#delimiter_punctuation" } ] },
+        "5": {
+          "name": "string.unquoted.command-line",
+          "patterns": [ {
+              "name": "invalid.illegal.character",
+              "match": "\\|"
+          },{
+            "include": "#numbers"
+          } ]
+        }
+      }
+    },
+    "item-invalid": {
+      "name": "invalid.keyword.name",
+      "match": "(?i)^([^\\|]+(?=\\|))"
+    },
+
+    "delimiter_punctuation": {
+      "match": "(\\|)",
+      "captures": {
+        "1": { "name": "punctuation.separator.delimiter.pipe" }
+      }
+    },
+    "numbers": {
+      "match": "(?<=[\\s\\|\\:\\,]|^)(?:([+\\-]?[0-9]+)|([+\\-]?[0-9]*)(\\.)([0-9]+))([fF])?(?=[\\s\\|\\:\\,\\;]|$)",
+      "captures": {
+        "1": { "name": "constant.numeric.decimal" },
+        "2": { "name": "constant.numeric.decimal" },
+        "3": { "name": "constant.numeric.decimal.point" },
+        "4": { "name": "constant.numeric.decimal" },
+        "5": { "name": "keyword.other.unit.suffix.floating-point" }
+      }
+    }
+  }
+}

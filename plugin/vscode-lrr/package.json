@@ -30,7 +30,8 @@
     "cfg",
     "ol",
     "ptl",
-    "ae"
+    "ae",
+    "clgen"
 	],
   "contributes": {
     "languages": [{
@@ -39,11 +40,20 @@
       "extensions": [".cfg", ".ol", ".ptl", ".ae"],
       "configuration": "./lrr-lego-cfg-language-configuration.json",
       "filenames": ["Lego.cfg"]
+    },{
+      "id": "lrr-clgen",
+      "aliases": ["Command Line Generator Script", "CLGen dat", "clgen"],
+      "configuration": "./lrr-clgen-language-configuration.json",
+      "filenames": ["CLGen.dat"]
     }],
     "grammars": [{
       "language": "lrr-lego-cfg",
       "scopeName": "source.lrr.lego-cfg",
       "path": "./syntaxes/lrr-lego-cfg.tmLanguage.json"
+    },{
+      "language": "lrr-clgen",
+      "scopeName": "source.lrr.clgen",
+      "path": "./syntaxes/lrr-clgen.tmLanguage.json"
     }]
   }
 }

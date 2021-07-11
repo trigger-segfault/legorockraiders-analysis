@@ -20,6 +20,20 @@
 _backup/
 
 ###########################################
+## Visual Studio IDE
+
+/src/CLGen/.vs
+/src/CLGen/Debug
+/src/CLGen/Release
+/src/CLGen/x64
+
+*.vcxproj.filters
+*.vcxproj.user
+*.aps
+
+
+
+###########################################
 ## Python
 
 *.pyc
