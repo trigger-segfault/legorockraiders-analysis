@@ -48,7 +48,7 @@ Usage TITLE|<Window title text>
 
 #### Command: INSTRUCTION
 
-Change the label text shown below above the mode dropdown list.
+Change the label text shown above the mode dropdown list.
 
 ```
 Usage INSTRUCTION|<Instruction message text>
