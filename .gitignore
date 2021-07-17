@@ -14,6 +14,9 @@
 # Programs
 *.exe
 *.dll
+*.lib
+
+*.sqlite
 
 
 ## Uncommitted lazy backups
@@ -30,8 +33,18 @@ _backup/
 *.vcxproj.filters
 *.vcxproj.user
 *.aps
+*.pdb
 
+!/src/ModeSelection/bin/dgVoodoo.conf
+!/src/ModeSelection/bin/dgVoodooCpl.exe
+!/src/ModeSelection/bin/*.dll
+!/src/ModeSelection/lib/*.lib
 
+/src/ModeSelection/.vs
+/src/ModeSelection/bin/Music
+/src/ModeSelection/bin/build
+/src/ModeSelection/bin/unused
+/src/ModeSelection/lib/unused
 
 ###########################################
 ## Python
@@ -59,7 +72,7 @@ __pycache__/
 # Compiled Dynamic libraries
 *.so
 *.dylib
-*.dll
+# *.dll
 
 # Fortran module files
 *.mod
@@ -69,9 +82,9 @@ __pycache__/
 *.lai
 *.la
 *.a
-*.lib
+# *.lib
 
 # Executables
-*.exe
+# *.exe
 *.out
 *.app
