@@ -649,7 +649,12 @@ void __cdecl lego::main::ShowGameWindow(BOOL isFullScreen, int x, int y, int wid
             rect.right - rect.left,
             rect.bottom - rect.top,
             SWP_NOZORDER /*0x4*/);
+
+        #if SHOWCURSOR
+        ShowCursor(SHOWCURSOR);
+        #else
         SetCursor(nullptr);
+        #endif
     }
     ShowWindow(globals::g_hWnd, SW_SHOW /*5*/);
     SetActiveWindow(globals::g_hWnd);

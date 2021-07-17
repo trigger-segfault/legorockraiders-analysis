@@ -1009,7 +1009,7 @@ BOOL __cdecl lego::draw::StartScreenMode(BOOL isFullScreen, DriverMode* driver, 
 							if (InitClipperRegion(isFullScreen, screenWidth, screenHeight) &&
 								main::InitDirect3DRM(device, ddraw1, globals::g_IDirectDrawSurface4_DrawTarget, isFullScreen))
 							{
-								if (!isFullScreen)
+								if (!isFullScreen || SHOWCURSOR)
 									ShowCursor(SHOWCURSOR /*FALSE*/);
 								return TRUE;
 							}

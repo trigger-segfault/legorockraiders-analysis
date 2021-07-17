@@ -620,6 +620,8 @@ BOOL __cdecl testing::MyGameInitFunction(void)
     sound::Music_PlayNext(TRUE);
     #endif
 
+    ShowCursor(TRUE);
+
     srand((unsigned int)(nullptr));
 
     return TRUE;
@@ -653,7 +655,7 @@ BOOL __cdecl testing::MyGameUpdateFunction(float ellapsed)
         }
         draw::Draw_SurfaceLock_Translate(nullptr);
 
-        if ((dx || dy) && GetCapture() == main::globals::g_hWnd) {
+        if ((dx || dy) && (GetCapture() == main::globals::g_hWnd || (lego::globals::g_CMDLINE_FLAGS & CMD_FULLSCREEN))) {
             unsigned int color = (unsigned int)(rand() & 0xfff) | (((unsigned int)rand() & 0xfff) << 12);// &0xffffffff;
             draw::Draw_SetSurfacePixel(mx, my, color);
         }
@@ -662,16 +664,17 @@ BOOL __cdecl testing::MyGameUpdateFunction(float ellapsed)
         DrawClear(0, 0, GetResolutionWidth(), fontHeight * 5 + 11);
         char buffer[4096];
         int len = std::sprintf(buffer, "ellapse: %f", ellapsed);
+        int ty = 8;
         for (int i = 0, x = 3; i < len; i++) {
-            DrawFontChar(x, 8, buffer[i]);
+            DrawFontChar(x, ty, buffer[i]);
             if (buffer[i] >= ' ' && buffer[i] <= 'z') {
                 x += fontCharWidths[buffer[i] - ' '];
             }
         }
-
+        ty += fontHeight + 2;
         len = std::sprintf(buffer, "movements: %i", counter);
         for (int i = 0, x = 3; i < len; i++) {
-            DrawFontChar(x, 8 + fontHeight + 2, buffer[i]);
+            DrawFontChar(x, ty, buffer[i]);
             if (buffer[i] >= ' ' && buffer[i] <= 'z') {
                 x += fontCharWidths[buffer[i] - ' '];
             }
@@ -688,18 +691,20 @@ BOOL __cdecl testing::MyGameUpdateFunction(float ellapsed)
                 strcat(buffer, g_KEYS_TABLE[k]);
             }
         }
+        ty += fontHeight + 2;
         len = (int)std::strlen(buffer);
         //len = std::sprintf(buffer, "keys: %s", counter);
         for (int i = 0, x = 3; i < len; i++) {
-            DrawFontChar(x, 8 + (fontHeight + 2)*2, buffer[i]);
+            DrawFontChar(x, ty, buffer[i]);
             if (buffer[i] >= ' ' && buffer[i] <= 'z') {
                 x += fontCharWidths[buffer[i] - ' '];
             }
         }
 
-        len = std::sprintf(buffer, "bpp: %i", mybpp);// directx::GetDeviceBitsPerPixel());
+        ty += fontHeight + 2;
+        len = std::sprintf(buffer, "screen: %ix%i (%i-bit)   mouse: %i,%i (%i,%i)  buttons: %i,%i", GetResolutionWidth(), GetResolutionHeight(), mybpp, mx, my, dx, dy, input::globals::g_LeftButtonState, input::globals::g_RightButtonState);// directx::GetDeviceBitsPerPixel());
         for (int i = 0, x = 3; i < len; i++) {
-            DrawFontChar(x, 8 + (fontHeight + 2) * 3, buffer[i]);
+            DrawFontChar(x, ty, buffer[i]);
             if (buffer[i] >= ' ' && buffer[i] <= 'z') {
                 x += fontCharWidths[buffer[i] - ' '];
             }
