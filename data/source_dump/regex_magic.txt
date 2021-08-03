@@ -1,0 +1,244 @@
+EXPORT OPTIONS FOR FUNCTIONS:
+
+[Deselect All]
+
+-Width----------------------------------
+         Labels: 0         Address: 8
+          Bytes: 0     PreMnemonic: 0
+       Mnemonic: 0         Operand: 0
+    End of Line: 50     References: 0
+Data Field Name: 0
+----------------------------------------
+
+====================================================================================
+
+EXPORT OPTIONS FOR GLOBALS:
+
+[Deselect All]
+
+-Width----------------------------------
+         Labels: 80        Address: 10
+          Bytes: 0     PreMnemonic: 0
+       Mnemonic: 50        Operand: 512
+    End of Line: 100    References: 0
+Data Field Name: 0
+----------------------------------------
+
+====================================================================================
+
+REMOVE TRAILING SPACE:
+\s+$
+
+REMOVE EMPTY ADDRESSES:
+(?<=^[A-Fa-f0-9]{8})(?:.|[\n])*?(?=\n {8,10};)
+
+REMOVE REFERENCES:
+(?<=^ {10};.{35}[^ ]) {35};.*(\n {82};.*)*
+
+REMOVE REGISTER LOCALS:
+(?<=^ {10};.{28} +-?[A-Fa-f0-9]+)(\n {10};.{28} +[A-Z].*)+
+
+REMOVE REGISTER ARGUMENTS:
+^ {10};.{28}\s+[A-Z].*\n
+
+
+REFORMAT TO C HEADER:
+^ {8};(.*)(?:\n {10};.*)*\n([A-Fa-f0-9]{8})
+// <LegoRR.exe @$2>\n$1;
+
+====================================================================================
+
+CHECK FOR NUMBER OF GLOBALS (orig)
+^[a-f0-9]{8}  [^ ]
+
+CHECK FOR NUMBER OF GLOBALS (modded)
+@[a-f0-9]{8}>
+
+
+CHECK SOURCE.H FOR FUNCTION NAMES
+^[^(]+ [A-Za-z_][@<>A-Za-z_0-9]+\(
+
+
+^[^\n(]+ (?:(?:[A-Za-z_][@<>A-Za-z_0-9]+::)*)([A-Za-z_][@<>A-Za-z_0-9]+)\(.*\)\n\n\{
+
+
+FAILURE MESSAGES:
+Unable to decompile
+
+
+^ {10}(.*):\n([a-f0-9]{8})  unicode\s+u(".*")$
+// <LegoRR.exe @$2>\nconst wchar_t $1[] = L$3;
+
+CONST CHAR ARRAY
+^ {10}(.*):\n([a-f0-9]{8})  ds\s+(".*")$
+// <LegoRR.exe @$2>\nconst char $2[] = $3;
+
+UNUSED CHAR ARRAY
+^([a-f0-9]{8})  ds\s+(".*")$
+// <LegoRR.exe @$1>\nconst char _unused_s_$1[] = $2;
+
+
+^.*\[UNDEFINED BYTES REMOVED\]$
+////// $0 //////
+
+^////// (.*\[UNDEFINED BYTES REMOVED\]) //////$
+////// $0 //////
+
+
+^////// ([A-Fa-f0-9]{8})\s+(->)\s+([A-Fa-f0-9]{8})(\s+\[UNDEFINED BYTES REMOVED\]) //////$
+// <LegoRR.exe @$1 $2 $3>$4
+
+^////// ([A-Fa-f0-9]{8})\s+(->)\s+([A-Fa-f0-9]{8})\s+(\[UNDEFINED BYTES REMOVED\]) //////$
+//// <LegoRR.exe @$1 -> $3 $4>
+
+^([a-f0-9]{8})  addr((?: \*)*)((?:\[[0-9]+\])*)\s+(?:(?:[A-Za-z_][A-Za-z_0-9]*::)*)(.*)$
+// <LegoRR.exe @$1>\nconst void *$2 _unused_ptr_$1$3 = $4;
+
+^ {10}(.*):\n([a-f0-9]{8})  addr((?: \*)*)((?:\[[0-9]+\])*)\s+(?:(?:[A-Za-z_][A-Za-z_0-9]*::)*)(.*)$
+^ {10}(.*):\n([a-f0-9]{8})  addr((?: \*)*)((?:\[[0-9]+\])*)\s+([A-Za-z_][A-Za-z_0-9]*)$
+// <LegoRR.exe @$2>\nconst void *$3 $1$4 = $5;
+// <LegoRR.exe @$2>\nextern $3 $1$4;
+
+Game_UnkTutorialBlockGet
+g_ScanRealFiles_FilePaths_TABLE[810][848]
+
+
+^ {10}(.*):\n([a-f0-9]{8})  (char)(\[[0-9]+\])\s+(".*")$
+// <LegoRR.exe @$2>\nconst $3 $1$4 = $5;
+
+
+GUID
+^ {10}(.*):\n([a-f0-9]{8})  GUID\s+[A-Za-z_][A-Za-z_0-9]*\s+([a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12})$
+// <LegoRR.exe @$2>\nconst GUID $1 = uuid("$3");
+
+^ {10}(.*):\n([a-f0-9]{8})  GUID\s+([a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12})$
+// <LegoRR.exe @$2>\nconst GUID $1 = uuid("$3");
+
+^ {10}(.*):\n([a-f0-9]{8})  float\s+([0-9\-\.\+]*[eE][0-9\-\.\+]*)$
+// <LegoRR.exe @$2>\nconst float $1 = $3f;
+
+^ {10}(.*):\n([a-f0-9]{8})  float\s+([0-9\-\.\+]+)$
+// <LegoRR.exe @$2>\nconst float $1 = $3f;
+
+
+((?:004ac834|004acafc|004acb94|004acc2c|004ad128|004ad234|004ad2ac|004ad384|004ad5ec|004ad6e4|004ad778|004ad90c|004ad99c|004adae4|004adb80|004ade38|004adf6c|004ae064|004ae38c|004ae41c|004ae4d4|004ae5d8|004ae66c|004ae708|004ae87c|004aea74|004aeb5c|004aed40|004af354|004af4a0|004af558|004af690|004af748|004af998|004afa24|004afb98|004afc9c|004afed4|004b000c|004b00e8|004b01c4|004b0258|004b02e8|004b03f4|004b04a4|004b06fc|004b07f8)  ds {48}".{511}) (?:.|\n)*?(?=(?:004ac834|004acafc|004acb94|004acc2c|004ad128|004ad234|004ad2ac|004ad384|004ad5ec|004ad6e4|004ad778|004ad90c|004ad99c|004adae4|004adb80|004ade38|004adf6c|004ae064|004ae38c|004ae41c|004ae4d4|004ae5d8|004ae66c|004ae708|004ae87c|004aea74|004aeb5c|004aed40|004af354|004af4a0|004af558|004af690|004af748|004af998|004afa24|004afb98|004afc9c|004afed4|004b000c|004b00e8|004b01c4|004b0258|004b02e8|004b03f4|004b04a4|004b06fc|004b07f8) )
+
+
+((?:004ac834|004acafc|004acb94|004acc2c|004ad128|004ad234|004ad2ac|004ad384|004ad5ec|004ad6e4|004ad778|004ad90c|004ad99c|004adae4|004adb80|004ade38|004adf6c|004ae064|004ae38c|004ae41c|004ae4d4|004ae5d8|004ae66c|004ae708|004ae87c|004aea74|004aeb5c|004aed40|004af354|004af4a0|004af558|004af690|004af748|004af998|004afa24|004afb98|004afc9c|004afed4|004b000c|004b00e8|004b01c4|004b0258|004b02e8|004b03f4|004b04a4|004b06fc|004b07f8)  ds {8}".{511})\n(?:.|\n)*?(?=(?:004ac834|004acafc|004acb94|004acc2c|004ad128|004ad234|004ad2ac|004ad384|004ad5ec|004ad6e4|004ad778|004ad90c|004ad99c|004adae4|004adb80|004ade38|004adf6c|004ae064|004ae38c|004ae41c|004ae4d4|004ae5d8|004ae66c|004ae708|004ae87c|004aea74|004aeb5c|004aed40|004af354|004af4a0|004af558|004af690|004af748|004af998|004afa24|004afb98|004afc9c|004afed4|004b000c|004b00e8|004b01c4|004b0258|004b02e8|004b03f4|004b04a4|004b06fc|004b07f8) )
+
+((?:004ac834|004acafc|004acb94|004acc2c|004ad128|004ad234|004ad2ac|004ad384|004ad5ec|004ad6e4|004ad778|004ad90c|004ad99c|004adae4|004adb80|004ade38|004adf6c|004ae064|004ae38c|004ae41c|004ae4d4|004ae5d8|004ae66c|004ae708|004ae87c|004aea74|004aeb5c|004aed40|004af354|004af4a0|004af558|004af690|004af748|004af998|004afa24|004afb98|004afc9c|004afed4|004b000c|004b00e8|004b01c4|004b0258|004b02e8|004b03f4|004b04a4|004b06fc|004b07f8)  ds {8}".{511})\n(?:.|\n)*?(?=(?:004ac834|004acafc|004acb94|004acc2c|004ad128|004ad234|004ad2ac|004ad384|004ad5ec|004ad6e4|004ad778|004ad90c|004ad99c|004adae4|004adb80|004ade38|004adf6c|004ae064|004ae38c|004ae41c|004ae4d4|004ae5d8|004ae66c|004ae708|004ae87c|004aea74|004aeb5c|004aed40|004af354|004af4a0|004af558|004af690|004af748|004af998|004afa24|004afb98|004afc9c|004afed4|004b000c|004b00e8|004b01c4|004b0258|004b02e8|004b03f4|004b04a4|004b06fc|004b07f8) )
+
+[A-Fa-f0-9]{8} 
+([A-Fa-f0-9]{8}) (?:.|\n)*?(?=[A-Fa-f0-9]{8} )
+
+^ {10}(.*):\n(004ac834|004acafc|004acb94|004acc2c|004ad128|004ad234|004ad2ac|004ad384|004ad5ec|004ad6e4|004ad778|004ad90c|004ad99c|004adae4|004adb80|004ade38|004adf6c|004ae064|004ae38c|004ae41c|004ae4d4|004ae5d8|004ae66c|004ae708|004ae87c|004aea74|004aeb5c|004aed40|004af354|004af4a0|004af558|004af690|004af748|004af998|004afa24|004afb98|004afc9c|004afed4|004b000c|004b00e8|004b01c4|004b0258|004b02e8|004b03f4|004b04a4|004b06fc|004b07f8)  ds {48}".*)$
+
+
+(?<=^[A-Fa-f0-9]{8}  ds {48}".{99})(?:.|[\n])*?(?=[A-Fa-f0-9]{8}  ds {48}".{99})
+(?<=^[A-Fa-f0-9]{8}  ds {48}".{99})(?:.|[\n])*?(?= {10}s_)
+
+
+^([a-f0-9]{8})  float\s+([0-9\-\.\+]+)$
+// <LegoRR.exe @$1>\nconst float _unused_f_$1 = $2f;
+
+^([a-f0-9]{8})  double\s+([0-9\-\.\+]+)$
+// <LegoRR.exe @$1>\nconst double _unused_d_$1 = $2;
+
+
+
+^ {10}(.*):\n([a-f0-9]{8})  double\s+([0-9\-].*)$
+// <LegoRR.exe @$2>\nconst double $1 = $3;
+
+^ {10}(.*):\n([a-f0-9]{8})  double\s+(Infinity)$
+// <LegoRR.exe @$2>\nconst double $1 = INFINITY;
+
+^ {10}(.*):\n([a-f0-9]{8})  ((?:[_A-Za-z][_A-Za-z0-9]*)(?: \*)*)((?:\[[0-9]+\])*)\s+(?:\?\?|NaP)$
+// <LegoRR.exe @$2>\nextern $3 $1$4;
+
+
+^ {10}(.*):\n([a-f0-9]{8})  ((?:[_A-Za-z][_A-Za-z0-9]*)(?: \*)*)((?:\[[0-9]+\])*)$
+// <LegoRR.exe @$2>\nextern $3 $1$4;
+
+
+^ {10}(.*):\n([a-f0-9]{8})  ((?:u?int|float|double|char|byte|u?short|BOOL|bool|void|undefined[0-9]*)(?: \*)*)((?:\[[0-9]+\])*)\s+(?:\?\?|NaP)$
+// <LegoRR.exe @$2>\nextern $3 $1$4;
+
+^ {10}(.*):\n([a-f0-9]{8})  (?:db*)((?: \*)*)((?:\[[0-9]+\])*)\s+(?:\?\?|NaP)$
+// <LegoRR.exe @$2>\nextern byte$3 $1$4;
+
+^ {10}(.*):\n([a-f0-9]{8})  (?:addr*)((?: \*)*)((?:\[[0-9]+\])*)\s+(?:\?\?|NaP)$
+// <LegoRR.exe @$2>\nextern addr$3 $1$4;
+
+^ {10}(.*):\n([a-f0-9]{8})  (?:addr*)((?: \*)*)\s+(?:\?\?|NaP)$
+// <LegoRR.exe @$2>\nextern void * $1;
+
+^ {10}(.*):\n([a-f0-9]{8})  uint\s+([A-Fa-f0-9]{1,7}h)$
+
+^ {10}(.*):\n([a-f0-9]{8})  uint\s+([A-Fa-f0-9]{1,8})h$
+// <LegoRR.exe @$2>\nconst uint $1 = 0x$3;
+
+^ {10}(.*):\n([a-f0-9]{8})  (undefined[0-9]*)\s+([A-Fa-f0-9]{1,8})h$
+// <LegoRR.exe @$2>\nconst $3 $1 = 0x$4;
+
+^ {10}(.*):\n([a-f0-9]{8})  int\s+([A-Fa-f0-9]{1,8})h$
+// <LegoRR.exe @$2>\nconst int $1 = $3;
+
+^ {10}(.*):\n([A-Fa-f0-9]{8})  char \*\s+(\?\?|NaP)$
+
+^const int [^\s]+ = [0-9a-fA-F]+;$
+
+
+====================================================================================
+
+^((?:[A-Fa-f0-9]{8})  ds {48}".*)$(?:\n(?![A-Fa-f0-9]{8}  ds {48}".*))
+
+
+^([A-Fa-f0-9]{8})\n {8};(.*)(?:\n {10};.*)*
+// <LegoRR.exe @$1>\n$2;
+
+
+^([A-Fa-f0-9]{8})\n {8};(.*)
+
+
+^([A-Fa-f0-9]{8})(?:.|[\n])*?(?=\n {8,10};)
+$1$2
+
+^          ;[^\s]+\s+[^\s]+\s+-[A-Fa-f0-9]+.*\n
+^          ;.{32}\s-[A-Fa-f0-9]+.*\n
+
+
+^ {10};.{28}\s+[A-Z].*\n
+^ {10};.{28}\s+HASH\.{3}.*\n
+
+^          ;.{32}\s-[A-Fa-f0-9]+.*\n
+^ {10};.{28}\s+-?[A-Fa-f0-9]+.*\n( {82};.*\n)*
+^(          ;.{28}\s+-?[A-Fa-f0-9]+)\s+;.*
+$1
+
+^ {10};.{28}\s+0.*\n( {82};.*\n)*
+
+^ {10};this {10}void \*             ECX
+
+
+00417b00
+
+^ {10};.{28}\s+-[A-Fa-f0-9]+.*\n( {82};.*\n)*
+REMOVE EMPTY ADDRESSES
+(^ {8,10};
+
+
+REMOVE REFERENCES
+(?<=^.{46}[^\s]) {35};.*(\n {82};.*)*
+(?<=^ {10};.{35}[^ ]) {35};.*(\n {82};.*)*
+
+
+
+^(.{47}) {35};.*(\n {82};.*)*
+^ {82};.*\n
+^                                                                                  ;.*\n
+
+
+^.*HASH\.\.\.\n
+
+;callback
+00413ff0
