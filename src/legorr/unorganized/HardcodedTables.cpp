@@ -34,12 +34,12 @@ void InitSurfaceTypes(void) {
 #pragma region Keys
 
 // <LegoRR.exe @005775e0>
-static const char* g_Messages_TABLE[256]; // (confirmed size)
+static const char* g_KEYS_TABLE[256]; // (confirmed size)
 
 // entire function just initializes this array (and zeros out unused slots)
 // <LegoRR.exe @00485ce0>
 void InitKeys(void) {
-	// memset(g_KEYS_TABLE, 0, 256 * sizeof(char*));
+	// memset(g_KEYS_TABLE, 0, 256 * sizeof(unsigned char*));
 	for (int i = 0; i < 256; i++)
 		g_KEYS_TABLE[i] = NULL;
 
