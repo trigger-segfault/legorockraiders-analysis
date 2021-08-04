@@ -21,11 +21,13 @@ static unsigned int g_msvc_doserrno;
 #pragma endregion
 
 
+
 #pragma region /// NEVER SEEN ///////////////////////////
 
 // functions that have not yet been seen in LegoRR.exe, but are likely to exist in some form.
 
 // <https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/strstr-wcsstr-mbsstr-mbsstr-l>
+// <LegoRR.exe @0048dd10>
 char* strstr(const char* str, const char* strSearch);
 
 #pragma endregion
@@ -179,6 +181,10 @@ size_t fread(void* buffer, size_t size, size_t count, FILE* stream);
 // <LegoRR.exe @004900e0>
 int fgetc(FILE* stream);
 
+// <https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/fgets-fgetws>
+// <LegoRR.exe @00490110>
+char* fgets(char* str, int numChars, FILE* stream);
+
 // <https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/stricmp-wcsicmp-mbsicmp-stricmp-l-wcsicmp-l-mbsicmp-l>
 // <LegoRR.exe @004901d0>
 int _stricmp(const char* string1, const char* string2);
@@ -192,12 +198,19 @@ char* _fullpath(char* absPath, const char* relPath, size_t maxLength);
 // <LegoRR.exe @0049dd70>
 int _strnicmp(const char* string1, const char* string2, size_t count);
 
+// <https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/itoa-itow>
+// <LegoRR.exe @0049de20>
+char* itoa(int value, char* buffer, int radix);
+
+// <https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/strlwr-wcslwr-mbslwr-strlwr-l-wcslwr-l-mbslwr-l>
+// <LegoRR.exe @0049ded0>
+char* _strlwr(char* str);
+
+// <https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/strupr-strupr-l-mbsupr-mbsupr-l-wcsupr-l-wcsupr>
+// <LegoRR.exe @0049df90>
+char* _strupr(char* str);
 
 
-// <https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/fgets-fgetws>
-// 
-// <LegoRR.exe @
-char* fgets(char* str, int numChars, FILE* stream);
 
 // <https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/fflush>
 // 
@@ -220,9 +233,11 @@ int fputs(const char* str, FILE* stream);
 int fputc(int c, FILE* stream);
 
 // <https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/fscanf-fscanf-l-fwscanf-fwscanf-l>
-// 
-// <LegoRR.exe @
+// <LegoRR.exe @00490330>
 int fscanf(FILE* stream, const char* format [, argument ]...);
+
+// <https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/vfscanf-vfwscanf>
+int vfscanf(FILE* stream, const char* format, va_list argptr);
 
 // <https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/vprintf-vprintf-l-vwprintf-vwprintf-l>
 // 
