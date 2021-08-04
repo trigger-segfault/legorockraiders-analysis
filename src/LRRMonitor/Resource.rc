@@ -1,0 +1,122 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "winres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Language
+//
+
+// Default language used by LegoRR and CLGen resources
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_UK
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+#define ADDSIZE (32+64+8)
+
+//IDD_MODESELECTION DIALOG 0, 0, 242, 220
+IDD_MODESELECTION DIALOG 0, 0, 242, 206+ADDSIZE
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Live Objects"
+// Change to language used exclusively by LegoRR Dialog resource in English U.S. release
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+FONT 8, "Consolas"
+//FONT 8, "MS Sans Serif"
+BEGIN
+    //CONTROL "Close", IDOK, BUTTON, BS_DEFPUSHBUTTON | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 185, 199, 50, 14
+    CONTROL "Close", IDOK, BUTTON, BS_DEFPUSHBUTTON | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 185, 185+ADDSIZE, 50, 14
+    //CONTROL "Cancel", IDCANCEL, BUTTON, BS_PUSHBUTTON | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 125, 145, 50, 14
+    //CONTROL "", IDC_LISTBOX, LISTBOX, LBS_NOTIFY | LBS_NOINTEGRALHEIGHT | WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | WS_TABSTOP, 5, 15, 230, 179
+    CONTROL "", IDC_LISTBOX, LISTBOX, LBS_NOTIFY | LBS_NOINTEGRALHEIGHT | WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | WS_TABSTOP, 5, 15, 230, 165+ADDSIZE
+    //CONTROL "", IDC_DEVICE_LISTBOX, LISTBOX, LBS_NOTIFY | LBS_NOINTEGRALHEIGHT | WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | WS_TABSTOP, 5, 60, 230, 35
+    //CONTROL "", IDC_SCREENMODES_LISTBOX, LISTBOX, LBS_NOTIFY | LBS_NOINTEGRALHEIGHT | WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | WS_TABSTOP, 100, 100, 135, 40
+    //CONTROL "Live Objects [ - / - ]", IDC_LABEL, STATIC, SS_LEFT | WS_CHILD | WS_VISIBLE | WS_GROUP, 5, 50, 230, 8
+    CONTROL "Live Objects [ - / - ]", IDC_LABEL, STATIC, SS_LEFT | WS_CHILD | WS_VISIBLE | WS_GROUP, 5, 5, 230, 8
+    /*CONTROL "Screen Modes", IDC_SCREENMODES_LABEL, STATIC, SS_RIGHT | WS_CHILD | WS_VISIBLE | WS_GROUP, 5, 100, 89, 8
+    CONTROL "Full Screen", IDC_FULLSCREEN_RADIOBUTTON, BUTTON, BS_AUTORADIOBUTTON | WS_CHILD | WS_VISIBLE, 5, 115, 51, 10
+    CONTROL "Window", IDC_WINDOW_RADIOBUTTON, BUTTON, BS_AUTORADIOBUTTON | WS_CHILD | WS_VISIBLE, 5, 125, 42, 10*/
+END
+
+#undef ADDSIZE
+
+/*IDD_MODESELECTION DIALOG 0, 0, 242, 166
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Live Objects"
+// Change to language used exclusively by LegoRR Dialog resource in English U.S. release
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL "OK", IDOK, BUTTON, BS_DEFPUSHBUTTON | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 65, 145, 50, 14
+    CONTROL "Cancel", IDCANCEL, BUTTON, BS_PUSHBUTTON | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 125, 145, 50, 14
+    CONTROL "", IDC_LISTBOX, LISTBOX, LBS_NOTIFY | LBS_NOINTEGRALHEIGHT | WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | WS_TABSTOP, 5, 15, 230, 146
+    CONTROL "", IDC_DEVICE_LISTBOX, LISTBOX, LBS_NOTIFY | LBS_NOINTEGRALHEIGHT | WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | WS_TABSTOP, 5, 60, 230, 35
+    CONTROL "", IDC_SCREENMODES_LISTBOX, LISTBOX, LBS_NOTIFY | LBS_NOINTEGRALHEIGHT | WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | WS_TABSTOP, 100, 100, 135, 40
+    CONTROL "Device", IDC_LABEL, STATIC, SS_LEFT | WS_CHILD | WS_VISIBLE | WS_GROUP, 5, 50, 230, 8
+    CONTROL "Driver", IDC_STATIC, STATIC, SS_LEFT | WS_CHILD | WS_VISIBLE | WS_GROUP, 5, 5, 230, 8
+    CONTROL "Screen Modes", IDC_SCREENMODES_LABEL, STATIC, SS_RIGHT | WS_CHILD | WS_VISIBLE | WS_GROUP, 5, 100, 89, 8
+    CONTROL "Full Screen", IDC_FULLSCREEN_RADIOBUTTON, BUTTON, BS_AUTORADIOBUTTON | WS_CHILD | WS_VISIBLE, 5, 115, 51, 10
+    CONTROL "Window", IDC_WINDOW_RADIOBUTTON, BUTTON, BS_AUTORADIOBUTTON | WS_CHILD | WS_VISIBLE, 5, 125, 42, 10
+END*/
+
+// Change back to default language used by LegoRR and CLGen resources
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_UK
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE  
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE  
+BEGIN
+    "#include ""winres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE  
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (United States) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
