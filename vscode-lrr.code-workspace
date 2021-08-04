@@ -13,6 +13,8 @@
     },
     "[json|jsonc|python]": {
       "files.eol": "\n"
-    }
+    },
+
+    "color-highlight.enable": false
   }
 }

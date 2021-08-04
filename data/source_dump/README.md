@@ -22,4 +22,4 @@ The global variables file was built over the course of 5 hours, using Regex magi
 ***
 
 
-Despite these monolithic files, quite a lot of functions, global variables, and structures have been accurately identified. It's worth doing some keyword searches through the files if you want to learn something in particular about LegoRR (just don't expect all naming conventions to be consistent, or match that or LegoRR's configuration files).
+Despite these monolithic files, quite a lot of functions, global variables, and structures have been accurately identified. It's worth doing some keyword searches through the files if you want to learn something in particular about LegoRR (just don't expect all naming conventions to be consistent, or match that of LegoRR's configuration files).
