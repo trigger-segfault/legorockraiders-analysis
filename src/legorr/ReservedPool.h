@@ -1,4 +1,4 @@
-
+#pragma once
 #ifndef LEGORR__RESERVED_POOL_H
 #define LEGORR__RESERVED_POOL_H
 

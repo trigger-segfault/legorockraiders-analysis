@@ -1,4 +1,4 @@
-
+#pragma once
 #ifndef LEGORR__IMAGES_H
 #define LEGORR__IMAGES_H
 

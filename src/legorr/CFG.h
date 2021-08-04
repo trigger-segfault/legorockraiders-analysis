@@ -1,4 +1,4 @@
-
+#pragma once
 #ifndef LEGORR__CFG_H
 #define LEGORR__CFG_H
 

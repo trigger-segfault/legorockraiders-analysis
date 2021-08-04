@@ -1,4 +1,4 @@
-
+#pragma once
 #ifndef LEGORR__COMMON_H
 #define LEGORR__COMMON_H
 
@@ -7,7 +7,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdarg.h>  // variadic argument handling
 #include <windows.h>  // for BOOL typedef and WINAPI functions/constants
+#include <vfw.h>  // AVI* WINAPI functions
+
+// include for DirectX 6.0 (1998)
+#include <dsound.h>
+#include <ddraw.h>
+#include <dinput.h>
 
 
 #pragma region /// GHIDRA TYPES /////////////////////////
@@ -37,6 +44,8 @@ typedef unsigned long long undefined8;
 #define TIME_UNIT  25.0
 // Time unit (25 frames per second) as a single-precision floating point
 #define TIME_UNITF 25.0f
+
+#define s_RegistryKey "SOFTWARE\\LEGO Media\\Games\\Rock Raiders"
 
 #pragma endregion
 

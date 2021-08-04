@@ -1,4 +1,4 @@
-
+#pragma once
 #ifndef LEGORR__INPUT_H
 #define LEGORR__INPUT_H
 

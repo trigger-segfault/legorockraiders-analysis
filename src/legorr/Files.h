@@ -1,7 +1,7 @@
 // All information supposedly related to LegoRR file I/O
 // Many of the standard File_ functions that have C f_ counterparts are the REAL-deal names.
 //  Their names are present in log strings, and a log string also list the file definition as Files.c
-
+#pragma once
 #ifndef LEGORR__FILES_H
 #define LEGORR__FILES_H
 
@@ -79,6 +79,13 @@ struct LegoFileBuffer;
 	/*8*/
 };
 
+// arguments are: filename, fileSize, lpValue (value passed to File_SetOpenCallback)
+typedef void (__cdecl *FileFuncPtr)(const char*, int, void*);
+
+// Only usage of the above FileFuncPtr
+// <LegoRR.exe @0044e180>
+void __cdecl File_funcPtrCallback__0044e180(const char* filename, int fileSize, void* lpValue);
+
 #pragma endregion
 
 
@@ -115,9 +122,9 @@ static char g_FILEPATH_DATADIR_2[MAX_PATH /*0x104*/ /*260*/];
 
 // no clue on these two value yet... (maybe actually SafeDisc DRM stuff?)
 // <LegoRR.exe @005353ac>
-static void* g_WAD_unkFuncPtr_A_005353ac;
+static void* g_FileOpenCallback;
 // <LegoRR.exe @005353b0>
-static unsigned int g_WAD_unkFuncValue_A_005353b0;
+static unsigned int g_FileOpenCallback_VALUE;
 
 // <LegoRR.exe @005353b4>
 static char g_CDROM_DriveLetter;
@@ -155,13 +162,13 @@ void __cdecl Path_InitDataDir(const char* gamename, BOOL insistOnCD, const char*
 BOOL __cdecl Path_CheckForCDROM(void);
 
 // <LegoRR.exe @0047f850>
-void __cdecl Path_SetDataDir(const char* dirname);
+BOOL __cdecl Path_SetDataDir(const char* dirname);
 
 // Open WAD filename and log something (that was removed on release build)
 // returns idx of newly opened WAD (0-9), or -1 on failure of any kind.
 //
 // <LegoRR.exe @0047f900>
-int __cdecl WAD_Open(char *filename);
+int __cdecl WAD_Open(const char *filename);
 
 // <LegoRR.exe @0047f920>
 BOOL __cdecl Path_GetCDROMDataPath(char* out_filepath, const char* filename);
@@ -240,7 +247,7 @@ const char* __cdecl Path_StripDataDir(const char* filename);
 // all parameters are directly passed to File_GetS, then some operation on string is performed
 // 
 // <LegoRR.exe @00480310>
-char* __cdecl File_UNK_calls_GetS_00480310(char* out_str, int num, LegoFileStream* file); 
+char* __cdecl File_GetS_StripLineEnd(char* out_str, int num, LegoFileStream* file); 
 
 // <LegoRR.exe @00480360>
 unsigned char* __cdecl File_ReadAllBytes(const char* filename, unsigned int* out_length);
@@ -259,18 +266,18 @@ const char* __cdecl Path_JoinDataDir(const char* filename);
 
 
 // <LegoRR.exe @00480570>
-void __cdecl WAD_setFunctPtrValue_A__00480570(void* unkFuncPtr, unsigned int unkValue);
+void __cdecl File_SetOpenCallback(FileFuncPtr* callback, void* lpValue);
 
 // <LegoRR.exe @00480590>
 void __cdecl Path_ScanRealFiles__UNK__00480590(const char* filename);
 
 // <LegoRR.exe @00480650>
-void __cdecl File_Find(const char* dirname);
+void __cdecl Scan_Directory(const char* dirname);
 
-// called by File_Find
+// called by Scan_Directory
 // 
 // <LegoRR.exe @00480830>
-void __cdecl FUN_00480830(const char* filename);
+void __cdecl Scan_File(const char* filename);
 
 // called in one of the LegoRR main initialization functions <LegoRR.exe @00477a60>
 // 

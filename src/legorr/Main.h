@@ -1,4 +1,4 @@
-
+#pragma once
 #ifndef LEGORR__MAIN_H
 #define LEGORR__MAIN_H
 

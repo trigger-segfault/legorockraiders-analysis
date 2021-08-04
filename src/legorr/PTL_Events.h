@@ -1,4 +1,4 @@
-
+#pragma once
 #ifndef LEGORR__PTL_EVENTS_H
 #define LEGORR__PTL_EVENTS_H
 

@@ -82,15 +82,15 @@ void __cdecl Path_InitDataDir(const char* gamename, BOOL insistOnCD, const char*
 		// *(undefined2 *)puVar6 = 0;
 		// local_c00 = s_Error_004abf40._0_4_; // "Error"
 		// local_bfc = s_Error_004abf40._4_2_; // "Error"
-		iVar3 = reg_query__FUN_0048b620(regKey, "CDMissing", 0, regValue, 0x400);
+		iVar3 = Reg_QueryString_LocalMachine(regKey, "CDMissing", 0, regValue, 0x400);
 		if (iVar3 == 0) {
 			// LAB_0047f59b:
 			exit(0);
 		}
 		else {
-			reg_query__FUN_0048b620(regKey, "SetupError", 0, errorMessage, 0x400);
-			iVar3 = MessageBoxA(NULL, regValue, errorMessage, 1);
-			if (iVar3 == 2)
+			Reg_QueryString_LocalMachine(regKey, "SetupError", 0, errorMessage, 0x400);
+			int mbresult = MessageBoxA(NULL, regValue, errorMessage, MB_OKCANCEL /*1*/);
+			if (mbresult == IDCANCEL /*2*/)
 				exit(0);
 				// goto LAB_0047f59b;
 		}
@@ -101,15 +101,16 @@ void __cdecl Path_InitDataDir(const char* gamename, BOOL insistOnCD, const char*
 	bool missingData = false;
 	if (!hasCDROM && !hasWADs) {
 		missingData = true;
-		_finddata_t fileinfo; // local_e1c
-		intptr_t handle = _findfirst("*.*", &fileinfo);
+		_finddata32_t fileinfo; // local_e1c
+		//NOTE: "*.*" still allows matching files with '.' characters
+		intptr_t handle = _findfirst32("*.*", &fileinfo);
 		if (handle != -1) {
 			do {
 				if ((fileinfo.attrib & FILE_ATTRIBUTE_DIRECTORY) != 0 && _stricmp(fileinfo.name, "Data") == 0) {
 					missingData = false; // data dir found??
 					break;
 				}
-			} while (_findnext(handle, &fileinfo) == 0);
+			} while (_findnext32(handle, &fileinfo) == 0);
 			_findclose(handle);
 		}
 	}
@@ -151,10 +152,10 @@ void __cdecl Path_InitDataDir(const char* gamename, BOOL insistOnCD, const char*
 		// 	puVar6 = puVar6 + 1;
 		// }
 		// *(undefined2 *)puVar6 = 0;
-		iVar3 = reg_query__FUN_0048b620(regKey, "DataMissing", 0, regValue, 0x400);
+		iVar3 = Reg_QueryString_LocalMachine(regKey, "DataMissing", 0, regValue, 0x400);
 		if (iVar3 != 0) {
-			reg_query__FUN_0048b620(regKey, "SetupError", 0, errorMessage, 0x400);
-			MessageBoxA(NULL, regValue, errorMessage, 0);
+			Reg_QueryString_LocalMachine(regKey, "SetupError", 0, errorMessage, 0x400);
+			MessageBoxA(NULL, regValue, errorMessage, MB_OK /*0*/);
 		}
 		exit(0);
 	}
@@ -165,7 +166,7 @@ void __cdecl Path_InitDataDir(const char* gamename, BOOL insistOnCD, const char*
 // Returns true when found, and assigns global: char g_CDROM_DriveLetter;
 // 
 // <LegoRR.exe @0047f7b0>
-BOOL __cdecl Path_CheckForCDROM(void);
+BOOL __cdecl Path_CheckForCDROM(void)
 {
 	char buffer[MAX_PATH]; // 260
 	char rootName[4] = { 'A', ':', '\\', '\0' }; //"A:\\";
@@ -195,25 +196,26 @@ BOOL __cdecl Path_CheckForCDROM(void);
 }
 
 // <LegoRR.exe @0047f850>
-void __cdecl Path_SetDataDir(const char* dirname)
+BOOL __cdecl Path_SetDataDir(const char* dirname)
 {
 	if (dirname != NULL) {
 		int strLength = (int)strlen(dirname);
 		if (strLength <= 0x400 && strLength != 0) {
 			strcpy(g_FILEPATH_DATADIR_1, dirname);
 			g_HAS_DATADIR = true;
-			return;
+			return true;
 		}
 	}
 	g_HAS_DATADIR = false;
 	memset(g_FILEPATH_DATADIR_1, 0, 0x400);
+	return false;
 }
 
 // Open WAD filename and log something (that was removed on release build)
 // returns idx of newly opened WAD (0-9), or -1 on failure of any kind.
 //
 // <LegoRR.exe @0047f900>
-int __cdecl WAD_Open(char *filename)
+int __cdecl WAD_Open(const char *filename)
 {
 	logf_removed(NULL);
 	return WAD_Open__internal(filename);
@@ -386,10 +388,10 @@ int __cdecl File_GetC(LegoFileStream* file)
 // <LegoRR.exe @0047ff60>
 long int __cdecl File_GetLength(LegoFileStream* file)
 {
-	int offset = File_Tell(file);
+	long int origOffset = File_Tell(file);
 	File_Seek(file, 0, SEEK_END /*2*/);
 	long int length = File_Tell(file);
-	File_Seek(file, offset, SEEK_SET /*0*/);
+	File_Seek(file, origOffset, SEEK_SET /*0*/);
 	return length;
 }
 
@@ -497,7 +499,7 @@ void __cdecl File__Dispose(LegoFileStream* file)
 		}
 		else if (location == FILELOC_WAD /*0*/) {
 			if (file->stream.wad != NULL) {
-				WAD_Shared__Dispose(file->stream.wad);
+				WAD_Shared__Dispose(file->stream.wad->sharedIndex);
 				File__New__free(file->stream.wad);
 			}
 		}
@@ -535,7 +537,7 @@ const char* __cdecl Path_StripDataDir(const char* filename)
 // all parameters are directly passed to File_GetS, then some operation on string is performed
 // 
 // <LegoRR.exe @00480310>
-char* __cdecl File_UNK_calls_GetS_00480310(char* out_str, int num, LegoFileStream* file)
+char* __cdecl File_GetS_StripLineEnd(char* out_str, int num, LegoFileStream* file)
 {
 	///TODO: decompile me
 }
@@ -554,10 +556,10 @@ unsigned char* __cdecl File_ReadAll(const char* filename, unsigned int* out_leng
 		File_Seek(file, 0, SEEK_END /*2*/);
 		int length = File_Tell(file);
 
-		if (g_WAD_unkFuncPtr_A_005353ac != (code*)NULL) {
-			(*g_WAD_unkFuncPtr_A_005353ac)(filename, length, g_WAD_unkFuncValue_A_005353b0);
+		if (g_FileOpenCallback != (code*)NULL) {
+			(*g_FileOpenCallback)(filename, length, g_FileOpenCallback_VALUE);
 		}
-		unsigned char buffer = (unsigned char*)malloc(length);
+		unsigned char* buffer = (unsigned char*)malloc(length);
 		if (buffer != NULL) {
 			File_Seek(file, 0, SEEK_SET /*0*/);
 			File_Read(buffer, 1, length, file);
@@ -601,10 +603,10 @@ const char* __cdecl Path_JoinDataDir(const char* filename)
 }
 
 // <LegoRR.exe @00480570>
-void __cdecl WAD_setFunctPtrValue_A__00480570(void* unkFuncPtr, unsigned int unkValue);
+void __cdecl File_SetOpenCallback(FileFuncPtr* callback, void* lpValue)
 {
-	g_WAD_unkFuncPtr_A_005353ac = unkFuncPtr;
-	g_WAD_unkFuncValue_A_005353b0 = unkValue;
+	g_FileOpenCallback = callback;
+	g_FileOpenCallback_VALUE = lpValue;
 }
 
 // <LegoRR.exe @00480590>
@@ -614,38 +616,43 @@ void __cdecl Path_ScanRealFiles__UNK__00480590(const char* filename)
 }
 
 // <LegoRR.exe @00480650>
-void __cdecl File_Find(const char* dirname)
+void __cdecl Scan_Directory(const char* dirname)
 {
 	char buffer[0x400 /*1024*/]; // local_400
 
 	strcpy(buffer, dirname);
 	strcat(buffer, "\\*.*");
 
-	_finddata_t finddata;
-	intptr_t handle = _findfirst(buffer, &finddata);
+	_finddata32_t finddata;
+	intptr_t handle = _findfirst32(buffer, &finddata);
 	if (handle != -1) {
 		do {
 			if (strcmp(finddata.name, ".") != 0 && strcmp(finddata.name, "..") != 0) {
-				strlen(dirname);
 				strcpy(buffer, dirname);
 				strcat(buffer, "\\");
 			}
 
-			if ((filedata.attrib & FILE_ATTRIBUTE_DIRECTORY /*0x10*/) == 0) {
-				FUN_00480830((char *)buffer); // an actual file
+			if (!(finddata.attrib & FILE_ATTRIBUTE_DIRECTORY /*0x10*/)) {
+				Scan_File(buffer); // an actual file
 			}
 			else {
-				File_Find((char *)buffer); // a directory, recurse with this function
+				Scan_Directory(buffer); // a directory, recurse with this function
 			}
-		} while (_findnext(handle, &finddata) == 0);
+		} while (_findnext32(handle, &finddata) == 0);
 		_findclose(handle);
 	}
 }
 
+// Chances are high that there was a preprocessor-removed functionality in here.
+// This straight up does nothing, because not even the return is used.
 // <LegoRR.exe @00480830>
-void __cdecl FUN_00480830(const char* filename)
+int __cdecl Scan_File(const char* filename)
 {
-	///TODO: decompile me
+	for (int i = 0; i < g_ScanRealFiles_FilePaths_COUNT; i++) {
+		if (_stricmp(filename, g_ScanRealFiles_FilePaths_TABLE[i]) == 0)
+			return 0;
+	}
+	return g_ScanRealFiles_FilePaths_COUNT;
 }
 
 // called in one of the LegoRR main initialization functions <LegoRR.exe @00477a60>
@@ -877,7 +884,7 @@ int __cdecl WAD_FindEntry(const char* filename, int opt_wadIndex = -1)
 	}
 
 	for (int wadIndex = WADFILES_COUNT - 1 /*10-1=9*/; wadIndex >= 0; wadIndex--) {
-		if (WAD_Get(index)->isUsed == false)
+		if (WAD_Get(wadIndex)->isUsed == false)
 			continue;
 		int entryIndex = WAD_FindEntry__InWAD(filename, wadIndex);
 		if (entryIndex != -1)

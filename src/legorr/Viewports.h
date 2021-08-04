@@ -1,4 +1,4 @@
-
+#pragma once
 #ifndef LEGORR__VIEWPORTS_H
 #define LEGORR__VIEWPORTS_H
 

@@ -15,6 +15,7 @@ enum CmdlineFlags : unsigned int
   	// }
 	// I think this specifies that the Window setup function has been called once.
 	//CMD_UNK_2           = 0x2,  // Non-zero to adjust window rect?
+	CMD_FULLSCREEN      = 0x2, // set when booting the game if -window mode is not specified
 
 
 	CMD_NM              = 0x20, // -nm  ("no management"?, Disables texture management for Voodoo2-based cards. Incorrectly listed as -nom in the readme file.)
@@ -25,7 +26,7 @@ enum CmdlineFlags : unsigned int
 	CMD_DEBUG           = 0x2000, // -debug
 	CMD_DUALMOUSE       = 0x4000, // -dualmouse
 	CMD_DEBUGCOMPLETE   = 0x8000, // -debugcomplete
-	CMD_TESTERCALL      = 0x10000, // -testercall
+	CMD_TESTERCALL      = 0x10000, // -testercall (programmermode = 2)
 	CMD_TESTLEVELS      = 0x20000, // -testlevels
 	CMD_FTM             = 0x40000, // -ftm
 	CMD_FVF             = 0x80000, // -fvf
@@ -44,13 +45,16 @@ enum CmdlineFlags : unsigned int
 	// CMD_INSISTONCD      = ??, // -insistOnCD (set as exclusive bool out-value)
 };
 
-// enum ProgrammerMode : unsigned int
-// {
-// 	PROGRAMMER_OFF = 0,
-// 	PROGRAMMER_MODE_1 = 1,
-// 	PROGRAMMER_MODE_2 = 2,
-// 	// more values exist, at least up to and including 10?
-// };
+enum ProgrammerMode : unsigned int
+{
+	PROGRAMMER_OFF = 0,
+	PROGRAMMER_MODE_1 = 1,
+	PROGRAMMER_MODE_2 = 2, // condition for >1 and -testlevels
+	PROGRAMMER_MODE_3 = 3, // front end is disabled (>=3)
+	PROGRAMMER_MODE_10 = 10, // test level AVI's?
+	PROGRAMMER_MODE_11 = 11, // test level loads?
+	// more values exist, at least up to and including 10?
+};
 
 
 /// GLOBALS //////////////////////////////
@@ -188,7 +192,7 @@ void __cdecl Main_parseCmdFlags(char* args, bool* out_nosound, bool* out_insistO
 	
 	strMatch = strstri(args, "-programmer");
 	if (strMatch != NULL) {
-		g_PROGRAMMER_MODE = atoi(strMatch + 11); // skip length of "-programmer" (no spaces), atoi skips whitespace on its own
+		g_PROGRAMMER_MODE = atoi(strMatch + 11);
 		if (g_PROGRAMMER_MODE == 0) // parse failed or 0, set to 1 as default 'mode'
 			g_PROGRAMMER_MODE = 1;
 	}

@@ -1,4 +1,4 @@
-
+#pragma once
 #ifndef LEGORR__NERPS_H
 #define LEGORR__NERPS_H
 

@@ -1,4 +1,6 @@
-
+#pragma once
+#ifndef LEGORR__PTL_H
+#define LEGORR__PTL_H
 
 
 
@@ -12,7 +14,7 @@ struct PTLProperty
 
 // populated once on boot(?), essentially constant
 // <LegoRR.exe @00500190>
-static const char* g_PTL_EVENTNAMES_TABLE[65];
+static const char* g_Messages_TABLE[65];
 
 // <LegoRR.exe @00556be0>
 static PTLProperty g_LEVEL_PTLEVENTS_TABLE[40];
@@ -94,71 +96,71 @@ static unsigned int g_LEVEL_PTLEVENTS_COUNT;
 // <LegoRR.exe @00451f90>
 void __cdecl Boot_InitPTLEventNamesTable(void)
 {
-	g_PTL_EVENTNAMES_TABLE[0] = "Message_Null";
-	g_PTL_EVENTNAMES_TABLE[1] = "Message_Select";
-	g_PTL_EVENTNAMES_TABLE[2] = "Message_Selected";
-	g_PTL_EVENTNAMES_TABLE[3] = "Message_ClearSelection";
-	g_PTL_EVENTNAMES_TABLE[4] = "Message_Deselect";
-	g_PTL_EVENTNAMES_TABLE[5] = "Message_Goto";
-	g_PTL_EVENTNAMES_TABLE[6] = "Message_RockMonsterGoto";
-	g_PTL_EVENTNAMES_TABLE[7] = "Message_RockMonsterGotoComplete";
-	g_PTL_EVENTNAMES_TABLE[8] = "Message_UserGoto";
-	g_PTL_EVENTNAMES_TABLE[9] = "Message_FirstPerson";
-	g_PTL_EVENTNAMES_TABLE[10] = "Message_TrackObject";
-	g_PTL_EVENTNAMES_TABLE[11] = "Message_TopView";
-	g_PTL_EVENTNAMES_TABLE[12] = "Message_PlaySample";
-	g_PTL_EVENTNAMES_TABLE[13] = "Message_Dig";
-	g_PTL_EVENTNAMES_TABLE[14] = "Message_DigComplete";
-	g_PTL_EVENTNAMES_TABLE[15] = "Message_Repair";
-	g_PTL_EVENTNAMES_TABLE[16] = "Message_RepairComplete";
-	g_PTL_EVENTNAMES_TABLE[17] = "Message_Reinforce";
-	g_PTL_EVENTNAMES_TABLE[18] = "Message_ReinforceComplete";
-	g_PTL_EVENTNAMES_TABLE[19] = "Message_RockFall";
-	g_PTL_EVENTNAMES_TABLE[20] = "Message_RockFallComplete";
-	g_PTL_EVENTNAMES_TABLE[21] = "Message_GenerateCrystal";
-	g_PTL_EVENTNAMES_TABLE[22] = "Message_GenerateCrystalComplete";
-	g_PTL_EVENTNAMES_TABLE[23] = "Message_CollectCrystal";
-	g_PTL_EVENTNAMES_TABLE[24] = "Message_CollectCrystalComplete";
-	g_PTL_EVENTNAMES_TABLE[25] = "Message_CrystalToRefinery";
-	g_PTL_EVENTNAMES_TABLE[26] = "Message_CrystalToRefineryComplete";
-	g_PTL_EVENTNAMES_TABLE[27] = "Message_GenerateOre";
-	g_PTL_EVENTNAMES_TABLE[28] = "Message_GenerateOreComplete";
-	g_PTL_EVENTNAMES_TABLE[29] = "Message_CollectOre";
-	g_PTL_EVENTNAMES_TABLE[30] = "Message_CollectOreComplete";
-	g_PTL_EVENTNAMES_TABLE[31] = "Message_GenerateRockMonster";
-	g_PTL_EVENTNAMES_TABLE[32] = "Message_GenerateRockMonsterComplete";
-	g_PTL_EVENTNAMES_TABLE[33] = "Message_GatherRock";
-	g_PTL_EVENTNAMES_TABLE[34] = "Message_GatherRockComplete";
-	g_PTL_EVENTNAMES_TABLE[35] = "Message_PickRandomFloor";
-	g_PTL_EVENTNAMES_TABLE[36] = "Message_PickRandomFloorComplete";
-	g_PTL_EVENTNAMES_TABLE[37] = "Message_AttackBuilding";
-	g_PTL_EVENTNAMES_TABLE[38] = "Message_AttackBuildingComplete";
-	g_PTL_EVENTNAMES_TABLE[39] = "Message_Clear";
-	g_PTL_EVENTNAMES_TABLE[40] = "Message_ClearComplete";
-	g_PTL_EVENTNAMES_TABLE[41] = "Message_GetIn";
-	g_PTL_EVENTNAMES_TABLE[42] = "Message_ManSelectedAndMonsterClicked";
-	g_PTL_EVENTNAMES_TABLE[43] = "Message_FollowAttack";
-	g_PTL_EVENTNAMES_TABLE[44] = "Message_CollectTool";
-	g_PTL_EVENTNAMES_TABLE[45] = "Message_ReduceSelection";
-	g_PTL_EVENTNAMES_TABLE[46] = "Message_ClearFallIn";
-	g_PTL_EVENTNAMES_TABLE[47] = "Message_ClearFallInComplete";
-	g_PTL_EVENTNAMES_TABLE[48] = "Message_BuildPath";
-	g_PTL_EVENTNAMES_TABLE[49] = "Message_BuildPathComplete";
-	g_PTL_EVENTNAMES_TABLE[50] = "Message_Train";
-	g_PTL_EVENTNAMES_TABLE[51] = "Message_TrainComplete";
-	g_PTL_EVENTNAMES_TABLE[52] = "Message_GenerateCrystalAndOre";
-	g_PTL_EVENTNAMES_TABLE[53] = "Message_GenerateCrystalAndOreComplete";
-	g_PTL_EVENTNAMES_TABLE[54] = "Message_GenerateFromCryOre";
-	g_PTL_EVENTNAMES_TABLE[55] = "Message_GenerateFromCryOreComplete";
-	g_PTL_EVENTNAMES_TABLE[56] = "Message_Upgrade";
-	g_PTL_EVENTNAMES_TABLE[57] = "Message_UpgradeComplete";
-	g_PTL_EVENTNAMES_TABLE[58] = "Message_ClearBuilding";
-	g_PTL_EVENTNAMES_TABLE[59] = "Message_ClearBuildingComplete";
-	g_PTL_EVENTNAMES_TABLE[60] = "Message_ClearInitial";
-	g_PTL_EVENTNAMES_TABLE[61] = "Message_ClearInitialComplete";
-	g_PTL_EVENTNAMES_TABLE[62] = "Message_ClearRemovePath";
-	g_PTL_EVENTNAMES_TABLE[63] = "Message_ClearRemovePathComplete";
-	g_PTL_EVENTNAMES_TABLE[64] = "Message_Debug_DestroyAll";
+	g_Messages_TABLE[0] = "Message_Null";
+	g_Messages_TABLE[1] = "Message_Select";
+	g_Messages_TABLE[2] = "Message_Selected";
+	g_Messages_TABLE[3] = "Message_ClearSelection";
+	g_Messages_TABLE[4] = "Message_Deselect";
+	g_Messages_TABLE[5] = "Message_Goto";
+	g_Messages_TABLE[6] = "Message_RockMonsterGoto";
+	g_Messages_TABLE[7] = "Message_RockMonsterGotoComplete";
+	g_Messages_TABLE[8] = "Message_UserGoto";
+	g_Messages_TABLE[9] = "Message_FirstPerson";
+	g_Messages_TABLE[10] = "Message_TrackObject";
+	g_Messages_TABLE[11] = "Message_TopView";
+	g_Messages_TABLE[12] = "Message_PlaySample";
+	g_Messages_TABLE[13] = "Message_Dig";
+	g_Messages_TABLE[14] = "Message_DigComplete";
+	g_Messages_TABLE[15] = "Message_Repair";
+	g_Messages_TABLE[16] = "Message_RepairComplete";
+	g_Messages_TABLE[17] = "Message_Reinforce";
+	g_Messages_TABLE[18] = "Message_ReinforceComplete";
+	g_Messages_TABLE[19] = "Message_RockFall";
+	g_Messages_TABLE[20] = "Message_RockFallComplete";
+	g_Messages_TABLE[21] = "Message_GenerateCrystal";
+	g_Messages_TABLE[22] = "Message_GenerateCrystalComplete";
+	g_Messages_TABLE[23] = "Message_CollectCrystal";
+	g_Messages_TABLE[24] = "Message_CollectCrystalComplete";
+	g_Messages_TABLE[25] = "Message_CrystalToRefinery";
+	g_Messages_TABLE[26] = "Message_CrystalToRefineryComplete";
+	g_Messages_TABLE[27] = "Message_GenerateOre";
+	g_Messages_TABLE[28] = "Message_GenerateOreComplete";
+	g_Messages_TABLE[29] = "Message_CollectOre";
+	g_Messages_TABLE[30] = "Message_CollectOreComplete";
+	g_Messages_TABLE[31] = "Message_GenerateRockMonster";
+	g_Messages_TABLE[32] = "Message_GenerateRockMonsterComplete";
+	g_Messages_TABLE[33] = "Message_GatherRock";
+	g_Messages_TABLE[34] = "Message_GatherRockComplete";
+	g_Messages_TABLE[35] = "Message_PickRandomFloor";
+	g_Messages_TABLE[36] = "Message_PickRandomFloorComplete";
+	g_Messages_TABLE[37] = "Message_AttackBuilding";
+	g_Messages_TABLE[38] = "Message_AttackBuildingComplete";
+	g_Messages_TABLE[39] = "Message_Clear";
+	g_Messages_TABLE[40] = "Message_ClearComplete";
+	g_Messages_TABLE[41] = "Message_GetIn";
+	g_Messages_TABLE[42] = "Message_ManSelectedAndMonsterClicked";
+	g_Messages_TABLE[43] = "Message_FollowAttack";
+	g_Messages_TABLE[44] = "Message_CollectTool";
+	g_Messages_TABLE[45] = "Message_ReduceSelection";
+	g_Messages_TABLE[46] = "Message_ClearFallIn";
+	g_Messages_TABLE[47] = "Message_ClearFallInComplete";
+	g_Messages_TABLE[48] = "Message_BuildPath";
+	g_Messages_TABLE[49] = "Message_BuildPathComplete";
+	g_Messages_TABLE[50] = "Message_Train";
+	g_Messages_TABLE[51] = "Message_TrainComplete";
+	g_Messages_TABLE[52] = "Message_GenerateCrystalAndOre";
+	g_Messages_TABLE[53] = "Message_GenerateCrystalAndOreComplete";
+	g_Messages_TABLE[54] = "Message_GenerateFromCryOre";
+	g_Messages_TABLE[55] = "Message_GenerateFromCryOreComplete";
+	g_Messages_TABLE[56] = "Message_Upgrade";
+	g_Messages_TABLE[57] = "Message_UpgradeComplete";
+	g_Messages_TABLE[58] = "Message_ClearBuilding";
+	g_Messages_TABLE[59] = "Message_ClearBuildingComplete";
+	g_Messages_TABLE[60] = "Message_ClearInitial";
+	g_Messages_TABLE[61] = "Message_ClearInitialComplete";
+	g_Messages_TABLE[62] = "Message_ClearRemovePath";
+	g_Messages_TABLE[63] = "Message_ClearRemovePathComplete";
+	g_Messages_TABLE[64] = "Message_Debug_DestroyAll";
 }
 
 // <LegoRR.exe @00452290>
@@ -166,7 +168,7 @@ int __cdecl Game_LookupPTLEventIndex(const char* ptlName)
 {
 	int cmpResult = 0; // this value is never used, just keeps the compiler from complaining.
 	for (int i = 0; i < 65; i++) {
-		cmpResult= _stricmp(g_PTL_EVENTNAMES_TABLE[i] + 8, ptlName);
+		cmpResult= _stricmp(g_Messages_TABLE[i] + 8, ptlName);
 		if (cmpResult == 0)
 			return i;
 	}
@@ -176,7 +178,7 @@ int __cdecl Game_LookupPTLEventIndex(const char* ptlName)
 	// int iVar3;
 
 	// iVar3 = 0;
-	// ppcVar2 = g_PTL_EVENTNAMES_TABLE;
+	// ppcVar2 = g_Messages_TABLE;
 	// do {
 	// 	iVar1 = _stricmp(*ppcVar2 + 8, ptlName);
 	// 	if (iVar1 == 0) {
@@ -625,3 +627,6 @@ void __cdecl Game_UNK_WITHCOUNT__004522d0(unsigned char byte_1, undefined4 param
   g_NAMETABLE_SurfaceTypes[15] = "Lego_SurfaceType_SlugHole";
   g_NAMETABLE_SurfaceTypes[16] = "Lego_SurfaceType_Undiscovered";
   g_NAMETABLE_SurfaceTypes[17] = "Lego_SurfaceType_Cavern";
+
+
+#endif /* LEGORR__PTL_H */
