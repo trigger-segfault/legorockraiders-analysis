@@ -50,7 +50,7 @@ unsigned int __cdecl lego::image::packNativeRGB(IDirectDrawSurface4* ddSurface, 
 		ddSurface->GetPalette(&ddPal);
 		ddPal->GetEntries(0, 0, 256, palEntries);
 		for (int i = 0; i < 256; i++) {
-			if (palEntries[i].peRed == r && palEntries[i].peGreen == r && palEntries[i].peBlue == r)
+			if (palEntries[i].peRed == r && palEntries[i].peGreen == g && palEntries[i].peBlue == b)
 				return i;
 		}
 		return 256;

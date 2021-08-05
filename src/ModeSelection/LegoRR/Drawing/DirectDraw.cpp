@@ -168,7 +168,7 @@ HRESULT CALLBACK lego::draw::DirectDrawDeviceEnumerate_Callback(LPGUID lpGuid, L
 
 	std::sprintf(deviceMode->displayName, "%s (%s)", lpDeviceName, lpDeviceDescription);
 	globals::g_DirectDrawDeviceEnumerate_COUNT++;
-	return 1;
+	return DIENUM_CONTINUE /*0x1*/;
 }
 
 
@@ -188,14 +188,17 @@ HRESULT CALLBACK lego::draw::DirectDrawScreenEnumerate_Callback(LPDDSURFACEDESC2
 	}
 	else {
 		std::sprintf(screenMode->displayName, "%ix%i", (int)lpDDSurfaceDesc->dwWidth, (int)lpDDSurfaceDesc->dwHeight);
-		if (screenMode->bitDepth != main::GetDeviceBitsPerPixel()) {
+		if (globals::g_DirectDrawScreenEnumerate_COUNT != 0 && screenMode->bitDepth != main::GetDeviceBitsPerPixel()) {
 			// Bit depth doesn't match system, we can't use this in windowed
 			screenMode->flags &= ~SCREENMODE_ISUSED /*~0x1*/;
+
+			// skip incrementing COUNT and return
+			return DDENUMRET_OK /*0x1*/;
 		}
 	}
 
 	globals::g_DirectDrawScreenEnumerate_COUNT++;
-	return 1;
+	return DDENUMRET_OK /*0x1*/;
 }
 
 #pragma endregion
@@ -963,7 +966,7 @@ BOOL __cdecl lego::draw::StartScreenMode(BOOL isFullScreen, DriverMode* driver, 
 
 
 	globals::g_ScreenIsFullScreen = isFullScreen;
-	LPGUID lpGuid = ((!driver || (driver->flags & DRIVERMODE_NOGUID_10) /*0x10*/) ? nullptr : &driver->guid);
+	LPGUID lpGuid = ((!driver || (driver->flags & DRIVERMODE_NOGUID_10 /*0x10*/)) ? nullptr : &driver->guid);
 	//debugf("GUID: %p\n", lpGuid);
 
 	globals::g_ScreenSize.width  = screenWidth;

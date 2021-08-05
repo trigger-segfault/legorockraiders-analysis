@@ -130,7 +130,7 @@ enum AdvisorPositionFlags : unsigned int
 
 struct AdvisorAnimData
 {
-	/*0,4*/ ResourceData * resData;
+	/*0,4*/ ResourceData* resData;
 	/*4,4*/ float loopStartTime; // ignored when not looping
 	/*8,4*/ float loopEndTime;   // ignored when not looping
 	/*c*/
@@ -150,23 +150,23 @@ struct AdvisorPositionData
 
 
 // <LegoRR.exe @004b3db0>
-extern char * lego::globals::g_AdvisorTypes_TABLE[ADVISOR__COUNT /*21*/];
+extern char* lego::globals::g_AdvisorTypes_TABLE[ADVISOR__COUNT /*21*/];
 // <LegoRR.exe @004b3e04>
 extern AdvisorPositionData lego::globals::g_AdvisorPositions_TABLE[ADVISOR__COUNT /*21*/];
 // <LegoRR.exe @004b40f8>
-extern char * lego::globals::g_AdvisorAnimTypes_TABLE[ADVISORANIM__COUNT /*11*/];
+extern char* lego::globals::g_AdvisorAnimTypes_TABLE[ADVISORANIM__COUNT /*11*/];
 // <LegoRR.exe @004b4124>
 extern AdvisorAnimData lego::globals::g_AdvisorAnimsData_TABLE[ADVISORANIM__COUNT /*11*/];
 // <LegoRR.exe @004b41a8>
 extern AdvisorType lego::globals::g_Advisor_CurrentType;
 // <LegoRR.exe @004b41ac>
-extern ResourceData * lego::globals::g_Advisor_ResRoot;
+extern ResourceData* lego::globals::g_Advisor_ResRoot;
 // <LegoRR.exe @004b41b0>
-extern void * lego::globals::g_Advisor_ptr1c;    // ptr1c might to be some sort of viewport resource
+extern void* lego::globals::g_Advisor_ptr1c;    // ptr1c might to be some sort of viewport resource
 // <LegoRR.exe @004b41b4>
 extern float lego::globals::g_AdvisorPosition_Z; // Always set to 0.96f  (was probably configurable at one point)
 // <LegoRR.exe @004b41b8>
-extern ResourceData * lego::globals::g_Advisor_ResLight; // 3DRM light resource
+extern ResourceData* lego::globals::g_Advisor_ResLight; // 3DRM light resource
 // <LegoRR.exe @004b41bc>
 extern AdvisorStateFlags lego::globals::g_Advisor_CurrentFlags;
 
@@ -176,23 +176,23 @@ extern AdvisorStateFlags lego::globals::g_Advisor_CurrentFlags;
 struct AdvisorManager
 {
 	// <LegoRR.exe @004b3db0>
-	/*000,54*/  extern char * AdvisorTypes_TABLE[ADVISOR__COUNT /*21*/];
+	/*000,54*/  extern char* AdvisorTypes_TABLE[ADVISOR__COUNT /*21*/];
 	// <LegoRR.exe @004b3e04>
 	/*054,2f4*/ extern AdvisorPositionData g_AdvisorPositions_TABLE[ADVISOR__COUNT /*21*/];
 	// <LegoRR.exe @004b40f8>
-	/*348,2c*/  extern char * AnimTypes_TABLE[ADVISORANIM__COUNT /*11*/];
+	/*348,2c*/  extern char* AnimTypes_TABLE[ADVISORANIM__COUNT /*11*/];
 	// <LegoRR.exe @004b4124>
 	/*374,84*/  extern AdvisorAnimData AdvisorAnimsData_TABLE[ADVISORANIM__COUNT /*11*/];
 	// <LegoRR.exe @004b41a8>
 	/*3f8,4*/   extern AdvisorType currentType;
 	// <LegoRR.exe @004b41ac>
-	/*3fc,4*/   extern ResourceData * resRoot;
+	/*3fc,4*/   extern ResourceData* resRoot;
 	// <LegoRR.exe @004b41b0>
-	/*400,4*/   extern void * ptr1c;    // ptr1c might to be some sort of viewport resource
+	/*400,4*/   extern void* ptr1c;    // ptr1c might to be some sort of viewport resource
 	// <LegoRR.exe @004b41b4>
 	/*404,4*/   extern float position_Z; // Always set to 0.96f  (was probably configurable at one point)
 	// <LegoRR.exe @004b41b8>
-	/*408,4*/   extern ResourceData * resLight; // 3DRM light resource
+	/*408,4*/   extern ResourceData* resLight; // 3DRM light resource
 	// <LegoRR.exe @004b41bc>
 	/*40c,4*/   extern AdvisorStateFlags flags;
 	/*410*/
@@ -202,7 +202,7 @@ extern AdvisorManager g_Advisor;
 
 
 // <LegoRR.exe @00401000>
-void __cdecl lego::front::Advisor_Init(const char *keyRoot, Struct_bc *structbc, void *ptr_1c)
+void __cdecl lego::front::Advisor_Init(const char* keyRoot, Struct_bc* structbc, void* ptr_1c)
 {
 	globals::g_AdvisorTypes_TABLE[0] = "Advisor_Objective";
 	globals::g_AdvisorTypes_TABLE[1] = "Advisor_ObjectiveAcheived";
@@ -253,7 +253,7 @@ void __cdecl lego::front::Advisor_Init(const char *keyRoot, Struct_bc *structbc,
 void __cdecl lego::front::Advisor_Cleanup(void)
 {
 	AdvisorAnimType animType = globals::g_AdvisorPositions_TABLE[globals::g_Advisor_CurrentType].animType;
-	if (globals::g_AdvisorAnimsData_TABLE[animType].resData != NULL) {
+	if (globals::g_AdvisorAnimsData_TABLE[animType].resData != nullptr) {
 		res::Res_UnkSetup3DFrameTransform(globals::g_AdvisorAnimsData_TABLE[animType].resData, true /*use3rdFrame*/);
 	}
 
@@ -274,7 +274,7 @@ void __cdecl lego::front::Advisor_InitViewport(float param_unused)
 
 /// RESULT: sqrt(((a.x - b.x)*(a.x - b.x)) + ((a.y - b.y)*(a.y - b.y)))
 // <LegoRR.exe @00401240>
-float10 __cdecl lego::math::Vector2_Distance(const Point2F *a, const Point2F *b)
+float10 __cdecl lego::math::Vector2_Distance(const Point2F* a, const Point2F* b)
 {
 	return std::sqrt(((a->x - b->x)*(a->x - b->x)) + ((a->y - b->y)*(a->y - b->y)));
 }
@@ -285,19 +285,19 @@ float10 __cdecl lego::math::Vector2_Distance(const Point2F *a, const Point2F *b)
 /// EXONE: Advisor_Anim_Point_Up  Mini-Figures\Captain\NEW_Captain_Point_CALL_T_ARMS,1.04,4.0
 /// EXTWO: Advisor_Anim_Talk_Top  Mini-Figures\Captain\NEW_Captain_Point_QTalk,1.04,2.4
 // <LegoRR.exe @00401270>
-void __cdecl lego::front::Advisor_LoadAdvisorAnims(CFGProperty *root, const char *keyRoot)
+void __cdecl lego::front::Advisor_LoadAdvisorAnims(CFGProperty* root, const char* keyRoot)
 {
-	char *stringParts[3];
+	char* stringParts[3];
 	char buffer[64];
 
 	// 11 = length of globals::g_AdvisorAnimTypes_TABLE[]
 	for (int i = 0; i < ADVISORANIM__COUNT /*11*/; i++) {
-		AdvisorAnimData *animData = &globals::g_AdvisorAnimsData_TABLE[i];
-		const char *animName = globals::g_AdvisorAnimTypes_TABLE[i];
+		AdvisorAnimData* animData = &globals::g_AdvisorAnimsData_TABLE[i];
+		const char* animName = globals::g_AdvisorAnimTypes_TABLE[i];
 
-		const char *keyPath = cfg::CFG_JoinPath(keyRoot,"Advisor",animName,0);
-		const char *value = cfg::CFG_GetPropertyValue(root, keyPath);
-		if (value == NULL) {
+		const char* keyPath = cfg::CFG_JoinPath(keyRoot,"Advisor",animName,0);
+		const char* value = cfg::CFG_GetPropertyValue(root, keyPath);
+		if (value == nullptr) {
 			if (!(globals::g_CMDLINE_FLAGS & CMD_REDUCEANIMATION)) {
 				/// BUG: Reduce buffer name is never used, '!' prefix cannot
 				///      be used with Advisor block properties as intended.
@@ -307,10 +307,10 @@ void __cdecl lego::front::Advisor_LoadAdvisorAnims(CFGProperty *root, const char
 			}
 		}
 
-		if (value != NULL) {
+		if (value != nullptr) {
 			util::stringSplit(value, stringParts, ",");
 			animData->resData = res::Res_LoadResource(globals::g_Advisor_ResRoot, stringParts[0], "LWS", true);
-			if (animData->resData != NULL) {
+			if (animData->resData != nullptr) {
 				res::Res_SetFrameOrientation(animData->resData, globals::g_Advisor_ResRoot, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f);
 				res::Res_UnkSetup3DFrameTransform(animData->resData, true /*use3rdFrame*/);
 			}
@@ -322,11 +322,11 @@ void __cdecl lego::front::Advisor_LoadAdvisorAnims(CFGProperty *root, const char
 }
 
 // <LegoRR.exe @004013a0>
-BOOL __cdecl lego::front::Advisor_GetAdvisorType(const char *advisorName, AdvisorType *out_advisorType)
+BOOL __cdecl lego::front::Advisor_GetAdvisorType(const char* advisorName, AdvisorType* out_advisorType)
 {
 	// 21 = length of globals::g_AdvisorTypes_TABLE[]
 	for (int i = 0; i < ADVISOR__COUNT /*21*/; i++) {
-		if (_stricmp(globals::g_AdvisorTypes_TABLE[i], advisorName) == 0) {
+		if (::_stricmp(globals::g_AdvisorTypes_TABLE[i], advisorName) == 0) {
 			*out_advisorType = i;
 			return true;
 		}
@@ -338,7 +338,7 @@ BOOL __cdecl lego::front::Advisor_GetAdvisorType(const char *advisorName, Adviso
 ///                        (a.z * b.x) - (a.x * b.z),
 ///                        (a.x * b.y) - (a.y * b.x) }
 // <LegoRR.exe @004013e0>
-Vector3F * __cdecl lego::math::Vector3_CrossProduct(Vector3F *out_vector, const Vector3F *a, const Vector3F *b)
+Vector3F* __cdecl lego::math::Vector3_CrossProduct(Vector3F* out_vector, const Vector3F* a, const Vector3F* b)
 {
 	out_vector->x = a->y * b->z - a->z * b->y;
 	out_vector->y = a->z * b->x - a->x * b->z;
@@ -346,11 +346,11 @@ Vector3F * __cdecl lego::math::Vector3_CrossProduct(Vector3F *out_vector, const 
 }
 
 // <LegoRR.exe @00401430>
-BOOL __cdecl lego::front::Advisor_GetAnimType(const char *animName, AdvisorAnimType *out_animType)
+BOOL __cdecl lego::front::Advisor_GetAnimType(const char* animName, AdvisorAnimType* out_animType)
 {
 	// 11 = length of globals::g_AdvisorAnimTypes_TABLE[]
 	for (int i = 0; i < ADVISORANIM__COUNT /*11*/; i++) {
-		if (_stricmp(globals::g_AdvisorAnimTypes_TABLE[i], animName) == 0) {
+		if (::_stricmp(globals::g_AdvisorAnimTypes_TABLE[i], animName) == 0) {
 			*out_animType = i;
 			return true;
 		}
@@ -360,7 +360,7 @@ BOOL __cdecl lego::front::Advisor_GetAnimType(const char *animName, AdvisorAnimT
 
 /// RESULT: out_vector = a + b
 // <LegoRR.exe @00401470>
-Vector3F * __cdecl lego::math::Vector3_Add(Vector3F *out_vector, const Vector3F *a, const Vector3F *b)
+Vector3F* __cdecl lego::math::Vector3_Add(Vector3F* out_vector, const Vector3F* a, const Vector3F* b)
 {
 	out_vector->x = a->x + b->x;
 	out_vector->y = a->y + b->y;
@@ -373,17 +373,17 @@ Vector3F * __cdecl lego::math::Vector3_Add(Vector3F *out_vector, const Vector3F 
 /// EXONE: Advisor_IconPoint_TopButtons    Advisor_Anim_Point_NE,NULL,SFX_NULL,-25,25,NULL
 /// EXTWO: Advisor_PanelPoint_RadarToggle  Advisor_Anim_Point_N,NULL,SFX_NULL,220,65,Panel_Radar
 // <LegoRR.exe @004014a0>
-void __cdecl lego::front::Advisor_LoadAdvisorPositions(CFGProperty *root, const char *keyRoot, int screenWidth, int screenHeight)
+void __cdecl lego::front::Advisor_LoadAdvisorPositions(CFGProperty* root, const char* keyRoot, int screenWidth, int screenHeight)
 {
 	AdvisorAnimType animType;
 	AdvisorType advisorType;
 	int sfxIndex;
-	char *stringParts[6];
+	char* stringParts[6];
 	char advisorKeyPath[128];
 
 	std::sprintf(advisorKeyPath, "AdvisorPositions%ix%i", screenWidth, screenHeight);
-	const char *keyPath = cfg::CFG_JoinPath(keyRoot,advisorKeyPath,0);
-	for (CFGProperty *prop = cfg::CFG_GetBlockFirstChild(root, keyPath); prop != NULL; prop = cfg::CFG_NextFlatProperty(prop)) {
+	const char* keyPath = cfg::CFG_JoinPath(keyRoot,advisorKeyPath,0);
+	for (CFGProperty* prop = cfg::CFG_GetBlockFirstChild(root, keyPath); prop != nullptr; prop = cfg::CFG_NextFlatProperty(prop)) {
 		
 		TextType textType   = TEXT__COUNT /*26*/;  // treated as "NULL"
 		PanelType panelType = PANEL__COUNT /*12*/; // treated as "NULL"
@@ -391,9 +391,9 @@ void __cdecl lego::front::Advisor_LoadAdvisorPositions(CFGProperty *root, const 
 		if (Advisor_GetAdvisorType(prop->key, &advisorType)) {
 			util::stringSplit(prop->value, stringParts, ",");
 
-			if (!Advisor_GetAnimType(stringParts[0], &animType)
+			if (!Advisor_GetAnimType(stringParts[0], &animType))
 				continue;
-			if ((_stricmp("NULL", stringParts[1]) != 0 && !Text_GetTextType(stringParts[1], &textType))
+			if (::_stricmp("NULL", stringParts[1]) != 0 && !Text_GetTextType(stringParts[1], &textType))
 				continue;
 			if (!snd::Snd_GetSFX(stringParts[2], &sfxIndex))
 				continue;
@@ -401,7 +401,7 @@ void __cdecl lego::front::Advisor_LoadAdvisorPositions(CFGProperty *root, const 
 			float x = (float)std::atof(stringParts[3]);
 			float y = (float)std::atof(stringParts[4]);
 
-			if (_stricmp("NULL", stringParts[5]) == 0 || Panel_GetPanelType(stringParts[5], &panelType)) {
+			if (::_stricmp("NULL", stringParts[5]) == 0 || Panel_GetPanelType(stringParts[5], &panelType)) {
 				Advisor_AddAdvisorPosition(advisorType, animType, textType, sfxIndex, panelType, x, y);
 			}
 		}
@@ -411,7 +411,7 @@ void __cdecl lego::front::Advisor_LoadAdvisorPositions(CFGProperty *root, const 
 
 /// RESULT: out_vector = a - b
 // <LegoRR.exe @00401630>
-Vector3F * __cdecl lego::math::Vector3_Subtract(Vector3F *out_vector, const Vector3F *a, const Vector3F *b)
+Vector3F* __cdecl lego::math::Vector3_Subtract(Vector3F* out_vector, const Vector3F* a, const Vector3F* b)
 {
 	out_vector->x = a->x - b->x;
 	out_vector->y = a->y - b->y;
@@ -421,7 +421,7 @@ Vector3F * __cdecl lego::math::Vector3_Subtract(Vector3F *out_vector, const Vect
 
 /// RESULT: out_vector = a * scalar
 // <LegoRR.exe @00401660>
-Vector3F * __cdecl lego::math::Vector3_Scale(Vector3F *out_vector, const Vector3F *a, float scalar)
+Vector3F* __cdecl lego::math::Vector3_Scale(Vector3F* out_vector, const Vector3F* a, float scalar)
 {
 	out_vector->x = a->x * scalar;
 	out_vector->y = a->y * scalar;
@@ -432,7 +432,7 @@ Vector3F * __cdecl lego::math::Vector3_Scale(Vector3F *out_vector, const Vector3
 /// RESULT: ref_vector = ref_vector * (1.0 / modulus(ref_vector))
 /// REFERENCE: modulus(ref_vector) -> sqrt(dot_product(ref_vector, ref_vector))
 // <LegoRR.exe @00401690>
-Vector3F * __cdecl lego::math::Vector3_Normalize(Vector3F *ref_vector)
+Vector3F* __cdecl lego::math::Vector3_Normalize(Vector3F* ref_vector)
 {
 	float10 value = 1.0 / std::sqrt((ref_vector->x * ref_vector->x) + (ref_vector->y * ref_vector->y) + (ref_vector->z * ref_vector->z));
 	ref_vector->x *= value;
@@ -479,7 +479,7 @@ void __cdecl lego::front::Advisor_SetParameters(AdvisorType advisorType, PanelTy
 }
 
 // <LegoRR.exe @004017d0>
-void __cdecl lego::front::Advisor_GetPoint2(AdvisorType advisorType, float *out_x2, float *out_y2)
+void __cdecl lego::front::Advisor_GetPoint2(AdvisorType advisorType, float* out_x2, float* out_y2)
 {
 	*out_x2 = globals::g_AdvisorPositions_TABLE[advisorType].point2.x;
 	*out_y2 = globals::g_AdvisorPositions_TABLE[advisorType].point2.y;
@@ -509,8 +509,8 @@ BOOL __cdecl lego::front::Advisor_SetCurrentAdvisor(AdvisorType advisorType, BOO
 void __cdecl lego::front::Advisor_SetCurrentSound(AdvisorType advisorType)
 {
 	AdvisorAnimType animType = globals::g_AdvisorPositions_TABLE[advisorType].animType;
-	ResourceData *resData = globals::g_AdvisorAnimsData_TABLE[animType].resData;
-	if (resData != NULL) {
+	ResourceData* resData = globals::g_AdvisorAnimsData_TABLE[animType].resData;
+	if (resData != nullptr) {
 		res::Res_UnkSetup3DFrameTransform(resData, false /*!use3rdFrame*/);
 		res::Res_DoCallbacks(resData, 0.0f /*elapsed time*/);
 		snd::Snd_Play_FUN_00465260(globals::g_AdvisorPositions_TABLE[advisorType].sfxIndex, 0 /*mode*/);
@@ -525,9 +525,9 @@ void __cdecl lego::front::Advisor_Update(float elapsed)
 {
 	AdvisorType advisorType = globals::g_Advisor_CurrentType;
 	AdvisorAnimType animType = globals::g_AdvisorPositions_TABLE[advisorType].animType;
-	ResourceData *resData = globals::g_AdvisorAnimsData_TABLE[animType].resData;
+	ResourceData* resData = globals::g_AdvisorAnimsData_TABLE[animType].resData;
 
-	if (resData != NULL) {
+	if (resData != nullptr) {
 		if ((globals::g_Advisor_CurrentFlags & ADVISORSTATE_UNK_1 /*0x1*/) && globals::g_Game.unkbool_308 != 0) {
 			if (globals::g_AdvisorPositions_TABLE[advisorType].flags & ADVISORPOS_HASTEXT /*0x40000*/) {
 				Text_DisplayType(globals::g_AdvisorPositions_TABLE[advisorType].textType, true /*changeTiming?*/, false /*setFlag4*/);
@@ -552,8 +552,8 @@ void __cdecl lego::front::Advisor_Update(float elapsed)
 // <LegoRR.exe @004019b0>
 BOOL __cdecl lego::front::Advisor_FUN_004019b0(AdvisorAnimType animType, float elapsed)
 {
-	AdvisorAnimData *animData = &globals::g_AdvisorAnimsData_TABLE[animType];
-	ResourceData *resData = animData->resData;
+	AdvisorAnimData* animData = &globals::g_AdvisorAnimsData_TABLE[animType];
+	ResourceData* resData = animData->resData;
 
 	float10 time = res::Res_DoAnimElapsedCallbacks(resData, elapsed);
 	//if ((ushort)((ushort)(time < (float10)0.0) << 8 | (ushort)(time == (float10)0.0) << 0xe) == 0)
@@ -593,7 +593,7 @@ void __cdecl lego::front::Advisor_FUN_00401a70(AdvisorType advisorType)
 	Vector4F transform4d;
 	
 	AdvisorAnimType animType = globals::g_AdvisorPositions_TABLE[advisorType].animType;
-	ResourceData *resData = globals::g_AdvisorAnimsData_TABLE[animType].resData;
+	ResourceData* resData = globals::g_AdvisorAnimsData_TABLE[animType].resData;
 
 	if (!(globals::g_AdvisorPositions_TABLE[advisorType].flags & ADVISORPOS_NOPANEL /*0x10000*/)) {
 		// output -> x, y (get panel position?)
@@ -608,7 +608,7 @@ void __cdecl lego::front::Advisor_FUN_00401a70(AdvisorType advisorType)
 	transform4d.z = globals::g_AdvisorPosition_Z;
 	transform4d.w = 1.0f;
 	FUN_00477550(globals::g_Advisor_ptr1c, &vector, &transform4d);
-	res::Res_SetFramePosition(resData, NULL, vector.x, vector.y, vector.z);
+	res::Res_SetFramePosition(resData, nullptr, vector.x, vector.y, vector.z);
 	return;
 }
 
@@ -619,11 +619,11 @@ ProgrammerMode __cdecl lego::main::Config_GetProgrammerMode(void)
 }
 
 // <LegoRR.exe @00401b40>
-const char * __cdecl lego::game::Game_GetStartLevel(void)
+const char* __cdecl lego::game::Game_GetStartLevel(void)
 {
 	if (globals::g_CMDLINE_FLAGS & CMD_STARTLEVEL)
 		return globals::g_STARTLEVEL;
-	return NULL;
+	return nullptr;
 }
 
 // <LegoRR.exe @00401b60>
@@ -650,18 +650,18 @@ int __cdecl lego::main::Config_GetResolutionHeight(void)
 //// LIST OF MODIFIED FUNCTION/GLOBAL NAMES OUTSIDE OF THIS ADDRESS RANGE ////
 
 // <LegoRR.exe @005010e0>
-extern char * lego::globals::g_PanelTypes_TABLE[PANEL__COUNT /*12*/];
+extern char* lego::globals::g_PanelTypes_TABLE[PANEL__COUNT /*12*/];
 
 // <LegoRR.exe @00504190>
-extern char * lego::globals::g_TextTypes_TABLE[TEXT__COUNT /*26*/];
+extern char* lego::globals::g_TextTypes_TABLE[TEXT__COUNT /*26*/];
 
 
 // <LegoRR.exe @0045a630>
-BOOL __cdecl lego::front::Panel_GetPanelType(const char *panelName, PanelType *out_panelType)
+BOOL __cdecl lego::front::Panel_GetPanelType(const char* panelName, PanelType* out_panelType)
 {
 	// 12 = length of globals::g_PanelTypes_TABLE[]
 	for (int i = 0; i < PANEL__COUNT /*12*/; i++) {
-		if (_stricmp(globals::g_PanelTypes_TABLE[i], panelName) == 0) {
+		if (::_stricmp(globals::g_PanelTypes_TABLE[i], panelName) == 0) {
 			*out_panelType = i;
 			return true;
 		}
@@ -670,11 +670,11 @@ BOOL __cdecl lego::front::Panel_GetPanelType(const char *panelName, PanelType *o
 }
 
 // <LegoRR.exe @0046ad90>
-BOOL __cdecl lego::front::Text_GetTextType(const char *textName, TextType *out_textType)
+BOOL __cdecl lego::front::Text_GetTextType(const char* textName, TextType* out_textType)
 {
 	// 26 = length of globals::g_TextTypes_TABLE[]
 	for (int i = 0; i < TEXT__COUNT /*26*/; i++) {
-		if (_stricmp(globals::g_TextTypes_TABLE[i], textName) == 0) {
+		if (::_stricmp(globals::g_TextTypes_TABLE[i], textName) == 0) {
 			*out_textType = i;
 			return true;
 		}
@@ -683,13 +683,13 @@ BOOL __cdecl lego::front::Text_GetTextType(const char *textName, TextType *out_t
 }
 
 // <LegoRR.exe @00473780>
-void __cdecl lego::res::Res_SetLightEnableFrame(ResourceData *resLight, ResourceData *resData)
+void __cdecl lego::res::Res_SetLightEnableFrame(ResourceData* resLight, ResourceData* resData)
 {
-	IDirect3DRMFrame *rmFrame;
+	IDirect3DRMFrame* rmFrame;
 	//IDirect3DRMFrame3->QueryInterface(this, IID_IDirect3DRMFrame, IDirect3DRMFrame** lplpOut)
 	// (downcast: IDirect3DRMFrame3 -> IDirect3DRMFrame)
-	resData->frame1->QueryInterface(idl::IID_IDirect3DRMFrame, (void **)&rmFrame);
-	IDirect3DRMLight *rmLight = resLight->subdata_c->light;
+	resData->frame1->QueryInterface(idl::IID_IDirect3DRMFrame, (LPVOID*)&rmFrame);
+	IDirect3DRMLight* rmLight = resLight->subdata_c->light;
 	//IDirect3DRMLight->SetEnableFrame(this, IDirect3DRMFrame* lpEnableFrame)
 	rmLight->SetEnableFrame(rmFrame);
 	return;

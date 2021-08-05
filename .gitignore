@@ -30,10 +30,21 @@ _backup/
 /src/CLGen/Release
 /src/CLGen/x64
 
+/src/export/
+/src/scripts/
+
+/src/*/.vs
+/src/*/bin/Debug
+/src/*/bin/Release
+/src/*/bin/build
+
 *.vcxproj.filters
 *.vcxproj.user
 *.aps
 *.pdb
+
+!/src/LRRMonitor/bin/LegoRRMonitor.exe
+!/src/LRRMonitor/bin/LegoRRMonitor-debug.exe
 
 !/src/ModeSelection/bin/dgVoodoo.conf
 !/src/ModeSelection/bin/dgVoodooCpl.exe
