@@ -1,6 +1,10 @@
 // DllMain.cpp : Defines the entry point and injection function for the DLL application.
 // 
 
+//#include "Model/External.h"
+#define DEFINE_EXTERNALS
+#include "Model/External.h"
+
 #include "DllMain.h"
 #include "DllInject.h"
 #include "Main/GameHook.h"
@@ -434,9 +438,12 @@ DEFINE_AUTOINJECT(004786b0,  CreateMainWindow);
 
 DEFINE_AUTOINJECT(00438670,  LiveObject_SetIsCrystalPowered);
 DEFINE_AUTOINJECT(00469ed0,  LiveObject_SetLevel);
-DEFINE_AUTOINJECT(00474060,  Res_SetOwnerObject);
+//DEFINE_AUTOINJECT(00474060,  Res_SetOwnerObject);
+DEFINE_AUTOINJECT(0044b400, Level_GenerateSmallSpiders);
 
 
+// <LegoRR.exe @0044b400>
+//void __cdecl lego::game::Level_GenerateSmallSpiders(unsigned int x, unsigned int y, unsigned int randSeed)
 
 BOOL APIENTRY DllMain(HMODULE hModule,
                       DWORD   fdwReason,

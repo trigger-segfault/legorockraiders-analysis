@@ -5,6 +5,7 @@
 #include "../Model/Model.h"
 #include "../../resource.h"
 #include "../DllMain.h"
+#include "../Model/External.h"
 
 //#include "Main.h"
 
@@ -12,9 +13,16 @@
 
 
 using namespace lego::game;
+using namespace external;
 
 
-// Keys use the same numbering as used by DirectInput's "DIK_*" enums.
+static int spawnLevel = 0;
+
+static const char* ObjectSpawnList[20 * 15];
+static int ObjectSpawnCount = 0;
+//static const char* spawnObjName = "SmallSpider";
+static int spawnObjID = 0;
+/*// Keys use the same numbering as used by DirectInput's "DIK_*" enums.
 enum Keys : unsigned char
 {
     KEY_NONE            = 0,   // Not a real KEY enum name
@@ -120,11 +128,11 @@ enum Keys : unsigned char
     KEY_PGDN            = 209, // Page down (Next)
     KEY_INSERT          = 210, // INS
     KEY_DELETE          = 211, // DEL
-};
+};*/
 
 
 
-makeGlob(0076bb3c, BOOL*, g_LeftButtonState);
+/*makeGlob(0076bb3c, BOOL*, g_LeftButtonState);
 makeGlob(0076bb40, BOOL*, g_RightButtonState);
 makeGlob(0076bb4c, BOOL*, BOOL_0076bb4c);
 makeGlob(0076bb50, BOOL*, BOOL_0076bb50);
@@ -136,7 +144,7 @@ makeGlob(0076bb80, bool*, g_KeyboardState_Previous_TABLE);
 
 makeGlob(00506804, HINSTANCE*, g_hInstance);
 makeGlob(00506800, HWND*, g_hWnd);
-makeGlob(00506810, char**, g_WindowClassName);
+makeGlob(00506810, char**, g_WindowClassName);*/
 
 
 bool IsKeyUp(Keys key) {
@@ -164,7 +172,7 @@ bool IsKeyPressed(Keys key) {
 ///#define g_GameFunctions_ISINIT defineGlobPtr(00506938,  BOOL)
 //,  g_GameFunctions_ISINIT)
 
-makeGlob(0050692c,  GameFunctions*, g_GameFunctions);
+/*makeGlob(0050692c,  GameFunctions*, g_GameFunctions);
 makeGlob(00506938,  BOOL*,          g_GameFunctions_ISINIT);
 makeGlob(005570d4,  void**,  g_Game_level);
 
@@ -182,7 +190,7 @@ makeGlob(004b9060, unsigned int*, g_AITasks_INITFLAGS);
 makeGlob(0076bd80, ResourceData**, g_Resources_TABLE);
 makeGlob(0076bdd0, ResourceData**, g_Resources_NEXT);
 makeGlob(0076dd90, unsigned int*, g_Resources_COUNT);
-makeGlob(0076dd94, unsigned int*, g_Resources_INITFLAGS);
+makeGlob(0076dd94, unsigned int*, g_Resources_INITFLAGS);*/
 
 static const char* ObjectNames[] = {
     "TVCamera",
@@ -235,10 +243,24 @@ static const char* ResourceNames[] = {
     Lws = 7, // "LWS"   (ext: NULL)
     Lwo = 8, // "LWO"   (ext: NULL)
 };*/
-makeFunc(00478780,  LRESULT, WindowProc_FullScreen, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+/*makeFunc(00478780,  LRESULT, WindowProc_FullScreen, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 makeFunc(00478980,  LRESULT, WindowProc_Windowed,   HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-makeGlob(00506f84, lego::CmdlineFlags*, g_CMDLINE_FLAGS);
+makeGlob(00506f84, lego::CmdlineFlags*, g_CMDLINE_FLAGS);*/
+
+//#define defCdecl(ADDR, RETURN, NAME, ...) RETURN (__cdecl* NAME) __VA_ARGS__ ;
+
+//defCdecl(0x004ebd60, LRESULT, WindowProc_FullScreen2, (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam));
+
+/*namespace external {
+    LRESULT (__cdecl* WindowProc_FullScreen)(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) = *(LRESULT(__cdecl*)(HWND, UINT, WPARAM, LPARAM)) 0x00478780;
+
+    LRESULT (__cdecl* WindowProc_Windowed)(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) = *(LRESULT(__cdecl*)(HWND, UINT, WPARAM, LPARAM)) 0x00478980;
+}*/
+/*typedef lego::CmdlineFlags __based(g_CMDLINE_FLAGS) gg_CMDLINE_FLAGS;
+#define makeGlob(addr, type, name) static type name = (( type ) 0x ##addr )
+
+#define makeBased(addr, type, name) namespace internalstatic type name = (( type ) 0x ##addr )*/
 
 /*// <LegoRR.exe @00478780>
 LRESULT __cdecl lego::main::WindowProc_FullScreen(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
@@ -259,11 +281,11 @@ LRESULT CALLBACK lego::game::WindowProc(HWND hWnd, UINT message, WPARAM wParam, 
 
         return DefWindowProc(hWnd, message, wParam, lParam);
     }
-    if (*g_CMDLINE_FLAGS & CMD_FULLSCREEN) {
-        return WindowProc_FullScreen(hWnd, message, wParam, lParam);
+    if (g_CMDLINE_FLAGS & CMD_FULLSCREEN) {
+        return external::WindowProc_FullScreen(hWnd, message, wParam, lParam);
     }
     else {
-        return WindowProc_Windowed(hWnd, message, wParam, lParam);
+        return external::WindowProc_Windowed(hWnd, message, wParam, lParam);
     }
 }
 
@@ -287,27 +309,27 @@ BOOL __cdecl lego::game::CreateMainWindow(HINSTANCE hInstance, int nCmdShow)
     wc.hCursor = nullptr; //LoadCursor(nullptr, IDC_ARROW);
     wc.hbrBackground = nullptr; //(HBRUSH)(COLOR_WINDOW+1);
     wc.lpszMenuName = nullptr; //MAKEINTRESOURCEW(IDC_MODESELECTION);
-    wc.lpszClassName = *g_WindowClassName;
+    wc.lpszClassName = const_cast<LPSTR>(g_WindowClassName);
 
     ATOM atom = RegisterClassA(&wc);
     if (!atom) {
         MessageBoxA(nullptr, "Unable to register window class", "Fatal Error", MB_OK /*0*/);
         return FALSE;
     }
-    *g_hWnd = CreateWindowExA(WS_EX_APPWINDOW,
-        *g_WindowClassName,
+    g_hWnd = CreateWindowExA(WS_EX_APPWINDOW,
+        const_cast<LPSTR>(g_WindowClassName),
         ""/*EMPTYSTR*/,
         WS_POPUP | WS_SYSMENU,
         0, 0, 100, 100,
         nullptr, nullptr,
         hInstance, nullptr);
 
-    if (!*g_hWnd) {
+    if (!g_hWnd) {
         MessageBoxA(nullptr, "Unable to Create Main Window", "Fatal Error", MB_OK /*0*/);
         return FALSE;
     }
 
-    SetFocus(*g_hWnd);
+    SetFocus(g_hWnd);
     return TRUE;
 }
 
@@ -335,7 +357,7 @@ void __cdecl lego::game::SetMainWindowTitle(const char* title)
     //GetWindow()
     char buffer[1024];
     std::sprintf(buffer, "%s (Monitor Debugging)", title);
-    BOOL result = SetWindowTextA(*g_hWnd, buffer); // "LRRCE-TITLEREPLACE");// , title);
+    BOOL result = SetWindowTextA(g_hWnd, buffer); // "LRRCE-TITLEREPLACE");// , title);
     //BOOL result = SetWindowTextA(*((HWND*)0x00506800), buffer); // "LRRCE-TITLEREPLACE");// , title);
     //BOOL result = SetWindowTextA(*globals::gp_hWnd, "LRRCE-TITLEREPLACE");// , title);
     /*if (logFile) {
@@ -502,7 +524,7 @@ public:
         if (this->m_hDlg == nullptr) {
             logmsg("this = 0x%08x\n", (unsigned int)this);
             this->m_hDlg = CreateDialogParamA(g_hDllInstance, MAKEINTRESOURCEA(IDD_LIVEOBJECTS),
-                *g_hWnd, LiveObjectsMonitor::DialogProc, (LPARAM)this);// nullptr);
+                g_hWnd, LiveObjectsMonitor::DialogProc, (LPARAM)this);// nullptr);
             if (this->m_hDlg == nullptr) {
                 logmsg("CreateDialogParamA failed\n");
             }
@@ -535,15 +557,33 @@ public:
         return this->m_hDlg == nullptr;
     }
 
-    bool Update(float elapsed)
+    bool Update(float elapsed, bool force = false)
     {
         if (!this->IsOpen())
             return true;
 
         this->lastUpdate += elapsed;
-        if (this->m_hDlg != nullptr && (this->updateCount <= 1 || this->lastUpdate >= this->updateInterval)) {
-            if (this->updateCount == 1)
+        if (this->m_hDlg != nullptr && (this->updateCount <= 1 || this->lastUpdate >= this->updateInterval || force)) {
+            if (this->updateCount == 1) {
                 logmsg("MyGameUpdate [second] [0x%08x]\n", (unsigned int)g_LiveObjects_POOL);
+                /*float trainF = Level_GetTrainTimeF();
+                double trainD = Level_GetTrainTimeD();
+                long double trainLD = Level_GetTrainTimeLD();
+                float speedF = Game_GetGameSpeedF();
+                double speedD = Game_GetGameSpeedD();
+                long double speedLD = Game_GetGameSpeedLD();
+                logmsg("trainF  = %f\n", (double)trainF);
+                logmsg("trainD  = %f\n", (double)trainD);
+                logmsg("trainLD = %f\n", (double)trainLD);
+                logmsg("l->TrainTime  = %f\n", (double)g_Game.level->TrainTime);
+                logmsg("l->RoughLevel = %f\n", (double)g_Game.level->RoughLevel);
+                logmsg("speedF  = %f\n", (double)speedF);
+                logmsg("speedD  = %f\n", (double)speedD);
+                logmsg("speedLD = %f\n", (double)speedLD);
+                logmsg("g->gameSpeed = %f\n", (double)g_Game.gameSpeed);*/
+                //logmsg("l->TrainTime  = %f\n", (double)g_Game_level->TrainTime);
+                //logmsg("l->RoughLevel = %f\n", (double)g_Game_level->RoughLevel);
+            }
 
             this->lastUpdate = 0.0f;
             this->updateCount++;
@@ -560,14 +600,14 @@ public:
             std::map<int, int> unkObjectTypes;
             std::map<int, int> unkResourceTypes;
             unsigned int total = 0, total2 = 0, total3 = 0;
-            bool enabled = ((*g_LiveObjects_INITFLAGS & 1) != 0) && (*g_LiveObjects_COUNT >= 0 && *g_LiveObjects_COUNT <= 32) && *g_Game_level != nullptr;
+            bool enabled = ((g_LiveObjects_INITFLAGS & 1) != 0) && (g_LiveObjects_COUNT >= 0 && g_LiveObjects_COUNT <= 32) && g_Game_level != nullptr;
             unsigned int capacity = 0, capacity2 = 0, capacity3 = 0;
             if (enabled) {
-                for (unsigned int i = 0; i < *g_LiveObjects_COUNT; i++) {
+                for (unsigned int i = 0; i < g_LiveObjects_COUNT; i++) {
                     unsigned int curCount = (1 << i);
                     capacity += curCount;
                     for (unsigned int j = 0; j < curCount; j++) {
-                        LiveObject* liveObj = &g_LiveObjects_POOL[i][j];
+                        volatile LiveObject* liveObj = &g_LiveObjects_POOL[i][j];
                         if (liveObj->pool_m_next != liveObj)
                             continue; // not alive
 
@@ -589,13 +629,13 @@ public:
                     }
                 }
             }
-            bool enabled2 = ((*g_AITasks_INITFLAGS & 1) != 0) && (*g_AITasks_COUNT >= 0 && *g_AITasks_COUNT <= 12) && *g_Game_level != nullptr;
+            bool enabled2 = ((g_AITasks_INITFLAGS & 1) != 0) && (g_AITasks_COUNT >= 0 && g_AITasks_COUNT <= 12) && g_Game_level != nullptr;
             if (enabled2) {
-                for (unsigned int i = 0; i < *g_AITasks_COUNT; i++) {
+                for (unsigned int i = 0; i < g_AITasks_COUNT; i++) {
                     unsigned int curCount = (1 << i);
                     capacity2 += curCount;
                     for (unsigned int j = 0; j < curCount; j++) {
-                        AITaskData* aiTask = &g_AITasks_TABLE[i][j];
+                        volatile AITaskData* aiTask = &g_AITasks_TABLE[i][j];
                         if (aiTask->pool_m_next != aiTask)
                             continue; // not alive
 
@@ -603,13 +643,13 @@ public:
                     }
                 }
             }
-            bool enabled3 = ((*g_Resources_INITFLAGS & 1) != 0) && (*g_Resources_COUNT >= 0 && *g_Resources_COUNT <= 20) && *g_Game_level != nullptr;
+            bool enabled3 = ((g_Resources_INITFLAGS & 1) != 0) && (g_Resources_COUNT >= 0 && g_Resources_COUNT <= 20) && g_Game_level != nullptr;
             if (enabled3) {
-                for (unsigned int i = 0; i < *g_Resources_COUNT; i++) {
+                for (unsigned int i = 0; i < g_Resources_COUNT; i++) {
                     unsigned int curCount = (1 << i);
                     capacity3 += curCount;
                     for (unsigned int j = 0; j < curCount; j++) {
-                        ResourceData* resData = &g_Resources_TABLE[i][j];
+                        volatile ResourceData* resData = &g_Resources_TABLE[i][j];
                         if (resData->pool_m_next != resData)
                             continue; // not alive
 
@@ -732,6 +772,9 @@ public:
             else {
                 std::sprintf(buffer, " ----  : %s", ResourceNames[10]);
             }
+            SendMessageA(hCtrlListbox, LB_ADDSTRING, (WPARAM)0, (LPARAM)buffer);
+
+            std::sprintf(buffer, "WallSpawn: %s (LV%i)", ObjectSpawnList[spawnObjID], spawnLevel);
             SendMessageA(hCtrlListbox, LB_ADDSTRING, (WPARAM)0, (LPARAM)buffer);
 
             //SendMessageA(this->m_hDlg, WM_SETREDRAW, (WPARAM)TRUE, (LPARAM)nullptr);
@@ -886,15 +929,15 @@ static LiveObjectsMonitor liveObjMonitor = LiveObjectsMonitor();
 //makeFunc(004752b0, void, Res_SetMeshColorUnk, ResourceData* resData, int index, DWORD r, DWORD g, DWORD b);
 
 
-typedef unsigned int ObjArrayIndexes[15];
-typedef unsigned int ObjArrayLevels[15][16];
+//typedef unsigned int ObjArrayIndexes[15];
+//typedef unsigned int ObjArrayLevels[15][16];
 
 #define SetColor(r,g,b) do { colorf.red = ((float)(r)) / 255.0f; colorf.green = ((float)(g)) / 255.0f; colorf.blue = ((float)(b)) / 255.0f; } while (0)
 
 #define SetColorh(rgb) do { colorf.red = ((float)((0x ##rgb)>>16&0xff)) / 255.0f; colorf.green = ((float)((0x ##rgb)>>8&0xff)) / 255.0f; colorf.blue = ((float)((0x ##rgb)&0xff)) / 255.0f; } while (0)
 #define SetColorH(rgb) do { colorf.red = ((float)((0x ##rgb)>>16&0xff)) / 255.0f; colorf.green = ((float)((0x ##rgb)>>8&0xff)) / 255.0f; colorf.blue = ((float)((0x ##rgb)&0xff)) / 255.0f; } while (0); break
 
-makeFunc(00474ce0, int,  Res_GetMeshGroupCount,      ResourceData* resData);
+/*makeFunc(00474ce0, int,  Res_GetMeshGroupCount,      ResourceData* resData);
 makeFunc(004752e0, void, Res_SetMeshColorMultiplier, ResourceData* resData, int index, float r, float g, float b, float multiplier);
 makeFunc(004752b0, void, Res_SetMeshColorUnk,        ResourceData* resData, int index, float r, float g, float b);
 
@@ -903,12 +946,12 @@ makeGlob(00557434, lego::ColourRGBF*, g_UnpoweredCrystalRGB);
 makeGlob(00503c28, ObjArrayIndexes*,  g_ObjectLevels_TABLE);              // [20][15]
 makeGlob(004e4944, ObjArrayLevels*,   g_LiveObjectLevels_Previous_TABLE); // [20][15][16]
 makeGlob(004dfe44, ObjArrayLevels*,   g_LiveObjectLevels_Current_TABLE);  // [20][15][16]
-makeGlob(00503bd8, ObjectStats***,    g_ObjectStats_TABLE);               // [20][*][*]
+makeGlob(00503bd8, ObjectStats***,    g_ObjectStats_TABLE);               // [20][*][*]*/
 
 // <LegoRR.exe @00438670>
 void __cdecl lego::game::LiveObject_SetIsCrystalPowered(LiveObject* liveObj, BOOL isPowered)
 {
-    if (liveObj->objType == ObjectType::PowerCrystal || (liveObj->other != nullptr && ((void**)liveObj->other->struct10_c)[2] != nullptr && ((void**)liveObj->other->struct10_c)[3] != nullptr)) {
+    if (liveObj->objType == ObjectType::PowerCrystal) {// || (liveObj->other != nullptr && ((void**)liveObj->other->subdata_c)[2] != nullptr && ((void**)liveObj->other->subdata_c)[3] != nullptr)) {
         lego::ColourRGBF colorf;
         if (liveObj->objLevel >= 1 && liveObj->objType == ObjectType::PowerCrystal) {
             if (!isPowered && liveObj->objType == ObjectType::PowerCrystal) {
@@ -948,9 +991,13 @@ void __cdecl lego::game::LiveObject_SetIsCrystalPowered(LiveObject* liveObj, BOO
         }
         else {
             if (!isPowered)
+                colorf = *const_cast<ColourRGBF*>(&g_UnpoweredCrystalRGB);
+            else
+                colorf = *const_cast<ColourRGBF*>(&g_PowerCrystalRGB);
+            /*if (!isPowered)
                 colorf = *g_UnpoweredCrystalRGB;
             else
-                colorf = *g_PowerCrystalRGB;
+                colorf = *g_PowerCrystalRGB;*/
         }
         for (int index = 0; index < Res_GetMeshGroupCount(liveObj->other); index++) {
             Res_SetMeshColorMultiplier(liveObj->other, index, colorf.red, colorf.green, colorf.blue, 1.0f);
@@ -960,7 +1007,7 @@ void __cdecl lego::game::LiveObject_SetIsCrystalPowered(LiveObject* liveObj, BOO
 }
 static void __cdecl SetResDataColor(ResourceData* resData, LiveObject* liveObj)
 {
-    if (liveObj->objType != ObjectType::PowerCrystal && (liveObj->other != nullptr && ((void**)liveObj->other->struct10_c)[0x8/4] != nullptr && ((void**)liveObj->other->struct10_c)[0xc/4] != nullptr)) {
+    if (liveObj->objType != ObjectType::PowerCrystal && (liveObj->other != nullptr && ((void**)liveObj->other->subdata_c)[0x8/4] != nullptr && ((void**)liveObj->other->subdata_c)[0xc/4] != nullptr)) {
         lego::ColourRGBF colorf;
         switch ((rand() % 12) + 3) {
             //case  0: SetColorH(FFFFFF);
@@ -997,11 +1044,11 @@ BOOL __cdecl lego::game::LiveObject_SetLevel(LiveObject* liveObj, unsigned int l
             g_LiveObjectLevels_Current_TABLE[(int)liveObj->objType][liveObj->objIndex][level]++; // new lvl state
         }
         liveObj->objLevel = level;
-        liveObj->stats = &g_ObjectStats_TABLE[(int)liveObj->objType][liveObj->objIndex][level]; // update the lvl'ed stats
+        liveObj->stats = const_cast<ObjectStats*>(&g_ObjectStats_TABLE[(int)liveObj->objType][liveObj->objIndex][level]); // update the lvl'ed stats
         // Crystal color is automatically set on creation (but before Level is set to non-zero).
         //  So we have to hijack this function just to handle recoloring.
         if (liveObj->objType == ObjectType::PowerCrystal && level >= 1)
-            LiveObject_SetIsCrystalPowered(liveObj, !(liveObj->flags_3e8 & 0x80000000) /* unpowered flag*/);
+            LiveObject_SetIsCrystalPowered(liveObj, !(liveObj->flags3_3e8 & 0x80000000) /* unpowered flag*/);
 
         return TRUE;
     }
@@ -1042,7 +1089,9 @@ std::memcpy(&color, &colorf, sizeof(color));*/
 // <LegoRR.exe @004752b0>
 //void __cdecl Res_SetMeshColorUnk(ResourceData* resData, int index, float r, float g, float b);
 
-
+//static ObjectType spawnObj = ObjectType::RockMonster;
+//static int spawnIndex;
+//g_ObjectLevels_TABLE[]
 BOOL __cdecl MyGameInit(void)
 {
     ShowCursor(TRUE);
@@ -1053,6 +1102,36 @@ BOOL __cdecl MyGameInit(void)
             return FALSE;
         }
     }
+    //void* dummy;
+    //Game_GetObjectByName("SmallSpider", &spawnObj, &spawnIndex, (ResourceData**)&dummy);
+    std::memset(ObjectSpawnList, 0, sizeof(ObjectSpawnList));
+
+    for (int i = 0; i < g_Game.RockMonsterTypes_COUNT; i++) {
+        ObjectSpawnList[ObjectSpawnCount++] = g_Game.RockMonsterTypes_TABLE[i];
+        if (::_stricmp(g_Game.RockMonsterTypes_TABLE[i], "SmallSpider") == 0)
+            spawnObjID = ObjectSpawnCount - 1;
+    }
+    for (int i = 0; i < g_Game.MiniFigureTypes_COUNT; i++)
+        ObjectSpawnList[ObjectSpawnCount++] = g_Game.MiniFigureTypes_TABLE[i];
+    for (int i = 0; i < g_Game.VehicleTypes_COUNT; i++)
+        ObjectSpawnList[ObjectSpawnCount++] = g_Game.VehicleTypes_TABLE[i];
+    for (int i = 0; i < g_Game.BuildingTypes_COUNT; i++)
+        ObjectSpawnList[ObjectSpawnCount++] = g_Game.BuildingTypes_TABLE[i];
+    ObjectSpawnList[ObjectSpawnCount++] = "PowerCrystal";
+    ObjectSpawnList[ObjectSpawnCount++] = "Ore";
+    ObjectSpawnList[ObjectSpawnCount++] = "ProcessedOre";
+    ObjectSpawnList[ObjectSpawnCount++] = "Dynamite";
+    ObjectSpawnList[ObjectSpawnCount++] = "OohScary";
+    ObjectSpawnList[ObjectSpawnCount++] = "ElectricFence";
+    ObjectSpawnList[ObjectSpawnCount++] = "Barrier";
+    ObjectSpawnList[ObjectSpawnCount++] = "Boulder";
+    ObjectSpawnList[ObjectSpawnCount++] = "Pusher";
+    ObjectSpawnList[ObjectSpawnCount++] = "Pusher";
+    ObjectSpawnList[ObjectSpawnCount++] = "LaserShot";
+    ObjectSpawnList[ObjectSpawnCount++] = "Freezer";
+    /*ObjectSpawnList[0] = "SmallSpider";
+    ObjectSpawnList[0] = "Bat";
+    ObjectSpawnList[0] = "Bat";*/
 
     liveObjMonitor.Open();
     /*g_hDlg = CreateDialogParamA(g_hDllInstance, MAKEINTRESOURCEA(IDD_LIVEOBJECTS),
@@ -1087,6 +1166,43 @@ BOOL __cdecl MyGameInit(void)
 
 BOOL __cdecl MyGameUpdate(float elapsed)
 {
+
+    bool change = true;
+    if (IsKeyPressed(Keys::KEY_SEMICOLON)) {
+        if (IsKeyDown(Keys::KEY_LEFTSHIFT))
+            spawnLevel = max(0, spawnLevel - 2);
+        else
+            spawnLevel = max(0, spawnLevel - 1);
+    }
+    else if (IsKeyPressed(Keys::KEY_AT)) {
+        if (IsKeyDown(Keys::KEY_LEFTSHIFT))
+            spawnLevel = min(15, spawnLevel + 2);
+        else
+            spawnLevel = min(15, spawnLevel + 1);
+    }
+    else if (IsKeyPressed(Keys::KEY_LEFTBRACE)) {
+        if (IsKeyDown(Keys::KEY_LEFTSHIFT))
+            spawnObjID = max(0, (int)spawnObjID - 10);
+        else
+            spawnObjID = max(0, (int)spawnObjID - 1);
+    }
+    else if (IsKeyPressed(Keys::KEY_RIGHTBRACE)) {
+        if (IsKeyDown(Keys::KEY_LEFTSHIFT))
+            spawnObjID = min(ObjectSpawnCount - 1, (int)spawnObjID + 10);
+        else
+            spawnObjID = min(ObjectSpawnCount - 1, (int)spawnObjID + 1);
+    }
+    else {
+        change = false;
+    }
+    if (change) {
+        ObjectType spawnObjType = (ObjectType)0;
+        int spawnObjIndex = 0;
+        ResourceData* dummyResData = nullptr;
+        unsigned int maxLevel = external::g_ObjectLevels_TABLE[(int)spawnObjType][spawnObjIndex];
+        Game_GetObjectByName(ObjectSpawnList[spawnObjID], &spawnObjType, &spawnObjIndex, &dummyResData);
+        spawnLevel = max(maxLevel, spawnLevel);
+    }
     //float elapsed = *(float*)&dwElapsed;
     /*if (!updateCount) {
         logmsg("MyGameUpdate [first]\n");
@@ -1100,7 +1216,7 @@ BOOL __cdecl MyGameUpdate(float elapsed)
     }
 
     if (liveObjMonitor.IsOpen()) {
-        if (!liveObjMonitor.Update(elapsed))
+        if (!liveObjMonitor.Update(elapsed, change /*force*/))
             return FALSE;
     }
     else if (IsKeyPressed(KEY_HOME)) {
@@ -1197,13 +1313,69 @@ BOOL __cdecl lego::game::SetGameFunctions(GameFunctions* gameFuncs)
         g_origGameFunctions.Init = gameFuncs->Init;
         g_origGameFunctions.Update = gameFuncs->Update;
         g_origGameFunctions.Cleanup = gameFuncs->Cleanup;
-        g_GameFunctions->Init = MyGameInit; // gameFuncs->Init;
+        /*g_GameFunctions->Init = MyGameInit; // gameFuncs->Init;
         g_GameFunctions->Update = MyGameUpdate;// gameFuncs->Update;
         g_GameFunctions->Cleanup = MyGameCleanup;// gameFuncs->Cleanup;
-        *g_GameFunctions_ISINIT = TRUE;
+        *g_GameFunctions_ISINIT = TRUE;*/
+        g_GameFunctions.Init = MyGameInit; // gameFuncs->Init;
+        g_GameFunctions.Update = MyGameUpdate;// gameFuncs->Update;
+        g_GameFunctions.Cleanup = MyGameCleanup;// gameFuncs->Cleanup;
+        g_GameFunctions_ISINIT = TRUE;
         return TRUE;
     }
     return FALSE;
+}
+
+// <LegoRR.exe @0044b400>
+void __cdecl lego::game::Level_GenerateSmallSpiders(unsigned int x, unsigned int y, unsigned int randSeed)
+{
+    /*short sVar1;
+    BOOL BVar2;
+    LevelSurfaceMap* surfMap;
+    LiveObject* pLVar3;
+    int iVar4;
+    float10 fVar5;
+    Point2F* pPVar6;*/
+    //Point2F genPos;
+    //Point2F local_30;
+    //Point2F local_18;
+
+    ObjectType objType = ObjectType::None;
+    int objIndex = 0;
+    ResourceData* objRes = nullptr;
+    const char* objTypeName = "SmallSpider";
+    objTypeName = "Bat";
+    objTypeName = "Pilot";
+    objTypeName = ObjectSpawnList[spawnObjID];
+    int objLevel = spawnLevel;
+
+    //if (external::Game_GetObjectByName("SmallSpider", &objType, &objIndex, &objRes)) {
+    if (external::Game_GetObjectByName(objTypeName, &objType, &objIndex, &objRes)) {
+        //pPVar6 = &local_30;
+        Point2F data[6];
+        std::memset(data, 0, sizeof(data));
+        external::FUN_00450390(external::GetSurfaceMap(), x, y, (void*)data);
+        int randCount = 2 + (randSeed & 3); // range: [2,5]
+        /// CUSTOM:
+        //randCount += 4 + ((unsigned short)external::randomInt16() % 20);
+        for (int i = randCount; i > 0; i--) {
+            //int rngTheta = (int)external::randomInt16();
+            // this is the laziest rounding for radians I've ever seen XD
+            float genTheta = (float)((int)external::randomInt16() % 7);
+            Point2F genPos = {
+                external::Game_ChooseRandomRange(data[0].x + 1.0, data[3].x - 1.0),
+                external::Game_ChooseRandomRange(data[0].y - 1.0, data[3].y + 1.0)
+            };
+            //genPos.x = external::Game_ChooseRandomRange(data[0].x + 1.0, data[3].x - 1.0);
+            //genPos.y = external::Game_ChooseRandomRange(data[0].y - 1.0, data[3].y + 1.0);
+            //genPos.x = external::Game_ChooseRandomRange(local_30.x - -1.0, local_18.x - 1.0);
+            //genPos.y = external::Game_ChooseRandomRange(local_30.y - 1.0, local_18.y - -1.0);
+            //LiveObject* spider = external::Game_CreateLiveResourceObject(objRes, objType, objIndex, 0 /*lv0*/, genPos.x, genPos.y, genTheta);
+            LiveObject* spider = external::Game_CreateLiveResourceObject(objRes, objType, objIndex, objLevel /*lv0*/, genPos.x, genPos.y, genTheta);
+            spider->flags1_3e0 |= (LiveFlags1)0x10000;
+        }
+    }
+    return; // may return last spider, but never used
 }
 
 #pragma endregion

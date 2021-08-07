@@ -11,19 +11,7 @@
 namespace lego {
 namespace game {
 
-typedef BOOL(__cdecl* GameInitFunction)(void);
-typedef BOOL(__cdecl* GameUpdateFunction)(float elapsed); // float argument is elapsed game time units since last update
-typedef void(__cdecl* GameCleanupFunction)(void);
 
-#pragma pack(push, 4)
-struct GameFunctions
-{
-	/*0,4*/ GameInitFunction Init;
-	/*4,4*/ GameUpdateFunction Update;
-	/*8,4*/ GameCleanupFunction Cleanup;
-	/*c*/
-};
-#pragma pack(pop)
 
 #pragma region Types
 
@@ -75,6 +63,9 @@ void __cdecl Res_SetOwnerObject(ResourceData* resData, LiveObject* liveObj);
 
 // <LegoRR.exe @004752b0>
 //void __cdecl Res_SetMeshColorUnk(ResourceData* resData, int index, float r, float g, float b);
+
+// <LegoRR.exe @0044b400>
+void __cdecl Level_GenerateSmallSpiders(unsigned int x, unsigned int y, unsigned int randSeed);
 
 #pragma endregion
 

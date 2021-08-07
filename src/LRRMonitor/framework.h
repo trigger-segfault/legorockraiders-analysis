@@ -43,6 +43,7 @@
 #include <vector>
 #include <map>
 #include <functional>
+#include <type_traits>
 
 // Windows C RunTime Header Files
 #include <direct.h>
@@ -50,7 +51,7 @@
 #pragma endregion
 
 #pragma region API Header Files
-/*// Direct X Header Files and Library
+// Direct X Header Files and Library
 #include <mmsystem.h>					// Multimedia System
 #include <d3d.h>						// Direct3D
 #include <ddraw.h>						// DirectDraw
@@ -64,7 +65,7 @@
 
 // Windows Process and memory management (for inspecting runnings instance of LegoRR.exe)
 #include <memoryapi.h>					// ReadProcessMemory()
-#include <psapi.h>						// EnumProcesses() + OpenProcess()*/
+#include <psapi.h>						// EnumProcesses() + OpenProcess()
 #pragma endregion
 
 // Library Comments for Header Files:
@@ -98,7 +99,7 @@
 // On startup, the program will only run if another instance is not already running. (default is true)
 #define USEMUTEX true
 // Name used for mutex that should be exclusive to this program (name will have " Mutex" appended).
-#define MUTEX_NAME "Lego Rock Raiders (LRRCE.dll Debug)"
+#define MUTEX_NAME "Lego Rock Raiders (lrrmo.dll Debug)"
 // Original mutex name used by LEGO Rock Raiders.
 //#define MUTEX_NAME "Lego Rock Raiders"
 

@@ -90,6 +90,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="DirectX\D3DRM\d3drm.h" />
+    <ClInclude Include="DirectX\D3DRM\d3drmdef.h" />
+    <ClInclude Include="DirectX\D3DRM\d3drmobj.h" />
+    <ClInclude Include="DirectX\D3DRM\d3drmwin.h" />
     <ClInclude Include="LegoRR\Common.h" />
     <ClInclude Include="LegoRR\Controls\Input.h" />
     <ClInclude Include="LegoRR\DllInject.h" />
@@ -99,7 +103,29 @@
     <ClInclude Include="LegoRR\Helpers\Pool.h" />
     <ClInclude Include="LegoRR\IO\CFG.h" />
     <ClInclude Include="LegoRR\Main\GameHook.h" />
+    <ClInclude Include="LegoRR\Model\BasicEnums.h" />
+    <ClInclude Include="LegoRR\Model\BasicTypes.h" />
+    <ClInclude Include="LegoRR\Model\Enums.h" />
+    <ClInclude Include="LegoRR\Model\External.h" />
+    <ClInclude Include="LegoRR\Model\ExternalBackup.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="LegoRR\Model\FileIOTypes.h" />
+    <ClInclude Include="LegoRR\Model\Import.h" />
+    <ClInclude Include="LegoRR\Model\MapFileTypes.h" />
+    <ClInclude Include="LegoRR\Model\ModelNewBackup.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="LegoRR\Model\ModelNewOld.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="LegoRR\Model\ModelOld.h" />
+    <ClInclude Include="LegoRR\Model\GhidraTypes.h" />
     <ClInclude Include="LegoRR\Model\Model.h" />
+    <ClInclude Include="LegoRR\Model\ResourceTypes.h" />
     <ClInclude Include="pch.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClInclude>
@@ -112,6 +138,7 @@
     <ClCompile Include="LegoRR\Helpers\Logging.cpp" />
     <ClCompile Include="LegoRR\IO\CFG.cpp" />
     <ClCompile Include="LegoRR\Main\GameHook.cpp" />
+    <ClCompile Include="LegoRR\Model\External.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
