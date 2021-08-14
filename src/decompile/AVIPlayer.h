@@ -1,55 +1,71 @@
+// AVIPlayer.h : Header file for the C AVIPlayer wrapper around the C++ implementation.
+//
+/// STATUS: [COMPLETE]
+/// PURPOSE: AVIPlayer is only by the Credits looping starfield background AVI.
+///          This uses the AVIFile API, and thus is likely restricted to this file format.
+///          This is likely used over the VideoPlayer class, since it offers more flexibility
+///          with rendering, which allows drawing the credits text over-top and manually handling
+///          video looping.
+///
+/// NAMESPACE: lego::video
+/// INITIALIZE: Call `InitAVIPlayer(IDirectDraw4*)` once on startup. `IDirectDraw4*` is not owned by this module.
+///             (no cleanup)
+/// GLOBALS: private
+/// FILEIO: Looks for a loose file ONLY in the local Data directory.
+
 #pragma once
 
+#include "Common.h"
 
-// <LegoRR.exe @0047e720>
-undefined4 * FUN_0047e720(void * this, byte param_1);
-// <LegoRR.exe @0047e740>
-undefined FUN_0047e740(undefined4 * param_1);
-// <LegoRR.exe @0047e780>
-undefined4 * FUN_0047e780(void * this, int param_1, int param_2, int param_3, char param_4);
-// <LegoRR.exe @0047e7d0>
-uint FUN_0047e7d0(void * this, int param_1, int param_2, int param_3, char param_4);
-// <LegoRR.exe @0047e9d0>
-undefined FUN_0047e9d0(int param_1);
-// <LegoRR.exe @0047ea00>
-undefined4 FUN_0047ea00(int param_1);
-// <LegoRR.exe @0047ea10>
-undefined4 FUN_0047ea10(int param_1);
-// <LegoRR.exe @0047ea20>
-undefined FUN_0047ea20();
-// <LegoRR.exe @0047ea70>
-undefined FUN_0047ea70();
-// <LegoRR.exe @0047eaa0>
-int FUN_0047eaa0(uint param_1);
-// <LegoRR.exe @0047eac0>
-undefined4 * Avi_FUN_0047eac0(void * this, char * param_1);
-// <LegoRR.exe @0047ec40>
-undefined4 * FUN_0047ec40(void * this, byte param_1);
-// <LegoRR.exe @0047ec60>
-undefined FUN_0047ec60(undefined4 * param_1);
-// <LegoRR.exe @0047eca0>
-undefined FUN_0047eca0(void * this, int * param_1);
-// <LegoRR.exe @0047ede0>
-undefined FUN_0047ede0();
-// <LegoRR.exe @0047eeb0>
-undefined FUN_0047eeb0(void * this, undefined4 param_1);
+
+#pragma region AVIPlayer C wrapper type
+namespace lego {
+
+/// PUBLIC:
+// dummy type definition for C wrapper around AVIPlayer C++ class
+typedef void AVIPlayer_t;
+
+} /* namespace lego */
+#pragma endregion
+
+
+#pragma region Globals
+namespace lego::globals {
+
+/// PRIVATE:
+// <LegoRR.exe @00534998>
+extern bool g_AVIPlayer_IsDisabled;
+// <LegoRR.exe @0053499c>
+extern IDirectDraw4 g_AVIPlayer_IDirectDraw4;
+
+} /* namespace lego::globals */
+#pragma endregion
+
+
+#pragma region AVIPlayer C wrapper functions
+namespace lego::video {
+
+/// PUBLIC:
 // <LegoRR.exe @0047ef40>
-void InitAVIFile(IDirectDraw4 * ddraw);
+void __cdecl InitAVIPlayer(IDirectDraw4* ddraw4);
 // <LegoRR.exe @0047ef50>
-undefined4 * Avi_FUN_0047ef50(char * param_1);
+AVIPlayer_t* __cdecl AVIPlayer_Open(const char* filename);
 // <LegoRR.exe @0047efb0>
-uint FUN_0047efb0(undefined4 param_1);
+BOOL __cdecl AVIPlayer_Update(AVIPlayer_t* aviPlayer);
 // <LegoRR.exe @0047efc0>
-undefined FUN_0047efc0(int param_1, undefined4 param_2);
+void __cdecl AVIPlayer_Draw(AVIPlayer_t* aviPlayer, const RECT* rect);
 // <LegoRR.exe @0047f000>
-undefined FUN_0047f000(void * param_1, undefined4 param_2);
+void __cdecl AVIPlayer_SetPosition(AVIPlayer_t* aviPlayer, unsigned int newPosition);
 // <LegoRR.exe @0047f010>
-uint FUN_0047f010(int param_1);
+unsigned int __cdecl AVIPlayer_GetPosition(const AVIPlayer_t* aviPlayer);
 // <LegoRR.exe @0047f020>
-undefined4 FUN_0047f020(int param_1);
+unsigned int __cdecl AVIPlayer_GetLength(const AVIPlayer_t* aviPlayer);
+// Better description would be "Destroy", as it frees the memory.
 // <LegoRR.exe @0047f030>
-undefined FUN_0047f030(undefined * * param_1);
+void __cdecl AVIPlayer_Close(AVIPlayer_t* aviPlayer);
 // <LegoRR.exe @0047f040>
-uint FUN_0047f040(int param_1);
+BOOL __cdecl AVIPlayer_IsOpen(const AVIPlayer_t* aviPlayer);
 
+} /* namespace lego::video */
+#pragma endregion
 
