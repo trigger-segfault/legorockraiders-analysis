@@ -1,5 +1,9 @@
+// WAD.cpp : Defines WAD file reading functions.
+//
+/// STATUS: [COMPLETE]
+
 #include "WAD.h"
-// Only needed for File__logf <0047f8c0>
+// Only needed for `file::File__logf(const char*,...)` <0047f8c0>
 #include "Files.h"
 
 using namespace lego;
@@ -17,13 +21,18 @@ using namespace lego::wad;
 
 // Search for an entry in any of the currently-open WAD files.
 // <LegoRR.exe @004abf00>
-const int lego::wad::WADFILE_ANY = -1;
+const int lego::globals::WADFILE_ANY = -1;
 
-// <LegoRR.exe @00576500>
-WADFile lego::wad::g_WADFiles_TABLE[WADFILES_COUNT /*10*/];
 
-// <LegoRR.exe @005766a0>
-WADStream lego::wad::g_WADStreams_TABLE[WADSTREAMS_COUNT /*100*/]; // isn't this too small???
+/// PRIVATE:
+// <LegoRR.exe @00576500 - 00576ce0>
+WADManager lego::globals::g_WAD;
+
+// // <LegoRR.exe @00576500>
+// WADFile lego::globals::g_WADFiles_TABLE[WADFILES_COUNT /*10*/];
+
+// // <LegoRR.exe @005766a0>
+// WADStream lego::globals::g_WADStreams_TABLE[WADSTREAMS_COUNT /*100*/]; // isn't this too small???
 
 #pragma endregion
 
@@ -34,9 +43,8 @@ WADStream lego::wad::g_WADStreams_TABLE[WADSTREAMS_COUNT /*100*/]; // isn't this
 // function that you'd commonly expect to see used.
 // Read null-terminated string from file. (DOES NOT CHECK FOR EOF!!)
 // always returns true.
-// 
 // <LegoRR.exe @0048b760>
-BOOL __cdecl lego::wad::WAD_freadstr(FILE* file, char* out_str)
+BOOL __cdecl lego::wad::WAD__ReadCString(FILE* file, char* out_str)
 {
 	/// this doesn't even check for EOF... BAD BAD BAD!
 	/// SANITY: check for -1 (EOF)
@@ -51,7 +59,6 @@ BOOL __cdecl lego::wad::WAD_freadstr(FILE* file, char* out_str)
 
 // Open and read data into WAD file.
 // returns idx of newly opened WAD (0-9), or -1 on failure of any kind.
-// 
 // <LegoRR.exe @0048b7a0>
 int __cdecl lego::wad::WAD_Open(const char* filename)
 {
@@ -100,9 +107,9 @@ int __cdecl lego::wad::WAD_Open(const char* filename)
 
 	// read WAD file relative directories
 	for (int i = 0; i < (int)WAD_Get(idx)->count; i++) {
-		if (!WAD_freadstr(file, strBuffer)) {
+		if (!WAD__ReadCString(file, strBuffer)) {
 			/// FAIL: could not read cstring
-			// although WAD_freadstr never returns false...
+			// although WAD__ReadCString never returns false...
 			goto WADOpen_reldirs;
 		}
 
@@ -112,9 +119,9 @@ int __cdecl lego::wad::WAD_Open(const char* filename)
 
 	// read WAD file absolute directories
 	for (int i = 0; i < (int)WAD_Get(idx)->count; i++) {
-		if (!WAD_freadstr(file, strBuffer)) {
+		if (!WAD__ReadCString(file, strBuffer)) {
 			/// FAIL: could not read cstring
-			// although WAD_freadstr never returns false...
+			// although WAD__ReadCString never returns false...
 			goto WADOpen_absdirs;
 		}
 
@@ -146,7 +153,7 @@ int __cdecl lego::wad::WAD_Open(const char* filename)
 
 WADOpen_absdirs:
 	// failure, clean up half-finished WAD file reading
-	// although WAD_freadstr never returns false...
+	// although WAD__ReadCString never returns false...
 	if (WAD_Get(idx)->absdirs != nullptr) {
 		// cleanup allocated absolute directory file paths
 		for (int j = 0; j < (int)WAD_Get(idx)->count; j++) {
@@ -158,7 +165,7 @@ WADOpen_absdirs:
 
 WADOpen_reldirs:
 	// failure, clean up half-finished WAD file reading
-	// although WAD_freadstr never returns false...
+	// although WAD__ReadCString never returns false...
 	if (WAD_Get(idx)->reldirs != nullptr) {
 		// cleanup allocated relative directory file paths
 		for (int j = 0; j < (int)WAD_Get(idx)->count; j++) {
@@ -182,23 +189,22 @@ WADOpen_close:
 	return -1;
 }
 
-
-// Returns LegoWADFile at idx in table. (0-9)
-// 
+// Returns WADFile at idx in table. (0-9)
+// This feels so excessive...
 // <LegoRR.exe @0048bfa0>
 WADFile* __cdecl lego::wad::WAD_Get(int wadIndex)
 {
-	return &globals::g_WADFiles_TABLE[wadIndex];
+	return &globals::g_WAD.WADFiles_TABLE[wadIndex];
 }
 
 // <LegoRR.exe @0048bfb0>
-uint __cdecl lego::wad::WAD_GetEntrySize(int wadIndex, int entryIndex)
+unsigned int __cdecl lego::wad::WAD_GetEntrySize(int wadIndex, int entryIndex)
 {
 	return WAD_Get(wadIndex)->entries[entryIndex].orig_size;
 }
 
 // <LegoRR.exe @0048bfd0>
-uint __cdecl lego::wad::WAD_GetEntryPackedSize(int wadIndex, int entryIndex)
+unsigned int __cdecl lego::wad::WAD_GetEntryPackedSize(int wadIndex, int entryIndex)
 {
 	return WAD_Get(wadIndex)->entries[entryIndex].pack_size;
 }
@@ -207,7 +213,7 @@ uint __cdecl lego::wad::WAD_GetEntryPackedSize(int wadIndex, int entryIndex)
 int __cdecl lego::wad::WAD_Stream__Next(void)
 {
 	for (int i = 0; i < WADSTREAMS_COUNT /*100*/; i++) {
-		if (!globals::g_WADStreams_TABLE[i].isUsed) {
+		if (!globals::g_WAD.WADStreams_TABLE[i].isUsed) {
 			return i;
 		}
 	}
@@ -216,7 +222,6 @@ int __cdecl lego::wad::WAD_Stream__Next(void)
 
 // Returns the file index found 
 // Returns -1 on failure or not found.
-// 
 // <LegoRR.exe @0048c010>
 int __cdecl lego::wad::WAD_FindEntry(const char* filename, int opt_wadIndex)
 {
@@ -237,34 +242,31 @@ int __cdecl lego::wad::WAD_FindEntry(const char* filename, int opt_wadIndex)
 
 // Returns the file index in the specified WAD matching the reldir filepath.
 // Returns -1 on failure or not found.
-// 
 // <LegoRR.exe @0048c060>
 int __cdecl lego::wad::WAD_FindEntryInWAD(const char* filename, int wadIndex)
 {
-	for (int i = 0; i < (int)globals::g_WADFiles_TABLE[wadIndex].count; i++) {
-		if (::_stricmp(globals::g_WADFiles_TABLE[wadIndex].reldirs[i], filename) == 0)
+	for (int i = 0; i < (int)globals::g_WAD.WADFiles_TABLE[wadIndex].count; i++) {
+		if (::_stricmp(globals::g_WAD.WADFiles_TABLE[wadIndex].reldirs[i], filename) == 0)
 			return i;
 	}
 	return -1;
 }
 
 // Returns idx of next available LegoWADFile in table (0-9). -1 when none are available.
-//
 // <LegoRR.exe @0048c0c0>
 int __cdecl lego::wad::WAD__Next(void)
 {
 	for (int i = 0; i < WADFILES_COUNT /*10*/; i++) {
-		if (!globals::g_WADFiles_TABLE[i].isUsed) { // NOTE: field_4 is checked, not field_0
+		if (!globals::g_WAD.WADFiles_TABLE[i].isUsed) { // NOTE: field_4 is checked, not field_0
 			// clear memory, and prepare for usage
-			std::memset(&globals::g_WADFiles_TABLE[i], 0, sizeof(WADFile) /*0x24*/);
+			std::memset(&globals::g_WAD.WADFiles_TABLE[i], 0, sizeof(WADFile) /*0x24*/);
 			return i;
 		}
 	}
 	return -1;
 }
 
-// Reads a WAD from filename into a shared file table, and returns the index in the table
-// 
+// Reads a WAD entry by filename into a shared file table, and returns the index in the table.
 // <LegoRR.exe @0048c100>
 int __cdecl lego::wad::WAD_StreamOpenInWAD(const char* filename, int wadIndex)
 {
@@ -276,12 +278,12 @@ int __cdecl lego::wad::WAD_StreamOpenInWAD(const char* filename, int wadIndex)
 	if (entryIndex == -1)
 		return -1;
 
-	uint entrySize = WAD_GetEntryPackedSize(wadIndex, entryIndex);
+	unsigned int entrySize = WAD_GetEntryPackedSize(wadIndex, entryIndex);
 	void* buffer = std::malloc(entrySize);
 	if (buffer == nullptr)
 		return -1;
 
-	uint entryOffset = WAD_Get(wadIndex)->entries[entryIndex].offset;
+	unsigned int entryOffset = WAD_Get(wadIndex)->entries[entryIndex].offset;
 	std::fseek(WAD_Get(wadIndex)->file, entryOffset, 0);
 	entrySize = WAD_GetEntryPackedSize(wadIndex, entryIndex);
 	if (std::fread(buffer, entrySize, 1, WAD_Get(wadIndex)->file) != 1) {
@@ -306,16 +308,15 @@ int __cdecl lego::wad::WAD_StreamOpenInWAD(const char* filename, int wadIndex)
 		// Data decompressed to new buffer stored in fileData, free original buffer.
 		std::free(buffer);
 	}
-	globals::g_WADStreams_TABLE[idx].fileData   = fileData;
-	globals::g_WADStreams_TABLE[idx].isUsed     = true;
-	globals::g_WADStreams_TABLE[idx].wadIndex   = wadIndex;
-	globals::g_WADStreams_TABLE[idx].entryIndex = entryIndex;
+	globals::g_WAD.WADStreams_TABLE[idx].fileData   = fileData;
+	globals::g_WAD.WADStreams_TABLE[idx].isUsed     = true;
+	globals::g_WAD.WADStreams_TABLE[idx].wadIndex   = wadIndex;
+	globals::g_WAD.WADStreams_TABLE[idx].entryIndex = entryIndex;
 	return idx;
 }
 
-// Reads a WAD from filename into a shared file table, and returns the index in the table.
-// if opt_wadIndex is -1, all WAD files will be searched for the file name
-// 
+// Reads a WAD entry by filename into a shared file table, and returns the index in the table.
+// if opt_wadIndex is -1, all WAD files will be searched for the file name.
 // <LegoRR.exe @0048c230>
 int __cdecl lego::wad::WAD_StreamOpen(const char* filename, int opt_wadIndex)
 {
@@ -336,26 +337,26 @@ int __cdecl lego::wad::WAD_StreamOpen(const char* filename, int opt_wadIndex)
 // <LegoRR.exe @0048c280>
 void __cdecl lego::wad::WAD_StreamClose(int streamIndex)
 {
-	if (globals::g_WADStreams_TABLE[streamIndex].isUsed) {
-		std::free(globals::g_WADStreams_TABLE[streamIndex].fileData);
-		globals::g_WADStreams_TABLE[streamIndex].isUsed = false;
+	if (globals::g_WAD.WADStreams_TABLE[streamIndex].isUsed) {
+		std::free(globals::g_WAD.WADStreams_TABLE[streamIndex].fileData);
+		globals::g_WAD.WADStreams_TABLE[streamIndex].isUsed = false;
 	}
 }
 
 // <LegoRR.exe @0048c2b0>
 void* __cdecl lego::wad::WAD_StreamGetData__internal(int streamIndex)
 {
-	if (globals::g_WADStreams_TABLE[streamIndex].isUsed) {
-		return globals::g_WADStreams_TABLE[streamIndex].fileData;
+	if (globals::g_WAD.WADStreams_TABLE[streamIndex].isUsed) {
+		return globals::g_WAD.WADStreams_TABLE[streamIndex].fileData;
 	}
 	return nullptr;
 }
 
 // <LegoRR.exe @0048c2d0>
-uint __cdecl lego::wad::WAD_StreamGetSize(int streamIndex)
+unsigned int __cdecl lego::wad::WAD_StreamGetSize(int streamIndex)
 {
-	return WAD_GetEntrySize(globals::g_WADStreams_TABLE[streamIndex].wadIndex,
-		globals::g_WADStreams_TABLE[streamIndex].entryIndex);
+	return WAD_GetEntrySize(globals::g_WAD.WADStreams_TABLE[streamIndex].wadIndex,
+		globals::g_WAD.WADStreams_TABLE[streamIndex].entryIndex);
 }
 
 // <LegoRR.exe @0048c2f0>

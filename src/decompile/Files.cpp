@@ -1,4 +1,13 @@
+// Files.h : Defines file system management functions and a custom File I/O API.
+//
+/// STATUS: [Usable, but still being refactored]
+
 #include "Files.h"
+// This header is included in "Files.h" so that half the API isn't
+//  missing when calling `File_OpenSharedBuffer(const char*,unsigned int*)`.
+//#include "SharedBuffers.h"
+#include "StringUtils.h"
+#include "Registry.h"
 #include "WAD.h"
 
 
@@ -8,42 +17,45 @@ using namespace lego::file;
 
 #pragma region Globals
 
-// <LegoRR.exe @005349a0>
-char lego::file::g_FILEPATH_DATADIR_STRIP[1024];
-// <LegoRR.exe @00534da0>
-char lego::file::tmp_FILEPATH_STRIPDATADIR[1024];
+// // <LegoRR.exe @005349a0>
+// char lego::file::g_FILEPATH_DATADIR_STRIP[1024];
+// // <LegoRR.exe @00534da0>
+// char lego::file::tmp_FILEPATH_STRIPDATADIR[1024];
 
-// (unused 4-byte gap)
+// // (unused 4-byte gap)
 
-// <LegoRR.exe @005351a0>
-char lego::file::tmp_FILEPATH_JOINDATADIR[MAX_PATH /*260*/];
-// <LegoRR.exe @005352a8>
-char lego::file::g_FILEPATH_DATADIR_JOIN[MAX_PATH /*260*/];
+// // <LegoRR.exe @005351a0>
+// char lego::file::tmp_FILEPATH_JOINDATADIR[MAX_PATH /*260*/];
+// // <LegoRR.exe @005352a8>
+// char lego::file::g_FILEPATH_DATADIR_JOIN[MAX_PATH /*260*/];
 
-// no clue on these two value yet... (maybe actually SafeDisc DRM stuff?)
-// <LegoRR.exe @005353ac>
-FileOpenCallback lego::file::g_FileOpenCallback;
-// <LegoRR.exe @005353b0>
-void* lego::file::g_FileOpenCallback_VALUE;
+// // <LegoRR.exe @005353ac>
+// FileOpenCallback lego::file::g_FileOpenCallback;
+// // <LegoRR.exe @005353b0>
+// void* lego::file::g_FileOpenCallback_VALUE;
 
-// <LegoRR.exe @005353b4>
-char lego::file::g_CDROMDriveLetter;
+// // <LegoRR.exe @005353b4>
+// char lego::file::g_CDROMDriveLetter;
 
-// (unused 4-byte gap)
+// // (unused 3-byte gap)
 
-// <LegoRR.exe @005353b8>
-BOOL lego::file::g_HasDataDir;
+// // <LegoRR.exe @005353b8>
+// BOOL lego::file::g_HasDataDir;
+
+/// PRIVATE:
+// <LegoRR.exe @005349a0 - 005353bc>
+FileSystemManager lego::globals::g_Files;
 
 #pragma endregion
 
 
-
 #pragma region Functions
 
-// gameName may actually be gamepath (as called from the commandline arguments)
-// 
+// This function is guaranteed to fail if `insistOnCD` is true, due to some logic errors.
+// The argument `wadBasename` determines the name of WAD files to look for: "<wadBasename>#.wad".
+//  This is always the same as the base executable name (without extension, i.e. "LegoRR").
 // <LegoRR.exe @0047f3f0>
-void __cdecl lego::file::InitFileSystem(const char* gameName, BOOL insistOnCD, const char* regKey)
+void __cdecl lego::file::InitFileSystem(const char* wadBasename, BOOL insistOnCD, const char* regKey)
 {
 	char currentDir[MAX_PATH /*260*/];
 	char dataDir[MAX_PATH /*260*/];
@@ -61,13 +73,13 @@ void __cdecl lego::file::InitFileSystem(const char* gameName, BOOL insistOnCD, c
 	if (currentLen != 0 && currentDir[currentLen - 1] == '\\') {
 		currentDir[currentLen - 1] = '\0';
 	}
-	std::sprintf(globals::g_FILEPATH_DATADIR_JOIN, "%s\\%s", currentDir, "Data");
+	std::sprintf(globals::g_Files.FILEPATH_DATADIR_JOIN, "%s\\%s", currentDir, "Data");
 
 
 	// check for WAD files 0-9
 	BOOL hasWADs = false;
 	for (int i = 0; i < WADFILES_COUNT /*10*/; i++) {
-		std::sprintf(wadFile, "%s%i.wad", gameName, i);
+		std::sprintf(wadFile, "%s%i.wad", wadBasename, i);
 		// -1 returned for no WAD index (index does not correspond to file number)
 		if (File_OpenWAD(wadFile) != -1) {
 			hasWADs = true;
@@ -91,11 +103,11 @@ void __cdecl lego::file::InitFileSystem(const char* gameName, BOOL insistOnCD, c
 		std::memset(errorMessage, 0, sizeof(errorMessage));
 		std::strcpy(errorMessage, "Error");
 
-		if (!registry::Registry_QueryStringOnLM(regKey, "CDMissing", 0, regValue, sizeof(regValue))) {
+		if (!registry::Registry_QueryStringOnLM(regKey, "CDMissing", REGISTRY_STRING /*0*/, regValue, sizeof(regValue))) {
 			std::exit(0);
 		}
 		else {
-			registry::Registry_QueryStringOnLM(regKey, "SetupError", 0, errorMessage, sizeof(errorMessage));
+			registry::Registry_QueryStringOnLM(regKey, "SetupError", REGISTRY_STRING /*0*/, errorMessage, sizeof(errorMessage));
 			if (::MessageBoxA(nullptr, regValue, errorMessage, MB_OKCANCEL /*1*/) == IDCANCEL /*2*/)
 				std::exit(0); // exit once the user decides to cancel, otherwise rinse and repeat
 		}
@@ -147,8 +159,8 @@ void __cdecl lego::file::InitFileSystem(const char* gameName, BOOL insistOnCD, c
 		std::memset(errorMessage, 0, sizeof(errorMessage));
 		std::strcpy(errorMessage, "Error");
 
-		if (registry::Registry_QueryValueOnLM(regKey, "DataMissing", registry::REGISTRY_STRING /*0*/, regValue, sizeof(regValue))) {
-			registry::Registry_QueryValueOnLM(regKey, "SetupError", registry::REGISTRY_STRING /*0*/, errorMessage, sizeof(errorMessage));
+		if (registry::Registry_QueryValueOnLM(regKey, "DataMissing", REGISTRY_STRING /*0*/, regValue, sizeof(regValue))) {
+			registry::Registry_QueryValueOnLM(regKey, "SetupError", REGISTRY_STRING /*0*/, errorMessage, sizeof(errorMessage));
 			::MessageBoxA(nullptr, regValue, errorMessage, MB_OK /*0*/);
 		}
 		std::exit(0);
@@ -177,7 +189,7 @@ BOOL __cdecl lego::file::Path_CheckForCDROM(void)
 			FILE* file = std::fopen(buffer, "r");
 			if (file != nullptr) {
 				std::fclose(file);
-				globals::g_CDROMDriveLetter = letter; // assign drive letter, for later use
+				globals::g_Files.CDROMDriveLetter = letter; // assign drive letter, for later use
 				return true;
 			}
 		}
@@ -191,14 +203,14 @@ BOOL __cdecl lego::file::Path_SetDataDir(const char* dirname)
 {
 	if (dirname != nullptr) {
 		size_t strLength = std::strlen(dirname);
-		if (strLength < sizeof(globals::g_FILEPATH_DATADIR_STRIP) && strLength != 0) {
-			std::strcpy(globals::g_FILEPATH_DATADIR_STRIP, dirname);
-			globals::g_HasDataDir = true;
+		if (strLength < sizeof(globals::g_Files.FILEPATH_DATADIR_STRIP) && strLength != 0) {
+			std::strcpy(globals::g_Files.FILEPATH_DATADIR_STRIP, dirname);
+			globals::g_Files.HasDataDir = true;
 			return true;
 		}
 	}
 	globals::g_HasDataDir = false;
-	std::memset(globals::g_FILEPATH_DATADIR_STRIP, 0, sizeof(globals::g_FILEPATH_DATADIR_STRIP));
+	std::memset(globals::g_Files.FILEPATH_DATADIR_STRIP, 0, sizeof(globals::g_Files.FILEPATH_DATADIR_STRIP));
 	return false;
 }
 
@@ -213,7 +225,6 @@ void __cdecl lego::file::File__logf(const char* format, ...)
 	va_end(vl);
 
 	::OutputDebugStringA(buffer);
-	return;
 }
 
 // Open WAD filename and log something (that was removed on release build)
@@ -222,7 +233,7 @@ void __cdecl lego::file::File__logf(const char* format, ...)
 // <LegoRR.exe @0047f900>
 int __cdecl lego::file::File_OpenWAD(const char* filename)
 {
-	//lego::logf_removed(nullptr);
+	lego::logf_removed(nullptr);
 	return wad::WAD_Open(filename);
 }
 
@@ -230,8 +241,8 @@ int __cdecl lego::file::File_OpenWAD(const char* filename)
 BOOL __cdecl lego::file::Path_GetCDROMDataPath(char* out_filepath, const char* filename)
 {
 #ifndef DEBUG_IGNORECD
-	if (globals::g_CDROMDriveLetter != '\0') {
-		std::sprintf(out_filepath, "%c:\\%s\\%s", globals::g_CDROMDriveLetter, "Data", filename);
+	if (globals::g_Files.CDROMDriveLetter != '\0') {
+		std::sprintf(out_filepath, "%c:\\%s\\%s", globals::g_Files.CDROMDriveLetter, "Data", filename);
 		return true;
 	}
 #endif
@@ -258,28 +269,28 @@ FileStream* __cdecl lego::file::File_Open(const char* in_filename, const char* m
 
 	FileStream* fileStream;
 	if (location == FILELOC_WAD /*0*/) {
-		fileStream = File__New(FILELOC_WAD /*0*/);
+		fileStream = File__Create(FILELOC_WAD /*0*/);
 		if (fileStream == nullptr)
 			return nullptr;
 
 		message = Path_StripDataDir(filename);
 		if (File_OpenWADEntry(fileStream->wad, message)) {
 			filename = Path_StripDataDir(filename);
-			//lego::logf_removed("WAD Load %s\n", filename);
+			lego::logf_removed("WAD Load %s\n", filename);
 			return fileStream;
 		}
 		filename = Path_StripDataDir(filename);
 		message = "WAD Fail %s\n";
 	}
 	else if (location == FILELOC_STD /*1*/) {
-		fileStream = File__New(FILELOC_STD /*1*/);
+		fileStream = File__Create(FILELOC_STD /*1*/);
 		if (fileStream == nullptr)
 			return nullptr;
 
 		FILE* stdFile = std::fopen(filename, mode);
 		fileStream->std = stdFile;
 		if (stdFile != nullptr) {
-			//lego::logf_removed("STD Load %s\n", filename);
+			lego::logf_removed("STD Load %s\n", filename);
 			return fileStream;
 		}
 
@@ -294,17 +305,16 @@ FileStream* __cdecl lego::file::File_Open(const char* in_filename, const char* m
 		message = "STD Fail %s\n";
 	}
 	else {
-		
-		debugf("%s(%i) : Error in call to %s\n", "C:\\Dev\\SourceSafe\\gods98_dx6\\gods98\\src\\Files.c", 330 /*__LINE__*/, "File_Open");
+		File__logf("%s(%i) : Error in call to %s\n", "C:\\Dev\\SourceSafe\\gods98_dx6\\gods98\\src\\Files.c", 330 /*__LINE__*/, "File_Open");
 		return nullptr;
 	}
-	//lego::logf_removed(message, filename);
-	File__Dispose(fileStream);
+	lego::logf_removed(message, filename);
+	File__Destroy(fileStream);
 	return nullptr;
 }
 
 // <LegoRR.exe @0047fb10>
-int __cdecl lego::file::File_Seek(FileStream* file, int offset, int origin)
+int __cdecl lego::file::File_Seek(FileStream* file, long offset, int origin)
 {
 	FileLocation location = File_GetLocation(file);
 	if (location == FILELOC_WAD /*0*/) {
@@ -318,17 +328,17 @@ int __cdecl lego::file::File_Seek(FileStream* file, int offset, int origin)
 			break; // do bounds checks after switch statement
 
 		case SEEK_END /*2*/:
-			file->wad->position = (int)WAD_StreamGetSize(file->wad->streamIndex) + offset;
+			file->wad->position = (int)wad::WAD_StreamGetSize(file->wad->streamIndex) + offset;
 			return 0; // no bounds checks here...
 
 		default:
-			// type is accurate :P
-			debugf("Uknown seek mode (%i)", origin);
+			// typo is "correct" :P
+			File__logf("Uknown seek mode (%i)", origin);
 			return 0;
 		}
 		// bounds checks
-		if (file->wad->position > (int)WAD_StreamGetSize(file->wad->streamIndex))
-			file->wad->position = WAD_StreamGetSize(file->wad->streamIndex);
+		if (file->wad->position > (int)wad::WAD_StreamGetSize(file->wad->streamIndex))
+			file->wad->position = wad::WAD_StreamGetSize(file->wad->streamIndex);
 		else if (file->wad->position < 0)
 			file->wad->position = 0;
 		// despite what you'd think, this always returns 0 for WADs, but the EAX result register is clearly set...
@@ -337,10 +347,8 @@ int __cdecl lego::file::File_Seek(FileStream* file, int offset, int origin)
 	else if (location == FILELOC_STD /*1*/) {
 		return std::fseek(file->std, offset, origin);
 	}
-	else {
-		debugf("%s(%i) : Unknown file system in call to %s", "C:\\Dev\\SourceSafe\\gods98_dx6\\gods98\\src\\Files.c", 368 /*__LINE__*/, "File_Seek");
-		return 0;
-	}
+	File__logf("%s(%i) : Unknown file system in call to %s", "C:\\Dev\\SourceSafe\\gods98_dx6\\gods98\\src\\Files.c", 368 /*__LINE__*/, "File_Seek");
+	return 0;
 }
 
 // <LegoRR.exe @0047fc40>
@@ -348,13 +356,13 @@ size_t __cdecl lego::file::File_Read(void* out_ptr, size_t size, size_t count, F
 {
 	FileLocation location = File_GetLocation(file);
 	if (location == FILELOC_WAD /*0*/) {
-		size_t fileSize = (int)WAD_StreamGetSize(file->wad->streamIndex);
+		size_t fileSize = (int)wad::WAD_StreamGetSize(file->wad->streamIndex);
 		size_t readSize = count * size;
 		int position = file->wad->position;
 		if ((int)fileSize < (position + readSize))
 			readSize = fileSize - position;
 
-		byte* fileData = WAD_StreamGetData(file->wad->streamIndex);
+		unsigned char* fileData = wad::WAD_StreamGetData(file->wad->streamIndex);
 		std::memcpy(out_ptr, (fileData + file->wad->position), readSize);
 		file->wad->position += readSize;
 		return (int)readSize / (int)size; // (partial element size reads may occur)
@@ -362,10 +370,8 @@ size_t __cdecl lego::file::File_Read(void* out_ptr, size_t size, size_t count, F
 	else if (location == FILELOC_STD /*1*/) {
 		return std::fread(out_ptr, size, count, file->std);
 	}
-	else {
-		debugf("%s(%i) : Unknown file system in call to %s", "C:\\Dev\\SourceSafe\\gods98_dx6\\gods98\\src\\Files.c", 395 /*__LINE__*/, ""/*EMPTYSTR*/);
-		return 0;
-	}
+	File__logf("%s(%i) : Unknown file system in call to %s", "C:\\Dev\\SourceSafe\\gods98_dx6\\gods98\\src\\Files.c", 395 /*__LINE__*/, ""/*EMPTYSTR*/);
+	return 0;
 }
 
 // <LegoRR.exe @0047fd10>
@@ -373,16 +379,14 @@ size_t __cdecl lego::file::File_Write(const void* ptr, size_t size, size_t count
 {
 	FileLocation location = File_GetLocation(file);
 	if (location == FILELOC_WAD /*0*/) {
-		debugf("Cannot write to a file stored in a Wad!");
+		File__logf("Cannot write to a file stored in a Wad!");
 		return 0;
 	}
-	if (location == FILELOC_STD /*1*/) {
+	else if (location == FILELOC_STD /*1*/) {
 		return std::fwrite(ptr, size, count, file->std);
 	}
-	else {
-		debugf("%s(%i) : Unknown file system in call to %s", "C:\\Dev\\SourceSafe\\gods98_dx6\\gods98\\src\\Files.c", 414 /*__LINE__*/, "File_Write");
-		return 0;
-	}
+	File__logf("%s(%i) : Unknown file system in call to %s", "C:\\Dev\\SourceSafe\\gods98_dx6\\gods98\\src\\Files.c", 414 /*__LINE__*/, "File_Write");
+	return 0;
 }
 
 // <LegoRR.exe @0047fd80>
@@ -390,25 +394,25 @@ int __cdecl lego::file::File_Close(FileStream* file)
 {
 	FileLocation location = File_GetLocation(file);
 	if (location >= 0 && location < 2) { // == FILELOC_WAD || == FILELOC_REAL
-		File__Dispose(file);
+		File__Destroy(file);
 		return 0;
 	}
-	debugf("%s(%i) : Unknown file system in call to %s", "C:\\Dev\\SourceSafe\\gods98_dx6\\gods98\\src\\Files.c", 431 /*__LINE__*/, "File_Close");
+	File__logf("%s(%i) : Unknown file system in call to %s", "C:\\Dev\\SourceSafe\\gods98_dx6\\gods98\\src\\Files.c", 431 /*__LINE__*/, "File_Close");
 	return 0;
 }
 
 // <LegoRR.exe @0047fdd0>
-int __cdecl lego::file::File_Tell(FileStream* file)
+long __cdecl lego::file::File_Tell(FileStream* file)
 {
 	FileLocation location = File_GetLocation(file);
 	if (location == FILELOC_WAD /*0*/) {
-		return (int)file->wad->position;
+		return (long)file->wad->position;
 		// return *(int *)(file->stream + 4);
 	}
 	if (location == FILELOC_STD /*1*/) {
-		return (int)std::ftell(file->std);
+		return (long)std::ftell(file->std);
 	}
-	debugf("%s(%i) : Unknown file system in call to %s", "C:\\Dev\\SourceSafe\\gods98_dx6\\gods98\\src\\Files.c", 469 /*__LINE__*/, "File_Tell");
+	File__logf("%s(%i) : Unknown file system in call to %s", "C:\\Dev\\SourceSafe\\gods98_dx6\\gods98\\src\\Files.c", 469 /*__LINE__*/, "File_Tell");
 	return 0;
 }
 
@@ -422,7 +426,7 @@ BOOL __cdecl lego::file::File_Exist(const char* filename)
 	if (location == FILELOC_WAD /*0*/) {
 		// brilliant! This fails regardless because the data directory wasn't stripped before calling this...
 		// this is really dumb, invalid values from this return -1, and valids values can be 0.
-		return WAD_FindEntry(dataFilename, globals::WADFILE_ANY /*-1*/);
+		return wad::WAD_FindEntry(dataFilename, globals::WADFILE_ANY /*-1*/);
 	}
 	else if (location == FILELOC_STD /*1*/) {
 		// check Data dir path
@@ -449,23 +453,21 @@ int __cdecl lego::file::File_GetC(FileStream* file)
 {
 	FileLocation location = File_GetLocation(file);
 	if (location == FILELOC_WAD /*0*/) {
-		if ((int)(WAD_StreamGetSize(file->wad->streamIndex) - 1) <= file->wad->position)
+		if ((int)(wad::WAD_StreamGetSize(file->wad->streamIndex) - 1) <= file->wad->position)
 			return -1; // end of stream
 
-		byte* fileBuffer = (byte*)WAD_StreamGetData(file->wad->streamIndex);
+		unsigned char* fileBuffer = (unsigned char*)wad::WAD_StreamGetData(file->wad->streamIndex);
 		return fileBuffer[file->wad->position++];
 	}
 	else if (location == FILELOC_STD /*1*/) {
 		return std::fgetc(file->std);
 	}
-	else {
-		debugf("%s(%i) : Unknown file system in call to %s", "C:\\Dev\\SourceSafe\\gods98_dx6\\gods98\\src\\Files.c", 545 /*__LINE__*/, "File_GetC");
-		return 0;
-	}
+	File__logf("%s(%i) : Unknown file system in call to %s", "C:\\Dev\\SourceSafe\\gods98_dx6\\gods98\\src\\Files.c", 545 /*__LINE__*/, "File_GetC");
+	return 0;
 }
 
 // <LegoRR.exe @0047ff60>
-int __cdecl lego::file::File_GetLength(FileStream* file)
+long __cdecl lego::file::File_GetLength(FileStream* file)
 {
 	int origOffset = File_Tell(file);
 	File_Seek(file, 0, SEEK_END /*2*/);
@@ -498,15 +500,13 @@ char* __cdecl lego::file::File_GetS(char* out_str, int num, FileStream* file)
 {
 	FileLocation location = File_GetLocation(file);
 	if (location == FILELOC_WAD /*0*/) {
-		return WAD_GetS__internal(out_str, num, file);
+		return File_GetS_WAD__internal(out_str, num, file);
 	}
 	else if (location != FILELOC_STD /*1*/) {
 		return std::fgets(out_str, num, file->std);
 	}
-	else {
-		debugf("%s(%i) : Unknown file system in call to %s", "C:\\Dev\\SourceSafe\\gods98_dx6\\gods98\\src\\Files.c", 587 /*__LINE__*/, "File_GetS");
-		return nullptr;
-	}
+	File__logf("%s(%i) : Unknown file system in call to %s", "C:\\Dev\\SourceSafe\\gods98_dx6\\gods98\\src\\Files.c", 587 /*__LINE__*/, "File_GetS");
+	return nullptr;
 }
 
 // <LegoRR.exe @00480070>
@@ -514,7 +514,7 @@ int __cdecl lego::file::File_PrintF(FileStream* file, const char* format, ...)
 {
 	FileLocation location = File_GetLocation(file);
 	if (location == FILELOC_WAD /*0*/) {
-		debugf("\"fprintf\" is unsupprted for wad files");
+		File__logf("\"fprintf\" is unsupprted for wad files");
 		return 0;
 	}
 	else if (location == FILELOC_STD /*1*/) {
@@ -524,10 +524,8 @@ int __cdecl lego::file::File_PrintF(FileStream* file, const char* format, ...)
 		va_end(vl);
 		return 0;
 	}
-	else {
-		debugf("%s(%i) : Unknown file system in call to %s", "C:\\Dev\\SourceSafe\\gods98_dx6\\gods98\\src\\Files.c", 612 /*__LINE__*/, "File_PrintF");
-		return 0;
-	}
+	File__logf("%s(%i) : Unknown file system in call to %s", "C:\\Dev\\SourceSafe\\gods98_dx6\\gods98\\src\\Files.c", 612 /*__LINE__*/, "File_PrintF");
+	return 0;
 }
 
 // <LegoRR.exe @004800e0>
@@ -546,7 +544,7 @@ FileLocation __cdecl lego::file::File_FindLocation(const char* filename, const c
 	if (filename != nullptr && mode != nullptr && std::strlen(filename) != 0 && std::strlen(mode) != 0) {
 		if (*mode != 'w' && *mode != 'W') { // only check for WAD entries with read mode
 			filename = Path_StripDataDir(filename);
-			int entryIndex = WAD_FindEntry(filename, globals::WADFILE_ANY /*-1*/);
+			int entryIndex = wad::WAD_FindEntry(filename, globals::WADFILE_ANY /*-1*/);
 			if (entryIndex != -1)
 				return FILELOC_WAD /*0*/;
 		}
@@ -558,15 +556,15 @@ FileLocation __cdecl lego::file::File_FindLocation(const char* filename, const c
 // <LegoRR.exe @00480160>
 BOOL __cdecl lego::file::File_OpenWADEntry(WADEntryStream* wadStream, const char* filename)
 {
-	wadStream->field_8 = 0;
+	wadStream->field_unused_8 = 0;
 	wadStream->position = 0;
-	int streamIndex = WAD_StreamOpen(filename, globals::WADFILE_ANY /*-1*/);
+	int streamIndex = wad::WAD_StreamOpen(filename, globals::WADFILE_ANY /*-1*/);
 	wadStream->streamIndex = streamIndex;
 	return (streamIndex != -1);
 }
 
 // <LegoRR.exe @00480190>
-FileStream* __cdecl lego::file::File__New(FileLocation location)
+FileStream* __cdecl lego::file::File__Create(FileLocation location)
 {
 	if (location == FILELOC_WAD /*0*/) {
 		FileStream* file = (FileStream*)File__malloc(sizeof(FileStream) /*8*/);
@@ -605,13 +603,13 @@ void __cdecl lego::file::File__free(void* ptr)
 }
 
 // <LegoRR.exe @00480210>
-void __cdecl lego::file::File__Dispose(FileStream* file)
+void __cdecl lego::file::File__Destroy(FileStream* file)
 {
 	if (file != nullptr) {
 		FileLocation location = File_GetLocation(file);
 		if (location == FILELOC_WAD /*0*/) {
 			if (file->wad != nullptr) {
-				WAD_StreamClose(file->wad->streamIndex);
+				wad::WAD_StreamClose(file->wad->streamIndex);
 				File__free(file->wad);
 			}
 			File__free(file);
@@ -632,20 +630,20 @@ void __cdecl lego::file::File__Dispose(FileStream* file)
 // <LegoRR.exe @00480280>
 const char* __cdecl lego::file::Path_StripDataDir(const char* filename)
 {
-	if (!globals::g_HasDataDir)
+	if (!globals::g_Files.HasDataDir)
 		return filename;
 
-	int datadirLen = (int)std::strlen(globals::g_FILEPATH_DATADIR_STRIP);
+	int datadirLen = (int)std::strlen(globals::g_Files.FILEPATH_DATADIR_STRIP);
 	if ((int)std::strlen(filename) <= datadirLen) // shorter than DATADIR, can't start with datadir
 		return filename;
 
 	char c = filename[datadirLen]; // backup original char here (which *should* be path separator, but could potentially be something else)
 	const_cast<char*>(filename)[datadirLen] = '\0';   // then replace that char with null-terminator
 	
-	if (::_stricmp(filename, globals::g_FILEPATH_DATADIR_STRIP) == 0) { // compare filename and datadir (could be replaced with strnicmp)
-		std::sprintf(globals::tmp_FILEPATH_STRIPDATADIR, "%s", filename + datadirLen + 1);
+	if (::_stricmp(filename, globals::g_Files.FILEPATH_DATADIR_STRIP) == 0) { // compare filename and datadir (could be replaced with strnicmp)
+		std::sprintf(globals::g_Files.tmp_FILEPATH_STRIPDATADIR, "%s", filename + datadirLen + 1);
 		const_cast<char*>(filename)[datadirLen] = c; // restore char
-		return globals::tmp_FILEPATH_STRIPDATADIR;
+		return globals::g_Files.tmp_FILEPATH_STRIPDATADIR;
 	}
 	const_cast<char*>(filename)[datadirLen] = c; // restore char
 	return filename;
@@ -654,13 +652,13 @@ const char* __cdecl lego::file::Path_StripDataDir(const char* filename)
 // all parameters are directly passed to File_GetS, then some operation on string is performed
 // 
 // <LegoRR.exe @00480310>
-char* __cdecl lego::file::File_GetS_StripLineEnd(char* out_str, int num, FileStream* file)
+char* __cdecl lego::file::File_ReadLine(char* out_str, int num, FileStream* file)
 {
 	char* result = File_GetS(out_str, num, file);
 	// generally File_GetS should return at least one character, but these are some dangurous assumptions?
 	int len = (int)std::strlen(out_str);
 
-	if (out_str[len - 1] == '\0')
+	if (out_str[len - 1] == '\n')
 		out_str[len - 1] = '\0'; // strip LF
 
 	if ((len - 1) != 0 && out_str[len - 2] == '\r')
@@ -670,23 +668,23 @@ char* __cdecl lego::file::File_GetS_StripLineEnd(char* out_str, int num, FileStr
 }
 
 // <LegoRR.exe @00480360>
-byte* __cdecl lego::file::File_ReadAllBytes(const char* filename, uint* out_length)
+unsigned char* __cdecl lego::file::File_ReadAllBytes(const char* filename, unsigned int* out_length)
 {
-	return File_ReadAll(filename, out_length, true /*isBinary*/);
+	return (unsigned char*)File_ReadAll(filename, out_length, true /*isBinary*/);
 }
 
 // <LegoRR.exe @00480380>
-byte* __cdecl lego::file::File_ReadAll(const char* filename, uint* out_length, BOOL isBinary)
+void* __cdecl lego::file::File_ReadAll(const char* filename, unsigned int* out_length, BOOL isBinary)
 {
 	FileStream* file = File_Open(filename, isBinary ? "rb" : "r");
 	if (file != nullptr) {
 		File_Seek(file, 0, SEEK_END /*2*/);
 		int length = File_Tell(file);
 
-		if (globals::g_FileOpenCallback != nullptr)
-			globals::g_FileOpenCallback(filename, (uint)length, globals::g_FileOpenCallback_VALUE);
+		if (globals::g_Files.OpenCallback != nullptr)
+			globals::g_Files.OpenCallback(filename, (unsigned int)length, globals::g_Files.OpenCallback_VALUE);
 
-		byte* buffer = (byte*)std::malloc(length);
+		void* buffer = std::malloc(length);
 		if (buffer != nullptr) {
 			File_Seek(file, 0, SEEK_SET /*0*/);
 			File_Read(buffer, 1, length, file);
@@ -702,19 +700,21 @@ byte* __cdecl lego::file::File_ReadAll(const char* filename, uint* out_length, B
 }
 
 // <LegoRR.exe @00480430>
-int __cdecl lego::file::File_BufferOpen(const char* filename, uint* out_length)
+int __cdecl lego::file::File_OpenSharedBuffer(const char* filename, unsigned int* out_length)
 {
 	FileStream* file = File_Open(filename, "rb");
 	if (file != nullptr) {
 		File_Seek(file, 0, SEEK_END /*2*/);
-		int length = File_Tell(file);
+		long length = File_Tell(file);
 
-		if (globals::g_FileOpenCallback != nullptr)
-			globals::g_FileOpenCallback(filename, (uint)length, globals::g_FileOpenCallback_VALUE);
+		if (globals::g_Files.OpenCallback != nullptr)
+			globals::g_Files.OpenCallback(filename, (unsigned int)length, globals::g_Files.OpenCallback_VALUE);
 
-		int bufferIndex = File_BufferOpen__internal(length);
+		int bufferIndex = SharedBuffer_Open(length);
 		if (bufferIndex != -1) {
-			void* out_buffer = File_BufferGetData(bufferIndex);
+			void* out_buffer = SharedBuffer_GetData(bufferIndex);
+			// In the case of WAD file entries, this method is horribly inefficient.
+			//  Two allocations, and 3+ if using RNC compression...
 			File_Seek(file, 0, SEEK_SET /*0*/);
 			File_Read(out_buffer, 1, length, file);
 			if (out_length != nullptr) {
@@ -741,11 +741,11 @@ const char* __cdecl lego::file::Path_JoinDataDir(const char* filename)
 		if (*filename == '\\')
 			filename++;
 
-		std::sprintf(buffer, "%s\\%s", globals::g_FILEPATH_DATADIR_JOIN, filename);
-		if (::_fullpath(globals::tmp_FILEPATH_JOINDATADIR, buffer, MAX_PATH /*260*/) != nullptr) {
+		std::sprintf(buffer, "%s\\%s", globals::g_Files.FILEPATH_DATADIR_JOIN, filename);
+		if (::_fullpath(globals::g_Files.tmp_FILEPATH_JOINDATADIR, buffer, MAX_PATH /*260*/) != nullptr) {
 
-			if (std::strncmp(globals::tmp_FILEPATH_JOINDATADIR, globals::g_FILEPATH_DATADIR_JOIN, std::strlen(globals::g_FILEPATH_DATADIR_JOIN)) == 0) {
-				return globals::tmp_FILEPATH_JOINDATADIR;
+			if (std::strncmp(globals::g_Files.tmp_FILEPATH_JOINDATADIR, globals::g_Files.FILEPATH_DATADIR_JOIN, std::strlen(globals::g_Files.FILEPATH_DATADIR_JOIN)) == 0) {
+				return globals::g_Files.tmp_FILEPATH_JOINDATADIR;
 			}
 		}
 	}
@@ -755,8 +755,8 @@ const char* __cdecl lego::file::Path_JoinDataDir(const char* filename)
 // <LegoRR.exe @00480570>
 void __cdecl lego::file::File_SetOpenCallback(FileOpenCallback callback, void* lpValue)
 {
-	globals::g_FileOpenCallback = callback;
-	globals::g_FileOpenCallback_VALUE = lpValue;
+	globals::g_Files.OpenCallback = callback;
+	globals::g_Files.OpenCallback_VALUE = lpValue;
 }
 
 // <LegoRR.exe @00480590>
@@ -778,7 +778,7 @@ void __cdecl lego::file::Scan_ReadDataDirList(const char* filename)
 
 			scanLength = std::fscanf((FILE*)file, "%s", buffer); // This really isn't how it works!, FILE* is at FileStream: offset 0x4!!!!
 		}
-		Scan_Directory(globals::g_FILEPATH_DATADIR_JOIN);
+		Scan_Directory(globals::g_Files.FILEPATH_DATADIR_JOIN);
 		std::fclose((FILE*)file); // what the hell.....
 	}
 }
@@ -815,9 +815,9 @@ void __cdecl lego::file::Scan_Directory(const char* dirname)
 // <LegoRR.exe @00480830>
 int __cdecl lego::file::Scan_File(const char* filename)
 {
-	for (uint i = 0; i < globals::g_ScanRealFiles_FilePaths_COUNT; i++) {
+	for (unsigned int i = 0; i < globals::g_ScanRealFiles_FilePaths_COUNT; i++) {
 		if (::_stricmp(filename, globals::g_ScanRealFiles_FilePaths_TABLE[i]) == 0)
-			return 0;
+			return 0; // preprocessor removed
 	}
 	return (int)globals::g_ScanRealFiles_FilePaths_COUNT;
 }
