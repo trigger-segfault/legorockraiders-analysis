@@ -1,5 +1,10 @@
+// DirectDraw.cpp :
+//
+/// STATUS: [Usable, but still being refactored]
+
 #include "DirectDraw.h"
 #include "Main.h"
+
 
 using namespace lego;
 using namespace lego::ddraw;
@@ -7,51 +12,56 @@ using namespace lego::ddraw;
 
 #pragma region Globals
 
-/// INTERNAL:
-// <LegoRR.exe @0076bc80>
-HWND lego::globals::g_DirectDraw_hWnd;
+// /// PRIVATE:
+// // <LegoRR.exe @0076bc80>
+// HWND lego::globals::g_DirectDraw_hWnd;
+
+// /// PUBLIC:
+// // <LegoRR.exe @0076bc84>
+// IDirectDraw4* lego::globals::g_IDirectDraw4;
+
+// /// PRIVATE:
+// // <LegoRR.exe @0076bc88>
+// IDirectDrawSurface4* lego::globals::g_IDirectDrawSurface4_RenderTarget;
+
+// /// PUBLIC:
+// // <LegoRR.exe @0076bc8c>
+// IDirectDrawSurface4* lego::globals::g_IDirectDrawSurface4_DrawTarget;
+
+// /// PRIVATE:
+// // <LegoRR.exe @0076bc90>
+// unsigned int lego::globals::g_DirectDraw_UNUSED_0076bc90;
+// // <LegoRR.exe @0076bc94>
+// IDirectDrawClipper* lego::globals::g_IDirectDrawClipper_RenderTarget;
+// // <LegoRR.exe @0076bc98>
+// IDirectDrawClipper* lego::globals::g_IDirectDrawClipper_DrawTarget;
+// // <LegoRR.exe @0076bc9c>
+// DriverMode* lego::globals::g_DirectDrawDriverEnumerate_TABLE;
+
+// // unused 4-byte gap
+
+// // <LegoRR.exe @0076bca4>
+// DeviceMode* lego::globals::g_DirectDrawDeviceEnumerate_TABLE;
+
+// // unused 4-byte gap
+
+// // <LegoRR.exe @0076bcac>
+// ScreenMode* lego::globals::g_DirectDrawScreenEnumerate_TABLE;
+// // <LegoRR.exe @0076bcb0>
+// int lego::globals::g_DirectDrawDriverEnumerate_COUNT;
+// // <LegoRR.exe @0076bcb4>
+// int lego::globals::g_DirectDrawDeviceEnumerate_COUNT;
+// // <LegoRR.exe @0076bcb8>
+// int lego::globals::g_DirectDrawScreenEnumerate_COUNT;
+// // <LegoRR.exe @0076bcbc>
+// BOOL lego::globals::g_ScreenIsFullScreen;
+// // <LegoRR.exe @0076bcc0>
+// Size2I lego::globals::g_ScreenSize;
+
 
 /// PUBLIC:
-// <LegoRR.exe @0076bc84>
-IDirectDraw4* lego::globals::g_IDirectDraw4;
-
-/// INTERNAL:
-// <LegoRR.exe @0076bc88>
-IDirectDrawSurface4* lego::globals::g_IDirectDrawSurface4_RenderTarget;
-
-/// PUBLIC:
-// <LegoRR.exe @0076bc8c>
-IDirectDrawSurface4* lego::globals::g_IDirectDrawSurface4_DrawTarget;
-
-/// INTERNAL:
-// <LegoRR.exe @0076bc90>
-unsigned int lego::globals::g_DirectDraw_UNUSED_0076bc90;
-// <LegoRR.exe @0076bc94>
-IDirectDrawClipper* lego::globals::g_IDirectDrawClipper_RenderTarget;
-// <LegoRR.exe @0076bc98>
-IDirectDrawClipper* lego::globals::g_IDirectDrawClipper_DrawTarget;
-// <LegoRR.exe @0076bc9c>
-DriverMode* lego::globals::g_DirectDrawDriverEnumerate_TABLE;
-
-// unused 4-byte gap
-
-// <LegoRR.exe @0076bca4>
-DeviceMode* lego::globals::g_DirectDrawDeviceEnumerate_TABLE;
-
-// unused 4-byte gap
-
-// <LegoRR.exe @0076bcac>
-ScreenMode* lego::globals::g_DirectDrawScreenEnumerate_TABLE;
-// <LegoRR.exe @0076bcb0>
-int lego::globals::g_DirectDrawDriverEnumerate_COUNT;
-// <LegoRR.exe @0076bcb4>
-int lego::globals::g_DirectDrawDeviceEnumerate_COUNT;
-// <LegoRR.exe @0076bcb8>
-int lego::globals::g_DirectDrawScreenEnumerate_COUNT;
-// <LegoRR.exe @0076bcbc>
-BOOL lego::globals::g_ScreenIsFullScreen;
-// <LegoRR.exe @0076bcc0>
-Size2I lego::globals::g_ScreenSize;
+// <LegoRR.exe @0076bc80 - 0076bcc8>
+DDrawManager lego::globals::g_DDraw;
 
 #pragma endregion
 
@@ -61,34 +71,48 @@ Size2I lego::globals::g_ScreenSize;
 // <LegoRR.exe @0047c430>
 void __cdecl lego::ddraw::InitDirectDraw(HWND hWnd)
 {
-	globals::g_DirectDraw_hWnd = hWnd;
-	globals::g_IDirectDraw4 = nullptr;
-	globals::g_IDirectDrawSurface4_RenderTarget = nullptr;
-	globals::g_IDirectDrawSurface4_DrawTarget = nullptr;
-	globals::g_DirectDraw_UNUSED_0076bc90 = 0;
-	globals::g_IDirectDrawClipper_RenderTarget = nullptr;
-	globals::g_IDirectDrawClipper_DrawTarget = nullptr;
-	globals::g_DirectDrawDriverEnumerate_TABLE = nullptr;
-	globals::g_DirectDrawDeviceEnumerate_TABLE = nullptr;
-	globals::g_DirectDrawScreenEnumerate_TABLE = nullptr;
-	globals::g_DirectDrawDriverEnumerate_COUNT = 0;
-	globals::g_DirectDrawDeviceEnumerate_COUNT = 0;
-	globals::g_DirectDrawScreenEnumerate_COUNT = 0;
+	globals::g_DDraw.hWnd = hWnd;
+	globals::g_DDraw.DirectDraw4 = nullptr;
+	globals::g_DDraw.RenderTarget = nullptr;
+	globals::g_DDraw.DrawTarget = nullptr;
+	globals::g_DDraw.DDraw_unused_0076bc90 = nullptr;
+	globals::g_DDraw.RenderTargetClipper = nullptr;
+	globals::g_DDraw.DrawTargetClipper = nullptr;
+	globals::g_DDraw.DriverEnumerate_TABLE = nullptr;
+	globals::g_DDraw.DeviceEnumerate_TABLE = nullptr;
+	globals::g_DDraw.ScreenEnumerate_TABLE = nullptr;
+	globals::g_DDraw.DriverEnumerate_COUNT = 0;
+	globals::g_DDraw.DeviceEnumerate_COUNT = 0;
+	globals::g_DDraw.ScreenEnumerate_COUNT = 0;
+
+	// globals::g_DirectDraw_hWnd = hWnd;
+	// globals::g_IDirectDraw4 = nullptr;
+	// globals::g_IDirectDrawSurface4_RenderTarget = nullptr;
+	// globals::g_IDirectDrawSurface4_DrawTarget = nullptr;
+	// globals::g_DirectDraw_UNUSED_0076bc90 = 0;
+	// globals::g_IDirectDrawClipper_RenderTarget = nullptr;
+	// globals::g_IDirectDrawClipper_DrawTarget = nullptr;
+	// globals::g_DirectDrawDriverEnumerate_TABLE = nullptr;
+	// globals::g_DirectDrawDeviceEnumerate_TABLE = nullptr;
+	// globals::g_DirectDrawScreenEnumerate_TABLE = nullptr;
+	// globals::g_DirectDrawDriverEnumerate_COUNT = 0;
+	// globals::g_DirectDrawDeviceEnumerate_COUNT = 0;
+	// globals::g_DirectDrawScreenEnumerate_COUNT = 0;
 }
 
 // <LegoRR.exe @0047c480>
-BOOL __cdecl lego::ddraw::DDraw_PopulateDriverModes(DriverMode * ref_driverModes, int * out_count)
+BOOL __cdecl lego::ddraw::DDraw_PopulateDriverModes(DriverMode* ref_driverModes, int* out_count)
 {
-	globals::g_DirectDrawDriverEnumerate_TABLE = ref_driverModes;
+	globals::g_DDraw.DriverEnumerate_TABLE = ref_driverModes;
 	::DirectDrawEnumerateA(DDraw_EnumerateDriverCallback, nullptr);
-	*out_count = globals::g_DirectDrawDriverEnumerate_COUNT;
+	*out_count = globals::g_DDraw.DriverEnumerate_COUNT;
 	return true;
 }
 
 // <LegoRR.exe @0047c4b0>
 BOOL CALLBACK lego::ddraw::DDraw_EnumerateDriverCallback(LPGUID lpGuid, LPSTR lpDriverName, LPSTR lpDriverDescription, LPVOID lpContext)
 {
-	DriverMode* driver = &globals::g_DirectDrawDriverEnumerate_TABLE[globals::g_DirectDrawDriverEnumerate_COUNT];
+	DriverMode* driver = &globals::g_DDraw.DriverEnumerate_TABLE[globals::g_DDraw.DriverEnumerate_COUNT];
 	driver->flags = DRIVERMODE_ISUSED /*0x1*/;
 
 	if (lpGuid == nullptr) {
@@ -101,15 +125,15 @@ BOOL CALLBACK lego::ddraw::DDraw_EnumerateDriverCallback(LPGUID lpGuid, LPSTR lp
 	}
 	std::sprintf(driver->displayName, "%s (%s)", lpDriverName, lpDriverDescription);
 
-	globals::g_DirectDrawDriverEnumerate_COUNT++;
+	globals::g_DDraw.DriverEnumerate_COUNT++;
 	return true; // continue enumeration
 }
 
 // <LegoRR.exe @0047c5a0>
-BOOL __cdecl lego::ddraw::DDraw_PopulateDeviceModes(const DriverMode * driver, DeviceMode * ref_deviceModes, int * out_count)
+BOOL __cdecl lego::ddraw::DDraw_PopulateDeviceModes(const DriverMode* driver, DeviceMode* ref_deviceModes, int* out_count)
 {
 	BOOL success = false;
-	globals::g_DirectDrawDeviceEnumerate_COUNT = 0;
+	globals::g_DDraw.DeviceEnumerate_COUNT = 0;
 
 	IDirectDraw* ddraw1;
 	if (::DirectDrawCreate(const_cast<LPGUID>(&driver->guid), &ddraw1, nullptr) == 0) {
@@ -119,7 +143,7 @@ BOOL __cdecl lego::ddraw::DDraw_PopulateDeviceModes(const DriverMode * driver, D
 
 			IDirect3D3* d3d3; // uuid("bb223240-e72b-11d0-a9b4-00aa00c0993e")
 			if (ddraw4->QueryInterface(idl::IID_IDirect3D3, (LPVOID*)&d3d3) == 0) {
-				globals::g_DirectDrawDeviceEnumerate_TABLE = ref_deviceModes;
+				globals::g_DDraw.DeviceEnumerate_TABLE = ref_deviceModes;
 				d3d3->EnumDevices(DDraw_EnumerateDeviceCallback, nullptr);
 
 				d3d3->Release();
@@ -134,14 +158,14 @@ BOOL __cdecl lego::ddraw::DDraw_PopulateDeviceModes(const DriverMode * driver, D
 	}
 	/// FAILED: DirectDrawCreate
 
-	*out_count = globals::g_DirectDrawDeviceEnumerate_COUNT;
+	*out_count = globals::g_DDraw.DeviceEnumerate_COUNT;
 	return success;
 }
 
 // <LegoRR.exe @0047c640>
-HRESULT CALLBACK lego::ddraw::DDraw_EnumerateDeviceCallback(LPGUID lpGuid, LPSTR lpDeviceDescription, LPSTR lpDeviceName, D3DDEVICEDESC_V1 * lpD3DHWDeviceDesc, D3DDEVICEDESC_V1 * lpD3DHELDeviceDesc, LPVOID lpContext)
+HRESULT CALLBACK lego::ddraw::DDraw_EnumerateDeviceCallback(LPGUID lpGuid, LPSTR lpDeviceDescription, LPSTR lpDeviceName, D3DDEVICEDESC_V1* lpD3DHWDeviceDesc, D3DDEVICEDESC_V1* lpD3DHELDeviceDesc, LPVOID lpContext)
 {
-	DeviceMode* device = &globals::g_DirectDrawDeviceEnumerate_TABLE[globals::g_DirectDrawDeviceEnumerate_COUNT];
+	DeviceMode* device = &globals::g_DDraw.DeviceEnumerate_TABLE[globals::g_DDraw.DeviceEnumerate_COUNT];
 	device->flags = DEVICEMODE_ISUSED /*0x1*/;
 
 	if (lpD3DHWDeviceDesc->dcmColorModel != 0) {
@@ -183,15 +207,15 @@ HRESULT CALLBACK lego::ddraw::DDraw_EnumerateDeviceCallback(LPGUID lpGuid, LPSTR
 
 	std::sprintf(device->displayName, "%s (%s)", lpDeviceName, lpDeviceDescription);
 
-	globals::g_DirectDrawDeviceEnumerate_COUNT++;
+	globals::g_DDraw.DeviceEnumerate_COUNT++;
 	return DIENUM_CONTINUE /*0x1*/; // continue enumeration
 }
 
 // <LegoRR.exe @0047c770>
-BOOL __cdecl lego::ddraw::DDraw_PopulateScreenModes(const DriverMode * driver, BOOL isFullScreen, ScreenMode * ref_ScreenModes, int * out_count)
+BOOL __cdecl lego::ddraw::DDraw_PopulateScreenModes(const DriverMode* driver, BOOL isFullScreen, ScreenMode* ref_ScreenModes, int* out_count)
 {
 	BOOL success = false;
-	globals::g_DirectDrawScreenEnumerate_COUNT = 0;
+	globals::g_DDraw.ScreenEnumerate_COUNT = 0;
 
 	if (driver != nullptr && (driver->flags & DRIVERMODE_ISUSED /*0x1*/)) {
 
@@ -205,7 +229,7 @@ BOOL __cdecl lego::ddraw::DDraw_PopulateScreenModes(const DriverMode * driver, B
 
 			IDirectDraw4* ddraw4; // uuid("9c59509a-39bd-11d1-8c4a-00c04fd930c5")
 			if (ddraw1->QueryInterface(idl::IID_IDirectDraw4, (LPVOID*)&ddraw4) == 0) {
-				globals::g_DirectDrawScreenEnumerate_TABLE = ref_ScreenModes;
+				globals::g_DDraw.ScreenEnumerate_TABLE = ref_ScreenModes;
 				ddraw4->EnumDisplayModes(0, nullptr, (LPVOID)&isFullScreen, DDraw_EnumerateScreenCallback);
 
 				ddraw4->Release();
@@ -217,14 +241,14 @@ BOOL __cdecl lego::ddraw::DDraw_PopulateScreenModes(const DriverMode * driver, B
 		}
 		/// FAILED: DirectDrawCreate
 	}
-	*out_count = globals::g_DirectDrawScreenEnumerate_COUNT;
+	*out_count = globals::g_DDraw.ScreenEnumerate_COUNT;
 	return success;
 }
 
 // <LegoRR.exe @0047c810>
-HRESULT CALLBACK lego::ddraw::DDraw_EnumerateScreenCallback(DDSURFACEDESC2 * lpDDSurfaceDesc, LPVOID lpContext)
+HRESULT CALLBACK lego::ddraw::DDraw_EnumerateScreenCallback(DDSURFACEDESC2* lpDDSurfaceDesc, LPVOID lpContext)
 {
-	ScreenMode* screen = &globals::g_DirectDrawScreenEnumerate_TABLE[globals::g_DirectDrawScreenEnumerate_COUNT];
+	ScreenMode* screen = &globals::g_DDraw.ScreenEnumerate_TABLE[globals::g_DDraw.ScreenEnumerate_COUNT];
 	screen->flags = SCREENMODE_ISUSED /*0x1*/;
 	screen->screenWidth  = (int)lpDDSurfaceDesc->dwWidth;
 	screen->screenHeight = (int)lpDDSurfaceDesc->dwHeight;
@@ -240,7 +264,7 @@ HRESULT CALLBACK lego::ddraw::DDraw_EnumerateScreenCallback(DDSURFACEDESC2 * lpD
 		std::sprintf(screen->displayName, "%ix%i", (int)lpDDSurfaceDesc->dwWidth,
 				(int)lpDDSurfaceDesc->dwHeight);
 
-		if (globals::g_DirectDrawScreenEnumerate_COUNT != 0 && screen->bitDepth != main::GetDeviceBitsPerPixel()) {
+		if (globals::g_DDraw.ScreenEnumerate_COUNT != 0 && screen->bitDepth != main::GetDeviceBitsPerPixel()) {
 			// Bit depth doesn't match system, we can't use this in windowed
 			screen->flags &= ~SCREENMODE_ISUSED /*~0x1*/;
 			
@@ -249,12 +273,12 @@ HRESULT CALLBACK lego::ddraw::DDraw_EnumerateScreenCallback(DDSURFACEDESC2 * lpD
 		}
 	}
 
-	globals::g_DirectDrawScreenEnumerate_COUNT++;
+	globals::g_DDraw.ScreenEnumerate_COUNT++;
 	return DDENUMRET_OK /*0x1*/; // continue enumeration
 }
 
 // <LegoRR.exe @0047c8d0>
-BOOL __cdecl lego::ddraw::StartScreenMode(BOOL isFullScreen, const DriverMode * driver, const DeviceMode * device, const ScreenMode * screen, int x, int y, int screenWidth, int screenHeight)
+BOOL __cdecl lego::ddraw::StartScreenMode(BOOL isFullScreen, const DriverMode* driver, const DeviceMode* device, const ScreenMode* screen, int x, int y, int screenWidth, int screenHeight)
 {
 	DDSURFACEDESC2 surf;
 
@@ -274,25 +298,25 @@ BOOL __cdecl lego::ddraw::StartScreenMode(BOOL isFullScreen, const DriverMode * 
 		}
 	}
 
-	globals::g_ScreenIsFullScreen = isFullScreen;
+	globals::g_DDraw.IsFullScreen = isFullScreen;
 	LPGUID lpGuid = nullptr;
 	if (driver && !(driver->flags & DRIVERMODE_NOGUID_10 /*0x10*/))
 		lpGuid = const_cast<LPGUID>(&driver->guid); // not actually modified, but function requires non-const
 
-	globals::g_ScreenSize.width  = screenWidth;
-	globals::g_ScreenSize.height = screenHeight;
-	main::ShowGameWindow(isFullScreen, x, y, screenWidth, screenHeight);
+	globals::g_DDraw.ScreenSize.width  = screenWidth;
+	globals::g_DDraw.ScreenSize.height = screenHeight;
+	main::ShowMainWindow(isFullScreen, x, y, screenWidth, screenHeight);
 
 	IDirectDraw* ddraw1;
 	if (::DirectDrawCreate(lpGuid, &ddraw1, nullptr) == 0) {
 		//IDirectDraw4* // uuid("9c59509a-39bd-11d1-8c4a-00c04fd930c5")
-		if (ddraw1->QueryInterface(idl::IID_IDirectDraw4, (LPVOID*)&globals::g_IDirectDraw4) == 0) {
+		if (ddraw1->QueryInterface(idl::IID_IDirectDraw4, (LPVOID*)&globals::g_DDraw.DirectDraw4) == 0) {
 
 			DWORD dwFlags = (isFullScreen ? (DDSCL_EXCLUSIVE | DDSCL_FULLSCREEN /*0x10 | 0x1*/)
 										  : (DDSCL_NORMAL /*0x8*/));
-			if (globals::g_IDirectDraw4->SetCooperativeLevel(globals::g_DirectDraw_hWnd, dwFlags) == 0) {
-				//HRESULT result;
-				if (!isFullScreen || globals::g_IDirectDraw4->SetDisplayMode((DWORD)screenWidth, (DWORD)screenHeight, dwBPP, 0, 0) == 0) {
+			if (globals::g_DDraw.DirectDraw4->SetCooperativeLevel(globals::g_DDraw.hWnd, dwFlags) == 0) {
+				//HRESULT hresult;
+				if (!isFullScreen || globals::g_DDraw.DirectDraw4->SetDisplayMode((DWORD)screenWidth, (DWORD)screenHeight, dwBPP, 0, 0) == 0) {
 
 					std::memset(&surf, 0, sizeof(surf) /*0x7c*/);
 					surf.dwSize = sizeof(surf) /*0x7c*/;
@@ -304,26 +328,26 @@ BOOL __cdecl lego::ddraw::StartScreenMode(BOOL isFullScreen, const DriverMode * 
 						surf.ddsCaps.dwCaps |= DDSCAPS_FLIP | DDSCAPS_COMPLEX /*0x10 | 0x8*/;
 					}
 
-					if (globals::g_IDirectDraw4->CreateSurface(&surf, &globals::g_IDirectDrawSurface4_RenderTarget, nullptr) == 0) {
-						HRESULT result;
+					if (globals::g_DDraw.DirectDraw4->CreateSurface(&surf, &globals::g_DDraw.RenderTarget, nullptr) == 0) {
+						HRESULT hresult;
 						if (!isFullScreen) {
 							surf.ddsCaps.dwCaps &= ~DDSCAPS_PRIMARYSURFACE /*~0x200*/;
 							surf.ddsCaps.dwCaps |= DDSCAPS_OFFSCREENPLAIN /*0x40*/;
 							surf.dwFlags |= DDSD_WIDTH | DDSD_HEIGHT /*0x4 | 0x2*/;
 							surf.dwWidth  = screenWidth;
 							surf.dwHeight = screenHeight;
-							result = globals::g_IDirectDraw4->CreateSurface(&surf, &globals::g_IDirectDrawSurface4_DrawTarget, nullptr);
+							hresult = globals::g_DDraw.DirectDraw4->CreateSurface(&surf, &globals::g_DDraw.DrawTarget, nullptr);
 						}
 						else {
 							DDSCAPS2 ddsCaps;
 							std::memset(&ddsCaps, 0, sizeof(ddsCaps) /*0x4*/);
 							ddsCaps.dwCaps = DDSCAPS_BACKBUFFER /*0x4*/;
-							result = globals::g_IDirectDrawSurface4_RenderTarget->GetAttachedSurface(&ddsCaps, &globals::g_IDirectDrawSurface4_DrawTarget);
+							hresult = globals::g_DDraw.RenderTarget->GetAttachedSurface(&ddsCaps, &globals::g_DDraw.DrawTarget);
 						}
-						if (result == 0) {
+						if (hresult == 0) {
 
 							if (DDraw_InitClipperRegion(isFullScreen, screenWidth, screenHeight) &&
-								main::InitDirect3DRM(device, ddraw1, globals::g_IDirectDrawSurface4_DrawTarget, isFullScreen))
+								main::InitDirect3DRM(device, ddraw1, globals::g_DDraw.DrawTarget, isFullScreen))
 							{
 								/// QOL: Change this behavior to allow showing the cursor on the title bar in windowed
 								if (!isFullScreen) { // || SHOWCURSOR) {
@@ -331,20 +355,20 @@ BOOL __cdecl lego::ddraw::StartScreenMode(BOOL isFullScreen, const DriverMode * 
 								}
 								return true;
 							}
-							globals::g_IDirectDrawSurface4_DrawTarget->Release();
-							globals::g_IDirectDrawSurface4_DrawTarget = nullptr;
+							globals::g_DDraw.DrawTarget->Release();
+							globals::g_DDraw.DrawTarget = nullptr;
 						}
 						/// FAILED: IDirectDraw4->CreateSurface (2) -or- IDirectDrawSurface4->GetAttachedSurface
-						globals::g_IDirectDrawSurface4_RenderTarget->Release();
-						globals::g_IDirectDrawSurface4_RenderTarget = nullptr;
+						globals::g_DDraw.RenderTarget->Release();
+						globals::g_DDraw.RenderTarget = nullptr;
 					}
 					/// FAILED: IDirectDraw4->CreateSurface (1)
 				}
 				/// FAILED: IDirectDraw4->SetDisplayMode
 			}
 			/// FAILED: IDirectDraw4->SetCooperativeLevel
-			globals::g_IDirectDraw4->Release();
-			globals::g_IDirectDraw4 = nullptr;
+			globals::g_DDraw.DirectDraw4->Release();
+			globals::g_DDraw.DirectDraw4 = nullptr;
 		}
 		/// FAILED: IDirectDraw->QueryInterface => IDirectDraw4
 		ddraw1->Release();
@@ -356,8 +380,8 @@ BOOL __cdecl lego::ddraw::StartScreenMode(BOOL isFullScreen, const DriverMode * 
 // <LegoRR.exe @0047cb90>
 void __cdecl lego::ddraw::DDraw_Render(void)
 {
-	if (globals::g_ScreenIsFullScreen) {
-		globals::g_IDirectDrawSurface4_RenderTarget->Flip(nullptr, DDFLIP_WAIT /*0x1*/);
+	if (globals::g_DDraw.IsFullScreen) {
+		globals::g_DDraw.RenderTarget->Flip(nullptr, DDFLIP_WAIT /*0x1*/);
 	}
 	else {
 		// in assembly, this is a direct JMP, and not a CALL... no idea why
@@ -367,17 +391,17 @@ void __cdecl lego::ddraw::DDraw_Render(void)
 
 // Called by FUN_0047e700 <= MenuLoop_FUN_00413ab0
 // <LegoRR.exe @0047cbb0>
-int __cdecl lego::ddraw::Image_FUN_0047cbb0(int * param_1, char * param_2)
+BOOL __cdecl DDraw_SaveToFile(IDirectDrawSurface4* ddSurface4, const char* filename)
 {
-	
+	/// TODO: implement me
 }
 
 // <LegoRR.exe @0047cee0>
 void __cdecl lego::ddraw::DDraw_CopyToDrawTarget(void)
 {
-	if (globals::g_ScreenIsFullScreen) {
-		globals::g_IDirectDrawSurface4_DrawTarget->Blt(nullptr, globals::g_IDirectDrawSurface4_RenderTarget,
-													   nullptr, DDBLT_WAIT /*0x1000000*/, nullptr);
+	if (globals::g_DDraw.IsFullScreen) {
+		globals::g_DDraw.DrawTarget->Blt(nullptr, globals::g_DDraw.RenderTarget,
+										 nullptr, DDBLT_WAIT /*0x1000000*/, nullptr);
 	}
 }
 
@@ -385,45 +409,45 @@ void __cdecl lego::ddraw::DDraw_CopyToDrawTarget(void)
 void __cdecl lego::ddraw::DDraw_RenderWindowed(void)
 {
 	POINT ptClient = { 0, 0 };
-	RECT dstRect = { 0, 0, globals::g_ScreenSize.width, globals::g_ScreenSize.height };
+	RECT dstRect = { 0, 0, globals::g_DDraw.ScreenSize.width, globals::g_DDraw.ScreenSize.height };
 
-	::ClientToScreen(globals::g_DirectDraw_hWnd, &ptClient);
+	::ClientToScreen(globals::g_DDraw.hWnd, &ptClient);
 	::OffsetRect(&dstRect, ptClient.x, ptClient.y);
 
-	RECT srcRect = { 0, 0, globals::g_ScreenSize.width, globals::g_ScreenSize.height };
+	RECT srcRect = { 0, 0, globals::g_DDraw.ScreenSize.width, globals::g_DDraw.ScreenSize.height };
 
-	globals::g_IDirectDrawSurface4_RenderTarget->Blt(&dstRect, globals::g_IDirectDrawSurface4_DrawTarget,
-													 &srcRect, DDBLT_WAIT /*0x1000000*/, nullptr);
+	globals::g_DDraw.RenderTarget->Blt(&dstRect, globals::g_DDraw.DrawTarget,
+									   &srcRect, DDBLT_WAIT /*0x1000000*/, nullptr);
 }
 
 // <LegoRR.exe @0047cfb0>
 void __cdecl lego::ddraw::CleanupDirectDraw(void)
 {
-	if (globals::g_IDirectDrawSurface4_RenderTarget)
-		globals::g_IDirectDrawSurface4_RenderTarget->Release();
-	if (globals::g_IDirectDrawClipper_RenderTarget)
-		globals::g_IDirectDrawClipper_RenderTarget->Release();
+	if (globals::g_DDraw.RenderTarget)
+		globals::g_DDraw.RenderTarget->Release();
+	if (globals::g_DDraw.RenderTargetClipper)
+		globals::g_DDraw.RenderTargetClipper->Release();
 
 	// This is cleaned up elsewhere, during DDraw_InitClipperRegion
-	//if (globals::g_IDirectDrawSurface4_DrawTarget)
-	//	globals::g_IDirectDrawSurface4_DrawTarget->Release();
+	//if (globals::g_DDraw.DrawTarget)
+	//	globals::g_DDraw.DrawTarget->Release();
 
-	if (globals::g_IDirectDrawClipper_DrawTarget)
-		globals::g_IDirectDrawClipper_DrawTarget->Release();
+	if (globals::g_DDraw.DrawTargetClipper)
+		globals::g_DDraw.DrawTargetClipper->Release();
 
-	if (globals::g_IDirectDraw4) {
-		if (globals::g_ScreenIsFullScreen)
-			globals::g_IDirectDraw4->RestoreDisplayMode();
+	if (globals::g_DDraw.DirectDraw4) {
+		if (globals::g_DDraw.IsFullScreen)
+			globals::g_DDraw.DirectDraw4->RestoreDisplayMode();
 
-		if (globals::g_IDirectDraw4)
-			globals::g_IDirectDraw4->Release();
+		if (globals::g_DDraw.DirectDraw4)
+			globals::g_DDraw.DirectDraw4->Release();
 	}
 }
 
 // Convert texture usage (in units of pixels) into units of bytes.
 //  This should *always* result in: ref_textureUsage * 2  (aka 2 bytes per 16-bit pixel)
 // <LegoRR.exe @0047d010>
-void __cdecl lego::ddraw::CalculateTextureUsage(uint * ref_textureUsage)
+void __cdecl lego::ddraw::CalculateTextureUsage(unsigned int* ref_textureUsage)
 {
 	/*typedef enum CONST_D3DRMFPTFFLAGS {
 		D3DRMFPTF_ALPHA = 0x00000001,
@@ -436,20 +460,19 @@ void __cdecl lego::ddraw::CalculateTextureUsage(uint * ref_textureUsage)
 	// first make sure we're not in 8-bit paletted mode?
 	std::memset(&pixFmt, 0, sizeof(DDPIXELFORMAT) /*0x20*/);
 	pixFmt.dwSize = sizeof(DDPIXELFORMAT) /*0x20*/;
-	if (main::globals::g_IDirect3DRMDevice3->FindPreferredTextureFormat(DDBD_8 /*0x800*/, D3DRMFPTF_PALETTIZED /*0x4*/, &pixFmt) != 0) {
+	if (globals::g_IDirect3DRMDevice3->FindPreferredTextureFormat(DDBD_8 /*0x800*/, D3DRMFPTF_PALETTIZED /*0x4*/, &pixFmt) != 0) {
 
 		// confirm we are in 16 bit mode than multiply by number of bytes per pixel (rounded down)
 		std::memset(&pixFmt, 0, sizeof(DDPIXELFORMAT) /*0x20*/);
 		pixFmt.dwSize = sizeof(DDPIXELFORMAT) /*0x20*/;
-		if (main::globals::g_IDirect3DRMDevice3->FindPreferredTextureFormat(DDBD_16 /*0x400*/, 0, &pixFmt) == 0) {
+		if (globals::g_IDirect3DRMDevice3->FindPreferredTextureFormat(DDBD_16 /*0x400*/, 0, &pixFmt) == 0) {
 			*ref_textureUsage *= (pixFmt.dwRGBBitCount / 8);
-			//*(unsigned int*)pixFmt.dwGBitMask = (unaff_EDI >> 3) * *(int*)pixFmt.dwGBitMask;
 		}
 	}
 }
 
 // <LegoRR.exe @0047d090>
-BOOL __cdecl lego::ddraw::GetAvailableVideoMemory(uint * out_totalMem, uint * out_freeMem)
+BOOL __cdecl lego::ddraw::GetAvailableVideoMemory(unsigned int* out_totalMem, unsigned int* out_freeMem)
 {
 	DDSCAPS2 ddsCaps;
 	ddsCaps.dwCaps = DDSCAPS_TEXTURE /*0x1000*/;
@@ -459,16 +482,16 @@ BOOL __cdecl lego::ddraw::GetAvailableVideoMemory(uint * out_totalMem, uint * ou
 
 	*out_totalMem = 0;
 	*out_freeMem = 0;
-	return (globals::g_IDirectDraw4->GetAvailableVidMem(&ddsCaps, (LPDWORD)out_totalMem, (LPDWORD)out_freeMem) == 0);
+	return (globals::g_DDraw.DirectDraw4->GetAvailableVidMem(&ddsCaps, (LPDWORD)out_totalMem, (LPDWORD)out_freeMem) == 0);
 }
 
 // <LegoRR.exe @0047d0e0>
-HRESULT __cdecl lego::ddraw::Draw_FillSurface(const Rect2F * rect, uint rgbColor)
+HRESULT __cdecl lego::ddraw::Draw_FillSurface(const Rect2F* rect, unsigned int rgbColor)
 {
 	DDBLTFX ddBlt;
 	std::memset(&ddBlt, 0, sizeof(ddBlt) /*0x64*/);
 	ddBlt.dwSize = sizeof(ddBlt) /*0x64*/;
-	ddBlt.dwFillColor = packNativeRGB(globals::g_IDirectDrawSurface4_DrawTarget, rgbColor);
+	ddBlt.dwFillColor = packNativeRGB(globals::g_DDraw.DrawTarget, rgbColor);
 
 	if (rect != nullptr) {
 		RECT dstRect = {
@@ -478,11 +501,11 @@ HRESULT __cdecl lego::ddraw::Draw_FillSurface(const Rect2F * rect, uint rgbColor
 			(int)(long long)(rect->height + rect->y)
 		};
 
-		return globals::g_IDirectDrawSurface4_DrawTarget->Blt(&dstRect, nullptr, nullptr,
+		return globals::g_DDraw.DrawTarget->Blt(&dstRect, nullptr, nullptr,
 			DDBLT_WAIT | DDBLT_COLORFILL /*0x1000000 | 0x400*/, &ddBlt);
 	}
 	else {
-		return globals::g_IDirectDrawSurface4_DrawTarget->Blt(nullptr, nullptr, nullptr,
+		return globals::g_DDraw.DrawTarget->Blt(nullptr, nullptr, nullptr,
 			DDBLT_WAIT | DDBLT_COLORFILL /*0x1000000 | 0x400*/, &ddBlt);
 	}
 }
@@ -490,23 +513,23 @@ HRESULT __cdecl lego::ddraw::Draw_FillSurface(const Rect2F * rect, uint rgbColor
 // <LegoRR.exe @0047d1a0>
 BOOL __cdecl lego::ddraw::DDraw_InitClipperRegion(BOOL isFullScreen, int screenWidth, int screenHeight)
 {
-	if (globals::g_IDirectDraw4->CreateClipper(0, &globals::g_IDirectDrawClipper_DrawTarget, nullptr) == 0) {
+	if (globals::g_DDraw.DirectDraw4->CreateClipper(0, &globals::g_DDraw.DrawTargetClipper, nullptr) == 0) {
 		HRGN hRgn = ::CreateRectRgn(0, 0, screenWidth, screenHeight);
 		DWORD length = ::GetRegionData(hRgn, 0, nullptr);
 		LPRGNDATA lpRgnData = (LPRGNDATA)std::malloc(length);
 		::GetRegionData(hRgn, length, lpRgnData);
 
-		if (globals::g_IDirectDrawClipper_DrawTarget->SetClipList(lpRgnData, 0) == 0) {
+		if (globals::g_DDraw.DrawTargetClipper->SetClipList(lpRgnData, 0) == 0) {
 			std::free(lpRgnData);
-			if (globals::g_IDirectDrawSurface4_DrawTarget->SetClipper(globals::g_IDirectDrawClipper_DrawTarget) == 0) {
+			if (globals::g_DDraw.DrawTarget->SetClipper(globals::g_DDraw.DrawTargetClipper) == 0) {
 				
 				if (isFullScreen) {
 					return true;
 				}
 
-				if (globals::g_IDirectDraw4->CreateClipper(0, &globals::g_IDirectDrawClipper_RenderTarget, nullptr) == 0) {
-					if (globals::g_IDirectDrawClipper_RenderTarget->SetHWnd(0, globals::g_DirectDraw_hWnd) == 0) {
-						if (globals::g_IDirectDrawSurface4_RenderTarget->SetClipper(globals::g_IDirectDrawClipper_RenderTarget) == 0) {
+				if (globals::g_DDraw.DirectDraw4->CreateClipper(0, &globals::g_DDraw.RenderTargetClipper, nullptr) == 0) {
+					if (globals::g_DDraw.RenderTargetClipper->SetHWnd(0, globals::g_DDraw.hWnd) == 0) {
+						if (globals::g_DDraw.RenderTarget->SetClipper(globals::g_DDraw.RenderTargetClipper) == 0) {
 							return true;
 						}
 					}
@@ -515,8 +538,8 @@ BOOL __cdecl lego::ddraw::DDraw_InitClipperRegion(BOOL isFullScreen, int screenW
 				/// FAILED: IDirectDraw4->CreateClipper (2)
 			}
 			/// FAILED: IDirectDrawSurface4->SetClipper (1)
-			globals::g_IDirectDrawSurface4_DrawTarget->Release();
-			globals::g_IDirectDrawSurface4_DrawTarget = nullptr;
+			globals::g_DDraw.DrawTarget->Release();
+			globals::g_DDraw.DrawTarget = nullptr;
 		}
 		/// FAILED: IDirectDrawClipper->SetClipList
 		std::free(lpRgnData); // this will get free'd twice...
@@ -527,14 +550,14 @@ BOOL __cdecl lego::ddraw::DDraw_InitClipperRegion(BOOL isFullScreen, int screenW
 
 // Called by FUN_00474310
 // <LegoRR.exe @0047d2c0>
-undefined __cdecl lego::ddraw::DDraw_FUN_0047d2c0(undefined4 param_1, int * param_2)
+void __cdecl DDraw_UnkChangePalette(IDirectDrawSurface4* ddSurface4_a, IDirectDrawSurface4* ddSurface4_b, D3DRMPaletteEntry* palette)
 {
-	
+	/// TODO: implement me
 }
 
 // Called by FUN_00474310, Draw_FillSurface
 // <LegoRR.exe @0047d590>
-uint __cdecl lego::ddraw::packNativeRGB(IDirectDrawSurface4 * ddSurface4, uint rgbColor)
+unsigned int __cdecl lego::ddraw::packNativeRGB(IDirectDrawSurface4* ddSurface4, unsigned int rgbColor)
 {
 	PALETTEENTRY palEntries[256];
 
@@ -559,18 +582,18 @@ uint __cdecl lego::ddraw::packNativeRGB(IDirectDrawSurface4 * ddSurface4, uint r
 	else {
 		IDirectDrawPalette* ddPal;
 		ddSurface4->GetPalette(&ddPal);
-		ddPal->GetEntries(0, 0, 256, palEntries);
-		for (int i = 0; i < 256; i++) {
+		ddPal->GetEntries(0, 0, _countof(palEntries), palEntries);
+		for (int i = 0; i < _countof(palEntries); i++) {
 			if (palEntries[i].peRed == r && palEntries[i].peGreen == g && palEntries[i].peBlue == b)
 				return i;
 		}
-		return 256;
+		return _countof(palEntries);
 	}
 }
 
 // Called by packNativeRGB
 // <LegoRR.exe @0047d6b0>
-int __cdecl lego::ddraw::countBits2(uint value)
+int __cdecl lego::ddraw::countBits2(unsigned int value)
 {
 	int count = 0;	
 	while (value != 0) {

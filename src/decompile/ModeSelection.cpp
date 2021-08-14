@@ -1,41 +1,49 @@
+// ModeSelection.cpp : Defines functions to present the Mode Selection dialog and start the game engine.
+//
+/// STATUS: [Usable, but still being refactored]
+
 #include "ModeSelection.h"
 #include "Main.h"
 
 using namespace lego;
-using namespace lego::wnd;
+using namespace lego::setup;
 
 
 #pragma region Globals
 
-/// INTERNAL:
-// <LegoRR.exe @005590a0>
-int lego::globals::g_DriverModes_COUNT;
-// <LegoRR.exe @005590a4>
-int lego::globals::g_DeviceModes_COUNT;
-// <LegoRR.exe @005590a8>
-int lego::globals::g_ScreenModes_COUNT;
-// <LegoRR.exe @005590ac>
-DriverMode lego::globals::g_DriverModes_TABLE[20];
-// <LegoRR.exe @0055a63c>
-DeviceMode lego::globals::g_DeviceModes_TABLE[20];
-// <LegoRR.exe @0055bbcc>
-ScreenMode lego::globals::g_ScreenModes_TABLE[200]; // yup... 10 times the other two
-// <LegoRR.exe @0056904c>
-const DriverMode* lego::globals::g_CurrentDriverMode;
-// <LegoRR.exe @00569050>
-const DeviceMode* lego::globals::g_CurrentDeviceMode;
-// <LegoRR.exe @00569054>
-const ScreenMode* lego::globals::g_CurrentScreenMode;
-// <LegoRR.exe @00569058>
-BOOL lego::globals::g_IsFullScreen;
-// Used when the Windowed mode Radio Button is disable
-//  (basically keep the state even if it's forcefully changed)
-// <LegoRR.exe @0056905c>
-BOOL lego::globals::g_IsFullScreen_Backup;
-// <LegoRR.exe @00569060>
-ScreenMode lego::globals::g_RegisteredScreenModes_TABLE[200]; // yup... 10 times the other two
-// <LegoRR.exe @005764e0>
-int lego::globals::g_RegisteredScreenModes_COUNT;
+// /// PRIVATE:
+// // <LegoRR.exe @005590a0>
+// int lego::globals::g_DriverModes_COUNT;
+// // <LegoRR.exe @005590a4>
+// int lego::globals::g_DeviceModes_COUNT;
+// // <LegoRR.exe @005590a8>
+// int lego::globals::g_ScreenModes_COUNT;
+// // <LegoRR.exe @005590ac>
+// DriverMode lego::globals::g_DriverModes_TABLE[20];
+// // <LegoRR.exe @0055a63c>
+// DeviceMode lego::globals::g_DeviceModes_TABLE[20];
+// // <LegoRR.exe @0055bbcc>
+// ScreenMode lego::globals::g_ScreenModes_TABLE[200]; // yup... 10 times the other two
+// // <LegoRR.exe @0056904c>
+// const DriverMode* lego::globals::g_CurrentDriverMode;
+// // <LegoRR.exe @00569050>
+// const DeviceMode* lego::globals::g_CurrentDeviceMode;
+// // <LegoRR.exe @00569054>
+// const ScreenMode* lego::globals::g_CurrentScreenMode;
+// // <LegoRR.exe @00569058>
+// BOOL lego::globals::g_IsFullScreen;
+// // Used when the Windowed mode Radio Button is disable
+// //  (basically keep the state even if it's forcefully changed)
+// // <LegoRR.exe @0056905c>
+// BOOL lego::globals::g_IsFullScreen_Backup;
+// // <LegoRR.exe @00569060>
+// ScreenMode lego::globals::g_RegisteredScreenModes_TABLE[200]; // yup... 10 times the other two
+// // <LegoRR.exe @005764e0>
+// int lego::globals::g_RegisteredScreenModes_COUNT;
+
+/// PRIVATE:
+// <LegoRR.exe @005590a0 - 005764e4>
+ModeSelectionManager lego::globals::g_ModeSel;
 
 #pragma endregion
 
@@ -43,38 +51,41 @@ int lego::globals::g_RegisteredScreenModes_COUNT;
 #pragma region Functions
 
 // <LegoRR.exe @0049d2f0>
-BOOL __cdecl lego::wnd::ChooseScreenMode(BOOL showDialog, BOOL isDebug, BOOL isBest, BOOL isWindow, const char * errorMessage)
+BOOL __cdecl lego::setup::ChooseScreenMode(BOOL showDialog, BOOL isDebug, BOOL isBest, BOOL isWindow, const char* errorMessage)
 {
 	INT_PTR idResult = (INT_PTR)IDOK /*1*/;
-	globals::g_CurrentDriverMode = nullptr;
-	globals::g_CurrentDeviceMode = nullptr;
-	globals::g_CurrentScreenMode = nullptr;
-	globals::g_IsFullScreen_Backup = false /*!DEFAULTWINDOWED*/;
-	globals::g_IsFullScreen        = false /*!DEFAULTWINDOWED*/;
-	globals::g_RegisteredScreenModes_COUNT = 0;
+	globals::g_ModeSel.CurrentDriverMode = nullptr;
+	globals::g_ModeSel.CurrentDeviceMode = nullptr;
+	globals::g_ModeSel.CurrentScreenMode = nullptr;
+	globals::g_ModeSel.IsFullScreen_Backup = false /*!DEFAULTWINDOWED*/;
+	globals::g_ModeSel.IsFullScreen        = false /*!DEFAULTWINDOWED*/;
+	globals::g_ModeSel.RegisteredScreenModes_COUNT = 0;
 
 	ModeSel_RegisterScreenMode(640, 480, 16); // 640x480 (16-bit)
+	/// DEBUG: 32-bit screen modes
 	#ifdef DEBUG_INCLUDE32BIT
-	ModeSel_RegisterScreenMode(640, 480, 32); /// DEBUG
+	ModeSel_RegisterScreenMode(640, 480, 32);
 	#endif
 
 	if (isDebug) {
 		ModeSel_RegisterScreenMode(800, 600, 16); // 800x600 (16-bit)
+		/// DEBUG: 32-bit screen modes
 		#ifdef DEBUG_INCLUDE32BIT
-		ModeSel_RegisterScreenMode(800, 600, 32); /// DEBUG
+		ModeSel_RegisterScreenMode(800, 600, 32);
 		#endif
 
 		ModeSel_RegisterScreenMode(1024, 768, 16); // 1024x768 (16-bit)
+		/// DEBUG: 32-bit screen modes
 		#ifdef DEBUG_INCLUDE32BIT
-		ModeSel_RegisterScreenMode(1024, 768, 32); /// DEBUG
+		ModeSel_RegisterScreenMode(1024, 768, 32);
 		#endif
 	}
 
-	ddraw::DDraw_PopulateDriverModes(globals::g_DriverModes_TABLE, &globals::g_DriverModes_COUNT);
-	if (globals::g_DriverModes_COUNT < 0)
+	ddraw::DDraw_PopulateDriverModes(globals::g_ModeSel.DriverModes_TABLE, &globals::g_ModeSel.DriverModes_COUNT);
+	if (globals::g_ModeSel.DriverModes_COUNT < 0)
 		return false;  // good luck running this on a potato
 
-	globals::g_CurrentDriverMode = &globals::g_DriverModes_TABLE[0];
+	globals::g_ModeSel.CurrentDriverMode = &globals::g_ModeSel.DriverModes_TABLE[0];
 
 	if (!isBest && showDialog) {
 		// Let the user choose what driver/device/screen mode to use
@@ -86,34 +97,34 @@ BOOL __cdecl lego::wnd::ChooseScreenMode(BOOL showDialog, BOOL isDebug, BOOL isB
 		// This is a bit of a nasty triple-nested for loop, but it's a lot better than what Ghidra was spitting out
 
 		bool modeFound = false; // use this to exit the triple-nested for loop
-		globals::g_IsFullScreen = !isWindow; // it seems the -window argument only works if -best is specified...
+		globals::g_ModeSel.IsFullScreen = !isWindow; // it seems the -window argument only works if -best is specified...
 
-		for (int i = globals::g_DriverModes_COUNT - 1; i >= 0 && !modeFound; i--) {
-			DriverMode* driverMode = &globals::g_DriverModes_TABLE[i];
+		for (int i = globals::g_ModeSel.DriverModes_COUNT - 1; i >= 0 && !modeFound; i--) {
+			DriverMode* driverMode = &globals::g_ModeSel.DriverModes_TABLE[i];
 			/// SANITY: If you have a driver with no device modes that appears farther down in the list,
 			///         it'll prevent valid drivers from being selected(?)
-			if (!ddraw::DDraw_PopulateDeviceModes(driverMode, globals::g_DeviceModes_TABLE, &globals::g_DeviceModes_COUNT)) {
+			if (!ddraw::DDraw_PopulateDeviceModes(driverMode, globals::g_ModeSel.DeviceModes_TABLE, &globals::g_ModeSel.DeviceModes_COUNT)) {
 				::MessageBoxA(nullptr, "Please install DirectX version 6 or later", "Error", MB_OK /*0*/);
 				return false;
 			}
-			if (globals::g_DeviceModes_COUNT < 0)
+			if (globals::g_ModeSel.DeviceModes_COUNT < 0)
 				continue;
 
-			ddraw::DDraw_PopulateScreenModes(driverMode, globals::g_IsFullScreen, globals::g_ScreenModes_TABLE, &globals::g_ScreenModes_COUNT);
+			ddraw::DDraw_PopulateScreenModes(driverMode, globals::g_ModeSel.IsFullScreen, globals::g_ModeSel.ScreenModes_TABLE, &globals::g_ModeSel.ScreenModes_COUNT);
 			// Unlike the drivers for loop, this list increments
-			for (int j = 0; j < globals::g_ScreenModes_COUNT && !modeFound; j++) {
+			for (int j = 0; j < globals::g_ModeSel.ScreenModes_COUNT && !modeFound; j++) {
 				if (!ModeSel_HasRegisteredScreenMode(j))
 					continue;
 
 				// Back to decrementing... go through all device modes now
-				for (int k = globals::g_DeviceModes_COUNT - 1; k >= 0 && !modeFound; k--) {
-					if (!(globals::g_DeviceModes_TABLE[k].flags & DEVICEMODE_HARDWARE /*0x2000*/))
+				for (int k = globals::g_ModeSel.DeviceModes_COUNT - 1; k >= 0 && !modeFound; k--) {
+					if (!(globals::g_ModeSel.DeviceModes_TABLE[k].flags & DEVICEMODE_HARDWARE /*0x2000*/))
 						continue; // no hardware support, no "best" mode(?)
 
 					// OKAY! We've finally found something, set our globals and break out of here!
-					globals::g_CurrentScreenMode = &globals::g_ScreenModes_TABLE[j];
-					globals::g_CurrentDeviceMode = &globals::g_DeviceModes_TABLE[k];
-					globals::g_CurrentDriverMode = driverMode;
+					globals::g_ModeSel.CurrentScreenMode = &globals::g_ModeSel.ScreenModes_TABLE[j];
+					globals::g_ModeSel.CurrentDeviceMode = &globals::g_ModeSel.DeviceModes_TABLE[k];
+					globals::g_ModeSel.CurrentDriverMode = driverMode;
 					modeFound = true; // break out of the triple-nested for loop
 				}
 			}
@@ -127,25 +138,25 @@ BOOL __cdecl lego::wnd::ChooseScreenMode(BOOL showDialog, BOOL isDebug, BOOL isB
 
 	// always true if we didn't take the dialog route
 	if (idResult == (INT_PTR)IDOK /*1*/) { // this isn't a BOOL! check to make sure the user didn't cancel
-		if (globals::g_IsFullScreen) {
+		if (globals::g_ModeSel.IsFullScreen) {
 			// does this ignore some user choices for fullscreen/windowed mode?
-			return ddraw::StartScreenMode(true, globals::g_CurrentDriverMode, globals::g_CurrentDeviceMode,
-				globals::g_CurrentScreenMode, 0, 0, 320, 200);
+			return ddraw::StartScreenMode(true, globals::g_ModeSel.CurrentDriverMode, globals::g_ModeSel.CurrentDeviceMode,
+				globals::g_ModeSel.CurrentScreenMode, 0, 0, 320, 200);
 		}
-		else if (globals::g_CurrentScreenMode == nullptr) {
-			return ddraw::StartScreenMode(false, nullptr, globals::g_CurrentDeviceMode, nullptr, 40, 40,
+		else if (globals::g_ModeSel.CurrentScreenMode == nullptr) {
+			return ddraw::StartScreenMode(false, nullptr, globals::g_ModeSel.CurrentDeviceMode, nullptr, 40, 40,
 				640, 480);
 		}
 		else {
-			return ddraw::StartScreenMode(false, nullptr, globals::g_CurrentDeviceMode, nullptr, 100, 100,
-				globals::g_CurrentScreenMode->screenWidth, globals::g_CurrentScreenMode->screenHeight);
+			return ddraw::StartScreenMode(false, nullptr, globals::g_ModeSel.CurrentDeviceMode, nullptr, 100, 100,
+				globals::g_ModeSel.CurrentScreenMode->screenWidth, globals::g_ModeSel.CurrentScreenMode->screenHeight);
 		}
 	}
 	return false;
 }
 
 // <LegoRR.exe @0049d5b0>
-INT_PTR __stdcall lego::wnd::ModeSel_DialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK lego::setup::ModeSel_DialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	char screenModeText[1024];
 
@@ -163,7 +174,7 @@ INT_PTR __stdcall lego::wnd::ModeSel_DialogProc(HWND hDlg, UINT message, WPARAM 
 			true /*repaint*/);
 
 		int idRadioButton;
-		if (!globals::g_IsFullScreen)
+		if (!globals::g_ModeSel.IsFullScreen)
 			idRadioButton = IDC_WINDOW_RADIOBUTTON /*1005*/;
 		else
 			idRadioButton = IDC_FULLSCREEN_RADIOBUTTON /*1004*/;
@@ -172,8 +183,8 @@ INT_PTR __stdcall lego::wnd::ModeSel_DialogProc(HWND hDlg, UINT message, WPARAM 
 		::SendMessageA(hCtrl_RadioButton, BM_SETCHECK /*0xf1*/, BST_CHECKED /*1*/, 0);
 
 		HWND hCtrl_Drivers = ::GetDlgItem(hDlg, IDC_DRIVER_LISTBOX /*1000*/);
-		for (int i = 0; i < globals::g_DriverModes_COUNT; i++) {
-			::SendMessageA(hCtrl_Drivers, LB_ADDSTRING /*0x180*/, 0, (LPARAM)globals::g_DriverModes_TABLE[i].displayName);
+		for (int i = 0; i < globals::g_ModeSel.DriverModes_COUNT; i++) {
+			::SendMessageA(hCtrl_Drivers, LB_ADDSTRING /*0x180*/, 0, (LPARAM)globals::g_ModeSel.DriverModes_TABLE[i].displayName);
 		}
 		::SendMessageA(hCtrl_Drivers, LB_SETCURSEL /*0x186*/, 0, 0);
 		::SetFocus(hCtrl_Drivers); // set initial focus to the drivers listbox
@@ -191,7 +202,7 @@ INT_PTR __stdcall lego::wnd::ModeSel_DialogProc(HWND hDlg, UINT message, WPARAM 
 		if (msgSource == 1 /*message from Accelerator*/) {
 			if (idCaller == IDC_DEVICE_LISTBOX /*1002*/) {
 				int selIndex = (int)::SendMessageA((HWND)lParam, LB_GETCURSEL /*0x188*/, 0, 0);
-				globals::g_CurrentDeviceMode = &globals::g_DeviceModes_TABLE[selIndex];
+				globals::g_ModeSel.CurrentDeviceMode = &globals::g_ModeSel.DeviceModes_TABLE[selIndex];
 			}
 			else if (idCaller == IDC_SCREENMODES_LISTBOX /*1003*/) {
 				int selIndex = (int)::SendMessageA((HWND)lParam, LB_GETCURSEL /*0x188*/, 0, 0);
@@ -199,12 +210,12 @@ INT_PTR __stdcall lego::wnd::ModeSel_DialogProc(HWND hDlg, UINT message, WPARAM 
 
 				int availableIndex;
 				if (ModeSel_GetScreenMode(screenModeText, &availableIndex)) {
-					globals::g_CurrentScreenMode = &globals::g_ScreenModes_TABLE[availableIndex];
+					globals::g_ModeSel.CurrentScreenMode = &globals::g_ModeSel.ScreenModes_TABLE[availableIndex];
 				}
 			}
 			else if (idCaller == IDC_DRIVER_LISTBOX /*1000*/) {
 				int selIndex = (int)::SendMessageA((HWND)lParam, LB_GETCURSEL /*0x188*/, 0, 0);
-				globals::g_CurrentDriverMode = &globals::g_DriverModes_TABLE[selIndex];
+				globals::g_ModeSel.CurrentDriverMode = &globals::g_ModeSel.DriverModes_TABLE[selIndex];
 
 				ModeSel_UpdateRadioButtons(hDlg);
 				ModeSel_RebuildScreenModes(hDlg);
@@ -230,9 +241,9 @@ INT_PTR __stdcall lego::wnd::ModeSel_DialogProc(HWND hDlg, UINT message, WPARAM 
 }
 
 // <LegoRR.exe @0049d8a0>
-void __cdecl lego::wnd::ModeSel_ChangeFullScreenMode(HWND hDlg, BOOL isFullScreen)
+void __cdecl lego::setup::ModeSel_ChangeFullScreenMode(HWND hDlg, BOOL isFullScreen)
 {
-	globals::g_IsFullScreen = isFullScreen;
+	globals::g_ModeSel.IsFullScreen = isFullScreen;
 	ModeSel_RebuildScreenModes(hDlg);
 
 	// update label next to screen modes listbox
@@ -241,7 +252,7 @@ void __cdecl lego::wnd::ModeSel_ChangeFullScreenMode(HWND hDlg, BOOL isFullScree
 }
 
 // <LegoRR.exe @0049d8f0>
-void __cdecl lego::wnd::ModeSel_RebuildScreenModes(HWND hDlg)
+void __cdecl lego::setup::ModeSel_RebuildScreenModes(HWND hDlg)
 {
 	char unsupportedMessage[256];
 	HWND hCtrl = ::GetDlgItem(hDlg, IDC_SCREENMODES_LISTBOX /*1003*/);
@@ -249,22 +260,23 @@ void __cdecl lego::wnd::ModeSel_RebuildScreenModes(HWND hDlg)
 	// remove all items from the listbox
 	while (::SendMessageA(hCtrl, LB_DELETESTRING /*0x182*/, 0, 0) != -1);
 
-	ddraw::DDraw_PopulateScreenModes(globals::g_CurrentDriverMode, globals::g_IsFullScreen, globals::g_ScreenModes_TABLE, &globals::g_ScreenModes_COUNT);
+	ddraw::DDraw_PopulateScreenModes(globals::g_ModeSel.CurrentDriverMode, globals::g_ModeSel.IsFullScreen,
+		globals::g_ModeSel.ScreenModes_TABLE, &globals::g_ModeSel.ScreenModes_COUNT);
 
 	BOOL noSupportedModes = true;
-	for (int i = 0; i < globals::g_ScreenModes_COUNT; i++) {
+	for (int i = 0; i < globals::g_ModeSel.ScreenModes_COUNT; i++) {
 		if (ModeSel_HasRegisteredScreenMode(i)) {
-			::SendMessageA(hCtrl, LB_ADDSTRING /*0x180*/, 0, (LPARAM)globals::g_ScreenModes_TABLE[i].displayName);
+			::SendMessageA(hCtrl, LB_ADDSTRING /*0x180*/, 0, (LPARAM)globals::g_ModeSel.ScreenModes_TABLE[i].displayName);
 
 			if (noSupportedModes) {
-				globals::g_CurrentScreenMode = &globals::g_ScreenModes_TABLE[i];
+				globals::g_ModeSel.CurrentScreenMode = &globals::g_ModeSel.ScreenModes_TABLE[i];
 				noSupportedModes = false;
 			}
 		}
 	}
 
 	if (noSupportedModes) {
-		if (!globals::g_IsFullScreen) {
+		if (!globals::g_ModeSel.IsFullScreen) {
 			int bpp = main::GetDeviceBitsPerPixel();
 			std::sprintf(unsupportedMessage, "No supported %i bit modes found", bpp);
 		}
@@ -280,7 +292,7 @@ void __cdecl lego::wnd::ModeSel_RebuildScreenModes(HWND hDlg)
 }
 
 // <LegoRR.exe @0049da40>
-void __cdecl lego::wnd::ModeSel_RebuildDeviceModes(HWND hDlg)
+void __cdecl lego::setup::ModeSel_RebuildDeviceModes(HWND hDlg)
 {
 	HWND hCtrl = ::GetDlgItem(hDlg, IDC_DEVICE_LISTBOX /*1002*/);
 
@@ -288,15 +300,17 @@ void __cdecl lego::wnd::ModeSel_RebuildDeviceModes(HWND hDlg)
 	while (::SendMessageA(hCtrl, LB_DELETESTRING /*0x182*/, 0, 0) != -1);
 
 	int selIndex = 0;
-	if (ddraw::DDraw_PopulateDeviceModes(globals::g_CurrentDriverMode, globals::g_DeviceModes_TABLE, &globals::g_DeviceModes_COUNT)) {
+	if (ddraw::DDraw_PopulateDeviceModes(globals::g_ModeSel.CurrentDriverMode,
+		globals::g_ModeSel.DeviceModes_TABLE, &globals::g_ModeSel.DeviceModes_COUNT))
+	{
 
-		for (int i = 0; i < globals::g_DeviceModes_COUNT; i++) {
-			if (globals::g_DeviceModes_TABLE[i].flags & DEVICEMODE_HARDWARE /*0x2000*/) {
+		for (int i = 0; i < globals::g_ModeSel.DeviceModes_COUNT; i++) {
+			if (globals::g_ModeSel.DeviceModes_TABLE[i].flags & DEVICEMODE_HARDWARE /*0x2000*/) {
 				selIndex = i;
 			}
-			::SendMessageA(hCtrl, LB_ADDSTRING /*0x180*/, 0, (LPARAM)globals::g_DeviceModes_TABLE[i].displayName);
+			::SendMessageA(hCtrl, LB_ADDSTRING /*0x180*/, 0, (LPARAM)globals::g_ModeSel.DeviceModes_TABLE[i].displayName);
 		}
-		globals::g_CurrentDeviceMode = &globals::g_DeviceModes_TABLE[selIndex];
+		globals::g_ModeSel.CurrentDeviceMode = &globals::g_ModeSel.DeviceModes_TABLE[selIndex];
 	}
 	else {
 		// no device modes found, put up an error instead
@@ -306,30 +320,30 @@ void __cdecl lego::wnd::ModeSel_RebuildDeviceModes(HWND hDlg)
 }
 
 // <LegoRR.exe @0049db30>
-void __cdecl lego::wnd::ModeSel_RegisterScreenMode(int screenWidth, int screenHeight, int bitDepth)
+void __cdecl lego::setup::ModeSel_RegisterScreenMode(int screenWidth, int screenHeight, int bitDepth)
 {
-	globals::g_RegisteredScreenModes_TABLE[globals::g_RegisteredScreenModes_COUNT].screenWidth = screenWidth;
-	globals::g_RegisteredScreenModes_TABLE[globals::g_RegisteredScreenModes_COUNT].screenHeight = screenHeight;
-	globals::g_RegisteredScreenModes_TABLE[globals::g_RegisteredScreenModes_COUNT].bitDepth = bitDepth;
-	globals::g_RegisteredScreenModes_COUNT++;
+	globals::g_ModeSel.RegisteredScreenModes_TABLE[globals::g_ModeSel.RegisteredScreenModes_COUNT].screenWidth = screenWidth;
+	globals::g_ModeSel.RegisteredScreenModes_TABLE[globals::g_ModeSel.RegisteredScreenModes_COUNT].screenHeight = screenHeight;
+	globals::g_ModeSel.RegisteredScreenModes_TABLE[globals::g_ModeSel.RegisteredScreenModes_COUNT].bitDepth = bitDepth;
+	globals::g_ModeSel.RegisteredScreenModes_COUNT++;
 }
 
 // <LegoRR.exe @0049db90>
-BOOL __cdecl lego::wnd::ModeSel_HasRegisteredScreenMode(int selIndex)
+BOOL __cdecl lego::setup::ModeSel_HasRegisteredScreenMode(int selIndex)
 {
 	///DEBUG:
 #ifdef DEBUG_IGNOREREGISTERED
 	return true;
 #endif
 
-	if (globals::g_RegisteredScreenModes_COUNT == 0)
+	if (globals::g_ModeSel.RegisteredScreenModes_COUNT == 0)
 		return true;
 
-	const ScreenMode* selected = &globals::g_ScreenModes_TABLE[selIndex];
+	const ScreenMode* selected = &globals::g_ModeSel.ScreenModes_TABLE[selIndex];
 
 	// check the selected screen mode against all supported screen modes registered by the game
-	for (int i = 0; i < globals::g_RegisteredScreenModes_COUNT; i++) {
-		const ScreenMode* registered = &globals::g_RegisteredScreenModes_TABLE[i];
+	for (int i = 0; i < globals::g_ModeSel.RegisteredScreenModes_COUNT; i++) {
+		const ScreenMode* registered = &globals::g_ModeSel.RegisteredScreenModes_TABLE[i];
 		// match if value is 0, or equals selection screenMode
 		if ((registered->screenWidth == 0 || registered->screenWidth == selected->screenWidth) &&
 			(registered->screenHeight == 0 || registered->screenHeight == selected->screenHeight) &&
@@ -342,13 +356,13 @@ BOOL __cdecl lego::wnd::ModeSel_HasRegisteredScreenMode(int selIndex)
 }
 
 // <LegoRR.exe @0049dc10>
-BOOL __cdecl lego::wnd::ModeSel_GetScreenMode(const char * displayName, int * out_index)
+BOOL __cdecl lego::setup::ModeSel_GetScreenMode(const char* displayName, int* out_index)
 {
 	// unlike ModeSel_HasRegisteredScreenMode, this returns false when COUNT == 0
 
-	for (int i = 0; i < globals::g_ScreenModes_COUNT; i++) {
+	for (int i = 0; i < globals::g_ModeSel.ScreenModes_COUNT; i++) {
 		// no case-insensitive check, since these are exact names taken from the structures
-		if (std::strcmp(globals::g_ScreenModes_TABLE[0].displayName, displayName) == 0) {
+		if (std::strcmp(globals::g_ModeSel.ScreenModes_TABLE[0].displayName, displayName) == 0) {
 			*out_index = i;
 			return true;
 		}
@@ -357,11 +371,11 @@ BOOL __cdecl lego::wnd::ModeSel_GetScreenMode(const char * displayName, int * ou
 }
 
 // <LegoRR.exe @0049dc90>
-void __cdecl lego::wnd::ModeSel_UpdateRadioButtons(HWND hDlg)
+void __cdecl lego::setup::ModeSel_UpdateRadioButtons(HWND hDlg)
 {
 	HWND hCtrl_Window, hCtrl_FullScreen;
-	if (!(globals::g_CurrentDriverMode->flags & DRIVERMODE_NOGUID_20 /*0x20*/)) {
-		globals::g_IsFullScreen_Backup = globals::g_IsFullScreen; // store the original full screen mode, we can
+	if (!(globals::g_ModeSel.CurrentDriverMode->flags & DRIVERMODE_NOGUID_20 /*0x20*/)) {
+		globals::g_ModeSel.IsFullScreen_Backup = globals::g_ModeSel.IsFullScreen; // store the original full screen mode, we can
 																  // revert this when windowed mode is supported again.
 		ModeSel_ChangeFullScreenMode(hDlg, true);
 
@@ -377,7 +391,7 @@ void __cdecl lego::wnd::ModeSel_UpdateRadioButtons(HWND hDlg)
 		::EnableWindow(hCtrl_Window, true); // re-enable the Window radio button if previously disabled
 
 		// was previous state before disabling Windowed? if so, change it back
-		if (!globals::g_IsFullScreen_Backup) {
+		if (!globals::g_ModeSel.IsFullScreen_Backup) {
 			ModeSel_ChangeFullScreenMode(hDlg, false);
 
 			hCtrl_FullScreen = ::GetDlgItem(hDlg, IDC_FULLSCREEN_RADIOBUTTON /*1004*/);
