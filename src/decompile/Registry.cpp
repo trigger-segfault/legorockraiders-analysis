@@ -1,5 +1,9 @@
-#include "ModeSelection.h"
-#include "Main.h"
+// Registry.cpp : Defines common registry functions used by LegoRR / CLGen.
+//
+/// STATUS: [COMPLETE]
+
+#include "Registry.h"
+
 
 using namespace lego;
 using namespace lego::registry;
@@ -25,13 +29,13 @@ const char* __cdecl lego::registry::Registry_SplitRootKey(const char* fullKey, c
 }
 
 // <LegoRR.exe @0048b620>
-BOOL __cdecl lego::registry::Registry_QueryValueOnLM(const char* key, const char* valueName, RegistryType valueType, void* out_buffer, uint bufferSize)
+BOOL __cdecl lego::registry::Registry_QueryValueOnLM(const char* key, const char* valueName, RegistryType valueType, void* out_buffer, unsigned int bufferSize)
 {
 	return Registry_QueryValue((HKEY)HKEY_LOCAL_MACHINE /*0x80000002*/, key, valueName, valueType, out_buffer, bufferSize);
 }
 
 // <CLGen.exe @00401690>
-BOOL __cdecl lego::registry::Registry_SetValueOnLM(const char* key, const char* valueName, RegistryType valueType, const void* in_buffer, uint bufferSize)
+BOOL __cdecl lego::registry::Registry_SetValueOnLM(const char* key, const char* valueName, RegistryType valueType, const void* in_buffer, unsigned int bufferSize)
 {
 	return Registry_SetValue((HKEY)HKEY_LOCAL_MACHINE /*0x80000002*/, key, valueName, valueType, in_buffer, bufferSize);
 }
@@ -39,7 +43,7 @@ BOOL __cdecl lego::registry::Registry_SetValueOnLM(const char* key, const char* 
 // valueType must be 0 (REGISTRY_STRING) or 1 (REGISTRY_NUMBER),
 //  but otherwise, both values do the same thing.
 // <LegoRR.exe @0048b650>
-BOOL __cdecl lego::registry::Registry_QueryValue(HKEY hKey, const char* subKey, const char* valueName, RegistryType valueType, void* out_buffer, uint bufferSize)
+BOOL __cdecl lego::registry::Registry_QueryValue(HKEY hKey, const char* subKey, const char* valueName, RegistryType valueType, void* out_buffer, unsigned int bufferSize)
 {
 	char rootSubKey[100];
 
@@ -73,7 +77,7 @@ BOOL __cdecl lego::registry::Registry_QueryValue(HKEY hKey, const char* subKey, 
 
 // valueType must be 0 (REGISTRY_STRING) or 1 (REGISTRY_NUMBER).
 // <CLGen.exe @004016c0>
-BOOL __cdecl lego::registry::Registry_SetValue(HKEY hKey, const char* subKey, const char* valueName, RegistryType valueType, const void* in_buffer, uint bufferSize)
+BOOL __cdecl lego::registry::Registry_SetValue(HKEY hKey, const char* subKey, const char* valueName, RegistryType valueType, const void* in_buffer, unsigned int bufferSize)
 {
 	char rootSubKey[100];
 
