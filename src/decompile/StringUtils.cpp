@@ -1,3 +1,7 @@
+// StringUtils.cpp : Defines common string-based helper functions.
+//
+/// STATUS: [COMPLETE]
+
 #include "StringUtils.h"
 
 
@@ -15,7 +19,7 @@ using namespace lego::util;
 // all 3 arguments are required (except out_parts when input is empty)
 // <LegoRR.exe @00477700>
 // <CLGen.exe @00401440>
-int lego::util::stringSplit(char* input, char** out_parts, const char* delimiter)
+int __cdecl lego::util::stringSplit(char* input, char** out_parts, const char* delimiter)
 {
 	size_t delimiterLength = std::strlen(delimiter);
 
@@ -36,21 +40,45 @@ int lego::util::stringSplit(char* input, char** out_parts, const char* delimiter
 }
 
 // <LegoRR.exe @00477770>
-int lego::util::FUN_00477770(char* param_1, byte** param_2)
+int __cdecl lego::util::whitespaceSplit(char* input, char** out_parts);
 {
-	/// TODO: seems to be some character conversion (for multibyte?)
-	///       may be provided by C runtime.
+	int numParts = 0; // zero parts if empty string
+	if (*input != '\0') {
+		// assign first part (minimum of 1 when string is not empty)
+		out_parts[numParts++] = input;
+
+		do {
+			// check for match with whitespace
+			if (std::isspace(*input)) {
+				*input = '\0'; // erase start of whitespace, terminate string
+
+				do { // consume remaining whitespace, we don't want empty tokens
+					input++; // this naturally breaks on null-terminator char
+				} while (std::isspace(*input));
+				
+				// This will also assign null terminator characters if at the end of the file.
+				//  However, this doesn't happen since this function is only used in a place where
+				//  empty lines are read while stripping newline characters.
+
+				// In this case, an empty line with no whitespace must be the end of the file.
+				out_parts[numParts++] = input;
+			}
+			else {
+				input++; // part of existing token
+			}
+		} while (*input != '\0');
+	}
+	return numParts;
 }
 
+// (ignored, already provided by Microsoft C runtime, but likely not actually part of C runtime)
 // <LegoRR.exe @00477810>
-// (ignored, already provided by C runtime)
 //char* _strdup(const char* strSource);
 
 // Quite a lot of functions call this even when nothing in that block uses format strings.
 // Guess this means we'll need to sanitize basically anything using '%' characters...
-// 
 // <LegoRR.exe @00477850>
-char* lego::util::formatText(const char* text, ...)
+char* __cdecl lego::util::formatText(const char* text, ...)
 {
 	char fmtBuffer[256];
 	char replBuffer[256];
@@ -82,9 +110,8 @@ char* lego::util::formatText(const char* text, ...)
 // NOTE: There is no CRT function for this, and never has been. So this must be implemented by DDI.
 // Returns NULL if no match is found, or a pointer to the first match in str if found.
 // If str or strSearch is empty, returns NULL.
-// 
 // <LegoRR.exe @004778d0>
-char* lego::util::strstri(char* str, const char* strSearch)
+char* __cdecl lego::util::strstri(char* str, const char* strSearch)
 {
 	size_t strLength = std::strlen(str);
 	size_t searchLength = std::strlen(strSearch);
@@ -99,24 +126,45 @@ char* lego::util::strstri(char* str, const char* strSearch)
 	return nullptr;
 }
 // (duplicate for const version of strstri)
-const char* lego::util::strstri(const char* str, const char* strSearch)
+const char* __cdecl lego::util::strstri(const char* str, const char* strSearch)
 {
-	return (const char*)strstri(const_cast<char*>(str), strSearch);
+	return (const char*)lego::util::strstri(const_cast<char*>(str), strSearch);
 }
 
-// String hashing used for SFX name lookup table
-//
+// String hashing used for SFX name lookup table.
+// contains the magic number `0x600937` for multiplication.
+// see: <https://github.com/microsoft/Windows-classic-samples/blob/master/Samples/Win7Samples/begin/sdkdiff/utils.cpp>
 // <LegoRR.exe @00477930>
-uint lego::util::hash_string(const char* str, BOOL bIgnoreBlanks, BOOL bIgnoreCase)
+unsigned int __cdecl lego::util::hash_string(const char* str, BOOL bIgnoreBlanks, BOOL bIgnoreCase)
 {
-	/// TODO: <https://github.com/microsoft/Windows-classic-samples/blob/master/Samples/Win7Samples/begin/sdkdiff/utils.cpp>
-	///       contains magic number 0x600937 for multiplication.
+	unsigned int hashValue = 0;
+	int hashMultiplier = 0x600937; // multiply this constant by itself after every (counted) character
+	int charCount = 1;
+
+	while (*str != '\0') {
+		if (bIgnoreBlanks) {
+			while (std::isspace(*(unsigned char*)str))
+				str++;
+		}
+
+		// signedness is important for identical hashing behavior
+		int c = *(unsigned char*)str;
+		if (bIgnoreCase) {
+			c = (unsigned char)std::toupper(c);
+		}
+
+		hashValue += (charCount * hashMultiplier) * c;
+		hashMultiplier *= 0x600937;
+		charCount++;
+
+		str++;
+	}
+	return hashValue;
 }
 
-// returns 0 or 1 on success, and 2 on failure
-// 
+// Returns 0 or 1 on success, and 2 on failure.
 // <LegoRR.exe @004779d0>
-BOOL3 lego::util::parseBoolLiteral(const char* str)
+BOOL3 __cdecl lego::util::parseBool(const char* str)
 {
 	if (::_stricmp(str, "YES") == 0 || ::_stricmp(str, "TRUE") == 0 || ::_stricmp(str, "ON") == 0)
 		return BOOL3_TRUE /*1*/; // true
