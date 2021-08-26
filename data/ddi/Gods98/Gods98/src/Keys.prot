@@ -1,0 +1,3 @@
+extern void __cdecl Keys_Initialise(void );
+extern int __cdecl Key_Find(unsigned char *name,unsigned char *keyID);
+extern unsigned char *__cdecl Key_GetName(unsigned char key);

@@ -1,0 +1,65 @@
+// Animation.h: interface for the CAnimation class.
+//
+//////////////////////////////////////////////////////////////////////
+
+#if !defined(AFX_ANIMATION_H__90DABC42_27BE_11D3_98CE_0080AD1D5181__INCLUDED_)
+#define AFX_ANIMATION_H__90DABC42_27BE_11D3_98CE_0080AD1D5181__INCLUDED_
+
+#if _MSC_VER >= 1000
+#pragma once
+#endif // _MSC_VER >= 1000
+
+class CAnimation : public CObject
+{
+	PAVISTREAM         m_aviStream;
+	PGETFRAME          m_decompressFn;
+	AVISTREAMINFO      m_aviStreamInfo;
+
+	bool m_colourKeySet, m_init;
+	CSurface *m_dest;
+	RECT m_movieRect;
+
+	float m_startTime;
+	float m_currTime;
+	float m_aviTimeScale;
+	unsigned int m_currFrame;
+	unsigned int m_length;
+
+	void BMICopy(LPBITMAPINFO bmi);
+
+	CSurface *m_movieSurf;
+
+public:
+
+	/////////////////////////////////////////////////////////////////////////////
+	// Length of the movie
+	/////////////////////////////////////////////////////////////////////////////
+	unsigned int Length();
+
+	/////////////////////////////////////////////////////////////////////////////
+	// Set the time of the stream
+	/////////////////////////////////////////////////////////////////////////////
+	void SetTime(unsigned int time);
+
+	/////////////////////////////////////////////////////////////////////////////
+	// Get the current time of the stream
+	/////////////////////////////////////////////////////////////////////////////
+	unsigned int GetTime();
+
+	/////////////////////////////////////////////////////////////////////////////
+	// Get the size of the animation
+	/////////////////////////////////////////////////////////////////////////////
+	RECT *GetRect() { return &m_movieRect; }
+
+	/////////////////////////////////////////////////////////////////////////////
+	// Construction (name and dest) and destruction
+	/////////////////////////////////////////////////////////////////////////////
+	CAnimation(char *fName, CSurface *backBuffer);
+	virtual ~CAnimation();
+
+	void SetColourKey(void);
+	bool Update(RECT &destRect);
+};
+
+#endif // !defined(AFX_ANIMATION_H__90DABC42_27BE_11D3_98CE_0080AD1D5181__INCLUDED_)
+

@@ -1,0 +1,45 @@
+extern unsigned __int64 __stdcall Int64ShllMod32(unsigned __int64 Value,unsigned long ShiftCount);
+extern __int64 __stdcall Int64ShraMod32(__int64 Value,unsigned long ShiftCount);
+extern unsigned __int64 __stdcall Int64ShrlMod32(unsigned __int64 Value,unsigned long ShiftCount);
+extern void *__cdecl GetFiberData(void );
+extern void *__cdecl GetCurrentFiber(void );
+extern int __cdecl Flic_DXSetup(char *filename,int xsize,int ysize,int flags);
+extern void __cdecl Flic_DXAnimate(int hFlicData);
+extern void __cdecl Flic_DXClose(int hFlicData);
+extern struct IDirectDrawSurface3 *__cdecl Flic_DXSurface(int hFlicData);
+extern int __cdecl Flic_DirectScreenValid(void);
+extern int __cdecl Flic_Initialise(void );
+extern void __cdecl Flic_SoundHMICallBack(void );
+extern void __cdecl Flic_TimerEventStart(void );
+extern void __cdecl Flic_TimerEvent(void );
+extern void __cdecl Flic_TimerEventEnd(void );
+extern int __cdecl Flic_StartTimerEvent(void );
+extern int __cdecl Flic_StopTimerEvent(void );
+extern int __cdecl Flic_GetEventRate(void );
+extern int __cdecl Flic_GetError(void );
+/* struct *__cdecl Flic_InformationFilename(char *filename); */
+/* struct *__cdecl Flic_InformationHandle(int handle); */
+extern int __cdecl Flic_Setup(char *filename,int oldportalhandle,int x,int y,int flag);
+extern int __cdecl Flic_Close(int handle);
+extern int __cdecl Flic_CloseAll(void );
+extern int __cdecl Flic_SetFrameRate(int handle,int rate);
+extern int __cdecl Flic_GetFrameRate(int handle);
+/* int __cdecl Flic_LoadHeader(char *filename,struct *headerspace); */
+extern int __cdecl Flic_Animate(int handle);
+/* int __cdecl Flic_Memory(struct *flicvarptr); */
+/* int __cdecl Flic_Load(struct *flicvarptr); */
+/* int __cdecl Flic_FindChunk(struct *flicvarptr); */
+/* int __cdecl Flic_FrameChunk(struct *flicvarptr); */
+/* int __cdecl Flic_DoChunk(void *source,struct *flicvarptr); */
+/* void __cdecl Flic_SoundChunk(struct *flicvarptr); */
+extern int __cdecl Flic_SetFrame(int handle,int frame);
+/* int __cdecl Flic_FindMaxChunk(struct *flicvarptr); */
+/* int __cdecl Replay_LoadHeader(char *filename,struct *headerspace); */
+extern int __cdecl Replay_Setup(char *filename,int oldportalhandle,int x,int y,int flag);
+extern int __cdecl Replay_Close(int handle);
+extern int __cdecl Replay_Animate(int handle);
+extern void __cdecl Replay_SetBufferSize(int size);
+extern char *__cdecl Replay_GetErrorString(int error);
+/* int __cdecl Flic_LoadPointers(struct *flicvarptr); */
+/* int __cdecl Flic_LoadPalette64(struct *flicvarptr); */
+extern int __cdecl Flic_PlayFrame(int handle,int frame);

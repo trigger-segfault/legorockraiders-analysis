@@ -1,0 +1,11 @@
+extern int __cdecl Block_Compare(struct Block *a,struct Block *b);
+extern int __cdecl Block_Adjacent(struct Block *a,struct Block *b);
+extern struct Block *__cdecl Block_FromString(struct Block *b,unsigned char *str);
+extern struct Block *__cdecl Block_Rotate(struct Block *b,long dir);
+extern unsigned long __cdecl Util_Tokenise(unsigned char *string,unsigned char **argv ,unsigned char *sep);
+extern unsigned long __cdecl Util_WSTokenise(unsigned char *string,unsigned char **argv );
+extern unsigned char *__cdecl Util_StrCpy(unsigned char *string);
+extern unsigned char *__cdecl Util_StrIStr(unsigned char *const str1,unsigned char *str2);
+extern unsigned long __cdecl Util_HashString(unsigned char *string,int bIgnoreBlanks);
+extern int __cdecl Util_IsNumber(unsigned char *string);
+extern unsigned long __cdecl Util_GetBoolFromString(unsigned char *string);

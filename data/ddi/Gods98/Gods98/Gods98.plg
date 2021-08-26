@@ -1,0 +1,63 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: Gods98 - Win32 Stripped--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\WINDOWS\TEMP\RSP1065.TMP" with contents
+[
+/nologo /ML /W3 /GX /ZI /Od /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_GODS98COMPILE" /D "_GODS98_USEWAD_" /FR"Stripped/" /Fp"Stripped/Gods98.pch" /YX /Fo"Stripped/" /Fd"Stripped/" /FD /c 
+"C:\dev\SOURCESAFE\Gods98\Gods98\src\TextWindow.c"
+]
+Creating command line "cl.exe @C:\WINDOWS\TEMP\RSP1065.TMP" 
+Creating temporary file "C:\WINDOWS\TEMP\RSP1066.TMP" with contents
+[
+/nologo /out:"Stripped\Gods98.lib" 
+.\Stripped\3DSound.obj
+.\Stripped\Activities.obj
+.\Stripped\AnimClone.obj
+.\Stripped\Bmp.obj
+.\Stripped\Config.obj
+.\Stripped\Containers.obj
+.\Stripped\DirectDraw.obj
+.\Stripped\Draw.obj
+.\Stripped\dxbug.obj
+.\Stripped\Errors.obj
+.\Stripped\Files.obj
+.\Stripped\Flic.obj
+.\Stripped\Fonts.obj
+.\Stripped\Images.obj
+.\Stripped\Input.obj
+.\Stripped\Keys.obj
+.\Stripped\Lws.obj
+.\Stripped\lwt.obj
+.\Stripped\Main.obj
+.\Stripped\Materials.obj
+.\Stripped\Maths.obj
+.\Stripped\Memory.obj
+.\Stripped\Mesh.obj
+.\Stripped\net.obj
+.\Stripped\Registry.obj
+.\Stripped\Sound.obj
+.\Stripped\TextWindow.obj
+.\Stripped\Utils.obj
+.\Stripped\Viewports.obj
+.\Stripped\Wad.obj
+.\Stripped\Animation.obj
+]
+Creating command line "link.exe -lib @C:\WINDOWS\TEMP\RSP1066.TMP"
+<h3>Output Window</h3>
+Compiling...
+TextWindow.c
+  Slightly rarer crash bug? - to do with buffer wrap and going over buffer end?
+Creating library...
+
+
+
+<h3>Results</h3>
+Gods98.lib - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>
