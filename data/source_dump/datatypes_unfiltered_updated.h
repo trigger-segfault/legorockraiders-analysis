@@ -390,11 +390,12 @@ struct _finddata32_t {
 	char name[260];
 };
 
-typedef struct Point2I Point2I, *PPoint2I;
+typedef struct LoaderSection LoaderSection, *PLoaderSection;
 
-struct Point2I {
-	int x;
-	int y;
+struct LoaderSection {
+	char * name; // Name of the section files are being loaded from
+	uint currentSize; // Current total size of files loaded for this section
+	uint totalSize; // Predefined total "expected" size for files to load from this section
 };
 
 typedef struct LevelBlock LevelBlock, *PLevelBlock;
@@ -459,7 +460,8 @@ typedef enum SurfaceTexture {
 	TEXTURE_WALL_R_LOOSE=34,
 	TEXTURE_WALL_R_MEDIUM=35,
 	TEXTURE_WALL_R_SOIL=33,
-	TEXTURE_WATER=69
+	TEXTURE_WATER=69,
+	TEXTURE__INVALID=255
 } SurfaceTexture;
 
 typedef enum TerrainType {
@@ -531,10 +533,13 @@ typedef enum LevelBlockFlags1 {
 	BLOCK1_RUBBLE_LOW=1,
 	BLOCK1_RUBBLE_MEDIUM=2,
 	BLOCK1_UNK_10=16,
+	BLOCK1_UNK_100=256,
 	BLOCK1_UNK_1000=4096,
 	BLOCK1_UNK_100000=1048576,
 	BLOCK1_UNK_200=512,
+	BLOCK1_UNK_2000=8192,
 	BLOCK1_UNK_200000=2097152,
+	BLOCK1_UNK_4=4,
 	BLOCK1_UNK_40=64,
 	BLOCK1_UNK_400=1024,
 	BLOCK1_UNK_4000=16384,
@@ -545,6 +550,7 @@ typedef enum LevelBlockFlags1 {
 	BLOCK1_UNK_800=2048,
 	BLOCK1_UNK_8000=32768,
 	BLOCK1_UNK_80000=524288,
+	BLOCK1_UNK_800000=8388608,
 	BLOCK1_UNK_8000000=134217728,
 	BLOCK1_UNK_80000000=2147483648
 } LevelBlockFlags1;
@@ -554,12 +560,39 @@ typedef enum LevelBlockFlags2 {
 	BLOCK2_EMERGE_TRIGGER=128,
 	BLOCK2_NONE=0,
 	BLOCK2_SLUGHOLE_EXPOSED=32,
-	BLOCK2_SLUGHOLE_HIDDEN=512
+	BLOCK2_SLUGHOLE_HIDDEN=512,
+	BLOCK2_UNK_1=1,
+	BLOCK2_UNK_10=16,
+	BLOCK2_UNK_100=256,
+	BLOCK2_UNK_2=2,
+	BLOCK2_UNK_4=4,
+	BLOCK2_UNK_400=1024
 } LevelBlockFlags2;
 
 typedef struct LevelStruct_1c LevelStruct_1c, *PLevelStruct_1c;
 
+typedef struct SurfaceMapStruct_2a8 SurfaceMapStruct_2a8, *PSurfaceMapStruct_2a8;
+
 typedef struct Container Container, *PContainer;
+
+typedef struct Point2I Point2I, *PPoint2I;
+
+typedef struct SurfaceMapStruct_3c SurfaceMapStruct_3c, *PSurfaceMapStruct_3c;
+
+typedef struct Vector3F Vector3F, *PVector3F;
+
+typedef struct ColourRGBF ColourRGBF, *PColourRGBF;
+
+typedef struct Mesh Mesh, *PMesh;
+
+typedef enum SurfaceMapStruct2A8Flags {
+	SURFMAP_STRUCT2A8_HIDDEN=1,
+	SURFMAP_STRUCT2A8_NONE=0,
+	SURFMAP_STRUCT2A8_UNK_10=16,
+	SURFMAP_STRUCT2A8_UNK_2=2,
+	SURFMAP_STRUCT2A8_UNK_4=4,
+	SURFMAP_STRUCT2A8_UNK_8=8
+} SurfaceMapStruct2A8Flags;
 
 typedef struct IDirect3DRMFrame3 IDirect3DRMFrame3, *PIDirect3DRMFrame3;
 
@@ -588,7 +621,17 @@ typedef enum ResourceDataFlags {
 	RESDATA_UNK_80=128
 } ResourceDataFlags;
 
+typedef void (* ContainerActivityCallback)(struct Container *, void *);
+
 typedef struct Container_CloneData Container_CloneData, *PContainer_CloneData;
+
+typedef struct Mesh_Group Mesh_Group, *PMesh_Group;
+
+typedef struct IDirect3DRMUserVisual IDirect3DRMUserVisual, *PIDirect3DRMUserVisual;
+
+typedef struct Mesh_RenderDesc Mesh_RenderDesc, *PMesh_RenderDesc;
+
+typedef struct Mesh_LightWave_Surface Mesh_LightWave_Surface, *PMesh_LightWave_Surface;
 
 typedef struct IDirect3DRMFrame3Vtbl IDirect3DRMFrame3Vtbl, *PIDirect3DRMFrame3Vtbl;
 
@@ -626,8 +669,6 @@ typedef enum D3DRMMaterialMode {
 	D3DRMMATERIAL_FROMMESH=0,
 	D3DRMMATERIAL_FROMPARENT=1
 } D3DRMMaterialMode;
-
-typedef struct Vector3F Vector3F, *PVector3F;
 
 typedef enum D3DRMSortMode {
 	D3DRMSORT_BACKTOFRONT=3,
@@ -667,7 +708,21 @@ typedef enum D3DRMSceneFogMethod { // Values for flags in IDirect3DRMFrame3::Set
 
 typedef struct IDirect3DRMMesh IDirect3DRMMesh, *PIDirect3DRMMesh;
 
-typedef struct Mesh Mesh, *PMesh;
+typedef struct Mesh_Vertex Mesh_Vertex, *PMesh_Vertex;
+
+typedef struct D3DMaterial D3DMaterial, *PD3DMaterial;
+
+typedef struct IDirect3DTexture2 IDirect3DTexture2, *PIDirect3DTexture2;
+
+typedef struct IDirect3DRMUserVisualVtbl IDirect3DRMUserVisualVtbl, *PIDirect3DRMUserVisualVtbl;
+
+typedef struct Viewport Viewport, *PViewport;
+
+typedef void (* MeshRenderCallback)(struct Mesh *, void *, struct Viewport *);
+
+typedef struct Container_Texture Container_Texture, *PContainer_Texture;
+
+typedef struct ColourRGBAF ColourRGBAF, *PColourRGBAF;
 
 typedef struct IUnknownVtbl IUnknownVtbl, *PIUnknownVtbl;
 
@@ -722,43 +777,17 @@ typedef enum D3DRMRenderQuality {
 	D3DRMRENDER_WIREFRAME=64
 } D3DRMRenderQuality;
 
-typedef struct Mesh_Group Mesh_Group, *PMesh_Group;
+typedef struct IDirect3DTexture2Vtbl IDirect3DTexture2Vtbl, *PIDirect3DTexture2Vtbl;
 
-typedef struct IDirect3DRMUserVisual IDirect3DRMUserVisual, *PIDirect3DRMUserVisual;
+typedef struct IDirect3DRMViewport2 IDirect3DRMViewport2, *PIDirect3DRMViewport2;
 
-typedef struct Mesh_RenderDesc Mesh_RenderDesc, *PMesh_RenderDesc;
-
-typedef struct Viewport Viewport, *PViewport;
-
-typedef struct Mesh_LightWave_Surface Mesh_LightWave_Surface, *PMesh_LightWave_Surface;
+typedef struct IDirectDrawSurface4 IDirectDrawSurface4, *PIDirectDrawSurface4;
 
 typedef struct IDirect3DRMFrameVtbl IDirect3DRMFrameVtbl, *PIDirect3DRMFrameVtbl;
 
 typedef struct D3DRMPaletteEntry D3DRMPaletteEntry, *PD3DRMPaletteEntry;
 
 typedef struct IDirect3DRMTextureVtbl IDirect3DRMTextureVtbl, *PIDirect3DRMTextureVtbl;
-
-typedef struct Mesh_Vertex Mesh_Vertex, *PMesh_Vertex;
-
-typedef struct D3DMaterial D3DMaterial, *PD3DMaterial;
-
-typedef struct IDirect3DTexture2 IDirect3DTexture2, *PIDirect3DTexture2;
-
-typedef struct IDirect3DRMUserVisualVtbl IDirect3DRMUserVisualVtbl, *PIDirect3DRMUserVisualVtbl;
-
-typedef struct IDirect3DRMViewport2 IDirect3DRMViewport2, *PIDirect3DRMViewport2;
-
-typedef struct Container_Texture Container_Texture, *PContainer_Texture;
-
-typedef struct ColourRGBAF ColourRGBAF, *PColourRGBAF;
-
-typedef enum D3DRMPaletteFlags {
-	D3DRMPALETTE_FREE=0,
-	D3DRMPALETTE_READONLY=1,
-	D3DRMPALETTE_RESERVED=2
-} D3DRMPaletteFlags;
-
-typedef struct IDirect3DTexture2Vtbl IDirect3DTexture2Vtbl, *PIDirect3DTexture2Vtbl;
 
 typedef struct IDirect3DRMViewport2Vtbl IDirect3DRMViewport2Vtbl, *PIDirect3DRMViewport2Vtbl;
 
@@ -784,18 +813,6 @@ typedef struct IDirect3DRMPickedArray IDirect3DRMPickedArray, *PIDirect3DRMPicke
 
 typedef struct IDirect3DViewport IDirect3DViewport, *PIDirect3DViewport;
 
-typedef struct IDirectDrawSurface4 IDirectDrawSurface4, *PIDirectDrawSurface4;
-
-typedef struct IDirect3DRMDevice3Vtbl IDirect3DRMDevice3Vtbl, *PIDirect3DRMDevice3Vtbl;
-
-typedef struct DDPIXELFORMAT DDPIXELFORMAT, *PDDPIXELFORMAT;
-
-typedef struct IDirect3DRMPickedArrayVtbl IDirect3DRMPickedArrayVtbl, *PIDirect3DRMPickedArrayVtbl;
-
-typedef struct D3DRMPickDesc D3DRMPickDesc, *PD3DRMPickDesc;
-
-typedef struct IDirect3DViewportVtbl IDirect3DViewportVtbl, *PIDirect3DViewportVtbl;
-
 typedef struct IDirectDrawSurface4Vtbl IDirectDrawSurface4Vtbl, *PIDirectDrawSurface4Vtbl;
 
 typedef struct tagRECT tagRECT, *PtagRECT;
@@ -806,9 +823,25 @@ typedef struct DDSCAPS2 DDSCAPS2, *PDDSCAPS2;
 
 typedef struct IDirectDrawPalette IDirectDrawPalette, *PIDirectDrawPalette;
 
+typedef struct DDPIXELFORMAT DDPIXELFORMAT, *PDDPIXELFORMAT;
+
 typedef struct DDSURFACEDESC2 DDSURFACEDESC2, *PDDSURFACEDESC2;
 
 typedef struct DDCOLORKEY DDCOLORKEY, *PDDCOLORKEY;
+
+typedef enum D3DRMPaletteFlags {
+	D3DRMPALETTE_FREE=0,
+	D3DRMPALETTE_READONLY=1,
+	D3DRMPALETTE_RESERVED=2
+} D3DRMPaletteFlags;
+
+typedef struct IDirect3DRMDevice3Vtbl IDirect3DRMDevice3Vtbl, *PIDirect3DRMDevice3Vtbl;
+
+typedef struct IDirect3DRMPickedArrayVtbl IDirect3DRMPickedArrayVtbl, *PIDirect3DRMPickedArrayVtbl;
+
+typedef struct D3DRMPickDesc D3DRMPickDesc, *PD3DRMPickDesc;
+
+typedef struct IDirect3DViewportVtbl IDirect3DViewportVtbl, *PIDirect3DViewportVtbl;
 
 typedef struct IDirectDrawPaletteVtbl IDirectDrawPaletteVtbl, *PIDirectDrawPaletteVtbl;
 
@@ -827,26 +860,26 @@ struct D3DRMVertex { // Extension of D3DVertex with color field
 };
 
 struct Mesh_RenderDesc {
-	void (* renderCallback)(struct Mesh *, void *, struct Viewport *);
+	MeshRenderCallback renderCallback;
 	void * renderCallbackData;
 	uint renderFlags; // determines a lot of render states
 };
 
-struct LevelBlock {
+struct LevelBlock { // [lego,0x48]
 	enum PredugType predug;
 	enum SurfaceTexture texture;
 	enum TerrainType terrain;
-	byte field_3;
+	byte field_3; // possibly direction (& 3, and x - 4, etc.)
 	byte blockpointer;
 	enum CryOreType cryOre;
 	enum ErodeType erodeSpeed;
 	byte field_7;
 	enum LevelBlockFlags1 flags1;
 	enum LevelBlockFlags2 flags2;
-	undefined4 field_10;
+	void * ptr_10;
 	float float_14;
 	struct LevelStruct_1c * struct1c_18;
-	undefined4 field_1c;
+	struct SurfaceMapStruct_2a8 * smokeptr_1c;
 	short randomness;
 	undefined field_0x22;
 	undefined field_0x23;
@@ -858,9 +891,9 @@ struct LevelBlock {
 	undefined field_0x35;
 	undefined field_0x36;
 	undefined field_0x37;
-	BOOL fallinUpper;
-	float fallinIntensity;
-	float fallinTimer;
+	BOOL fallinUpper; // (fallin upper: 1 if fallin > 4)
+	int fallinIntensity; // (fallin scale: 1-4)
+	float fallinTimer; // (randomized with full fallin value)
 	undefined4 field_44;
 };
 
@@ -903,6 +936,11 @@ struct IDirect3DRMFrameArray {
 	struct IDirect3DRMFrameArrayVtbl * lpVtbl;
 };
 
+struct Point2I {
+	int x;
+	int y;
+};
+
 struct Container {
 	struct IDirect3DRMFrame3 * masterFrame; // (frame1)
 	struct IDirect3DRMFrame3 * activityFrame; // (frame2)
@@ -910,7 +948,7 @@ struct Container {
 	struct Container_TypeData * typeData;
 	enum ResourceType type;
 	enum ResourceDataFlags flags;
-	pointer activityCallback;
+	ContainerActivityCallback activityCallback;
 	void * activityCallbackData;
 	void * userData; // (often LiveObject*)
 	struct Container_CloneData * cloneData; // Only used by animsets.
@@ -998,6 +1036,42 @@ struct IDirect3DRMTextureVtbl {
 	pointer GetDecalScale;
 	pointer GetDecalTransparency;
 	pointer GetDecalTransparentColor;
+};
+
+struct ColourRGBF {
+	float red;
+	float green;
+	float blue;
+};
+
+struct SurfaceMapStruct_3c {
+	BOOL used_0;
+	struct Vector3F vector_4;
+	struct Vector3F vector_10;
+	struct Vector3F vector_1c;
+	float float_28;
+	float float_2c;
+	float float_30; // timer
+	int int_34; // (std::rand() % 30) + 40
+	undefined4 field_38;
+};
+
+struct SurfaceMapStruct_2a8 { // [lego,0x2a8]
+	struct SurfaceMapStruct_3c groupList[10];
+	float float_258;
+	struct Vector3F vector_25c;
+	struct Vector3F vector_268;
+	struct ColourRGBF colour;
+	uint groupCount;
+	int int_284;
+	float float_288;
+	struct Container * resData_28c;
+	struct Mesh * mesh;
+	enum SurfaceMapStruct2A8Flags flags_294;
+	struct SurfaceMapStruct_2a8 * next;
+	struct SurfaceMapStruct_2a8 * previous;
+	undefined4 field_2a0;
+	int soundHandle;
 };
 
 struct IDirect3DRMFrame3Vtbl {
@@ -1207,6 +1281,36 @@ struct IDirect3DRMFrame {
 	struct IDirect3DRMFrameVtbl * lpVtbl;
 };
 
+struct ColourRGBAF {
+	float red;
+	float green;
+	float blue;
+	float alpha;
+};
+
+struct D3DMaterial {
+	DWORD dwSize;
+	struct ColourRGBAF diffuse;
+	struct ColourRGBAF ambient;
+	struct ColourRGBAF specular;
+	struct ColourRGBAF emissive;
+	float power;
+	DWORD hTexture;
+	DWORD dwRampSize;
+};
+
+struct Mesh_Group {
+	uint faceDataSize;
+	uint vertexCount;
+	ushort * faceData;
+	struct Mesh_Vertex * vertices;
+	struct D3DMaterial material;
+	struct IDirect3DTexture2 * imText;
+	uint renderFlags;
+	struct Mesh_LightWave_Surface * lightWaveSurfaceInfo;
+	uint flags;
+};
+
 struct IDirect3DRMTexture3Vtbl {
 	HRESULT (* QueryInterface)(struct IUnknown *, IID *, LPVOID *);
 	ULONG (* AddRef)(struct IUnknown *);
@@ -1246,36 +1350,6 @@ struct IDirect3DRMTexture3Vtbl {
 	pointer GetCacheOptions;
 	pointer SetDownsampleCallback;
 	pointer SetValidationCallback;
-};
-
-struct ColourRGBAF {
-	float red;
-	float green;
-	float blue;
-	float alpha;
-};
-
-struct D3DMaterial {
-	DWORD dwSize;
-	struct ColourRGBAF diffuse;
-	struct ColourRGBAF ambient;
-	struct ColourRGBAF specular;
-	struct ColourRGBAF emissive;
-	float power;
-	DWORD hTexture;
-	DWORD dwRampSize;
-};
-
-struct Mesh_Group {
-	uint faceDataSize;
-	uint vertexCount;
-	ushort * faceData;
-	struct Mesh_Vertex * vertices;
-	struct D3DMaterial material;
-	struct IDirect3DTexture2 * imText;
-	uint renderFlags;
-	struct Mesh_LightWave_Surface * lightWaveSurfaceInfo;
-	uint flags;
 };
 
 struct IDirectDrawSurface4Vtbl {
@@ -1420,6 +1494,10 @@ struct IDirect3DViewport {
 	struct IDirect3DViewportVtbl * lpVtbl;
 };
 
+struct IDirect3DRMUserVisual {
+	struct IDirect3DRMUserVisualVtbl * lpVtbl;
+};
+
 struct IDirect3DRMVisualVtbl { // Identical to IDirect3DRMObjectVtbl
 	HRESULT (* QueryInterface)(struct IUnknown *, IID *, LPVOID *);
 	ULONG (* AddRef)(struct IUnknown *);
@@ -1432,10 +1510,6 @@ struct IDirect3DRMVisualVtbl { // Identical to IDirect3DRMObjectVtbl
 	HRESULT (* SetName)(struct IUnknown *, LPCSTR);
 	HRESULT (* GetName)(struct IUnknown *, LPDWORD, LPSTR);
 	HRESULT (* GetClassName)(struct IUnknown *, LPDWORD, LPSTR);
-};
-
-struct IDirect3DRMUserVisual {
-	struct IDirect3DRMUserVisualVtbl * lpVtbl;
 };
 
 struct IDirect3DRMMesh {
@@ -1483,10 +1557,10 @@ struct IDirect3DTexture2 {
 	struct IDirect3DTexture2Vtbl * lpVtbl;
 };
 
-struct LevelStruct_1c { // related to Terrain map?
+struct LevelStruct_1c { // [lego,0x1c] related to Terrain map?
 	struct Container * resData;
-	struct Point2I position;
-	undefined4 field_c;
+	struct Point2I blockPos;
+	uint flags;
 	struct LevelStruct_1c * next;
 	struct LevelStruct_1c * previous;
 	BOOL bool_18;
@@ -1582,14 +1656,14 @@ struct IDirect3DRMLightVtbl {
 	HRESULT (* GetEnableFrame)(struct IDirect3DRMLight *, struct IDirect3DRMFrame * *);
 };
 
-struct IDirect3DRMViewport2 {
-	struct IDirect3DRMViewport2Vtbl * lpVtbl;
-};
-
 struct Container_Texture {
 	struct IDirectDrawSurface4 * surface;
 	struct IDirect3DRMTexture3 * texture;
 	BOOL colourKey;
+};
+
+struct IDirect3DRMViewport2 {
+	struct IDirect3DRMViewport2Vtbl * lpVtbl;
 };
 
 struct IDirect3DRMTexture {
@@ -1737,38 +1811,118 @@ struct Mesh_LightWave_Surface {
 	int texSeqOffset;
 };
 
-typedef struct GameManager GameManager, *PGameManager;
+typedef struct Coord2I Coord2I, *PCoord2I;
 
-typedef struct CFGProperty CFGProperty, *PCFGProperty;
+struct Coord2I { // Point2I structure using short-sized integers (name is based off the WINAPI console structure COORD, using the same ,layout)
+	short sx;
+	short sy;
+};
 
-typedef enum GraphicsQuality {
-	QUALITY_FLAT=2,
-	QUALITY_GOURAUD=3,
-	QUALITY_UNLITFLAT=1,
-	QUALITY_WIREFRAME=0
-} GraphicsQuality;
+typedef struct AdvisorPositionData AdvisorPositionData, *PAdvisorPositionData;
 
-typedef struct LevelData LevelData, *PLevelData;
+typedef enum AdvisorAnimType {
+	ADVISORANIM_POINTTOMAP=0,
+	ADVISORANIM_POINT_E=3,
+	ADVISORANIM_POINT_N=1,
+	ADVISORANIM_POINT_NE=2,
+	ADVISORANIM_POINT_NW=8,
+	ADVISORANIM_POINT_S=5,
+	ADVISORANIM_POINT_SE=4,
+	ADVISORANIM_POINT_SW=6,
+	ADVISORANIM_POINT_UP=9,
+	ADVISORANIM_POINT_W=7,
+	ADVISORANIM_TALK_TOP=10,
+	ADVISORANIM__COUNT=11,
+	ADVISORANIM__INVALID=4294967295
+} AdvisorAnimType;
 
-typedef struct CameraData CameraData, *PCameraData;
+typedef enum TextType {
+	TEXT_AIRSUPPLYLOW=20,
+	TEXT_AIRSUPPLYRUNNINGOUT=21,
+	TEXT_BUILDHELP=10,
+	TEXT_CANNOTPLACEBUILDING=15,
+	TEXT_CANTDRILL=3,
+	TEXT_CANTDRIVE=13,
+	TEXT_CANTREINFORCE=6,
+	TEXT_CAVERNDISCOVERED=18,
+	TEXT_CRYSTALFOUND=17,
+	TEXT_CRYSTALOREDISABLED=16,
+	TEXT_DRILL=1,
+	TEXT_DRIVE=12,
+	TEXT_ENCYCLOPEDIA=8,
+	TEXT_GAMECOMPLETE=23,
+	TEXT_MAKETELEPORTER=14,
+	TEXT_MANTRAINED=24,
+	TEXT_NODRILL=2,
+	TEXT_NOREINFORCE=5,
+	TEXT_OREFOUND=19,
+	TEXT_PICKUPCRYSTAL=7,
+	TEXT_RADARHELP=9,
+	TEXT_REINFORCE=4,
+	TEXT_SELECTIONHELP=11,
+	TEXT_SPACETOCONTINUE=22,
+	TEXT_UNITUPGRADED=25,
+	TEXT_WALK=0,
+	TEXT__COUNT=26,
+	TEXT__INVALID=4294967295
+} TextType;
 
-typedef struct ImageFont ImageFont, *PImageFont;
-
-typedef struct TextWindow TextWindow, *PTextWindow;
+typedef enum PanelType {
+	PANEL_CAMERACONTROL=9,
+	PANEL_CRYSTALSIDEBAR=5,
+	PANEL_ENCYCLOPEDIA=11,
+	PANEL_INFODOCK=10,
+	PANEL_INFORMATION=7,
+	PANEL_MESSAGES=3,
+	PANEL_MESSAGESIDE=4,
+	PANEL_PRIORITYLIST=8,
+	PANEL_RADAR=0,
+	PANEL_RADARFILL=1,
+	PANEL_RADAROVERLAY=2,
+	PANEL_TOPPANEL=6,
+	PANEL__COUNT=12,
+	PANEL__INVALID=4294967295
+} PanelType;
 
 typedef struct Point2F Point2F, *PPoint2F;
 
+typedef enum AdvisorPositionFlags {
+	ADVISORPOS_DEFAULT=131072,
+	ADVISORPOS_HASTEXT=262144,
+	ADVISORPOS_NONE=0,
+	ADVISORPOS_NOPANEL=65536
+} AdvisorPositionFlags;
+
+struct Point2F {
+	float x;
+	float y;
+};
+
+struct AdvisorPositionData { // [lego,0x24]
+	enum AdvisorAnimType animType;
+	enum TextType textType;
+	int sfxIndex;
+	enum PanelType panelType;
+	struct Point2F point1;
+	struct Point2F point2; // Identical to point1
+	enum AdvisorPositionFlags flags; // (init: 0x20000), 0x10000 = NULL panel, 0x40000 = non-NULL text
+};
+
+typedef struct SurfaceTextureGrid SurfaceTextureGrid, *PSurfaceTextureGrid;
+
+typedef struct Size2I Size2I, *PSize2I;
+
+struct Size2I {
+	int width;
+	int height;
+};
+
+struct SurfaceTextureGrid { // [lego,0xc]
+	struct Size2I gridSize;
+	struct Container_Texture * * gridSurfaces;
+};
+
 typedef struct LiveObject LiveObject, *PLiveObject;
-
-typedef struct VehicleData VehicleData, *PVehicleData;
-
-typedef struct CreatureData CreatureData, *PCreatureData;
-
-typedef struct BuildingData BuildingData, *PBuildingData;
-
-typedef struct UpgradeData UpgradeData, *PUpgradeData;
-
-typedef struct ColourRGBF ColourRGBF, *PColourRGBF;
 
 typedef enum ObjectType {
 	OBJECT_BARRIER=9,
@@ -1794,150 +1948,75 @@ typedef enum ObjectType {
 	OBJECT_VEHICLE=1
 } ObjectType;
 
-typedef enum Direction {
-	DIRECTION_DOWN=2,
-	DIRECTION_LEFT=3,
-	DIRECTION_RIGHT=1,
-	DIRECTION_UP=0,
-	DIRECTION__COUNT=4
-} Direction;
+typedef struct VehicleData VehicleData, *PVehicleData;
 
-typedef struct ImageBMP ImageBMP, *PImageBMP;
+typedef struct CreatureData CreatureData, *PCreatureData;
 
-typedef enum ViewMode {
-	VIEW_FIRSTPERSON=0,
-	VIEW_TOPDOWN=1
-} ViewMode;
+typedef struct BuildingData BuildingData, *PBuildingData;
 
-typedef enum GameFlags1 {
-	GAME1_ALWAYSROCKFALL=8388608,
-	GAME1_CAMERADISABLED=1048576,
-	GAME1_CLEAR=1024,
-	GAME1_DEBUG_NOCLIP_FPS=1073741824,
-	GAME1_DEBUG_NONERPS=16777216,
-	GAME1_DYNAMICPM=524288,
-	GAME1_FOGCOLOURRGB=32768,
-	GAME1_FRAMERATEMONITOR=64,
-	GAME1_HIGHFOGCOLOURRGB=65536,
-	GAME1_LASERTRACKER=268435456,
-	GAME1_LEVELSTART=4,
-	GAME1_MEMORYMONITOR=128,
-	GAME1_MUSICON=8,
-	GAME1_NONE=0,
-	GAME1_ONLYBUILDONPATHS=4194304,
-	GAME1_PANELS=2048,
-	GAME1_PAUSED=33554432,
-	GAME1_RADARON=2,
-	GAME1_RADAR_MAPVIEW=4096,
-	GAME1_RADAR_TRACKOBJECTVIEW=8192,
-	GAME1_SOUNDON=16,
-	GAME1_STREAMNERPSSPEACH=67108864,
-	GAME1_UNK_100=256,
-	GAME1_UNK_200=512,
-	GAME1_UNK_20000=131072,
-	GAME1_UNK_200000=2097152,
-	GAME1_UNK_20000000=536870912,
-	GAME1_UNK_4000=16384,
-	GAME1_UNK_40000=262144,
-	GAME1_UNK_8000000=134217728,
-	GAME1_UNK_80000000=2147483648,
-	GAME1_WALLPROMESHES=32
-} GameFlags1;
-
-typedef enum GameFlags2 {
-	GAME2_ALLOWDEBUGKEYS=16,
-	GAME2_ALLOWEDITMODE=32,
-	GAME2_ALLOWRENAME=131072,
-	GAME2_CALLTOARMS=1,
-	GAME2_CAMERAMOVING=512,
-	GAME2_DISABLETOOLTIPSOUND=1048576,
-	GAME2_GENERATESPIDERS=524288,
-	GAME2_INMENU=4096,
-	GAME2_INOPTIONSMENU=256,
-	GAME2_MENU_HASNEXT=16384,
-	GAME2_MENU_HASPREVIOUS=32768,
-	GAME2_MOUSE_INSIDEGAMEVIEW=1024,
-	GAME2_MUSICON=2048,
-	GAME2_NOAUTOEAT=2097152,
-	GAME2_NOMULTISELECT=8192,
-	GAME2_NONE=0,
-	GAME2_RECALLOLOBJECTS=262144,
-	GAME2_SHOWDEBUGTOOLTIPS=8,
-	GAME2_UNK_2=2,
-	GAME2_UNK_4=4,
-	GAME2_UNK_40=64,
-	GAME2_UNK_80=128
-} GameFlags2;
-
-typedef enum GameFlags3 {
-	GAME3_LOADVEHICLE=16,
-	GAME3_NONE=0,
-	GAME3_PICKUPOBJECT=8,
-	GAME3_PLACEBUILDING=128,
-	GAME3_UNK_1=1,
-	GAME3_UNK_2=2,
-	GAME3_UNK_20=32,
-	GAME3_UNK_4=4,
-	GAME3_UNK_40=64
-} GameFlags3;
-
-typedef struct SurfaceMap SurfaceMap, *PSurfaceMap;
-
-typedef struct Size2I Size2I, *PSize2I;
-
-typedef enum BOOL3 { // A 3-state boolean for True, False, or Error
-	BOOL3_ERROR=2,
-	BOOL3_FALSE=0,
-	BOOL3_TRUE=1
-} BOOL3;
-
-typedef struct SurfaceTextureGrid SurfaceTextureGrid, *PSurfaceTextureGrid;
-
-typedef struct LevelStruct_3c LevelStruct_3c, *PLevelStruct_3c;
-
-typedef struct ObjectiveData ObjectiveData, *PObjectiveData;
-
-typedef struct BlockPointer BlockPointer, *PBlockPointer;
-
-typedef enum TextureType {
-	TEXTURES_ICE=2,
-	TEXTURES_LAVA=1,
-	TEXTURES_ROCK=0,
-	TEXTURES__INVALID=4294967295
-} TextureType;
-
-typedef enum LevelCompleteStatus {
-	LEVELSTATUS_COMPLETE=1,
-	LEVELSTATUS_FAILED=2,
-	LEVELSTATUS_FAILED_CRYSTALS=3,
-	LEVELSTATUS_FAILED_OTHER=4,
-	LEVELSTATUS_NONE=0
-} LevelCompleteStatus;
-
-typedef enum CameraType {
-	CAMERATYPE_FIRSTPERSON=3,
-	CAMERATYPE_NONE=0,
-	CAMERATYPE_RADAR=2,
-	CAMERATYPE_TOPDOWN=1
-} CameraType;
-
-typedef struct Range2F Range2F, *PRange2F;
-
-typedef enum CameraFlags {
-	CAMERA_DISTRANGE=4,
-	CAMERA_NONE=0,
-	CAMERA_TILTRANGE=1,
-	CAMERA_UNK_8=8,
-	CAMERA_YAWRANGE=2
-} CameraFlags;
-
-typedef struct Rect2F Rect2F, *PRect2F;
+typedef struct UpgradeData UpgradeData, *PUpgradeData;
 
 typedef struct AITaskData AITaskData, *PAITaskData;
 
 typedef struct FlockData FlockData, *PFlockData;
 
 typedef struct ObjectStats ObjectStats, *PObjectStats;
+
+typedef enum PolyMode {
+	POLY_FP=3,
+	POLY_HIGH=2,
+	POLY_LOW=0,
+	POLY_MEDIUM=1
+} PolyMode;
+
+typedef enum SFXType { // SFXType is different from actual Sample indexes, these are hardcoded values that can easily be looked up by ID
+	SFX_AMBIENT=6,
+	SFX_AMBIENTLOOP=7,
+	SFX_AMBIENTMUSICLOOP=44,
+	SFX_BOULDERHIT=34,
+	SFX_BUILD=18,
+	SFX_BUTTONPRESSED=13,
+	SFX_CAPTAINSLIDE=42,
+	SFX_CRYSTALRECHARGE=26,
+	SFX_DRILL=2,
+	SFX_DRILLFADE=3,
+	SFX_DRIP=5,
+	SFX_DYNAMITE=43,
+	SFX_FALLIN=40,
+	SFX_FLOOR=33,
+	SFX_IMMOVABLEROCK=31,
+	SFX_INTERFACESLIDEOFFSCREEN=22,
+	SFX_INTERFACESLIDEONSCREEN=21,
+	SFX_LASER=27,
+	SFX_LASERHIT=28,
+	SFX_LAVA=38,
+	SFX_LAZERRECHARGE=29,
+	SFX_MFDEPOSIT=12,
+	SFX_MFLIFT=14,
+	SFX_MFTHROW=15,
+	SFX_MUSICLOOP=41,
+	SFX_NOTOKAY=20,
+	SFX_NULL=0,
+	SFX_OKAY=19,
+	SFX_PANELSLIDEOFFSCREEN=24,
+	SFX_PANELSLIDEONSCREEN=23,
+	SFX_PLACE=35,
+	SFX_PLACECRYSTAL=37,
+	SFX_PLACEORE=36,
+	SFX_ROCKBREAK=4,
+	SFX_ROCKMONSTER=9,
+	SFX_ROCKMONSTER2=10,
+	SFX_ROCKMONSTERSTEP=11,
+	SFX_ROCKWIPE=39,
+	SFX_SIREN=25,
+	SFX_STAMP=1,
+	SFX_STEP=8,
+	SFX_TOPPRIORITY=30,
+	SFX_WALKER=16,
+	SFX_WALL=32,
+	SFX_YESSIR=17,
+	SFX__INVALID=4294967295
+} SFXType;
 
 typedef enum ToolType {
 	TOOL_BIRDSCARER=6,
@@ -1951,8 +2030,13 @@ typedef enum ToolType {
 	TOOL__INVALID=4294967295
 } ToolType;
 
+typedef struct ImageBMP ImageBMP, *PImageBMP;
+
+typedef struct TeleporterService TeleporterService, *PTeleporterService;
+
 typedef enum LiveFlags1 {
 	LIVEOBJ1_CARRYING=1024,
+	LIVEOBJ1_CAUGHTINWEB=33554432,
 	LIVEOBJ1_CLEARING=262144,
 	LIVEOBJ1_EATING=1073741824,
 	LIVEOBJ1_LIFTING=2,
@@ -1991,6 +2075,7 @@ typedef enum LiveFlags2 {
 	LIVEOBJ2_UNK_1=1,
 	LIVEOBJ2_UNK_10=16,
 	LIVEOBJ2_UNK_100=256,
+	LIVEOBJ2_UNK_1000=4096,
 	LIVEOBJ2_UNK_10000=65536,
 	LIVEOBJ2_UNK_100000=1048576,
 	LIVEOBJ2_UNK_1000000=16777216,
@@ -1998,6 +2083,7 @@ typedef enum LiveFlags2 {
 	LIVEOBJ2_UNK_2=2,
 	LIVEOBJ2_UNK_20=32,
 	LIVEOBJ2_UNK_200=512,
+	LIVEOBJ2_UNK_2000=8192,
 	LIVEOBJ2_UNK_20000=131072,
 	LIVEOBJ2_UNK_200000=2097152,
 	LIVEOBJ2_UNK_2000000=33554432,
@@ -2018,25 +2104,43 @@ typedef enum LiveFlags2 {
 } LiveFlags2;
 
 typedef enum LiveFlags3 {
+	LIVEOBJ3_CANGATHER=67108864,
+	LIVEOBJ3_CANROUTERUBBLE=268435456,
+	LIVEOBJ3_CANSELECT=256,
+	LIVEOBJ3_HASPOWER=536870912,
+	LIVEOBJ3_IGNOREME_UNK=524288,
 	LIVEOBJ3_NONE=0,
+	LIVEOBJ3_POWEROFF=2147483648,
 	LIVEOBJ3_SIMPLEOBJECT=131072,
+	LIVEOBJ3_UNK_1=1,
+	LIVEOBJ3_UNK_10=16,
+	LIVEOBJ3_UNK_1000=4096,
+	LIVEOBJ3_UNK_10000=65536,
 	LIVEOBJ3_UNK_100000=1048576,
 	LIVEOBJ3_UNK_1000000=16777216,
-	LIVEOBJ3_UNK_10000000=268435456,
+	LIVEOBJ3_UNK_2=2,
+	LIVEOBJ3_UNK_20=32,
+	LIVEOBJ3_UNK_200=512,
+	LIVEOBJ3_UNK_2000=8192,
+	LIVEOBJ3_UNK_200000=2097152,
 	LIVEOBJ3_UNK_2000000=33554432,
-	LIVEOBJ3_UNK_20000000=536870912,
+	LIVEOBJ3_UNK_4=4,
+	LIVEOBJ3_UNK_40=64,
 	LIVEOBJ3_UNK_4000=16384,
-	LIVEOBJ3_UNK_4000000=67108864,
+	LIVEOBJ3_UNK_40000=262144,
+	LIVEOBJ3_UNK_400000=4194304,
 	LIVEOBJ3_UNK_40000000=1073741824,
+	LIVEOBJ3_UNK_8=8,
 	LIVEOBJ3_UNK_80=128,
-	LIVEOBJ3_UNK_80000=524288,
+	LIVEOBJ3_UNK_8000=32768,
 	LIVEOBJ3_UNK_800000=8388608,
-	LIVEOBJ3_UNK_80000000=2147483648
+	LIVEOBJ3_UNK_8000000=134217728
 } LiveFlags3;
 
 typedef enum LiveFlags4 {
 	LIVEOBJ4_CALLTOARMS_20=32,
 	LIVEOBJ4_NONE=0,
+	LIVEOBJ4_UNK_1=1,
 	LIVEOBJ4_UNK_10=16,
 	LIVEOBJ4_UNK_1000=4096,
 	LIVEOBJ4_UNK_10000=65536,
@@ -2048,6 +2152,7 @@ typedef enum LiveFlags4 {
 	LIVEOBJ4_UNK_40=64,
 	LIVEOBJ4_UNK_4000=16384,
 	LIVEOBJ4_UNK_40000=262144,
+	LIVEOBJ4_UNK_8=8,
 	LIVEOBJ4_UNK_80=128,
 	LIVEOBJ4_UNK_800=2048,
 	LIVEOBJ4_UNK_8000=32768,
@@ -2055,19 +2160,24 @@ typedef enum LiveFlags4 {
 } LiveFlags4;
 
 typedef enum LiveFlags5 {
-	LIVEOBJ5_NONE=0,
-	LIVEOBJ5_UNK_8=8
+	LIVEOBJ5_ABILITY_DRIVER=4,
+	LIVEOBJ5_ABILITY_DYNAMITE=8,
+	LIVEOBJ5_ABILITY_PILOT=1,
+	LIVEOBJ5_ABILITY_REPAIR=16,
+	LIVEOBJ5_ABILITY_SAILOR=2,
+	LIVEOBJ5_ABILITY_SCANNER=32,
+	LIVEOBJ5_NONE=0
 } LiveFlags5;
+
+typedef enum BOOL3 { // A 3-state boolean for True, False, or Error
+	BOOL3_ERROR=2,
+	BOOL3_FALSE=0,
+	BOOL3_TRUE=1
+} BOOL3;
 
 typedef struct ObjectUpgradesData ObjectUpgradesData, *PObjectUpgradesData;
 
 typedef struct PolyMeshData PolyMeshData, *PPolyMeshData;
-
-typedef struct Size2F Size2F, *PSize2F;
-
-typedef struct Coord2I Coord2I, *PCoord2I;
-
-typedef struct SurfaceMapStruct38 SurfaceMapStruct38, *PSurfaceMapStruct38;
 
 typedef enum AITaskType {
 	AITASK_ANIMATIONWAIT=14,
@@ -2206,6 +2316,8 @@ typedef enum MessageType {
 
 typedef struct FlockSubdata FlockSubdata, *PFlockSubdata;
 
+typedef struct Size2F Size2F, *PSize2F;
+
 typedef enum ObjectStatsFlags1 {
 	STATS1_BIGTELEPORTER=32,
 	STATS1_BUMPDAMAGE=1073741824,
@@ -2293,260 +2405,14 @@ typedef enum ObjectStatsFlags3 {
 	STATS3_VEHICLECANBECARRIED=2
 } ObjectStatsFlags3;
 
+typedef enum ImageFlags {
+	IMAGE_FLAG_INITIALISED=1,
+	IMAGE_FLAG_NONE=0,
+	IMAGE_FLAG_TEXTURE=4,
+	IMAGE_FLAG_TRANS=2
+} ImageFlags;
+
 typedef struct ObjectUpgradePartData ObjectUpgradePartData, *PObjectUpgradePartData;
-
-struct Point2F {
-	float x;
-	float y;
-};
-
-struct ColourRGBF {
-	float red;
-	float green;
-	float blue;
-};
-
-struct GameManager {
-	struct CFGProperty * LegoCfgRoot; // g_LegoCfgRoot
-	char * CfgRootName; // g_CFG_ROOTPATH
-	undefined4 field_8;
-	undefined4 field_c;
-	enum GraphicsQuality Quality; // g_GraphicsQuality
-	struct LevelData * level; // g_LEVEL_STRUCTPTR_SIZE_284__005570d4
-	struct Container * resRoot; // DAT_005570d8
-	struct Viewport * viewMain; // Viewport area: (0.0,0.0 - 1.0x1.0)
-	struct Viewport * viewRadar; // Viewport area: (16,14 - 151x151)
-	struct CameraData * cameraMain; // PTR_005570e4
-	struct CameraData * cameraRadar; // DAT_005570e8
-	struct CameraData * cameraFP; // DAT_005570ec
-	struct Container * resTopSpotlight; // PTR_005570f0
-	struct Container * resTrackSpotlight; // DAT_005570f4
-	struct Container * resFPLight; // PTR_005570f8
-	struct Container * resFPRotLight; // PTR_005570fc
-	struct Container * resAmbientLight; // PTR_00557100
-	struct Container * resRootSpotlight; // PTR_00557104
-	struct Container * resRootLight; // PTR_00557108
-	struct Container * resFPRotLightDefault; // PTR_0055710c
-	float FPClipBlocks; // FLOAT_00557110
-	float TVClipDist; // g_tvclipdist
-	undefined4 field_58;
-	undefined4 field_5c;
-	undefined4 field_60;
-	struct ImageFont * bmpFONT5_HI; // g_FONT_FONT5_HI
-	struct ImageFont * bmpToolTipFont; // g_FONT_ToolTipFont
-	struct ImageFont * bmpDeskTopFont; // g_FONT_DeskTopFont
-	struct ImageFont * bmpfont5_HI; // g_FONT_font5_HI
-	struct ImageFont * bmpMbriefFONT; // g_FONT_MbriefFONT
-	struct ImageFont * bmpMbriefFONT2; // g_FONT_MbriefFONT2
-	struct ImageFont * bmpRSFont; // g_FONT_RSFont
-	struct TextWindow * textWnd_80; // PTR_00557140
-	struct TextWindow * textWnd_84; // PTR_00557144
-	struct Point2F pointf_88; // FLOAT_00557148
-	struct Point2F pointf_90; // FLOAT_00557150
-	BOOL bool_98; // BOOL_00557158
-	float gameSpeed; // FLOAT_0055715c
-	struct LiveObject * objectFP; // DAT_00557160
-	float float_a4; // FLOAT_00557164
-	float float_a8; // FLOAT_00557168
-	float float_ac; // FLOAT_0055716c
-	float float_b0; // FLOAT_00557170
-	float float_b4; // FLOAT_00557174
-	float float_b8; // FLOAT_00557178
-	float float_bc; // FLOAT_0055717c
-	struct Point2I pointi_c0; // DAT_00557180
-	BOOL bool_c8; // DAT_00557188
-	char * ObjectNames_PowerCrystal; // g_ObjectNames_PowerCrystal
-	char * ObjectNames_Ore; // g_ObjectNames_Ore
-	char * ObjectNames_ProcessedOre; // g_ObjectNames_ProcessedOre
-	char * ObjectNames_Dynamite; // g_ObjectNames_Dynamite
-	char * ObjectNames_Barrier; // g_ObjectNames_Barrier
-	char * ObjectNames_ElectricFence; // g_ObjectNames_ElectricFence
-	char * ObjectNames_SpiderWeb; // g_ObjectNames_SpiderWeb
-	char * ObjectNames_OohScary; // g_ObjectNames_OohScary
-	char * ObjectNames_Path; // g_ObjectNames_Path
-	char * ObjectTheNames_PowerCrystal; // g_ObjectTheNames_PowerCrystal
-	char * ObjectTheNames_Ore; // g_ObjectTheNames_Ore
-	char * ObjectTheNames_ProcessedOre; // g_ObjectTheNames_ProcessedOre
-	char * ObjectTheNames_Dynamite; // g_ObjectTheNames_Dynamite
-	char * ObjectTheNames_Barrier; // g_ObjectTheNames_Barrier
-	char * ObjectTheNames_ElectricFence; // g_ObjectTheNames_ElectricFence
-	char * ObjectTheNames_SpiderWeb; // g_ObjectTheNames_SpiderWeb
-	char * ObjectTheNames_OohScary; // g_ObjectTheNames_OohScary
-	char * ObjectTheNames_Path; // g_ObjectTheNames_Path
-	struct VehicleData * VehicleData_TABLE; // g_VehicleData_TABLE
-	struct CreatureData * MiniFigureData_TABLE; // g_MiniFigureData_TABLE
-	struct CreatureData * RockMonsterData_TABLE; // g_RockMonsterData_TABLE
-	struct BuildingData * BuildingData_TABLE; // g_BuildingData_TABLE
-	struct UpgradeData * UpgradeData_TABLE; // g_UpgradeData_TABLE
-	char * * VehicleTypes_TABLE; // g_VehicleTypes_TABLE
-	char * * MiniFigureTypes_TABLE; // g_MiniFigureTypes_TABLE
-	char * * RockMonsterTypes_TABLE; // g_RockMonsterTypes_TABLE
-	char * * BuildingTypes_TABLE; // g_BuildingTypes_TABLE
-	char * * UpgradeTypes_TABLE; // g_UpgradeTypes_TABLE
-	char * ToolTypes_TABLE[11]; // g_ToolTypes_TABLE
-	char * ToolNames_TABLE[11]; // g_ToolNames_TABLE
-	char * * ObjectNames_VehicleTypes_TABLE; // g_ObjectNames_VehicleTypes_TABLE
-	char * * ObjectNames_MiniFigureTypes_TABLE; // g_ObjectNames_MiniFigureTypes_TABLE
-	char * * ObjectNames_RockMonsterTypes_TABLE; // g_ObjectNames_RockMonsterTypes_TABLE
-	char * * ObjectNames_BuildingTypes_TABLE; // g_ObjectNames_BuildingTypes_TABLE
-	char * * ObjectNames_UpgradeTypes_TABLE; // g_ObjectNames_UpgradeTypes_TABLE
-	char * * ObjectTheNames_VehicleTypes_TABLE; // g_ObjectTheNames_VehicleTypes_TABLE
-	char * * ObjectTheNames_MiniFigureTypes_TABLE; // g_ObjectTheNames_MiniFigureTypes_TABLE
-	char * * ObjectTheNames_RockMonsterTypes_TABLE; // g_ObjectTheNames_RockMonsterTypes_TABLE
-	char * * ObjectTheNames_BuildingTypes_TABLE; // g_ObjectTheNames_BuildingTypes_TABLE
-	char * * ObjectTheNames_UpgradeTypes_TABLE; // g_ObjectTheNames_UpgradeTypes_TABLE
-	uint VehicleTypes_COUNT; // g_VehicleTypes_COUNT
-	uint MiniFigureTypes_COUNT; // g_MiniFigureTypes_COUNT
-	uint RockMonsterTypes_COUNT; // g_RockMonsterTypes_COUNT
-	uint BuildingTypes_COUNT; // g_BuildingTypes_COUNT
-	uint UpgradeTypes_COUNT; // g_UpgradeTypes_COUNT
-	char * SurfaceTypes_TABLE[18]; // g_SurfaceTypes_TABLE
-	char * SurfaceTypeDescriptions_name_TABLE[18]; // g_SurfaceTypeDescriptions_name_TABLE
-	void * SurfaceTypeDescriptions_sound_TABLE[18]; // g_SurfaceTypeDescriptions_sound_TABLE
-	struct Container * RES_Boulder; // g_RES_BOULDER
-	struct Container * RES_BoulderExplode; // DAT_0055736c
-	struct Container * RES_BoulderExplodeIce; // DAT_00557370
-	struct Container * RES_Crystal; // g_RES_POWERCRYSTAL
-	struct Container * RES_Dynamite; // g_RES_DYNAMITE
-	struct Container * RES_Ores_TABLE[2]; // g_RES_ORES_TABLE
-	struct Container * RES_OohScary; // g_RES_OOHSCARY
-	struct Container * RES_Barrier; // g_RES_BARRIER
-	struct Container * RES_ElectricFence; // g_RES_ELECTRICFENCE
-	struct Container * RES_SpiderWeb; // g_RES_SPIDERWEB
-	struct Container * RES_RechargeSparkle; // DAT_00557394
-	struct Container * RES_MiniTeleportUp; // DAT_00557398
-	struct Container * RES_ElectricFenceStud; // DAT_0055739c
-	struct Container * RES_Pusher; // g_RES_PUSHER
-	struct Container * RES_Freezer; // g_RES_FREEZER
-	struct Container * RES_IceCube; // DAT_005573a8
-	struct Container * RES_SmashPath; // DAT_005573ac
-	struct Container * RES_LaserShot; // g_RES_LASERSHOT
-	struct Container * * RES_2f4_TABLEUNK; // DAT_005573b4
-	undefined4 table10_2f8[10]; // g_UNK_TABLE__005573b8
-	uint count10_320; // UINT_005573e0
-	float float_324; // FLOAT_005573e4
-	float float_328; // FLOAT_005573e8
-	float float_32c; // FLOAT_005573ec
-	float float_330; // FLOAT_005573f0
-	float tvTiltOrZoom_334;
-	struct Point2F tvFaceDirection_338;
-	float MedPolyRange; // g_MedPolyRange
-	float HighPolyRange; // g_HighPolyRange
-	int HPBlocks; // g_HPBlocks
-	struct ColourRGBF FogColourRGB; // g_FogColourRGB
-	struct ColourRGBF HighFogColourRGB; // g_HighFogColourRGB
-	float float_364; // g_LEVEL_UNK_FLOAT_00557424
-	struct ColourRGBF PowerCrystalRGB; // g_PowerCrystalRGB
-	struct ColourRGBF UnpoweredCrystalRGB; // g_UnpoweredCrystalRGB
-	enum ObjectType placeObjType; // INT_00557440
-	int placeObjIndex; // INT_00557444
-	enum Direction placeObjDirection; // INT_00557448
-	struct LiveObject * placeDestSmallTeleporter; // PTR_0055744c
-	struct LiveObject * placeDestBigTeleporter; // PTR_00557450
-	struct LiveObject * placeDestWaterTeleporter; // PTR_00557454
-	float MinEnergyForEat; // g_MinEnergyForEat
-	struct ImageBMP * TutorialIcon; // bmp? PTR_0055745c
-	undefined4 field_3a0;
-	float DynamiteDamageRadius; // g_DynamiteDamageRadius
-	float DynamiteMaxDamage; // g_DynamiteMaxDamage
-	float DynamiteWakeRadius; // g_DynamiteWakeRadius
-	float BirdScarerRadius; // g_BirdScarerRadius
-	enum ObjectType objTeleportQueueTypes_TABLE[20]; // UNK_ARRAY_00557474
-	int objTeleportQueueIndexes_TABLE[20]; // UNK_ARRAY_005574c4
-	uint objTeleportQueue_COUNT; // count for above 2 arrays, UINT_00557514
-	float MiniFigureRunAway; // g_MiniFigureRunAway
-	struct Vector3F vector_45c; // FLOAT_0055751c
-	undefined4 table200_468[200]; // UNK_ARRAY_00557528
-	uint count_788; // UINT_00557848
-	struct Point2I points2x100_78c[2][100]; // UNK_ARRAY_0055784c
-	uint pointsCount2_dcc[2]; // UINT_00557e8c
-	uint MaxReturnedCrystals; // g_MaxReturnedCrystals
-	uint MouseScrollBorder; // g_MouseScrollBorder
-	char * HealthText; // g_HealthText
-	char * EnergyText; // g_EnergyText
-	char * CrystalsText; // g_CrystalsText
-	char * OreText; // g_OreText
-	char * StudsText; // g_StudsText
-	char * ToolsText; // g_ToolsText
-	char * CarryObjectText; // g_CarryObjectText
-	char * DrivenByText; // g_DrivenByText
-	char * OreRequiredText; // g_OreRequiredText
-	BOOL IsFallinsEnabled; // (! "NoFallins"), g_YesFallins
-	float MinDistFor3DSoundsOnTopView; // g_MinDistFor3DSoundsOnTopView
-	enum ViewMode viewMode; // (may not be bool, compared with 0, and 1) g_GAME_UNK_BOOL_00557ec8
-	enum GameFlags1 flags1; // g_GAME_GameFlags1
-	enum GameFlags2 flags2; // g_GAME_GameFlags2
-	enum GameFlags3 flags3; // only first byte is used(?), g_GAME_GameFlags3
-	float InitialSlugTime; // g_InitialSlugTime
-	struct Point2F NextButtonPos; // g_NextButton
-	struct Point2F BackButtonPos; // g_BackButtonPos
-	struct ImageBMP * NextButton; // bmp? PTR_00557eec
-	struct ImageBMP * BackButton; // bmp? PTR_00557ef0
-	struct ImageBMP * BackArrow; // bmp? PTR_00557ef4
-	float FogRate; // g_LEVEL_FogRate
-	float timerGame_e3c; // FLOAT_00557efc
-	float elapsedAbs; // assigned to Game_Update param_1 float fpsSync, FLOAT_00557f00
-	float DrainTime; // g_DrainTime
-	uint ReinforceHits; // g_ReinforceHits
-	uint CDStartTrack; // g_CDStartTrack
-	uint CDTracks; // g_CDTracks
-	uint FallinMultiplier; // g_LEVEL_FallinMultiplier
-	BOOL hasFallins; // BOOL_00557f18
-	struct Point2F menuNextPoint; // DAT_00557f1c
-	struct Point2F menuPrevPoint; // DAT_00557f24
-	struct ColourRGBF DragBoxRGB; // g_DragBoxRGB
-	struct ImageBMP * DialogImage; // PTR_00557f38
-	struct ImageBMP * DialogContrastOverlay; // PTR_00557f3c
-	void * drawregion_e80; // PTR_00557f40
-	void * drawregion_e84; // PTR_00557f44
-	void * drawregion_e88; // PTR_00557f48
-	void * drawregion_e8c; // PTR_00557f4c
-	char * CreditsTextFile; // g_CreditsTextFile
-	char * CreditsBackAVI; // g_CreditsBackAVI
-	char * UpgradeNames_TABLE[16]; // g_UpgradeNames_TABLE
-	int BuildingUpgradeCostOre; // g_BuildingUpgradeCostOre
-	int BuildingUpgradeCostStuds; // g_BuildingUpgradeCostStuds
-	char * renameInput;
-	struct Point2F renamePosition;
-	char * RenameReplace; // g_RenameReplace
-	char * EndGameAVI1; // g_EndGameAVI1
-	char * EndGameAVI2; // g_EndGameAVI2
-};
-
-struct Rect2F {
-	float x;
-	float y;
-	float width;
-	float height;
-};
-
-struct LevelStruct_3c {
-	struct SurfaceMap * surfMap;
-	struct Rect2F rectf_4;
-	float float_14;
-	float float_18;
-	float float_1c;
-	float float_20;
-	undefined4 field_24;
-	undefined4 field_28;
-	undefined4 field_2c;
-	undefined4 field_30;
-	undefined4 field_34;
-	undefined4 field_38;
-};
-
-struct SurfaceMapStruct38 {
-	undefined4 field_0;
-	float float_4;
-	undefined4 field_8;
-	undefined4 field_c;
-	undefined4 table_10[8];
-	undefined field_0x30;
-	undefined field_0x31;
-	undefined field_0x32;
-	undefined field_0x33;
-	uint flags;
-};
 
 struct LiveObject {
 	enum ObjectType objType;
@@ -2561,9 +2427,9 @@ struct LiveObject {
 	void * routeptr_24; // Unknown pointer, likely in large allocated table
 	uint routingBlocksTotal; // total blocks to travel for current route
 	uint routingBlocksCurrent; // number of blocks traveled (up to routingBlocksTotal)
-	int value_30; // Usually 50 (0x32)
-	float floats_34[100];
-	float floats_1c4[50];
+	int routing_count_0; // Usually 50 (max), start of RoutingData
+	struct Point2F routing_points_4[50];
+	float rounting_distances_194[50];
 	struct Vector3F vector_28c;
 	struct Point2F point_298;
 	struct Vector3F vector_2a0;
@@ -2598,9 +2464,9 @@ struct LiveObject {
 	float health; // (assigned -1.0f)
 	float energy; // (assigned -1.0f)
 	int * tableptr_348; // element size is 0x4
-	BOOL mode_34c;
-	undefined4 field_350;
-	undefined4 field_354;
+	enum PolyMode polyMode_34c;
+	int soundHandle_350;
+	enum SFXType soundHandle_354; // (engine sound only?)
 	undefined4 field_358;
 	undefined4 field_35c;
 	undefined4 field_360;
@@ -2611,9 +2477,9 @@ struct LiveObject {
 	uint numCarriedTools;
 	undefined4 field_388;
 	struct ImageBMP * bubbleImage_38c;
-	undefined4 field_390;
-	undefined4 field_394;
-	undefined4 field_398;
+	undefined4 teleporter_field_390;
+	undefined4 teleporter_field_394;
+	struct TeleporterService * teleporter_398;
 	undefined4 field_39c;
 	undefined4 field_3a0;
 	undefined4 field_3a4;
@@ -2622,7 +2488,7 @@ struct LiveObject {
 	undefined4 field_3b0;
 	struct Vector3F vector_3b4;
 	struct LiveObject * object_3c0;
-	undefined4 field_3c4;
+	struct LiveObject * object_3c4;
 	undefined4 field_3c8;
 	struct LiveObject * object_3cc;
 	undefined4 field_3d0;
@@ -2642,116 +2508,9 @@ struct LiveObject {
 	struct LiveObject * pool_m_next;
 };
 
-struct Coord2I { // Point2I structure using short-sized integers (name is based off the WINAPI console structure COORD, using the same ,layout)
-	short sx;
-	short sy;
-};
-
 struct Size2F {
 	float width;
 	float height;
-};
-
-struct Size2I {
-	int width;
-	int height;
-};
-
-struct SurfaceTextureGrid {
-	struct Size2I gridSize;
-	struct Container_Texture * * gridSurfaces;
-};
-
-struct ObjectiveData {
-	struct ImageBMP * ObjectiveImage; // bmp
-	struct Point2F ObjectiveImagePosition;
-	struct ImageBMP * ObjectiveAcheivedImage; // bmp
-	struct Point2F ObjectiveAcheivedImagePosition;
-	struct ImageBMP * ObjectiveFailedImage; // bmp
-	struct Point2F ObjectiveFailedImagePosition;
-	char * ObjectiveAcheivedAVIFilename; // filename
-	struct Point2F ObjectiveAcheivedAVIPosition;
-	undefined4 field_30;
-	undefined4 field_34;
-	int CrystalObjective; // number of crystals needed if non-zero
-	int OreObjective; // number of ore needed if non-zero
-	struct Point2I BlockObjective;
-	float TimerObjective; // (mult: 25.0, flags, format: "time:HitTimeFailObjective")
-	enum ObjectType ConstructionObjectiveObjType;
-	int ConstructionObjectiveObjIndex;
-};
-
-struct LevelData {
-	char * levelName; // (format: "Levels::level")
-	struct SurfaceMap * surfaceMap;
-	void * ptrtable_8;
-	uint count_c;
-	undefined4 field_10;
-	struct Size2I dimensions;
-	float BlockSize;
-	float DigDepth;
-	float RoofHeight;
-	float RoughLevel;
-	enum BOOL3 UseRoof;
-	enum BOOL3 SafeCaverns;
-	float SelBoxHeight;
-	undefined4 field_0x38;
-	undefined4 field_0x3c;
-	undefined4 field_0x40;
-	undefined4 field_0x44;
-	undefined4 field_0x48;
-	undefined4 field_0x4c;
-	undefined4 field_0x50;
-	undefined4 field_0x54;
-	undefined4 field_0x58;
-	undefined4 field_0x5c;
-	undefined4 field_0x60;
-	undefined4 field_0x64;
-	undefined4 field_0x68;
-	undefined4 field_0x6c;
-	undefined4 field_0x70;
-	struct Size2I surfTextSize; // surface texture width and height
-	struct SurfaceTextureGrid * surfTextGrid;
-	undefined4 field_0x80;
-	struct LevelStruct_3c * struct3c_84;
-	struct LevelStruct_1c * terrain1c_88;
-	int numCrystals; // (init: 0)
-	undefined4 field_90; // (init: 0)
-	undefined4 field_94; // (init: 0)
-	int numDrainedCrystals; // assumption
-	undefined4 field_9c;
-	int numOre; // (init: 0)
-	undefined4 field_a4; // (init: 0)
-	undefined4 field_a8; // (init: 0)
-	int numProcessedOre;
-	int EmergeCreature; // (searches for object index by name, expects RockMonsterType)
-	char * NextLevel;
-	struct LevelBlock * blocks; // grid of blocks [y][x]
-	struct ObjectiveData objective;
-	BOOL hasBlockPointers;
-	struct BlockPointer * blockPointers[56];
-	BOOL StartFP;
-	BOOL NoDrain;
-	float oxygenLevel; // (init: 100.0, Oxygen level?)
-	float OxygenRate;
-	float float_204; // (init: 100.0, Oxygen level?)
-	float BuildingTolerance; // (default: 4.0)
-	float BuildingMaxVariation; // (default: 6.0)
-	float UpgradeTimes[20]; // [objType] (mult: 25.0, 1:Vehicle, 2:MiniFigure, 3:Building)
-	float TrainTime; // (mult: 25.0)
-	float EmergeTimeOut; // (default: 1500.0)
-	float SlugTime; // (default: 60.0, mult: 25.0 (applies to default))
-	int Slug; // (default: 20 (invalid), searches for object index by name, expects RockMonsterType)
-	char * FullName; // (replace '_' with ' ')
-	enum TextureType BoulderAnimation; // (texture index, hardcoded: Rock, Lava, Ice)
-	float MaxStolen;
-	enum LevelCompleteStatus status; // (init: 0) 2 is used for Crystal failure as well
-	BOOL IsStartTeleportEnabled; // (! DisableStartTeleport)
-};
-
-struct BlockPointer {
-	struct Point2I position;
-	uint id;
 };
 
 struct AITaskData {
@@ -2783,7 +2542,7 @@ struct AITaskData {
 
 struct CreatureData {
 	int objIndex;
-	struct Container * aeResData; // ACT, true
+	struct Container * contAct; // ACT, true
 	undefined4 field_8;
 	undefined field_0xc;
 	undefined field_0xd;
@@ -2815,13 +2574,13 @@ struct CreatureData {
 	char * DepositNullName;
 	undefined4 field_40;
 	undefined4 field_44;
-	struct Container * resData_48;
-	undefined4 field_4c;
+	struct Container * cont_48;
+	struct Container * cont_4c;
 	undefined4 field_50;
-	undefined4 cameraFramesTable_54[4];
-	struct PolyMeshData * subdata_64;
-	struct PolyMeshData * subdata_68;
-	struct PolyMeshData * subdata_6c;
+	struct Container * cameraFramesTable_54[4];
+	struct PolyMeshData * polyMedium;
+	struct PolyMeshData * polyHigh;
+	struct PolyMeshData * polyFP;
 	uint flags;
 };
 
@@ -2902,17 +2661,6 @@ struct ObjectUpgradePartData {
 	struct UpgradeData * upgradeData;
 };
 
-struct CFGProperty { // CFG file property node
-	char * fileData; // Entire file text data for root CFGProperty only
-	char * key; // Property or block key name
-	char * value; // Property value or block open brace
-	uint depth; // Block-depth of property
-	uint itemHashCode; // Hash of item (unused)
-	struct CFGProperty * linkNext; // Next property in linked list
-	struct CFGProperty * linkPrev; // Previous property in linked list
-	struct CFGProperty * nextFree; // (internal) used for allocation while reading(?)
-};
-
 struct ObjectUpgradesData {
 	struct ObjectUpgradePartData * parts; // always ObjectUpgradePartData[200]
 	uint count;
@@ -2923,7 +2671,7 @@ struct ObjectUpgradesData {
 
 struct BuildingData {
 	int objIndex;
-	struct Container * aeResData; // ACT, true
+	struct Container * contAct; // ACT, true
 	char * CarryNullName;
 	char * CameraNullName;
 	char * DepositNullName;
@@ -2932,8 +2680,8 @@ struct BuildingData {
 	char * FireNullName; // "fire laser"
 	char * yPivot;
 	char * xPivot;
-	undefined4 carryFramesTable_28[6];
-	undefined4 cameraFramesTable_40[4];
+	struct Container * carryFramesTable_28[6];
+	struct Container * cameraFramesTable_40[4];
 	undefined field_0x50;
 	undefined field_0x51;
 	undefined field_0x52;
@@ -2963,7 +2711,7 @@ struct BuildingData {
 	uint CarryNullFrames;
 	uint CameraNullFrames;
 	uint ToolNullFrames;
-	struct Container * PowerLevelScene; // LWS, true
+	struct Container * contPowerLevelScene; // LWS, true
 	undefined4 field_80;
 	struct Point2I * shapePoints; // Point2I[10]
 	uint shapeCount;
@@ -3133,8 +2881,8 @@ struct BuildingData {
 struct VehicleData {
 	int objIndex;
 	char * WheelNullName;
-	struct Container * aeResData1;
-	struct Container * aeResData2; // Optional second ae file (seen for Grannit Grinder legs)
+	struct Container * contAct_1;
+	struct Container * contAct_2; // Optional second ae file (seen for Grannit Grinder legs)
 	struct Container * WheelMeshes[6]; // LWO, false
 	undefined4 wheel_fields_28[6];
 	uint numWheelNulls;
@@ -3250,7 +2998,7 @@ struct VehicleData {
 	enum BOOL3 CameraFlipDir;
 	char * CarryNullName;
 	char * CameraNullName;
-	undefined4 carryFramesTable_e4[7];
+	struct Container * carryFramesTable_e4[7];
 	undefined field_0x100;
 	undefined field_0x101;
 	undefined field_0x102;
@@ -3263,7 +3011,7 @@ struct VehicleData {
 	undefined field_0x109;
 	undefined field_0x10a;
 	undefined field_0x10b;
-	undefined4 cameraFramesTable_10c[4];
+	struct Container * cameraFramesTable_10c[4];
 	uint CarryNullFrames;
 	uint CameraNullFrames;
 	struct ObjectUpgradesData upgrades;
@@ -3401,16 +3149,11 @@ struct VehicleData {
 	undefined field_0x1c1;
 	undefined field_0x1c2;
 	undefined field_0x1c3;
-	undefined4 table6_1c4[6];
+	struct Container * table6_1c4[6];
 	undefined4 field_1dc;
-	struct PolyMeshData * subdata_1e0;
-	struct PolyMeshData * subdata_1e4;
+	struct PolyMeshData * polyMedium_1;
+	struct PolyMeshData * polyMedium_2;
 	uint flags; // HoldMissing TRUE -> 0x8
-};
-
-struct Range2F {
-	float min;
-	float max;
 };
 
 struct UpgradeData {
@@ -3418,3060 +3161,6 @@ struct UpgradeData {
 	struct Container * aeResData; // ACT, true
 	struct LiveObject * object_8;
 	undefined4 field_c;
-};
-
-struct ImageFont {
-	struct ImageBMP * bitmap;
-	undefined field_0x4;
-	undefined field_0x5;
-	undefined field_0x6;
-	undefined field_0x7;
-	undefined field_0x8;
-	undefined field_0x9;
-	undefined field_0xa;
-	undefined field_0xb;
-	undefined field_0xc;
-	undefined field_0xd;
-	undefined field_0xe;
-	undefined field_0xf;
-	undefined field_0x10;
-	undefined field_0x11;
-	undefined field_0x12;
-	undefined field_0x13;
-	undefined field_0x14;
-	undefined field_0x15;
-	undefined field_0x16;
-	undefined field_0x17;
-	undefined field_0x18;
-	undefined field_0x19;
-	undefined field_0x1a;
-	undefined field_0x1b;
-	undefined field_0x1c;
-	undefined field_0x1d;
-	undefined field_0x1e;
-	undefined field_0x1f;
-	undefined field_0x20;
-	undefined field_0x21;
-	undefined field_0x22;
-	undefined field_0x23;
-	undefined field_0x24;
-	undefined field_0x25;
-	undefined field_0x26;
-	undefined field_0x27;
-	undefined field_0x28;
-	undefined field_0x29;
-	undefined field_0x2a;
-	undefined field_0x2b;
-	undefined field_0x2c;
-	undefined field_0x2d;
-	undefined field_0x2e;
-	undefined field_0x2f;
-	undefined field_0x30;
-	undefined field_0x31;
-	undefined field_0x32;
-	undefined field_0x33;
-	undefined field_0x34;
-	undefined field_0x35;
-	undefined field_0x36;
-	undefined field_0x37;
-	undefined field_0x38;
-	undefined field_0x39;
-	undefined field_0x3a;
-	undefined field_0x3b;
-	undefined field_0x3c;
-	undefined field_0x3d;
-	undefined field_0x3e;
-	undefined field_0x3f;
-	undefined field_0x40;
-	undefined field_0x41;
-	undefined field_0x42;
-	undefined field_0x43;
-	undefined field_0x44;
-	undefined field_0x45;
-	undefined field_0x46;
-	undefined field_0x47;
-	undefined field_0x48;
-	undefined field_0x49;
-	undefined field_0x4a;
-	undefined field_0x4b;
-	undefined field_0x4c;
-	undefined field_0x4d;
-	undefined field_0x4e;
-	undefined field_0x4f;
-	undefined field_0x50;
-	undefined field_0x51;
-	undefined field_0x52;
-	undefined field_0x53;
-	undefined field_0x54;
-	undefined field_0x55;
-	undefined field_0x56;
-	undefined field_0x57;
-	undefined field_0x58;
-	undefined field_0x59;
-	undefined field_0x5a;
-	undefined field_0x5b;
-	undefined field_0x5c;
-	undefined field_0x5d;
-	undefined field_0x5e;
-	undefined field_0x5f;
-	undefined field_0x60;
-	undefined field_0x61;
-	undefined field_0x62;
-	undefined field_0x63;
-	undefined field_0x64;
-	undefined field_0x65;
-	undefined field_0x66;
-	undefined field_0x67;
-	undefined field_0x68;
-	undefined field_0x69;
-	undefined field_0x6a;
-	undefined field_0x6b;
-	undefined field_0x6c;
-	undefined field_0x6d;
-	undefined field_0x6e;
-	undefined field_0x6f;
-	undefined field_0x70;
-	undefined field_0x71;
-	undefined field_0x72;
-	undefined field_0x73;
-	undefined field_0x74;
-	undefined field_0x75;
-	undefined field_0x76;
-	undefined field_0x77;
-	undefined field_0x78;
-	undefined field_0x79;
-	undefined field_0x7a;
-	undefined field_0x7b;
-	undefined field_0x7c;
-	undefined field_0x7d;
-	undefined field_0x7e;
-	undefined field_0x7f;
-	undefined field_0x80;
-	undefined field_0x81;
-	undefined field_0x82;
-	undefined field_0x83;
-	undefined field_0x84;
-	undefined field_0x85;
-	undefined field_0x86;
-	undefined field_0x87;
-	undefined field_0x88;
-	undefined field_0x89;
-	undefined field_0x8a;
-	undefined field_0x8b;
-	undefined field_0x8c;
-	undefined field_0x8d;
-	undefined field_0x8e;
-	undefined field_0x8f;
-	undefined field_0x90;
-	undefined field_0x91;
-	undefined field_0x92;
-	undefined field_0x93;
-	undefined field_0x94;
-	undefined field_0x95;
-	undefined field_0x96;
-	undefined field_0x97;
-	undefined field_0x98;
-	undefined field_0x99;
-	undefined field_0x9a;
-	undefined field_0x9b;
-	undefined field_0x9c;
-	undefined field_0x9d;
-	undefined field_0x9e;
-	undefined field_0x9f;
-	undefined field_0xa0;
-	undefined field_0xa1;
-	undefined field_0xa2;
-	undefined field_0xa3;
-	undefined field_0xa4;
-	undefined field_0xa5;
-	undefined field_0xa6;
-	undefined field_0xa7;
-	undefined field_0xa8;
-	undefined field_0xa9;
-	undefined field_0xaa;
-	undefined field_0xab;
-	undefined field_0xac;
-	undefined field_0xad;
-	undefined field_0xae;
-	undefined field_0xaf;
-	undefined field_0xb0;
-	undefined field_0xb1;
-	undefined field_0xb2;
-	undefined field_0xb3;
-	undefined field_0xb4;
-	undefined field_0xb5;
-	undefined field_0xb6;
-	undefined field_0xb7;
-	undefined field_0xb8;
-	undefined field_0xb9;
-	undefined field_0xba;
-	undefined field_0xbb;
-	undefined field_0xbc;
-	undefined field_0xbd;
-	undefined field_0xbe;
-	undefined field_0xbf;
-	undefined field_0xc0;
-	undefined field_0xc1;
-	undefined field_0xc2;
-	undefined field_0xc3;
-	undefined field_0xc4;
-	undefined field_0xc5;
-	undefined field_0xc6;
-	undefined field_0xc7;
-	undefined field_0xc8;
-	undefined field_0xc9;
-	undefined field_0xca;
-	undefined field_0xcb;
-	undefined field_0xcc;
-	undefined field_0xcd;
-	undefined field_0xce;
-	undefined field_0xcf;
-	undefined field_0xd0;
-	undefined field_0xd1;
-	undefined field_0xd2;
-	undefined field_0xd3;
-	undefined field_0xd4;
-	undefined field_0xd5;
-	undefined field_0xd6;
-	undefined field_0xd7;
-	undefined field_0xd8;
-	undefined field_0xd9;
-	undefined field_0xda;
-	undefined field_0xdb;
-	undefined field_0xdc;
-	undefined field_0xdd;
-	undefined field_0xde;
-	undefined field_0xdf;
-	undefined field_0xe0;
-	undefined field_0xe1;
-	undefined field_0xe2;
-	undefined field_0xe3;
-	undefined field_0xe4;
-	undefined field_0xe5;
-	undefined field_0xe6;
-	undefined field_0xe7;
-	undefined field_0xe8;
-	undefined field_0xe9;
-	undefined field_0xea;
-	undefined field_0xeb;
-	undefined field_0xec;
-	undefined field_0xed;
-	undefined field_0xee;
-	undefined field_0xef;
-	undefined field_0xf0;
-	undefined field_0xf1;
-	undefined field_0xf2;
-	undefined field_0xf3;
-	undefined field_0xf4;
-	undefined field_0xf5;
-	undefined field_0xf6;
-	undefined field_0xf7;
-	undefined field_0xf8;
-	undefined field_0xf9;
-	undefined field_0xfa;
-	undefined field_0xfb;
-	undefined field_0xfc;
-	undefined field_0xfd;
-	undefined field_0xfe;
-	undefined field_0xff;
-	undefined field_0x100;
-	undefined field_0x101;
-	undefined field_0x102;
-	undefined field_0x103;
-	undefined field_0x104;
-	undefined field_0x105;
-	undefined field_0x106;
-	undefined field_0x107;
-	undefined field_0x108;
-	undefined field_0x109;
-	undefined field_0x10a;
-	undefined field_0x10b;
-	undefined field_0x10c;
-	undefined field_0x10d;
-	undefined field_0x10e;
-	undefined field_0x10f;
-	undefined field_0x110;
-	undefined field_0x111;
-	undefined field_0x112;
-	undefined field_0x113;
-	undefined field_0x114;
-	undefined field_0x115;
-	undefined field_0x116;
-	undefined field_0x117;
-	undefined field_0x118;
-	undefined field_0x119;
-	undefined field_0x11a;
-	undefined field_0x11b;
-	undefined field_0x11c;
-	undefined field_0x11d;
-	undefined field_0x11e;
-	undefined field_0x11f;
-	undefined field_0x120;
-	undefined field_0x121;
-	undefined field_0x122;
-	undefined field_0x123;
-	undefined field_0x124;
-	undefined field_0x125;
-	undefined field_0x126;
-	undefined field_0x127;
-	undefined field_0x128;
-	undefined field_0x129;
-	undefined field_0x12a;
-	undefined field_0x12b;
-	undefined field_0x12c;
-	undefined field_0x12d;
-	undefined field_0x12e;
-	undefined field_0x12f;
-	undefined field_0x130;
-	undefined field_0x131;
-	undefined field_0x132;
-	undefined field_0x133;
-	undefined field_0x134;
-	undefined field_0x135;
-	undefined field_0x136;
-	undefined field_0x137;
-	undefined field_0x138;
-	undefined field_0x139;
-	undefined field_0x13a;
-	undefined field_0x13b;
-	undefined field_0x13c;
-	undefined field_0x13d;
-	undefined field_0x13e;
-	undefined field_0x13f;
-	undefined field_0x140;
-	undefined field_0x141;
-	undefined field_0x142;
-	undefined field_0x143;
-	undefined field_0x144;
-	undefined field_0x145;
-	undefined field_0x146;
-	undefined field_0x147;
-	undefined field_0x148;
-	undefined field_0x149;
-	undefined field_0x14a;
-	undefined field_0x14b;
-	undefined field_0x14c;
-	undefined field_0x14d;
-	undefined field_0x14e;
-	undefined field_0x14f;
-	undefined field_0x150;
-	undefined field_0x151;
-	undefined field_0x152;
-	undefined field_0x153;
-	undefined field_0x154;
-	undefined field_0x155;
-	undefined field_0x156;
-	undefined field_0x157;
-	undefined field_0x158;
-	undefined field_0x159;
-	undefined field_0x15a;
-	undefined field_0x15b;
-	undefined field_0x15c;
-	undefined field_0x15d;
-	undefined field_0x15e;
-	undefined field_0x15f;
-	undefined field_0x160;
-	undefined field_0x161;
-	undefined field_0x162;
-	undefined field_0x163;
-	undefined field_0x164;
-	undefined field_0x165;
-	undefined field_0x166;
-	undefined field_0x167;
-	undefined field_0x168;
-	undefined field_0x169;
-	undefined field_0x16a;
-	undefined field_0x16b;
-	undefined field_0x16c;
-	undefined field_0x16d;
-	undefined field_0x16e;
-	undefined field_0x16f;
-	undefined field_0x170;
-	undefined field_0x171;
-	undefined field_0x172;
-	undefined field_0x173;
-	undefined field_0x174;
-	undefined field_0x175;
-	undefined field_0x176;
-	undefined field_0x177;
-	undefined field_0x178;
-	undefined field_0x179;
-	undefined field_0x17a;
-	undefined field_0x17b;
-	undefined field_0x17c;
-	undefined field_0x17d;
-	undefined field_0x17e;
-	undefined field_0x17f;
-	undefined field_0x180;
-	undefined field_0x181;
-	undefined field_0x182;
-	undefined field_0x183;
-	undefined field_0x184;
-	undefined field_0x185;
-	undefined field_0x186;
-	undefined field_0x187;
-	undefined field_0x188;
-	undefined field_0x189;
-	undefined field_0x18a;
-	undefined field_0x18b;
-	undefined field_0x18c;
-	undefined field_0x18d;
-	undefined field_0x18e;
-	undefined field_0x18f;
-	undefined field_0x190;
-	undefined field_0x191;
-	undefined field_0x192;
-	undefined field_0x193;
-	undefined field_0x194;
-	undefined field_0x195;
-	undefined field_0x196;
-	undefined field_0x197;
-	undefined field_0x198;
-	undefined field_0x199;
-	undefined field_0x19a;
-	undefined field_0x19b;
-	undefined field_0x19c;
-	undefined field_0x19d;
-	undefined field_0x19e;
-	undefined field_0x19f;
-	undefined field_0x1a0;
-	undefined field_0x1a1;
-	undefined field_0x1a2;
-	undefined field_0x1a3;
-	undefined field_0x1a4;
-	undefined field_0x1a5;
-	undefined field_0x1a6;
-	undefined field_0x1a7;
-	undefined field_0x1a8;
-	undefined field_0x1a9;
-	undefined field_0x1aa;
-	undefined field_0x1ab;
-	undefined field_0x1ac;
-	undefined field_0x1ad;
-	undefined field_0x1ae;
-	undefined field_0x1af;
-	undefined field_0x1b0;
-	undefined field_0x1b1;
-	undefined field_0x1b2;
-	undefined field_0x1b3;
-	undefined field_0x1b4;
-	undefined field_0x1b5;
-	undefined field_0x1b6;
-	undefined field_0x1b7;
-	undefined field_0x1b8;
-	undefined field_0x1b9;
-	undefined field_0x1ba;
-	undefined field_0x1bb;
-	undefined field_0x1bc;
-	undefined field_0x1bd;
-	undefined field_0x1be;
-	undefined field_0x1bf;
-	undefined field_0x1c0;
-	undefined field_0x1c1;
-	undefined field_0x1c2;
-	undefined field_0x1c3;
-	undefined field_0x1c4;
-	undefined field_0x1c5;
-	undefined field_0x1c6;
-	undefined field_0x1c7;
-	undefined field_0x1c8;
-	undefined field_0x1c9;
-	undefined field_0x1ca;
-	undefined field_0x1cb;
-	undefined field_0x1cc;
-	undefined field_0x1cd;
-	undefined field_0x1ce;
-	undefined field_0x1cf;
-	undefined field_0x1d0;
-	undefined field_0x1d1;
-	undefined field_0x1d2;
-	undefined field_0x1d3;
-	undefined field_0x1d4;
-	undefined field_0x1d5;
-	undefined field_0x1d6;
-	undefined field_0x1d7;
-	undefined field_0x1d8;
-	undefined field_0x1d9;
-	undefined field_0x1da;
-	undefined field_0x1db;
-	undefined field_0x1dc;
-	undefined field_0x1dd;
-	undefined field_0x1de;
-	undefined field_0x1df;
-	undefined field_0x1e0;
-	undefined field_0x1e1;
-	undefined field_0x1e2;
-	undefined field_0x1e3;
-	undefined field_0x1e4;
-	undefined field_0x1e5;
-	undefined field_0x1e6;
-	undefined field_0x1e7;
-	undefined field_0x1e8;
-	undefined field_0x1e9;
-	undefined field_0x1ea;
-	undefined field_0x1eb;
-	undefined field_0x1ec;
-	undefined field_0x1ed;
-	undefined field_0x1ee;
-	undefined field_0x1ef;
-	undefined field_0x1f0;
-	undefined field_0x1f1;
-	undefined field_0x1f2;
-	undefined field_0x1f3;
-	undefined field_0x1f4;
-	undefined field_0x1f5;
-	undefined field_0x1f6;
-	undefined field_0x1f7;
-	undefined field_0x1f8;
-	undefined field_0x1f9;
-	undefined field_0x1fa;
-	undefined field_0x1fb;
-	undefined field_0x1fc;
-	undefined field_0x1fd;
-	undefined field_0x1fe;
-	undefined field_0x1ff;
-	undefined field_0x200;
-	undefined field_0x201;
-	undefined field_0x202;
-	undefined field_0x203;
-	undefined field_0x204;
-	undefined field_0x205;
-	undefined field_0x206;
-	undefined field_0x207;
-	undefined field_0x208;
-	undefined field_0x209;
-	undefined field_0x20a;
-	undefined field_0x20b;
-	undefined field_0x20c;
-	undefined field_0x20d;
-	undefined field_0x20e;
-	undefined field_0x20f;
-	undefined field_0x210;
-	undefined field_0x211;
-	undefined field_0x212;
-	undefined field_0x213;
-	undefined field_0x214;
-	undefined field_0x215;
-	undefined field_0x216;
-	undefined field_0x217;
-	undefined field_0x218;
-	undefined field_0x219;
-	undefined field_0x21a;
-	undefined field_0x21b;
-	undefined field_0x21c;
-	undefined field_0x21d;
-	undefined field_0x21e;
-	undefined field_0x21f;
-	undefined field_0x220;
-	undefined field_0x221;
-	undefined field_0x222;
-	undefined field_0x223;
-	undefined field_0x224;
-	undefined field_0x225;
-	undefined field_0x226;
-	undefined field_0x227;
-	undefined field_0x228;
-	undefined field_0x229;
-	undefined field_0x22a;
-	undefined field_0x22b;
-	undefined field_0x22c;
-	undefined field_0x22d;
-	undefined field_0x22e;
-	undefined field_0x22f;
-	undefined field_0x230;
-	undefined field_0x231;
-	undefined field_0x232;
-	undefined field_0x233;
-	undefined field_0x234;
-	undefined field_0x235;
-	undefined field_0x236;
-	undefined field_0x237;
-	undefined field_0x238;
-	undefined field_0x239;
-	undefined field_0x23a;
-	undefined field_0x23b;
-	undefined field_0x23c;
-	undefined field_0x23d;
-	undefined field_0x23e;
-	undefined field_0x23f;
-	undefined field_0x240;
-	undefined field_0x241;
-	undefined field_0x242;
-	undefined field_0x243;
-	undefined field_0x244;
-	undefined field_0x245;
-	undefined field_0x246;
-	undefined field_0x247;
-	undefined field_0x248;
-	undefined field_0x249;
-	undefined field_0x24a;
-	undefined field_0x24b;
-	undefined field_0x24c;
-	undefined field_0x24d;
-	undefined field_0x24e;
-	undefined field_0x24f;
-	undefined field_0x250;
-	undefined field_0x251;
-	undefined field_0x252;
-	undefined field_0x253;
-	undefined field_0x254;
-	undefined field_0x255;
-	undefined field_0x256;
-	undefined field_0x257;
-	undefined field_0x258;
-	undefined field_0x259;
-	undefined field_0x25a;
-	undefined field_0x25b;
-	undefined field_0x25c;
-	undefined field_0x25d;
-	undefined field_0x25e;
-	undefined field_0x25f;
-	undefined field_0x260;
-	undefined field_0x261;
-	undefined field_0x262;
-	undefined field_0x263;
-	undefined field_0x264;
-	undefined field_0x265;
-	undefined field_0x266;
-	undefined field_0x267;
-	undefined field_0x268;
-	undefined field_0x269;
-	undefined field_0x26a;
-	undefined field_0x26b;
-	undefined field_0x26c;
-	undefined field_0x26d;
-	undefined field_0x26e;
-	undefined field_0x26f;
-	undefined field_0x270;
-	undefined field_0x271;
-	undefined field_0x272;
-	undefined field_0x273;
-	undefined field_0x274;
-	undefined field_0x275;
-	undefined field_0x276;
-	undefined field_0x277;
-	undefined field_0x278;
-	undefined field_0x279;
-	undefined field_0x27a;
-	undefined field_0x27b;
-	undefined field_0x27c;
-	undefined field_0x27d;
-	undefined field_0x27e;
-	undefined field_0x27f;
-	undefined field_0x280;
-	undefined field_0x281;
-	undefined field_0x282;
-	undefined field_0x283;
-	undefined field_0x284;
-	undefined field_0x285;
-	undefined field_0x286;
-	undefined field_0x287;
-	undefined field_0x288;
-	undefined field_0x289;
-	undefined field_0x28a;
-	undefined field_0x28b;
-	undefined field_0x28c;
-	undefined field_0x28d;
-	undefined field_0x28e;
-	undefined field_0x28f;
-	undefined field_0x290;
-	undefined field_0x291;
-	undefined field_0x292;
-	undefined field_0x293;
-	undefined field_0x294;
-	undefined field_0x295;
-	undefined field_0x296;
-	undefined field_0x297;
-	undefined field_0x298;
-	undefined field_0x299;
-	undefined field_0x29a;
-	undefined field_0x29b;
-	undefined field_0x29c;
-	undefined field_0x29d;
-	undefined field_0x29e;
-	undefined field_0x29f;
-	undefined field_0x2a0;
-	undefined field_0x2a1;
-	undefined field_0x2a2;
-	undefined field_0x2a3;
-	undefined field_0x2a4;
-	undefined field_0x2a5;
-	undefined field_0x2a6;
-	undefined field_0x2a7;
-	undefined field_0x2a8;
-	undefined field_0x2a9;
-	undefined field_0x2aa;
-	undefined field_0x2ab;
-	undefined field_0x2ac;
-	undefined field_0x2ad;
-	undefined field_0x2ae;
-	undefined field_0x2af;
-	undefined field_0x2b0;
-	undefined field_0x2b1;
-	undefined field_0x2b2;
-	undefined field_0x2b3;
-	undefined field_0x2b4;
-	undefined field_0x2b5;
-	undefined field_0x2b6;
-	undefined field_0x2b7;
-	undefined field_0x2b8;
-	undefined field_0x2b9;
-	undefined field_0x2ba;
-	undefined field_0x2bb;
-	undefined field_0x2bc;
-	undefined field_0x2bd;
-	undefined field_0x2be;
-	undefined field_0x2bf;
-	undefined field_0x2c0;
-	undefined field_0x2c1;
-	undefined field_0x2c2;
-	undefined field_0x2c3;
-	undefined field_0x2c4;
-	undefined field_0x2c5;
-	undefined field_0x2c6;
-	undefined field_0x2c7;
-	undefined field_0x2c8;
-	undefined field_0x2c9;
-	undefined field_0x2ca;
-	undefined field_0x2cb;
-	undefined field_0x2cc;
-	undefined field_0x2cd;
-	undefined field_0x2ce;
-	undefined field_0x2cf;
-	undefined field_0x2d0;
-	undefined field_0x2d1;
-	undefined field_0x2d2;
-	undefined field_0x2d3;
-	undefined field_0x2d4;
-	undefined field_0x2d5;
-	undefined field_0x2d6;
-	undefined field_0x2d7;
-	undefined field_0x2d8;
-	undefined field_0x2d9;
-	undefined field_0x2da;
-	undefined field_0x2db;
-	undefined field_0x2dc;
-	undefined field_0x2dd;
-	undefined field_0x2de;
-	undefined field_0x2df;
-	undefined field_0x2e0;
-	undefined field_0x2e1;
-	undefined field_0x2e2;
-	undefined field_0x2e3;
-	undefined field_0x2e4;
-	undefined field_0x2e5;
-	undefined field_0x2e6;
-	undefined field_0x2e7;
-	undefined field_0x2e8;
-	undefined field_0x2e9;
-	undefined field_0x2ea;
-	undefined field_0x2eb;
-	undefined field_0x2ec;
-	undefined field_0x2ed;
-	undefined field_0x2ee;
-	undefined field_0x2ef;
-	undefined field_0x2f0;
-	undefined field_0x2f1;
-	undefined field_0x2f2;
-	undefined field_0x2f3;
-	undefined field_0x2f4;
-	undefined field_0x2f5;
-	undefined field_0x2f6;
-	undefined field_0x2f7;
-	undefined field_0x2f8;
-	undefined field_0x2f9;
-	undefined field_0x2fa;
-	undefined field_0x2fb;
-	undefined field_0x2fc;
-	undefined field_0x2fd;
-	undefined field_0x2fe;
-	undefined field_0x2ff;
-	undefined field_0x300;
-	undefined field_0x301;
-	undefined field_0x302;
-	undefined field_0x303;
-	undefined field_0x304;
-	undefined field_0x305;
-	undefined field_0x306;
-	undefined field_0x307;
-	undefined field_0x308;
-	undefined field_0x309;
-	undefined field_0x30a;
-	undefined field_0x30b;
-	undefined field_0x30c;
-	undefined field_0x30d;
-	undefined field_0x30e;
-	undefined field_0x30f;
-	undefined field_0x310;
-	undefined field_0x311;
-	undefined field_0x312;
-	undefined field_0x313;
-	undefined field_0x314;
-	undefined field_0x315;
-	undefined field_0x316;
-	undefined field_0x317;
-	undefined field_0x318;
-	undefined field_0x319;
-	undefined field_0x31a;
-	undefined field_0x31b;
-	undefined field_0x31c;
-	undefined field_0x31d;
-	undefined field_0x31e;
-	undefined field_0x31f;
-	undefined field_0x320;
-	undefined field_0x321;
-	undefined field_0x322;
-	undefined field_0x323;
-	undefined field_0x324;
-	undefined field_0x325;
-	undefined field_0x326;
-	undefined field_0x327;
-	undefined field_0x328;
-	undefined field_0x329;
-	undefined field_0x32a;
-	undefined field_0x32b;
-	undefined field_0x32c;
-	undefined field_0x32d;
-	undefined field_0x32e;
-	undefined field_0x32f;
-	undefined field_0x330;
-	undefined field_0x331;
-	undefined field_0x332;
-	undefined field_0x333;
-	undefined field_0x334;
-	undefined field_0x335;
-	undefined field_0x336;
-	undefined field_0x337;
-	undefined field_0x338;
-	undefined field_0x339;
-	undefined field_0x33a;
-	undefined field_0x33b;
-	undefined field_0x33c;
-	undefined field_0x33d;
-	undefined field_0x33e;
-	undefined field_0x33f;
-	undefined field_0x340;
-	undefined field_0x341;
-	undefined field_0x342;
-	undefined field_0x343;
-	undefined field_0x344;
-	undefined field_0x345;
-	undefined field_0x346;
-	undefined field_0x347;
-	undefined field_0x348;
-	undefined field_0x349;
-	undefined field_0x34a;
-	undefined field_0x34b;
-	undefined field_0x34c;
-	undefined field_0x34d;
-	undefined field_0x34e;
-	undefined field_0x34f;
-	undefined field_0x350;
-	undefined field_0x351;
-	undefined field_0x352;
-	undefined field_0x353;
-	undefined field_0x354;
-	undefined field_0x355;
-	undefined field_0x356;
-	undefined field_0x357;
-	undefined field_0x358;
-	undefined field_0x359;
-	undefined field_0x35a;
-	undefined field_0x35b;
-	undefined field_0x35c;
-	undefined field_0x35d;
-	undefined field_0x35e;
-	undefined field_0x35f;
-	undefined field_0x360;
-	undefined field_0x361;
-	undefined field_0x362;
-	undefined field_0x363;
-	undefined field_0x364;
-	undefined field_0x365;
-	undefined field_0x366;
-	undefined field_0x367;
-	undefined field_0x368;
-	undefined field_0x369;
-	undefined field_0x36a;
-	undefined field_0x36b;
-	undefined field_0x36c;
-	undefined field_0x36d;
-	undefined field_0x36e;
-	undefined field_0x36f;
-	undefined field_0x370;
-	undefined field_0x371;
-	undefined field_0x372;
-	undefined field_0x373;
-	undefined field_0x374;
-	undefined field_0x375;
-	undefined field_0x376;
-	undefined field_0x377;
-	undefined field_0x378;
-	undefined field_0x379;
-	undefined field_0x37a;
-	undefined field_0x37b;
-	undefined field_0x37c;
-	undefined field_0x37d;
-	undefined field_0x37e;
-	undefined field_0x37f;
-	undefined field_0x380;
-	undefined field_0x381;
-	undefined field_0x382;
-	undefined field_0x383;
-	undefined field_0x384;
-	undefined field_0x385;
-	undefined field_0x386;
-	undefined field_0x387;
-	undefined field_0x388;
-	undefined field_0x389;
-	undefined field_0x38a;
-	undefined field_0x38b;
-	undefined field_0x38c;
-	undefined field_0x38d;
-	undefined field_0x38e;
-	undefined field_0x38f;
-	undefined field_0x390;
-	undefined field_0x391;
-	undefined field_0x392;
-	undefined field_0x393;
-	undefined field_0x394;
-	undefined field_0x395;
-	undefined field_0x396;
-	undefined field_0x397;
-	undefined field_0x398;
-	undefined field_0x399;
-	undefined field_0x39a;
-	undefined field_0x39b;
-	undefined field_0x39c;
-	undefined field_0x39d;
-	undefined field_0x39e;
-	undefined field_0x39f;
-	undefined field_0x3a0;
-	undefined field_0x3a1;
-	undefined field_0x3a2;
-	undefined field_0x3a3;
-	undefined field_0x3a4;
-	undefined field_0x3a5;
-	undefined field_0x3a6;
-	undefined field_0x3a7;
-	undefined field_0x3a8;
-	undefined field_0x3a9;
-	undefined field_0x3aa;
-	undefined field_0x3ab;
-	undefined field_0x3ac;
-	undefined field_0x3ad;
-	undefined field_0x3ae;
-	undefined field_0x3af;
-	undefined field_0x3b0;
-	undefined field_0x3b1;
-	undefined field_0x3b2;
-	undefined field_0x3b3;
-	undefined field_0x3b4;
-	undefined field_0x3b5;
-	undefined field_0x3b6;
-	undefined field_0x3b7;
-	undefined field_0x3b8;
-	undefined field_0x3b9;
-	undefined field_0x3ba;
-	undefined field_0x3bb;
-	undefined field_0x3bc;
-	undefined field_0x3bd;
-	undefined field_0x3be;
-	undefined field_0x3bf;
-	undefined field_0x3c0;
-	undefined field_0x3c1;
-	undefined field_0x3c2;
-	undefined field_0x3c3;
-	undefined field_0x3c4;
-	undefined field_0x3c5;
-	undefined field_0x3c6;
-	undefined field_0x3c7;
-	undefined field_0x3c8;
-	undefined field_0x3c9;
-	undefined field_0x3ca;
-	undefined field_0x3cb;
-	undefined field_0x3cc;
-	undefined field_0x3cd;
-	undefined field_0x3ce;
-	undefined field_0x3cf;
-	undefined field_0x3d0;
-	undefined field_0x3d1;
-	undefined field_0x3d2;
-	undefined field_0x3d3;
-	undefined field_0x3d4;
-	undefined field_0x3d5;
-	undefined field_0x3d6;
-	undefined field_0x3d7;
-	undefined field_0x3d8;
-	undefined field_0x3d9;
-	undefined field_0x3da;
-	undefined field_0x3db;
-	undefined field_0x3dc;
-	undefined field_0x3dd;
-	undefined field_0x3de;
-	undefined field_0x3df;
-	undefined field_0x3e0;
-	undefined field_0x3e1;
-	undefined field_0x3e2;
-	undefined field_0x3e3;
-	undefined field_0x3e4;
-	undefined field_0x3e5;
-	undefined field_0x3e6;
-	undefined field_0x3e7;
-	undefined field_0x3e8;
-	undefined field_0x3e9;
-	undefined field_0x3ea;
-	undefined field_0x3eb;
-	undefined field_0x3ec;
-	undefined field_0x3ed;
-	undefined field_0x3ee;
-	undefined field_0x3ef;
-	undefined field_0x3f0;
-	undefined field_0x3f1;
-	undefined field_0x3f2;
-	undefined field_0x3f3;
-	undefined field_0x3f4;
-	undefined field_0x3f5;
-	undefined field_0x3f6;
-	undefined field_0x3f7;
-	undefined field_0x3f8;
-	undefined field_0x3f9;
-	undefined field_0x3fa;
-	undefined field_0x3fb;
-	undefined field_0x3fc;
-	undefined field_0x3fd;
-	undefined field_0x3fe;
-	undefined field_0x3ff;
-	undefined field_0x400;
-	undefined field_0x401;
-	undefined field_0x402;
-	undefined field_0x403;
-	undefined field_0x404;
-	undefined field_0x405;
-	undefined field_0x406;
-	undefined field_0x407;
-	undefined field_0x408;
-	undefined field_0x409;
-	undefined field_0x40a;
-	undefined field_0x40b;
-	undefined field_0x40c;
-	undefined field_0x40d;
-	undefined field_0x40e;
-	undefined field_0x40f;
-	undefined field_0x410;
-	undefined field_0x411;
-	undefined field_0x412;
-	undefined field_0x413;
-	undefined field_0x414;
-	undefined field_0x415;
-	undefined field_0x416;
-	undefined field_0x417;
-	undefined field_0x418;
-	undefined field_0x419;
-	undefined field_0x41a;
-	undefined field_0x41b;
-	undefined field_0x41c;
-	undefined field_0x41d;
-	undefined field_0x41e;
-	undefined field_0x41f;
-	undefined field_0x420;
-	undefined field_0x421;
-	undefined field_0x422;
-	undefined field_0x423;
-	undefined field_0x424;
-	undefined field_0x425;
-	undefined field_0x426;
-	undefined field_0x427;
-	undefined field_0x428;
-	undefined field_0x429;
-	undefined field_0x42a;
-	undefined field_0x42b;
-	undefined field_0x42c;
-	undefined field_0x42d;
-	undefined field_0x42e;
-	undefined field_0x42f;
-	undefined field_0x430;
-	undefined field_0x431;
-	undefined field_0x432;
-	undefined field_0x433;
-	undefined field_0x434;
-	undefined field_0x435;
-	undefined field_0x436;
-	undefined field_0x437;
-	undefined field_0x438;
-	undefined field_0x439;
-	undefined field_0x43a;
-	undefined field_0x43b;
-	undefined field_0x43c;
-	undefined field_0x43d;
-	undefined field_0x43e;
-	undefined field_0x43f;
-	undefined field_0x440;
-	undefined field_0x441;
-	undefined field_0x442;
-	undefined field_0x443;
-	undefined field_0x444;
-	undefined field_0x445;
-	undefined field_0x446;
-	undefined field_0x447;
-	undefined field_0x448;
-	undefined field_0x449;
-	undefined field_0x44a;
-	undefined field_0x44b;
-	undefined field_0x44c;
-	undefined field_0x44d;
-	undefined field_0x44e;
-	undefined field_0x44f;
-	undefined field_0x450;
-	undefined field_0x451;
-	undefined field_0x452;
-	undefined field_0x453;
-	undefined field_0x454;
-	undefined field_0x455;
-	undefined field_0x456;
-	undefined field_0x457;
-	undefined field_0x458;
-	undefined field_0x459;
-	undefined field_0x45a;
-	undefined field_0x45b;
-	undefined field_0x45c;
-	undefined field_0x45d;
-	undefined field_0x45e;
-	undefined field_0x45f;
-	undefined field_0x460;
-	undefined field_0x461;
-	undefined field_0x462;
-	undefined field_0x463;
-	undefined field_0x464;
-	undefined field_0x465;
-	undefined field_0x466;
-	undefined field_0x467;
-	undefined field_0x468;
-	undefined field_0x469;
-	undefined field_0x46a;
-	undefined field_0x46b;
-	undefined field_0x46c;
-	undefined field_0x46d;
-	undefined field_0x46e;
-	undefined field_0x46f;
-	undefined field_0x470;
-	undefined field_0x471;
-	undefined field_0x472;
-	undefined field_0x473;
-	undefined field_0x474;
-	undefined field_0x475;
-	undefined field_0x476;
-	undefined field_0x477;
-	undefined field_0x478;
-	undefined field_0x479;
-	undefined field_0x47a;
-	undefined field_0x47b;
-	undefined field_0x47c;
-	undefined field_0x47d;
-	undefined field_0x47e;
-	undefined field_0x47f;
-	undefined field_0x480;
-	undefined field_0x481;
-	undefined field_0x482;
-	undefined field_0x483;
-	undefined field_0x484;
-	undefined field_0x485;
-	undefined field_0x486;
-	undefined field_0x487;
-	undefined field_0x488;
-	undefined field_0x489;
-	undefined field_0x48a;
-	undefined field_0x48b;
-	undefined field_0x48c;
-	undefined field_0x48d;
-	undefined field_0x48e;
-	undefined field_0x48f;
-	undefined field_0x490;
-	undefined field_0x491;
-	undefined field_0x492;
-	undefined field_0x493;
-	undefined field_0x494;
-	undefined field_0x495;
-	undefined field_0x496;
-	undefined field_0x497;
-	undefined field_0x498;
-	undefined field_0x499;
-	undefined field_0x49a;
-	undefined field_0x49b;
-	undefined field_0x49c;
-	undefined field_0x49d;
-	undefined field_0x49e;
-	undefined field_0x49f;
-	undefined field_0x4a0;
-	undefined field_0x4a1;
-	undefined field_0x4a2;
-	undefined field_0x4a3;
-	undefined field_0x4a4;
-	undefined field_0x4a5;
-	undefined field_0x4a6;
-	undefined field_0x4a7;
-	undefined field_0x4a8;
-	undefined field_0x4a9;
-	undefined field_0x4aa;
-	undefined field_0x4ab;
-	undefined field_0x4ac;
-	undefined field_0x4ad;
-	undefined field_0x4ae;
-	undefined field_0x4af;
-	undefined field_0x4b0;
-	undefined field_0x4b1;
-	undefined field_0x4b2;
-	undefined field_0x4b3;
-	undefined field_0x4b4;
-	undefined field_0x4b5;
-	undefined field_0x4b6;
-	undefined field_0x4b7;
-	undefined field_0x4b8;
-	undefined field_0x4b9;
-	undefined field_0x4ba;
-	undefined field_0x4bb;
-	undefined field_0x4bc;
-	undefined field_0x4bd;
-	undefined field_0x4be;
-	undefined field_0x4bf;
-	undefined field_0x4c0;
-	undefined field_0x4c1;
-	undefined field_0x4c2;
-	undefined field_0x4c3;
-	undefined field_0x4c4;
-	undefined field_0x4c5;
-	undefined field_0x4c6;
-	undefined field_0x4c7;
-	undefined field_0x4c8;
-	undefined field_0x4c9;
-	undefined field_0x4ca;
-	undefined field_0x4cb;
-	undefined field_0x4cc;
-	undefined field_0x4cd;
-	undefined field_0x4ce;
-	undefined field_0x4cf;
-	undefined field_0x4d0;
-	undefined field_0x4d1;
-	undefined field_0x4d2;
-	undefined field_0x4d3;
-	undefined field_0x4d4;
-	undefined field_0x4d5;
-	undefined field_0x4d6;
-	undefined field_0x4d7;
-	undefined field_0x4d8;
-	undefined field_0x4d9;
-	undefined field_0x4da;
-	undefined field_0x4db;
-	undefined field_0x4dc;
-	undefined field_0x4dd;
-	undefined field_0x4de;
-	undefined field_0x4df;
-	undefined field_0x4e0;
-	undefined field_0x4e1;
-	undefined field_0x4e2;
-	undefined field_0x4e3;
-	undefined field_0x4e4;
-	undefined field_0x4e5;
-	undefined field_0x4e6;
-	undefined field_0x4e7;
-	undefined field_0x4e8;
-	undefined field_0x4e9;
-	undefined field_0x4ea;
-	undefined field_0x4eb;
-	undefined field_0x4ec;
-	undefined field_0x4ed;
-	undefined field_0x4ee;
-	undefined field_0x4ef;
-	undefined field_0x4f0;
-	undefined field_0x4f1;
-	undefined field_0x4f2;
-	undefined field_0x4f3;
-	undefined field_0x4f4;
-	undefined field_0x4f5;
-	undefined field_0x4f6;
-	undefined field_0x4f7;
-	undefined field_0x4f8;
-	undefined field_0x4f9;
-	undefined field_0x4fa;
-	undefined field_0x4fb;
-	undefined field_0x4fc;
-	undefined field_0x4fd;
-	undefined field_0x4fe;
-	undefined field_0x4ff;
-	undefined field_0x500;
-	undefined field_0x501;
-	undefined field_0x502;
-	undefined field_0x503;
-	undefined field_0x504;
-	undefined field_0x505;
-	undefined field_0x506;
-	undefined field_0x507;
-	undefined field_0x508;
-	undefined field_0x509;
-	undefined field_0x50a;
-	undefined field_0x50b;
-	undefined field_0x50c;
-	undefined field_0x50d;
-	undefined field_0x50e;
-	undefined field_0x50f;
-	undefined field_0x510;
-	undefined field_0x511;
-	undefined field_0x512;
-	undefined field_0x513;
-	undefined field_0x514;
-	undefined field_0x515;
-	undefined field_0x516;
-	undefined field_0x517;
-	undefined field_0x518;
-	undefined field_0x519;
-	undefined field_0x51a;
-	undefined field_0x51b;
-	undefined field_0x51c;
-	undefined field_0x51d;
-	undefined field_0x51e;
-	undefined field_0x51f;
-	undefined field_0x520;
-	undefined field_0x521;
-	undefined field_0x522;
-	undefined field_0x523;
-	undefined field_0x524;
-	undefined field_0x525;
-	undefined field_0x526;
-	undefined field_0x527;
-	undefined field_0x528;
-	undefined field_0x529;
-	undefined field_0x52a;
-	undefined field_0x52b;
-	undefined field_0x52c;
-	undefined field_0x52d;
-	undefined field_0x52e;
-	undefined field_0x52f;
-	undefined field_0x530;
-	undefined field_0x531;
-	undefined field_0x532;
-	undefined field_0x533;
-	undefined field_0x534;
-	undefined field_0x535;
-	undefined field_0x536;
-	undefined field_0x537;
-	undefined field_0x538;
-	undefined field_0x539;
-	undefined field_0x53a;
-	undefined field_0x53b;
-	undefined field_0x53c;
-	undefined field_0x53d;
-	undefined field_0x53e;
-	undefined field_0x53f;
-	undefined field_0x540;
-	undefined field_0x541;
-	undefined field_0x542;
-	undefined field_0x543;
-	undefined field_0x544;
-	undefined field_0x545;
-	undefined field_0x546;
-	undefined field_0x547;
-	undefined field_0x548;
-	undefined field_0x549;
-	undefined field_0x54a;
-	undefined field_0x54b;
-	undefined field_0x54c;
-	undefined field_0x54d;
-	undefined field_0x54e;
-	undefined field_0x54f;
-	undefined field_0x550;
-	undefined field_0x551;
-	undefined field_0x552;
-	undefined field_0x553;
-	undefined field_0x554;
-	undefined field_0x555;
-	undefined field_0x556;
-	undefined field_0x557;
-	undefined field_0x558;
-	undefined field_0x559;
-	undefined field_0x55a;
-	undefined field_0x55b;
-	undefined field_0x55c;
-	undefined field_0x55d;
-	undefined field_0x55e;
-	undefined field_0x55f;
-	undefined field_0x560;
-	undefined field_0x561;
-	undefined field_0x562;
-	undefined field_0x563;
-	undefined field_0x564;
-	undefined field_0x565;
-	undefined field_0x566;
-	undefined field_0x567;
-	undefined field_0x568;
-	undefined field_0x569;
-	undefined field_0x56a;
-	undefined field_0x56b;
-	undefined field_0x56c;
-	undefined field_0x56d;
-	undefined field_0x56e;
-	undefined field_0x56f;
-	undefined field_0x570;
-	undefined field_0x571;
-	undefined field_0x572;
-	undefined field_0x573;
-	undefined field_0x574;
-	undefined field_0x575;
-	undefined field_0x576;
-	undefined field_0x577;
-	undefined field_0x578;
-	undefined field_0x579;
-	undefined field_0x57a;
-	undefined field_0x57b;
-	undefined field_0x57c;
-	undefined field_0x57d;
-	undefined field_0x57e;
-	undefined field_0x57f;
-	undefined field_0x580;
-	undefined field_0x581;
-	undefined field_0x582;
-	undefined field_0x583;
-	undefined field_0x584;
-	undefined field_0x585;
-	undefined field_0x586;
-	undefined field_0x587;
-	undefined field_0x588;
-	undefined field_0x589;
-	undefined field_0x58a;
-	undefined field_0x58b;
-	undefined field_0x58c;
-	undefined field_0x58d;
-	undefined field_0x58e;
-	undefined field_0x58f;
-	undefined field_0x590;
-	undefined field_0x591;
-	undefined field_0x592;
-	undefined field_0x593;
-	undefined field_0x594;
-	undefined field_0x595;
-	undefined field_0x596;
-	undefined field_0x597;
-	undefined field_0x598;
-	undefined field_0x599;
-	undefined field_0x59a;
-	undefined field_0x59b;
-	undefined field_0x59c;
-	undefined field_0x59d;
-	undefined field_0x59e;
-	undefined field_0x59f;
-	undefined field_0x5a0;
-	undefined field_0x5a1;
-	undefined field_0x5a2;
-	undefined field_0x5a3;
-	undefined field_0x5a4;
-	undefined field_0x5a5;
-	undefined field_0x5a6;
-	undefined field_0x5a7;
-	undefined field_0x5a8;
-	undefined field_0x5a9;
-	undefined field_0x5aa;
-	undefined field_0x5ab;
-	undefined field_0x5ac;
-	undefined field_0x5ad;
-	undefined field_0x5ae;
-	undefined field_0x5af;
-	undefined field_0x5b0;
-	undefined field_0x5b1;
-	undefined field_0x5b2;
-	undefined field_0x5b3;
-	undefined field_0x5b4;
-	undefined field_0x5b5;
-	undefined field_0x5b6;
-	undefined field_0x5b7;
-	undefined field_0x5b8;
-	undefined field_0x5b9;
-	undefined field_0x5ba;
-	undefined field_0x5bb;
-	undefined field_0x5bc;
-	undefined field_0x5bd;
-	undefined field_0x5be;
-	undefined field_0x5bf;
-	undefined field_0x5c0;
-	undefined field_0x5c1;
-	undefined field_0x5c2;
-	undefined field_0x5c3;
-	undefined field_0x5c4;
-	undefined field_0x5c5;
-	undefined field_0x5c6;
-	undefined field_0x5c7;
-	undefined field_0x5c8;
-	undefined field_0x5c9;
-	undefined field_0x5ca;
-	undefined field_0x5cb;
-	undefined field_0x5cc;
-	undefined field_0x5cd;
-	undefined field_0x5ce;
-	undefined field_0x5cf;
-	undefined field_0x5d0;
-	undefined field_0x5d1;
-	undefined field_0x5d2;
-	undefined field_0x5d3;
-	undefined field_0x5d4;
-	undefined field_0x5d5;
-	undefined field_0x5d6;
-	undefined field_0x5d7;
-	undefined field_0x5d8;
-	undefined field_0x5d9;
-	undefined field_0x5da;
-	undefined field_0x5db;
-	undefined field_0x5dc;
-	undefined field_0x5dd;
-	undefined field_0x5de;
-	undefined field_0x5df;
-	undefined field_0x5e0;
-	undefined field_0x5e1;
-	undefined field_0x5e2;
-	undefined field_0x5e3;
-	undefined field_0x5e4;
-	undefined field_0x5e5;
-	undefined field_0x5e6;
-	undefined field_0x5e7;
-	undefined field_0x5e8;
-	undefined field_0x5e9;
-	undefined field_0x5ea;
-	undefined field_0x5eb;
-	undefined field_0x5ec;
-	undefined field_0x5ed;
-	undefined field_0x5ee;
-	undefined field_0x5ef;
-	undefined field_0x5f0;
-	undefined field_0x5f1;
-	undefined field_0x5f2;
-	undefined field_0x5f3;
-	undefined field_0x5f4;
-	undefined field_0x5f5;
-	undefined field_0x5f6;
-	undefined field_0x5f7;
-	undefined field_0x5f8;
-	undefined field_0x5f9;
-	undefined field_0x5fa;
-	undefined field_0x5fb;
-	undefined field_0x5fc;
-	undefined field_0x5fd;
-	undefined field_0x5fe;
-	undefined field_0x5ff;
-	undefined field_0x600;
-	undefined field_0x601;
-	undefined field_0x602;
-	undefined field_0x603;
-	undefined field_0x604;
-	undefined field_0x605;
-	undefined field_0x606;
-	undefined field_0x607;
-	undefined field_0x608;
-	undefined field_0x609;
-	undefined field_0x60a;
-	undefined field_0x60b;
-	undefined field_0x60c;
-	undefined field_0x60d;
-	undefined field_0x60e;
-	undefined field_0x60f;
-	undefined field_0x610;
-	undefined field_0x611;
-	undefined field_0x612;
-	undefined field_0x613;
-	undefined field_0x614;
-	undefined field_0x615;
-	undefined field_0x616;
-	undefined field_0x617;
-	undefined field_0x618;
-	undefined field_0x619;
-	undefined field_0x61a;
-	undefined field_0x61b;
-	undefined field_0x61c;
-	undefined field_0x61d;
-	undefined field_0x61e;
-	undefined field_0x61f;
-	undefined field_0x620;
-	undefined field_0x621;
-	undefined field_0x622;
-	undefined field_0x623;
-	undefined field_0x624;
-	undefined field_0x625;
-	undefined field_0x626;
-	undefined field_0x627;
-	undefined field_0x628;
-	undefined field_0x629;
-	undefined field_0x62a;
-	undefined field_0x62b;
-	undefined field_0x62c;
-	undefined field_0x62d;
-	undefined field_0x62e;
-	undefined field_0x62f;
-	undefined field_0x630;
-	undefined field_0x631;
-	undefined field_0x632;
-	undefined field_0x633;
-	undefined field_0x634;
-	undefined field_0x635;
-	undefined field_0x636;
-	undefined field_0x637;
-	undefined field_0x638;
-	undefined field_0x639;
-	undefined field_0x63a;
-	undefined field_0x63b;
-	undefined field_0x63c;
-	undefined field_0x63d;
-	undefined field_0x63e;
-	undefined field_0x63f;
-	undefined field_0x640;
-	undefined field_0x641;
-	undefined field_0x642;
-	undefined field_0x643;
-	undefined field_0x644;
-	undefined field_0x645;
-	undefined field_0x646;
-	undefined field_0x647;
-	undefined field_0x648;
-	undefined field_0x649;
-	undefined field_0x64a;
-	undefined field_0x64b;
-	undefined field_0x64c;
-	undefined field_0x64d;
-	undefined field_0x64e;
-	undefined field_0x64f;
-	undefined field_0x650;
-	undefined field_0x651;
-	undefined field_0x652;
-	undefined field_0x653;
-	undefined field_0x654;
-	undefined field_0x655;
-	undefined field_0x656;
-	undefined field_0x657;
-	undefined field_0x658;
-	undefined field_0x659;
-	undefined field_0x65a;
-	undefined field_0x65b;
-	undefined field_0x65c;
-	undefined field_0x65d;
-	undefined field_0x65e;
-	undefined field_0x65f;
-	undefined field_0x660;
-	undefined field_0x661;
-	undefined field_0x662;
-	undefined field_0x663;
-	undefined field_0x664;
-	undefined field_0x665;
-	undefined field_0x666;
-	undefined field_0x667;
-	undefined field_0x668;
-	undefined field_0x669;
-	undefined field_0x66a;
-	undefined field_0x66b;
-	undefined field_0x66c;
-	undefined field_0x66d;
-	undefined field_0x66e;
-	undefined field_0x66f;
-	undefined field_0x670;
-	undefined field_0x671;
-	undefined field_0x672;
-	undefined field_0x673;
-	undefined field_0x674;
-	undefined field_0x675;
-	undefined field_0x676;
-	undefined field_0x677;
-	undefined field_0x678;
-	undefined field_0x679;
-	undefined field_0x67a;
-	undefined field_0x67b;
-	undefined field_0x67c;
-	undefined field_0x67d;
-	undefined field_0x67e;
-	undefined field_0x67f;
-	undefined field_0x680;
-	undefined field_0x681;
-	undefined field_0x682;
-	undefined field_0x683;
-	undefined field_0x684;
-	undefined field_0x685;
-	undefined field_0x686;
-	undefined field_0x687;
-	undefined field_0x688;
-	undefined field_0x689;
-	undefined field_0x68a;
-	undefined field_0x68b;
-	undefined field_0x68c;
-	undefined field_0x68d;
-	undefined field_0x68e;
-	undefined field_0x68f;
-	undefined field_0x690;
-	undefined field_0x691;
-	undefined field_0x692;
-	undefined field_0x693;
-	undefined field_0x694;
-	undefined field_0x695;
-	undefined field_0x696;
-	undefined field_0x697;
-	undefined field_0x698;
-	undefined field_0x699;
-	undefined field_0x69a;
-	undefined field_0x69b;
-	undefined field_0x69c;
-	undefined field_0x69d;
-	undefined field_0x69e;
-	undefined field_0x69f;
-	undefined field_0x6a0;
-	undefined field_0x6a1;
-	undefined field_0x6a2;
-	undefined field_0x6a3;
-	undefined field_0x6a4;
-	undefined field_0x6a5;
-	undefined field_0x6a6;
-	undefined field_0x6a7;
-	undefined field_0x6a8;
-	undefined field_0x6a9;
-	undefined field_0x6aa;
-	undefined field_0x6ab;
-	undefined field_0x6ac;
-	undefined field_0x6ad;
-	undefined field_0x6ae;
-	undefined field_0x6af;
-	undefined field_0x6b0;
-	undefined field_0x6b1;
-	undefined field_0x6b2;
-	undefined field_0x6b3;
-	undefined field_0x6b4;
-	undefined field_0x6b5;
-	undefined field_0x6b6;
-	undefined field_0x6b7;
-	undefined field_0x6b8;
-	undefined field_0x6b9;
-	undefined field_0x6ba;
-	undefined field_0x6bb;
-	undefined field_0x6bc;
-	undefined field_0x6bd;
-	undefined field_0x6be;
-	undefined field_0x6bf;
-	undefined field_0x6c0;
-	undefined field_0x6c1;
-	undefined field_0x6c2;
-	undefined field_0x6c3;
-	undefined field_0x6c4;
-	undefined field_0x6c5;
-	undefined field_0x6c6;
-	undefined field_0x6c7;
-	undefined field_0x6c8;
-	undefined field_0x6c9;
-	undefined field_0x6ca;
-	undefined field_0x6cb;
-	undefined field_0x6cc;
-	undefined field_0x6cd;
-	undefined field_0x6ce;
-	undefined field_0x6cf;
-	undefined field_0x6d0;
-	undefined field_0x6d1;
-	undefined field_0x6d2;
-	undefined field_0x6d3;
-	undefined field_0x6d4;
-	undefined field_0x6d5;
-	undefined field_0x6d6;
-	undefined field_0x6d7;
-	undefined field_0x6d8;
-	undefined field_0x6d9;
-	undefined field_0x6da;
-	undefined field_0x6db;
-	undefined field_0x6dc;
-	undefined field_0x6dd;
-	undefined field_0x6de;
-	undefined field_0x6df;
-	undefined field_0x6e0;
-	undefined field_0x6e1;
-	undefined field_0x6e2;
-	undefined field_0x6e3;
-	undefined field_0x6e4;
-	undefined field_0x6e5;
-	undefined field_0x6e6;
-	undefined field_0x6e7;
-	undefined field_0x6e8;
-	undefined field_0x6e9;
-	undefined field_0x6ea;
-	undefined field_0x6eb;
-	undefined field_0x6ec;
-	undefined field_0x6ed;
-	undefined field_0x6ee;
-	undefined field_0x6ef;
-	undefined field_0x6f0;
-	undefined field_0x6f1;
-	undefined field_0x6f2;
-	undefined field_0x6f3;
-	undefined field_0x6f4;
-	undefined field_0x6f5;
-	undefined field_0x6f6;
-	undefined field_0x6f7;
-	undefined field_0x6f8;
-	undefined field_0x6f9;
-	undefined field_0x6fa;
-	undefined field_0x6fb;
-	undefined field_0x6fc;
-	undefined field_0x6fd;
-	undefined field_0x6fe;
-	undefined field_0x6ff;
-	undefined field_0x700;
-	undefined field_0x701;
-	undefined field_0x702;
-	undefined field_0x703;
-	undefined field_0x704;
-	undefined field_0x705;
-	undefined field_0x706;
-	undefined field_0x707;
-	undefined field_0x708;
-	undefined field_0x709;
-	undefined field_0x70a;
-	undefined field_0x70b;
-	undefined field_0x70c;
-	undefined field_0x70d;
-	undefined field_0x70e;
-	undefined field_0x70f;
-	undefined field_0x710;
-	undefined field_0x711;
-	undefined field_0x712;
-	undefined field_0x713;
-	undefined field_0x714;
-	undefined field_0x715;
-	undefined field_0x716;
-	undefined field_0x717;
-	undefined field_0x718;
-	undefined field_0x719;
-	undefined field_0x71a;
-	undefined field_0x71b;
-	undefined field_0x71c;
-	undefined field_0x71d;
-	undefined field_0x71e;
-	undefined field_0x71f;
-	undefined field_0x720;
-	undefined field_0x721;
-	undefined field_0x722;
-	undefined field_0x723;
-	undefined field_0x724;
-	undefined field_0x725;
-	undefined field_0x726;
-	undefined field_0x727;
-	undefined field_0x728;
-	undefined field_0x729;
-	undefined field_0x72a;
-	undefined field_0x72b;
-	undefined field_0x72c;
-	undefined field_0x72d;
-	undefined field_0x72e;
-	undefined field_0x72f;
-	undefined field_0x730;
-	undefined field_0x731;
-	undefined field_0x732;
-	undefined field_0x733;
-	undefined field_0x734;
-	undefined field_0x735;
-	undefined field_0x736;
-	undefined field_0x737;
-	undefined field_0x738;
-	undefined field_0x739;
-	undefined field_0x73a;
-	undefined field_0x73b;
-	undefined field_0x73c;
-	undefined field_0x73d;
-	undefined field_0x73e;
-	undefined field_0x73f;
-	undefined field_0x740;
-	undefined field_0x741;
-	undefined field_0x742;
-	undefined field_0x743;
-	undefined field_0x744;
-	undefined field_0x745;
-	undefined field_0x746;
-	undefined field_0x747;
-	undefined field_0x748;
-	undefined field_0x749;
-	undefined field_0x74a;
-	undefined field_0x74b;
-	undefined field_0x74c;
-	undefined field_0x74d;
-	undefined field_0x74e;
-	undefined field_0x74f;
-	undefined field_0x750;
-	undefined field_0x751;
-	undefined field_0x752;
-	undefined field_0x753;
-	undefined field_0x754;
-	undefined field_0x755;
-	undefined field_0x756;
-	undefined field_0x757;
-	undefined field_0x758;
-	undefined field_0x759;
-	undefined field_0x75a;
-	undefined field_0x75b;
-	undefined field_0x75c;
-	undefined field_0x75d;
-	undefined field_0x75e;
-	undefined field_0x75f;
-	undefined field_0x760;
-	undefined field_0x761;
-	undefined field_0x762;
-	undefined field_0x763;
-	undefined field_0x764;
-	undefined field_0x765;
-	undefined field_0x766;
-	undefined field_0x767;
-	undefined field_0x768;
-	undefined field_0x769;
-	undefined field_0x76a;
-	undefined field_0x76b;
-	undefined field_0x76c;
-	undefined field_0x76d;
-	undefined field_0x76e;
-	undefined field_0x76f;
-	undefined field_0x770;
-	undefined field_0x771;
-	undefined field_0x772;
-	undefined field_0x773;
-	undefined field_0x774;
-	undefined field_0x775;
-	undefined field_0x776;
-	undefined field_0x777;
-	undefined field_0x778;
-	undefined field_0x779;
-	undefined field_0x77a;
-	undefined field_0x77b;
-	undefined field_0x77c;
-	undefined field_0x77d;
-	undefined field_0x77e;
-	undefined field_0x77f;
-	undefined field_0x780;
-	undefined field_0x781;
-	undefined field_0x782;
-	undefined field_0x783;
-	undefined field_0x784;
-	undefined field_0x785;
-	undefined field_0x786;
-	undefined field_0x787;
-	undefined field_0x788;
-	undefined field_0x789;
-	undefined field_0x78a;
-	undefined field_0x78b;
-	undefined field_0x78c;
-	undefined field_0x78d;
-	undefined field_0x78e;
-	undefined field_0x78f;
-	undefined field_0x790;
-	undefined field_0x791;
-	undefined field_0x792;
-	undefined field_0x793;
-	undefined field_0x794;
-	undefined field_0x795;
-	undefined field_0x796;
-	undefined field_0x797;
-	undefined field_0x798;
-	undefined field_0x799;
-	undefined field_0x79a;
-	undefined field_0x79b;
-	undefined field_0x79c;
-	undefined field_0x79d;
-	undefined field_0x79e;
-	undefined field_0x79f;
-	undefined field_0x7a0;
-	undefined field_0x7a1;
-	undefined field_0x7a2;
-	undefined field_0x7a3;
-	undefined field_0x7a4;
-	undefined field_0x7a5;
-	undefined field_0x7a6;
-	undefined field_0x7a7;
-	undefined field_0x7a8;
-	undefined field_0x7a9;
-	undefined field_0x7aa;
-	undefined field_0x7ab;
-	undefined field_0x7ac;
-	undefined field_0x7ad;
-	undefined field_0x7ae;
-	undefined field_0x7af;
-	undefined field_0x7b0;
-	undefined field_0x7b1;
-	undefined field_0x7b2;
-	undefined field_0x7b3;
-	undefined field_0x7b4;
-	undefined field_0x7b5;
-	undefined field_0x7b6;
-	undefined field_0x7b7;
-	undefined field_0x7b8;
-	undefined field_0x7b9;
-	undefined field_0x7ba;
-	undefined field_0x7bb;
-	undefined field_0x7bc;
-	undefined field_0x7bd;
-	undefined field_0x7be;
-	undefined field_0x7bf;
-	undefined field_0x7c0;
-	undefined field_0x7c1;
-	undefined field_0x7c2;
-	undefined field_0x7c3;
-	undefined field_0x7c4;
-	undefined field_0x7c5;
-	undefined field_0x7c6;
-	undefined field_0x7c7;
-	undefined field_0x7c8;
-	undefined field_0x7c9;
-	undefined field_0x7ca;
-	undefined field_0x7cb;
-	undefined field_0x7cc;
-	undefined field_0x7cd;
-	undefined field_0x7ce;
-	undefined field_0x7cf;
-	undefined field_0x7d0;
-	undefined field_0x7d1;
-	undefined field_0x7d2;
-	undefined field_0x7d3;
-	undefined field_0x7d4;
-	undefined field_0x7d5;
-	undefined field_0x7d6;
-	undefined field_0x7d7;
-	undefined field_0x7d8;
-	undefined field_0x7d9;
-	undefined field_0x7da;
-	undefined field_0x7db;
-	undefined field_0x7dc;
-	undefined field_0x7dd;
-	undefined field_0x7de;
-	undefined field_0x7df;
-	undefined field_0x7e0;
-	undefined field_0x7e1;
-	undefined field_0x7e2;
-	undefined field_0x7e3;
-	undefined field_0x7e4;
-	undefined field_0x7e5;
-	undefined field_0x7e6;
-	undefined field_0x7e7;
-	undefined field_0x7e8;
-	undefined field_0x7e9;
-	undefined field_0x7ea;
-	undefined field_0x7eb;
-	undefined field_0x7ec;
-	undefined field_0x7ed;
-	undefined field_0x7ee;
-	undefined field_0x7ef;
-	undefined field_0x7f0;
-	undefined field_0x7f1;
-	undefined field_0x7f2;
-	undefined field_0x7f3;
-	undefined field_0x7f4;
-	undefined field_0x7f5;
-	undefined field_0x7f6;
-	undefined field_0x7f7;
-	undefined field_0x7f8;
-	undefined field_0x7f9;
-	undefined field_0x7fa;
-	undefined field_0x7fb;
-	undefined field_0x7fc;
-	undefined field_0x7fd;
-	undefined field_0x7fe;
-	undefined field_0x7ff;
-	undefined field_0x800;
-	undefined field_0x801;
-	undefined field_0x802;
-	undefined field_0x803;
-	undefined field_0x804;
-	undefined field_0x805;
-	undefined field_0x806;
-	undefined field_0x807;
-	undefined field_0x808;
-	undefined field_0x809;
-	undefined field_0x80a;
-	undefined field_0x80b;
-	undefined field_0x80c;
-	undefined field_0x80d;
-	undefined field_0x80e;
-	undefined field_0x80f;
-	undefined field_0x810;
-	undefined field_0x811;
-	undefined field_0x812;
-	undefined field_0x813;
-	undefined field_0x814;
-	undefined field_0x815;
-	undefined field_0x816;
-	undefined field_0x817;
-	undefined field_0x818;
-	undefined field_0x819;
-	undefined field_0x81a;
-	undefined field_0x81b;
-	undefined field_0x81c;
-	undefined field_0x81d;
-	undefined field_0x81e;
-	undefined field_0x81f;
-	undefined field_0x820;
-	undefined field_0x821;
-	undefined field_0x822;
-	undefined field_0x823;
-	undefined field_0x824;
-	undefined field_0x825;
-	undefined field_0x826;
-	undefined field_0x827;
-	undefined field_0x828;
-	undefined field_0x829;
-	undefined field_0x82a;
-	undefined field_0x82b;
-	undefined field_0x82c;
-	undefined field_0x82d;
-	undefined field_0x82e;
-	undefined field_0x82f;
-	undefined field_0x830;
-	undefined field_0x831;
-	undefined field_0x832;
-	undefined field_0x833;
-	undefined field_0x834;
-	undefined field_0x835;
-	undefined field_0x836;
-	undefined field_0x837;
-	undefined field_0x838;
-	undefined field_0x839;
-	undefined field_0x83a;
-	undefined field_0x83b;
-	undefined field_0x83c;
-	undefined field_0x83d;
-	undefined field_0x83e;
-	undefined field_0x83f;
-	undefined field_0x840;
-	undefined field_0x841;
-	undefined field_0x842;
-	undefined field_0x843;
-	undefined field_0x844;
-	undefined field_0x845;
-	undefined field_0x846;
-	undefined field_0x847;
-	undefined field_0x848;
-	undefined field_0x849;
-	undefined field_0x84a;
-	undefined field_0x84b;
-	undefined field_0x84c;
-	undefined field_0x84d;
-	undefined field_0x84e;
-	undefined field_0x84f;
-	undefined field_0x850;
-	undefined field_0x851;
-	undefined field_0x852;
-	undefined field_0x853;
-	undefined field_0x854;
-	undefined field_0x855;
-	undefined field_0x856;
-	undefined field_0x857;
-	undefined field_0x858;
-	undefined field_0x859;
-	undefined field_0x85a;
-	undefined field_0x85b;
-	undefined field_0x85c;
-	undefined field_0x85d;
-	undefined field_0x85e;
-	undefined field_0x85f;
-	undefined field_0x860;
-	undefined field_0x861;
-	undefined field_0x862;
-	undefined field_0x863;
-	undefined field_0x864;
-	undefined field_0x865;
-	undefined field_0x866;
-	undefined field_0x867;
-	undefined field_0x868;
-	undefined field_0x869;
-	undefined field_0x86a;
-	undefined field_0x86b;
-	undefined field_0x86c;
-	undefined field_0x86d;
-	undefined field_0x86e;
-	undefined field_0x86f;
-	undefined field_0x870;
-	undefined field_0x871;
-	undefined field_0x872;
-	undefined field_0x873;
-	undefined field_0x874;
-	undefined field_0x875;
-	undefined field_0x876;
-	undefined field_0x877;
-	undefined field_0x878;
-	undefined field_0x879;
-	undefined field_0x87a;
-	undefined field_0x87b;
-	undefined field_0x87c;
-	undefined field_0x87d;
-	undefined field_0x87e;
-	undefined field_0x87f;
-	undefined field_0x880;
-	undefined field_0x881;
-	undefined field_0x882;
-	undefined field_0x883;
-	undefined field_0x884;
-	undefined field_0x885;
-	undefined field_0x886;
-	undefined field_0x887;
-	undefined field_0x888;
-	undefined field_0x889;
-	undefined field_0x88a;
-	undefined field_0x88b;
-	undefined field_0x88c;
-	undefined field_0x88d;
-	undefined field_0x88e;
-	undefined field_0x88f;
-	undefined field_0x890;
-	undefined field_0x891;
-	undefined field_0x892;
-	undefined field_0x893;
-	undefined field_0x894;
-	undefined field_0x895;
-	undefined field_0x896;
-	undefined field_0x897;
-	undefined field_0x898;
-	undefined field_0x899;
-	undefined field_0x89a;
-	undefined field_0x89b;
-	undefined field_0x89c;
-	undefined field_0x89d;
-	undefined field_0x89e;
-	undefined field_0x89f;
-	undefined field_0x8a0;
-	undefined field_0x8a1;
-	undefined field_0x8a2;
-	undefined field_0x8a3;
-	undefined field_0x8a4;
-	undefined field_0x8a5;
-	undefined field_0x8a6;
-	undefined field_0x8a7;
-	undefined field_0x8a8;
-	undefined field_0x8a9;
-	undefined field_0x8aa;
-	undefined field_0x8ab;
-	undefined field_0x8ac;
-	undefined field_0x8ad;
-	undefined field_0x8ae;
-	undefined field_0x8af;
-	undefined field_0x8b0;
-	undefined field_0x8b1;
-	undefined field_0x8b2;
-	undefined field_0x8b3;
-	undefined field_0x8b4;
-	undefined field_0x8b5;
-	undefined field_0x8b6;
-	undefined field_0x8b7;
-	undefined field_0x8b8;
-	undefined field_0x8b9;
-	undefined field_0x8ba;
-	undefined field_0x8bb;
-	undefined field_0x8bc;
-	undefined field_0x8bd;
-	undefined field_0x8be;
-	undefined field_0x8bf;
-	undefined field_0x8c0;
-	undefined field_0x8c1;
-	undefined field_0x8c2;
-	undefined field_0x8c3;
-	undefined field_0x8c4;
-	undefined field_0x8c5;
-	undefined field_0x8c6;
-	undefined field_0x8c7;
-	undefined field_0x8c8;
-	undefined field_0x8c9;
-	undefined field_0x8ca;
-	undefined field_0x8cb;
-	undefined field_0x8cc;
-	undefined field_0x8cd;
-	undefined field_0x8ce;
-	undefined field_0x8cf;
-	undefined field_0x8d0;
-	undefined field_0x8d1;
-	undefined field_0x8d2;
-	undefined field_0x8d3;
-	undefined field_0x8d4;
-	undefined field_0x8d5;
-	undefined field_0x8d6;
-	undefined field_0x8d7;
-	undefined field_0x8d8;
-	undefined field_0x8d9;
-	undefined field_0x8da;
-	undefined field_0x8db;
-	undefined field_0x8dc;
-	undefined field_0x8dd;
-	undefined field_0x8de;
-	undefined field_0x8df;
-	undefined field_0x8e0;
-	undefined field_0x8e1;
-	undefined field_0x8e2;
-	undefined field_0x8e3;
-	undefined field_0x8e4;
-	undefined field_0x8e5;
-	undefined field_0x8e6;
-	undefined field_0x8e7;
-	undefined field_0x8e8;
-	undefined field_0x8e9;
-	undefined field_0x8ea;
-	undefined field_0x8eb;
-	undefined field_0x8ec;
-	undefined field_0x8ed;
-	undefined field_0x8ee;
-	undefined field_0x8ef;
-	undefined field_0x8f0;
-	undefined field_0x8f1;
-	undefined field_0x8f2;
-	undefined field_0x8f3;
-	undefined field_0x8f4;
-	undefined field_0x8f5;
-	undefined field_0x8f6;
-	undefined field_0x8f7;
-	undefined field_0x8f8;
-	undefined field_0x8f9;
-	undefined field_0x8fa;
-	undefined field_0x8fb;
-	undefined field_0x8fc;
-	undefined field_0x8fd;
-	undefined field_0x8fe;
-	undefined field_0x8ff;
-	undefined field_0x900;
-	undefined field_0x901;
-	undefined field_0x902;
-	undefined field_0x903;
-	undefined field_0x904;
-	undefined field_0x905;
-	undefined field_0x906;
-	undefined field_0x907;
-	undefined field_0x908;
-	undefined field_0x909;
-	undefined field_0x90a;
-	undefined field_0x90b;
-	undefined field_0x90c;
-	undefined field_0x90d;
-	undefined field_0x90e;
-	undefined field_0x90f;
-	undefined field_0x910;
-	undefined field_0x911;
-	undefined field_0x912;
-	undefined field_0x913;
-	undefined field_0x914;
-	undefined field_0x915;
-	undefined field_0x916;
-	undefined field_0x917;
-	undefined field_0x918;
-	undefined field_0x919;
-	undefined field_0x91a;
-	undefined field_0x91b;
-	undefined field_0x91c;
-	undefined field_0x91d;
-	undefined field_0x91e;
-	undefined field_0x91f;
-	undefined field_0x920;
-	undefined field_0x921;
-	undefined field_0x922;
-	undefined field_0x923;
-	undefined field_0x924;
-	undefined field_0x925;
-	undefined field_0x926;
-	undefined field_0x927;
-	undefined field_0x928;
-	undefined field_0x929;
-	undefined field_0x92a;
-	undefined field_0x92b;
-	undefined field_0x92c;
-	undefined field_0x92d;
-	undefined field_0x92e;
-	undefined field_0x92f;
-	undefined field_0x930;
-	undefined field_0x931;
-	undefined field_0x932;
-	undefined field_0x933;
-	undefined field_0x934;
-	undefined field_0x935;
-	undefined field_0x936;
-	undefined field_0x937;
-	undefined field_0x938;
-	undefined field_0x939;
-	undefined field_0x93a;
-	undefined field_0x93b;
-	undefined field_0x93c;
-	undefined field_0x93d;
-	undefined field_0x93e;
-	undefined field_0x93f;
-	undefined field_0x940;
-	undefined field_0x941;
-	undefined field_0x942;
-	undefined field_0x943;
-	undefined field_0x944;
-	undefined field_0x945;
-	undefined field_0x946;
-	undefined field_0x947;
-	undefined field_0x948;
-	undefined field_0x949;
-	undefined field_0x94a;
-	undefined field_0x94b;
-	undefined field_0x94c;
-	undefined field_0x94d;
-	undefined field_0x94e;
-	undefined field_0x94f;
-	undefined field_0x950;
-	undefined field_0x951;
-	undefined field_0x952;
-	undefined field_0x953;
-	undefined field_0x954;
-	undefined field_0x955;
-	undefined field_0x956;
-	undefined field_0x957;
-	undefined field_0x958;
-	undefined field_0x959;
-	undefined field_0x95a;
-	undefined field_0x95b;
-	undefined field_0x95c;
-	undefined field_0x95d;
-	undefined field_0x95e;
-	undefined field_0x95f;
-	undefined field_0x960;
-	undefined field_0x961;
-	undefined field_0x962;
-	undefined field_0x963;
-	undefined field_0x964;
-	undefined field_0x965;
-	undefined field_0x966;
-	undefined field_0x967;
-	undefined field_0x968;
-	undefined field_0x969;
-	undefined field_0x96a;
-	undefined field_0x96b;
-	undefined field_0x96c;
-	undefined field_0x96d;
-	undefined field_0x96e;
-	undefined field_0x96f;
-	undefined field_0x970;
-	undefined field_0x971;
-	undefined field_0x972;
-	undefined field_0x973;
-	undefined field_0x974;
-	undefined field_0x975;
-	undefined field_0x976;
-	undefined field_0x977;
-	undefined field_0x978;
-	undefined field_0x979;
-	undefined field_0x97a;
-	undefined field_0x97b;
-	undefined field_0x97c;
-	undefined field_0x97d;
-	undefined field_0x97e;
-	undefined field_0x97f;
-	undefined field_0x980;
-	undefined field_0x981;
-	undefined field_0x982;
-	undefined field_0x983;
-	undefined field_0x984;
-	undefined field_0x985;
-	undefined field_0x986;
-	undefined field_0x987;
-	undefined field_0x988;
-	undefined field_0x989;
-	undefined field_0x98a;
-	undefined field_0x98b;
-	undefined field_0x98c;
-	undefined field_0x98d;
-	undefined field_0x98e;
-	undefined field_0x98f;
-	undefined field_0x990;
-	undefined field_0x991;
-	undefined field_0x992;
-	undefined field_0x993;
-	undefined field_0x994;
-	undefined field_0x995;
-	undefined field_0x996;
-	undefined field_0x997;
-	undefined field_0x998;
-	undefined field_0x999;
-	undefined field_0x99a;
-	undefined field_0x99b;
-	undefined field_0x99c;
-	undefined field_0x99d;
-	undefined field_0x99e;
-	undefined field_0x99f;
-	undefined field_0x9a0;
-	undefined field_0x9a1;
-	undefined field_0x9a2;
-	undefined field_0x9a3;
-	undefined field_0x9a4;
-	undefined field_0x9a5;
-	undefined field_0x9a6;
-	undefined field_0x9a7;
-	undefined field_0x9a8;
-	undefined field_0x9a9;
-	undefined field_0x9aa;
-	undefined field_0x9ab;
-	undefined field_0x9ac;
-	undefined field_0x9ad;
-	undefined field_0x9ae;
-	undefined field_0x9af;
-	undefined field_0x9b0;
-	undefined field_0x9b1;
-	undefined field_0x9b2;
-	undefined field_0x9b3;
-	undefined field_0x9b4;
-	undefined field_0x9b5;
-	undefined field_0x9b6;
-	undefined field_0x9b7;
-	undefined field_0x9b8;
-	undefined field_0x9b9;
-	undefined field_0x9ba;
-	undefined field_0x9bb;
-	undefined field_0x9bc;
-	undefined field_0x9bd;
-	undefined field_0x9be;
-	undefined field_0x9bf;
-	undefined field_0x9c0;
-	undefined field_0x9c1;
-	undefined field_0x9c2;
-	undefined field_0x9c3;
-	undefined field_0x9c4;
-	undefined field_0x9c5;
-	undefined field_0x9c6;
-	undefined field_0x9c7;
-	undefined field_0x9c8;
-	undefined field_0x9c9;
-	undefined field_0x9ca;
-	undefined field_0x9cb;
-	undefined field_0x9cc;
-	undefined field_0x9cd;
-	undefined field_0x9ce;
-	undefined field_0x9cf;
-	undefined field_0x9d0;
-	undefined field_0x9d1;
-	undefined field_0x9d2;
-	undefined field_0x9d3;
-	undefined field_0x9d4;
-	undefined field_0x9d5;
-	undefined field_0x9d6;
-	undefined field_0x9d7;
-	undefined field_0x9d8;
-	undefined field_0x9d9;
-	undefined field_0x9da;
-	undefined field_0x9db;
-	undefined field_0x9dc;
-	undefined field_0x9dd;
-	undefined field_0x9de;
-	undefined field_0x9df;
-	undefined field_0x9e0;
-	undefined field_0x9e1;
-	undefined field_0x9e2;
-	undefined field_0x9e3;
-	undefined field_0x9e4;
-	undefined field_0x9e5;
-	undefined field_0x9e6;
-	undefined field_0x9e7;
-	undefined field_0x9e8;
-	undefined field_0x9e9;
-	undefined field_0x9ea;
-	undefined field_0x9eb;
-	undefined field_0x9ec;
-	undefined field_0x9ed;
-	undefined field_0x9ee;
-	undefined field_0x9ef;
-	undefined field_0x9f0;
-	undefined field_0x9f1;
-	undefined field_0x9f2;
-	undefined field_0x9f3;
-	undefined field_0x9f4;
-	undefined field_0x9f5;
-	undefined field_0x9f6;
-	undefined field_0x9f7;
-	undefined field_0x9f8;
-	undefined field_0x9f9;
-	undefined field_0x9fa;
-	undefined field_0x9fb;
-	undefined field_0x9fc;
-	undefined field_0x9fd;
-	undefined field_0x9fe;
-	undefined field_0x9ff;
-	undefined field_0xa00;
-	undefined field_0xa01;
-	undefined field_0xa02;
-	undefined field_0xa03;
-	undefined field_0xa04;
-	undefined field_0xa05;
-	undefined field_0xa06;
-	undefined field_0xa07;
-	undefined field_0xa08;
-	undefined field_0xa09;
-	undefined field_0xa0a;
-	undefined field_0xa0b;
-	undefined field_0xa0c;
-	undefined field_0xa0d;
-	undefined field_0xa0e;
-	undefined field_0xa0f;
-	undefined field_0xa10;
-	undefined field_0xa11;
-	undefined field_0xa12;
-	undefined field_0xa13;
-	undefined field_0xa14;
-	undefined field_0xa15;
-	undefined field_0xa16;
-	undefined field_0xa17;
-	undefined field_0xa18;
-	undefined field_0xa19;
-	undefined field_0xa1a;
-	undefined field_0xa1b;
-	undefined field_0xa1c;
-	undefined field_0xa1d;
-	undefined field_0xa1e;
-	undefined field_0xa1f;
-	undefined field_0xa20;
-	undefined field_0xa21;
-	undefined field_0xa22;
-	undefined field_0xa23;
-	undefined field_0xa24;
-	undefined field_0xa25;
-	undefined field_0xa26;
-	undefined field_0xa27;
-	undefined field_0xa28;
-	undefined field_0xa29;
-	undefined field_0xa2a;
-	undefined field_0xa2b;
-	undefined field_0xa2c;
-	undefined field_0xa2d;
-	undefined field_0xa2e;
-	undefined field_0xa2f;
-	undefined field_0xa30;
-	undefined field_0xa31;
-	undefined field_0xa32;
-	undefined field_0xa33;
-	undefined field_0xa34;
-	undefined field_0xa35;
-	undefined field_0xa36;
-	undefined field_0xa37;
-	undefined field_0xa38;
-	undefined field_0xa39;
-	undefined field_0xa3a;
-	undefined field_0xa3b;
-	undefined field_0xa3c;
-	undefined field_0xa3d;
-	undefined field_0xa3e;
-	undefined field_0xa3f;
-	undefined field_0xa40;
-	undefined field_0xa41;
-	undefined field_0xa42;
-	undefined field_0xa43;
-	undefined field_0xa44;
-	undefined field_0xa45;
-	undefined field_0xa46;
-	undefined field_0xa47;
-	undefined field_0xa48;
-	undefined field_0xa49;
-	undefined field_0xa4a;
-	undefined field_0xa4b;
-	undefined field_0xa4c;
-	undefined field_0xa4d;
-	undefined field_0xa4e;
-	undefined field_0xa4f;
-	undefined field_0xa50;
-	undefined field_0xa51;
-	undefined field_0xa52;
-	undefined field_0xa53;
-	undefined field_0xa54;
-	undefined field_0xa55;
-	undefined field_0xa56;
-	undefined field_0xa57;
-	undefined field_0xa58;
-	undefined field_0xa59;
-	undefined field_0xa5a;
-	undefined field_0xa5b;
-	undefined field_0xa5c;
-	undefined field_0xa5d;
-	undefined field_0xa5e;
-	undefined field_0xa5f;
-	undefined field_0xa60;
-	undefined field_0xa61;
-	undefined field_0xa62;
-	undefined field_0xa63;
-	undefined field_0xa64;
-	undefined field_0xa65;
-	undefined field_0xa66;
-	undefined field_0xa67;
-	undefined field_0xa68;
-	undefined field_0xa69;
-	undefined field_0xa6a;
-	undefined field_0xa6b;
-	undefined field_0xa6c;
-	undefined field_0xa6d;
-	undefined field_0xa6e;
-	undefined field_0xa6f;
-	undefined field_0xa70;
-	undefined field_0xa71;
-	undefined field_0xa72;
-	undefined field_0xa73;
-	undefined field_0xa74;
-	undefined field_0xa75;
-	undefined field_0xa76;
-	undefined field_0xa77;
-	undefined field_0xa78;
-	undefined field_0xa79;
-	undefined field_0xa7a;
-	undefined field_0xa7b;
-	undefined field_0xa7c;
-	undefined field_0xa7d;
-	undefined field_0xa7e;
-	undefined field_0xa7f;
-	undefined field_0xa80;
-	undefined field_0xa81;
-	undefined field_0xa82;
-	undefined field_0xa83;
-	undefined field_0xa84;
-	undefined field_0xa85;
-	undefined field_0xa86;
-	undefined field_0xa87;
-	undefined field_0xa88;
-	undefined field_0xa89;
-	undefined field_0xa8a;
-	undefined field_0xa8b;
-	undefined field_0xa8c;
-	undefined field_0xa8d;
-	undefined field_0xa8e;
-	undefined field_0xa8f;
-	undefined field_0xa90;
-	undefined field_0xa91;
-	undefined field_0xa92;
-	undefined field_0xa93;
-	undefined field_0xa94;
-	undefined field_0xa95;
-	undefined field_0xa96;
-	undefined field_0xa97;
-	undefined field_0xa98;
-	undefined field_0xa99;
-	undefined field_0xa9a;
-	undefined field_0xa9b;
-	undefined field_0xa9c;
-	undefined field_0xa9d;
-	undefined field_0xa9e;
-	undefined field_0xa9f;
-	undefined field_0xaa0;
-	undefined field_0xaa1;
-	undefined field_0xaa2;
-	undefined field_0xaa3;
-	undefined field_0xaa4;
-	undefined field_0xaa5;
-	undefined field_0xaa6;
-	undefined field_0xaa7;
-	undefined field_0xaa8;
-	undefined field_0xaa9;
-	undefined field_0xaaa;
-	undefined field_0xaab;
-	undefined field_0xaac;
-	undefined field_0xaad;
-	undefined field_0xaae;
-	undefined field_0xaaf;
-	undefined field_0xab0;
-	undefined field_0xab1;
-	undefined field_0xab2;
-	undefined field_0xab3;
-	undefined field_0xab4;
-	undefined field_0xab5;
-	undefined field_0xab6;
-	undefined field_0xab7;
-	undefined field_0xab8;
-	undefined field_0xab9;
-	undefined field_0xaba;
-	undefined field_0xabb;
-	undefined field_0xabc;
-	undefined field_0xabd;
-	undefined field_0xabe;
-	undefined field_0xabf;
-	undefined field_0xac0;
-	undefined field_0xac1;
-	undefined field_0xac2;
-	undefined field_0xac3;
-	undefined field_0xac4;
-	undefined field_0xac5;
-	undefined field_0xac6;
-	undefined field_0xac7;
-	undefined field_0xac8;
-	undefined field_0xac9;
-	undefined field_0xaca;
-	undefined field_0xacb;
-	undefined field_0xacc;
-	undefined field_0xacd;
-	undefined field_0xace;
-	undefined field_0xacf;
-	undefined field_0xad0;
-	undefined field_0xad1;
-	undefined field_0xad2;
-	undefined field_0xad3;
-	undefined field_0xad4;
-	undefined field_0xad5;
-	undefined field_0xad6;
-	undefined field_0xad7;
-	undefined field_0xad8;
-	undefined field_0xad9;
-	undefined field_0xada;
-	undefined field_0xadb;
-	undefined field_0xadc;
-	undefined field_0xadd;
-	undefined field_0xade;
-	undefined field_0xadf;
-	undefined field_0xae0;
-	undefined field_0xae1;
-	undefined field_0xae2;
-	undefined field_0xae3;
-	undefined field_0xae4;
-	undefined field_0xae5;
-	undefined field_0xae6;
-	undefined field_0xae7;
-	undefined field_0xae8;
-	undefined field_0xae9;
-	undefined field_0xaea;
-	undefined field_0xaeb;
-	undefined field_0xaec;
-	undefined field_0xaed;
-	undefined field_0xaee;
-	undefined field_0xaef;
-	undefined field_0xaf0;
-	undefined field_0xaf1;
-	undefined field_0xaf2;
-	undefined field_0xaf3;
-	undefined field_0xaf4;
-	undefined field_0xaf5;
-	undefined field_0xaf6;
-	undefined field_0xaf7;
-	undefined field_0xaf8;
-	undefined field_0xaf9;
-	undefined field_0xafa;
-	undefined field_0xafb;
-	undefined field_0xafc;
-	undefined field_0xafd;
-	undefined field_0xafe;
-	undefined field_0xaff;
-	undefined field_0xb00;
-	undefined field_0xb01;
-	undefined field_0xb02;
-	undefined field_0xb03;
-	undefined field_0xb04;
-	undefined field_0xb05;
-	undefined field_0xb06;
-	undefined field_0xb07;
-	undefined field_0xb08;
-	undefined field_0xb09;
-	undefined field_0xb0a;
-	undefined field_0xb0b;
-	undefined field_0xb0c;
-	undefined field_0xb0d;
-	undefined field_0xb0e;
-	undefined field_0xb0f;
-	undefined field_0xb10;
-	undefined field_0xb11;
-	undefined field_0xb12;
-	undefined field_0xb13;
-	undefined field_0xb14;
-	undefined field_0xb15;
-	undefined field_0xb16;
-	undefined field_0xb17;
-	undefined field_0xb18;
-	undefined field_0xb19;
-	undefined field_0xb1a;
-	undefined field_0xb1b;
-	undefined field_0xb1c;
-	undefined field_0xb1d;
-	undefined field_0xb1e;
-	undefined field_0xb1f;
-	undefined field_0xb20;
-	undefined field_0xb21;
-	undefined field_0xb22;
-	undefined field_0xb23;
-	undefined field_0xb24;
-	undefined field_0xb25;
-	undefined field_0xb26;
-	undefined field_0xb27;
-	undefined field_0xb28;
-	undefined field_0xb29;
-	undefined field_0xb2a;
-	undefined field_0xb2b;
-	undefined field_0xb2c;
-	undefined field_0xb2d;
-	undefined field_0xb2e;
-	undefined field_0xb2f;
-	undefined field_0xb30;
-	undefined field_0xb31;
-	undefined field_0xb32;
-	undefined field_0xb33;
-	undefined field_0xb34;
-	undefined field_0xb35;
-	undefined field_0xb36;
-	undefined field_0xb37;
-	undefined field_0xb38;
-	undefined field_0xb39;
-	undefined field_0xb3a;
-	undefined field_0xb3b;
-	undefined field_0xb3c;
-	undefined field_0xb3d;
-	undefined field_0xb3e;
-	undefined field_0xb3f;
-	undefined field_0xb40;
-	undefined field_0xb41;
-	undefined field_0xb42;
-	undefined field_0xb43;
-	undefined field_0xb44;
-	undefined field_0xb45;
-	undefined field_0xb46;
-	undefined field_0xb47;
-	undefined field_0xb48;
-	undefined field_0xb49;
-	undefined field_0xb4a;
-	undefined field_0xb4b;
-	undefined field_0xb4c;
-	undefined field_0xb4d;
-	undefined field_0xb4e;
-	undefined field_0xb4f;
-	undefined field_0xb50;
-	undefined field_0xb51;
-	undefined field_0xb52;
-	undefined field_0xb53;
-	undefined field_0xb54;
-	undefined field_0xb55;
-	undefined field_0xb56;
-	undefined field_0xb57;
-	undefined field_0xb58;
-	undefined field_0xb59;
-	undefined field_0xb5a;
-	undefined field_0xb5b;
-	undefined field_0xb5c;
-	undefined field_0xb5d;
-	undefined field_0xb5e;
-	undefined field_0xb5f;
-	undefined field_0xb60;
-	undefined field_0xb61;
-	undefined field_0xb62;
-	undefined field_0xb63;
-	undefined field_0xb64;
-	undefined field_0xb65;
-	undefined field_0xb66;
-	undefined field_0xb67;
-	undefined field_0xb68;
-	undefined field_0xb69;
-	undefined field_0xb6a;
-	undefined field_0xb6b;
-	undefined field_0xb6c;
-	undefined field_0xb6d;
-	undefined field_0xb6e;
-	undefined field_0xb6f;
-	undefined field_0xb70;
-	undefined field_0xb71;
-	undefined field_0xb72;
-	undefined field_0xb73;
-	undefined field_0xb74;
-	undefined field_0xb75;
-	undefined field_0xb76;
-	undefined field_0xb77;
-	undefined field_0xb78;
-	undefined field_0xb79;
-	undefined field_0xb7a;
-	undefined field_0xb7b;
-	undefined field_0xb7c;
-	undefined field_0xb7d;
-	undefined field_0xb7e;
-	undefined field_0xb7f;
-	undefined field_0xb80;
-	undefined field_0xb81;
-	undefined field_0xb82;
-	undefined field_0xb83;
-	undefined field_0xb84;
-	undefined field_0xb85;
-	undefined field_0xb86;
-	undefined field_0xb87;
-	undefined field_0xb88;
-	undefined field_0xb89;
-	undefined field_0xb8a;
-	undefined field_0xb8b;
-	undefined field_0xb8c;
-	undefined field_0xb8d;
-	undefined field_0xb8e;
-	undefined field_0xb8f;
-	undefined field_0xb90;
-	undefined field_0xb91;
-	undefined field_0xb92;
-	undefined field_0xb93;
-	undefined field_0xb94;
-	undefined field_0xb95;
-	undefined field_0xb96;
-	undefined field_0xb97;
-	undefined field_0xb98;
-	undefined field_0xb99;
-	undefined field_0xb9a;
-	undefined field_0xb9b;
-	undefined field_0xb9c;
-	undefined field_0xb9d;
-	undefined field_0xb9e;
-	undefined field_0xb9f;
-	undefined field_0xba0;
-	undefined field_0xba1;
-	undefined field_0xba2;
-	undefined field_0xba3;
-	undefined field_0xba4;
-	undefined field_0xba5;
-	undefined field_0xba6;
-	undefined field_0xba7;
-	undefined field_0xba8;
-	undefined field_0xba9;
-	undefined field_0xbaa;
-	undefined field_0xbab;
-	undefined field_0xbac;
-	undefined field_0xbad;
-	undefined field_0xbae;
-	undefined field_0xbaf;
-	undefined field_0xbb0;
-	undefined field_0xbb1;
-	undefined field_0xbb2;
-	undefined field_0xbb3;
-	undefined field_0xbb4;
-	undefined field_0xbb5;
-	undefined field_0xbb6;
-	undefined field_0xbb7;
-	undefined field_0xbb8;
-	undefined field_0xbb9;
-	undefined field_0xbba;
-	undefined field_0xbbb;
-	undefined field_0xbbc;
-	undefined field_0xbbd;
-	undefined field_0xbbe;
-	undefined field_0xbbf;
-	undefined field_0xbc0;
-	undefined field_0xbc1;
-	undefined field_0xbc2;
-	undefined field_0xbc3;
-	undefined field_0xbc4;
-	undefined field_0xbc5;
-	undefined field_0xbc6;
-	undefined field_0xbc7;
-	undefined field_0xbc8;
-	undefined field_0xbc9;
-	undefined field_0xbca;
-	undefined field_0xbcb;
-	undefined field_0xbcc;
-	undefined field_0xbcd;
-	undefined field_0xbce;
-	undefined field_0xbcf;
-	undefined field_0xbd0;
-	undefined field_0xbd1;
-	undefined field_0xbd2;
-	undefined field_0xbd3;
-	undefined field_0xbd4;
-	undefined field_0xbd5;
-	undefined field_0xbd6;
-	undefined field_0xbd7;
-	undefined field_0xbd8;
-	undefined field_0xbd9;
-	undefined field_0xbda;
-	undefined field_0xbdb;
-	undefined field_0xbdc;
-	undefined field_0xbdd;
-	undefined field_0xbde;
-	undefined field_0xbdf;
-	undefined field_0xbe0;
-	undefined field_0xbe1;
-	undefined field_0xbe2;
-	undefined field_0xbe3;
-	undefined4 field_be4;
-	undefined field_0xbe8;
-	undefined field_0xbe9;
-	undefined field_0xbea;
-	undefined field_0xbeb;
-	undefined field_0xbec;
-	undefined field_0xbed;
-	undefined field_0xbee;
-	undefined field_0xbef;
-	struct ImageFont * pool_m_next;
 };
 
 struct FlockData {
@@ -6487,10115 +3176,14 @@ struct FlockData {
 	undefined4 field_24;
 };
 
-struct SurfaceMap { // size 0x73d4... dear god.... no...
-	struct Size2I smallDimensions; // full map dimensions - 1
-	struct Size2I dimensions; // full map dimensions
-	float BlockSize;
-	float RoughLevel;
-	struct Size2F blockDimensions_neg; // smallDimensions * BlockSize * 0.5 (width is negative??)
-	float float_20;
-	struct Container * resData_24;
-	undefined4 field_28;
-	undefined4 field_2c;
-	undefined4 unkMaterialData_30; // Material related
-	byte texsGrid[128][128];
-	byte texsNum[128];
-	undefined4 flat_40b4[128];
-	struct Coord2I coordsTable[500];
-	uint coordsNum;
-	undefined field_0x4a88;
-	undefined field_0x4a89;
-	undefined field_0x4a8a;
-	undefined field_0x4a8b;
-	undefined field_0x4a8c;
-	undefined field_0x4a8d;
-	undefined field_0x4a8e;
-	undefined field_0x4a8f;
-	undefined field_0x4a90;
-	undefined field_0x4a91;
-	undefined field_0x4a92;
-	undefined field_0x4a93;
-	undefined field_0x4a94;
-	undefined field_0x4a95;
-	undefined field_0x4a96;
-	undefined field_0x4a97;
-	undefined field_0x4a98;
-	undefined field_0x4a99;
-	undefined field_0x4a9a;
-	undefined field_0x4a9b;
-	undefined field_0x4a9c;
-	undefined field_0x4a9d;
-	undefined field_0x4a9e;
-	undefined field_0x4a9f;
-	undefined field_0x4aa0;
-	undefined field_0x4aa1;
-	undefined field_0x4aa2;
-	undefined field_0x4aa3;
-	undefined field_0x4aa4;
-	undefined field_0x4aa5;
-	undefined field_0x4aa6;
-	undefined field_0x4aa7;
-	undefined field_0x4aa8;
-	undefined field_0x4aa9;
-	undefined field_0x4aaa;
-	undefined field_0x4aab;
-	undefined field_0x4aac;
-	undefined field_0x4aad;
-	undefined field_0x4aae;
-	undefined field_0x4aaf;
-	undefined field_0x4ab0;
-	undefined field_0x4ab1;
-	undefined field_0x4ab2;
-	undefined field_0x4ab3;
-	undefined field_0x4ab4;
-	undefined field_0x4ab5;
-	undefined field_0x4ab6;
-	undefined field_0x4ab7;
-	undefined field_0x4ab8;
-	undefined field_0x4ab9;
-	undefined field_0x4aba;
-	undefined field_0x4abb;
-	undefined field_0x4abc;
-	undefined field_0x4abd;
-	undefined field_0x4abe;
-	undefined field_0x4abf;
-	undefined field_0x4ac0;
-	undefined field_0x4ac1;
-	undefined field_0x4ac2;
-	undefined field_0x4ac3;
-	undefined field_0x4ac4;
-	undefined field_0x4ac5;
-	undefined field_0x4ac6;
-	undefined field_0x4ac7;
-	undefined field_0x4ac8;
-	undefined field_0x4ac9;
-	undefined field_0x4aca;
-	undefined field_0x4acb;
-	undefined field_0x4acc;
-	undefined field_0x4acd;
-	undefined field_0x4ace;
-	undefined field_0x4acf;
-	undefined field_0x4ad0;
-	undefined field_0x4ad1;
-	undefined field_0x4ad2;
-	undefined field_0x4ad3;
-	undefined field_0x4ad4;
-	undefined field_0x4ad5;
-	undefined field_0x4ad6;
-	undefined field_0x4ad7;
-	undefined field_0x4ad8;
-	undefined field_0x4ad9;
-	undefined field_0x4ada;
-	undefined field_0x4adb;
-	undefined field_0x4adc;
-	undefined field_0x4add;
-	undefined field_0x4ade;
-	undefined field_0x4adf;
-	undefined field_0x4ae0;
-	undefined field_0x4ae1;
-	undefined field_0x4ae2;
-	undefined field_0x4ae3;
-	undefined field_0x4ae4;
-	undefined field_0x4ae5;
-	undefined field_0x4ae6;
-	undefined field_0x4ae7;
-	undefined field_0x4ae8;
-	undefined field_0x4ae9;
-	undefined field_0x4aea;
-	undefined field_0x4aeb;
-	undefined field_0x4aec;
-	undefined field_0x4aed;
-	undefined field_0x4aee;
-	undefined field_0x4aef;
-	undefined field_0x4af0;
-	undefined field_0x4af1;
-	undefined field_0x4af2;
-	undefined field_0x4af3;
-	undefined field_0x4af4;
-	undefined field_0x4af5;
-	undefined field_0x4af6;
-	undefined field_0x4af7;
-	undefined field_0x4af8;
-	undefined field_0x4af9;
-	undefined field_0x4afa;
-	undefined field_0x4afb;
-	undefined field_0x4afc;
-	undefined field_0x4afd;
-	undefined field_0x4afe;
-	undefined field_0x4aff;
-	undefined field_0x4b00;
-	undefined field_0x4b01;
-	undefined field_0x4b02;
-	undefined field_0x4b03;
-	undefined field_0x4b04;
-	undefined field_0x4b05;
-	undefined field_0x4b06;
-	undefined field_0x4b07;
-	undefined field_0x4b08;
-	undefined field_0x4b09;
-	undefined field_0x4b0a;
-	undefined field_0x4b0b;
-	undefined field_0x4b0c;
-	undefined field_0x4b0d;
-	undefined field_0x4b0e;
-	undefined field_0x4b0f;
-	undefined field_0x4b10;
-	undefined field_0x4b11;
-	undefined field_0x4b12;
-	undefined field_0x4b13;
-	undefined field_0x4b14;
-	undefined field_0x4b15;
-	undefined field_0x4b16;
-	undefined field_0x4b17;
-	undefined field_0x4b18;
-	undefined field_0x4b19;
-	undefined field_0x4b1a;
-	undefined field_0x4b1b;
-	undefined field_0x4b1c;
-	undefined field_0x4b1d;
-	undefined field_0x4b1e;
-	undefined field_0x4b1f;
-	undefined field_0x4b20;
-	undefined field_0x4b21;
-	undefined field_0x4b22;
-	undefined field_0x4b23;
-	undefined field_0x4b24;
-	undefined field_0x4b25;
-	undefined field_0x4b26;
-	undefined field_0x4b27;
-	undefined field_0x4b28;
-	undefined field_0x4b29;
-	undefined field_0x4b2a;
-	undefined field_0x4b2b;
-	undefined field_0x4b2c;
-	undefined field_0x4b2d;
-	undefined field_0x4b2e;
-	undefined field_0x4b2f;
-	undefined field_0x4b30;
-	undefined field_0x4b31;
-	undefined field_0x4b32;
-	undefined field_0x4b33;
-	undefined field_0x4b34;
-	undefined field_0x4b35;
-	undefined field_0x4b36;
-	undefined field_0x4b37;
-	undefined field_0x4b38;
-	undefined field_0x4b39;
-	undefined field_0x4b3a;
-	undefined field_0x4b3b;
-	undefined field_0x4b3c;
-	undefined field_0x4b3d;
-	undefined field_0x4b3e;
-	undefined field_0x4b3f;
-	undefined field_0x4b40;
-	undefined field_0x4b41;
-	undefined field_0x4b42;
-	undefined field_0x4b43;
-	undefined field_0x4b44;
-	undefined field_0x4b45;
-	undefined field_0x4b46;
-	undefined field_0x4b47;
-	undefined field_0x4b48;
-	undefined field_0x4b49;
-	undefined field_0x4b4a;
-	undefined field_0x4b4b;
-	undefined field_0x4b4c;
-	undefined field_0x4b4d;
-	undefined field_0x4b4e;
-	undefined field_0x4b4f;
-	undefined field_0x4b50;
-	undefined field_0x4b51;
-	undefined field_0x4b52;
-	undefined field_0x4b53;
-	undefined field_0x4b54;
-	undefined field_0x4b55;
-	undefined field_0x4b56;
-	undefined field_0x4b57;
-	undefined field_0x4b58;
-	undefined field_0x4b59;
-	undefined field_0x4b5a;
-	undefined field_0x4b5b;
-	undefined field_0x4b5c;
-	undefined field_0x4b5d;
-	undefined field_0x4b5e;
-	undefined field_0x4b5f;
-	undefined field_0x4b60;
-	undefined field_0x4b61;
-	undefined field_0x4b62;
-	undefined field_0x4b63;
-	undefined field_0x4b64;
-	undefined field_0x4b65;
-	undefined field_0x4b66;
-	undefined field_0x4b67;
-	undefined field_0x4b68;
-	undefined field_0x4b69;
-	undefined field_0x4b6a;
-	undefined field_0x4b6b;
-	undefined field_0x4b6c;
-	undefined field_0x4b6d;
-	undefined field_0x4b6e;
-	undefined field_0x4b6f;
-	undefined field_0x4b70;
-	undefined field_0x4b71;
-	undefined field_0x4b72;
-	undefined field_0x4b73;
-	undefined field_0x4b74;
-	undefined field_0x4b75;
-	undefined field_0x4b76;
-	undefined field_0x4b77;
-	undefined field_0x4b78;
-	undefined field_0x4b79;
-	undefined field_0x4b7a;
-	undefined field_0x4b7b;
-	undefined field_0x4b7c;
-	undefined field_0x4b7d;
-	undefined field_0x4b7e;
-	undefined field_0x4b7f;
-	undefined field_0x4b80;
-	undefined field_0x4b81;
-	undefined field_0x4b82;
-	undefined field_0x4b83;
-	undefined field_0x4b84;
-	undefined field_0x4b85;
-	undefined field_0x4b86;
-	undefined field_0x4b87;
-	undefined field_0x4b88;
-	undefined field_0x4b89;
-	undefined field_0x4b8a;
-	undefined field_0x4b8b;
-	undefined field_0x4b8c;
-	undefined field_0x4b8d;
-	undefined field_0x4b8e;
-	undefined field_0x4b8f;
-	undefined field_0x4b90;
-	undefined field_0x4b91;
-	undefined field_0x4b92;
-	undefined field_0x4b93;
-	undefined field_0x4b94;
-	undefined field_0x4b95;
-	undefined field_0x4b96;
-	undefined field_0x4b97;
-	undefined field_0x4b98;
-	undefined field_0x4b99;
-	undefined field_0x4b9a;
-	undefined field_0x4b9b;
-	undefined field_0x4b9c;
-	undefined field_0x4b9d;
-	undefined field_0x4b9e;
-	undefined field_0x4b9f;
-	undefined field_0x4ba0;
-	undefined field_0x4ba1;
-	undefined field_0x4ba2;
-	undefined field_0x4ba3;
-	undefined field_0x4ba4;
-	undefined field_0x4ba5;
-	undefined field_0x4ba6;
-	undefined field_0x4ba7;
-	undefined field_0x4ba8;
-	undefined field_0x4ba9;
-	undefined field_0x4baa;
-	undefined field_0x4bab;
-	undefined field_0x4bac;
-	undefined field_0x4bad;
-	undefined field_0x4bae;
-	undefined field_0x4baf;
-	undefined field_0x4bb0;
-	undefined field_0x4bb1;
-	undefined field_0x4bb2;
-	undefined field_0x4bb3;
-	undefined field_0x4bb4;
-	undefined field_0x4bb5;
-	undefined field_0x4bb6;
-	undefined field_0x4bb7;
-	undefined field_0x4bb8;
-	undefined field_0x4bb9;
-	undefined field_0x4bba;
-	undefined field_0x4bbb;
-	undefined field_0x4bbc;
-	undefined field_0x4bbd;
-	undefined field_0x4bbe;
-	undefined field_0x4bbf;
-	undefined field_0x4bc0;
-	undefined field_0x4bc1;
-	undefined field_0x4bc2;
-	undefined field_0x4bc3;
-	undefined field_0x4bc4;
-	undefined field_0x4bc5;
-	undefined field_0x4bc6;
-	undefined field_0x4bc7;
-	undefined field_0x4bc8;
-	undefined field_0x4bc9;
-	undefined field_0x4bca;
-	undefined field_0x4bcb;
-	undefined field_0x4bcc;
-	undefined field_0x4bcd;
-	undefined field_0x4bce;
-	undefined field_0x4bcf;
-	undefined field_0x4bd0;
-	undefined field_0x4bd1;
-	undefined field_0x4bd2;
-	undefined field_0x4bd3;
-	undefined field_0x4bd4;
-	undefined field_0x4bd5;
-	undefined field_0x4bd6;
-	undefined field_0x4bd7;
-	undefined field_0x4bd8;
-	undefined field_0x4bd9;
-	undefined field_0x4bda;
-	undefined field_0x4bdb;
-	undefined field_0x4bdc;
-	undefined field_0x4bdd;
-	undefined field_0x4bde;
-	undefined field_0x4bdf;
-	undefined field_0x4be0;
-	undefined field_0x4be1;
-	undefined field_0x4be2;
-	undefined field_0x4be3;
-	undefined field_0x4be4;
-	undefined field_0x4be5;
-	undefined field_0x4be6;
-	undefined field_0x4be7;
-	undefined field_0x4be8;
-	undefined field_0x4be9;
-	undefined field_0x4bea;
-	undefined field_0x4beb;
-	undefined field_0x4bec;
-	undefined field_0x4bed;
-	undefined field_0x4bee;
-	undefined field_0x4bef;
-	undefined field_0x4bf0;
-	undefined field_0x4bf1;
-	undefined field_0x4bf2;
-	undefined field_0x4bf3;
-	undefined field_0x4bf4;
-	undefined field_0x4bf5;
-	undefined field_0x4bf6;
-	undefined field_0x4bf7;
-	undefined field_0x4bf8;
-	undefined field_0x4bf9;
-	undefined field_0x4bfa;
-	undefined field_0x4bfb;
-	undefined field_0x4bfc;
-	undefined field_0x4bfd;
-	undefined field_0x4bfe;
-	undefined field_0x4bff;
-	undefined field_0x4c00;
-	undefined field_0x4c01;
-	undefined field_0x4c02;
-	undefined field_0x4c03;
-	undefined field_0x4c04;
-	undefined field_0x4c05;
-	undefined field_0x4c06;
-	undefined field_0x4c07;
-	undefined field_0x4c08;
-	undefined field_0x4c09;
-	undefined field_0x4c0a;
-	undefined field_0x4c0b;
-	undefined field_0x4c0c;
-	undefined field_0x4c0d;
-	undefined field_0x4c0e;
-	undefined field_0x4c0f;
-	undefined field_0x4c10;
-	undefined field_0x4c11;
-	undefined field_0x4c12;
-	undefined field_0x4c13;
-	undefined field_0x4c14;
-	undefined field_0x4c15;
-	undefined field_0x4c16;
-	undefined field_0x4c17;
-	undefined field_0x4c18;
-	undefined field_0x4c19;
-	undefined field_0x4c1a;
-	undefined field_0x4c1b;
-	undefined field_0x4c1c;
-	undefined field_0x4c1d;
-	undefined field_0x4c1e;
-	undefined field_0x4c1f;
-	undefined field_0x4c20;
-	undefined field_0x4c21;
-	undefined field_0x4c22;
-	undefined field_0x4c23;
-	undefined field_0x4c24;
-	undefined field_0x4c25;
-	undefined field_0x4c26;
-	undefined field_0x4c27;
-	undefined field_0x4c28;
-	undefined field_0x4c29;
-	undefined field_0x4c2a;
-	undefined field_0x4c2b;
-	undefined field_0x4c2c;
-	undefined field_0x4c2d;
-	undefined field_0x4c2e;
-	undefined field_0x4c2f;
-	undefined field_0x4c30;
-	undefined field_0x4c31;
-	undefined field_0x4c32;
-	undefined field_0x4c33;
-	undefined field_0x4c34;
-	undefined field_0x4c35;
-	undefined field_0x4c36;
-	undefined field_0x4c37;
-	undefined field_0x4c38;
-	undefined field_0x4c39;
-	undefined field_0x4c3a;
-	undefined field_0x4c3b;
-	undefined field_0x4c3c;
-	undefined field_0x4c3d;
-	undefined field_0x4c3e;
-	undefined field_0x4c3f;
-	undefined field_0x4c40;
-	undefined field_0x4c41;
-	undefined field_0x4c42;
-	undefined field_0x4c43;
-	undefined field_0x4c44;
-	undefined field_0x4c45;
-	undefined field_0x4c46;
-	undefined field_0x4c47;
-	undefined field_0x4c48;
-	undefined field_0x4c49;
-	undefined field_0x4c4a;
-	undefined field_0x4c4b;
-	undefined field_0x4c4c;
-	undefined field_0x4c4d;
-	undefined field_0x4c4e;
-	undefined field_0x4c4f;
-	undefined field_0x4c50;
-	undefined field_0x4c51;
-	undefined field_0x4c52;
-	undefined field_0x4c53;
-	undefined field_0x4c54;
-	undefined field_0x4c55;
-	undefined field_0x4c56;
-	undefined field_0x4c57;
-	undefined field_0x4c58;
-	undefined field_0x4c59;
-	undefined field_0x4c5a;
-	undefined field_0x4c5b;
-	undefined field_0x4c5c;
-	undefined field_0x4c5d;
-	undefined field_0x4c5e;
-	undefined field_0x4c5f;
-	undefined field_0x4c60;
-	undefined field_0x4c61;
-	undefined field_0x4c62;
-	undefined field_0x4c63;
-	undefined field_0x4c64;
-	undefined field_0x4c65;
-	undefined field_0x4c66;
-	undefined field_0x4c67;
-	undefined field_0x4c68;
-	undefined field_0x4c69;
-	undefined field_0x4c6a;
-	undefined field_0x4c6b;
-	undefined field_0x4c6c;
-	undefined field_0x4c6d;
-	undefined field_0x4c6e;
-	undefined field_0x4c6f;
-	undefined field_0x4c70;
-	undefined field_0x4c71;
-	undefined field_0x4c72;
-	undefined field_0x4c73;
-	undefined field_0x4c74;
-	undefined field_0x4c75;
-	undefined field_0x4c76;
-	undefined field_0x4c77;
-	undefined field_0x4c78;
-	undefined field_0x4c79;
-	undefined field_0x4c7a;
-	undefined field_0x4c7b;
-	undefined field_0x4c7c;
-	undefined field_0x4c7d;
-	undefined field_0x4c7e;
-	undefined field_0x4c7f;
-	undefined field_0x4c80;
-	undefined field_0x4c81;
-	undefined field_0x4c82;
-	undefined field_0x4c83;
-	undefined field_0x4c84;
-	undefined field_0x4c85;
-	undefined field_0x4c86;
-	undefined field_0x4c87;
-	undefined field_0x4c88;
-	undefined field_0x4c89;
-	undefined field_0x4c8a;
-	undefined field_0x4c8b;
-	undefined field_0x4c8c;
-	undefined field_0x4c8d;
-	undefined field_0x4c8e;
-	undefined field_0x4c8f;
-	undefined field_0x4c90;
-	undefined field_0x4c91;
-	undefined field_0x4c92;
-	undefined field_0x4c93;
-	undefined field_0x4c94;
-	undefined field_0x4c95;
-	undefined field_0x4c96;
-	undefined field_0x4c97;
-	undefined field_0x4c98;
-	undefined field_0x4c99;
-	undefined field_0x4c9a;
-	undefined field_0x4c9b;
-	undefined field_0x4c9c;
-	undefined field_0x4c9d;
-	undefined field_0x4c9e;
-	undefined field_0x4c9f;
-	undefined field_0x4ca0;
-	undefined field_0x4ca1;
-	undefined field_0x4ca2;
-	undefined field_0x4ca3;
-	undefined field_0x4ca4;
-	undefined field_0x4ca5;
-	undefined field_0x4ca6;
-	undefined field_0x4ca7;
-	undefined field_0x4ca8;
-	undefined field_0x4ca9;
-	undefined field_0x4caa;
-	undefined field_0x4cab;
-	undefined field_0x4cac;
-	undefined field_0x4cad;
-	undefined field_0x4cae;
-	undefined field_0x4caf;
-	undefined field_0x4cb0;
-	undefined field_0x4cb1;
-	undefined field_0x4cb2;
-	undefined field_0x4cb3;
-	undefined field_0x4cb4;
-	undefined field_0x4cb5;
-	undefined field_0x4cb6;
-	undefined field_0x4cb7;
-	undefined field_0x4cb8;
-	undefined field_0x4cb9;
-	undefined field_0x4cba;
-	undefined field_0x4cbb;
-	undefined field_0x4cbc;
-	undefined field_0x4cbd;
-	undefined field_0x4cbe;
-	undefined field_0x4cbf;
-	undefined field_0x4cc0;
-	undefined field_0x4cc1;
-	undefined field_0x4cc2;
-	undefined field_0x4cc3;
-	undefined field_0x4cc4;
-	undefined field_0x4cc5;
-	undefined field_0x4cc6;
-	undefined field_0x4cc7;
-	undefined field_0x4cc8;
-	undefined field_0x4cc9;
-	undefined field_0x4cca;
-	undefined field_0x4ccb;
-	undefined field_0x4ccc;
-	undefined field_0x4ccd;
-	undefined field_0x4cce;
-	undefined field_0x4ccf;
-	undefined field_0x4cd0;
-	undefined field_0x4cd1;
-	undefined field_0x4cd2;
-	undefined field_0x4cd3;
-	undefined field_0x4cd4;
-	undefined field_0x4cd5;
-	undefined field_0x4cd6;
-	undefined field_0x4cd7;
-	undefined field_0x4cd8;
-	undefined field_0x4cd9;
-	undefined field_0x4cda;
-	undefined field_0x4cdb;
-	undefined field_0x4cdc;
-	undefined field_0x4cdd;
-	undefined field_0x4cde;
-	undefined field_0x4cdf;
-	undefined field_0x4ce0;
-	undefined field_0x4ce1;
-	undefined field_0x4ce2;
-	undefined field_0x4ce3;
-	undefined field_0x4ce4;
-	undefined field_0x4ce5;
-	undefined field_0x4ce6;
-	undefined field_0x4ce7;
-	undefined field_0x4ce8;
-	undefined field_0x4ce9;
-	undefined field_0x4cea;
-	undefined field_0x4ceb;
-	undefined field_0x4cec;
-	undefined field_0x4ced;
-	undefined field_0x4cee;
-	undefined field_0x4cef;
-	undefined field_0x4cf0;
-	undefined field_0x4cf1;
-	undefined field_0x4cf2;
-	undefined field_0x4cf3;
-	undefined field_0x4cf4;
-	undefined field_0x4cf5;
-	undefined field_0x4cf6;
-	undefined field_0x4cf7;
-	undefined field_0x4cf8;
-	undefined field_0x4cf9;
-	undefined field_0x4cfa;
-	undefined field_0x4cfb;
-	undefined field_0x4cfc;
-	undefined field_0x4cfd;
-	undefined field_0x4cfe;
-	undefined field_0x4cff;
-	undefined field_0x4d00;
-	undefined field_0x4d01;
-	undefined field_0x4d02;
-	undefined field_0x4d03;
-	undefined field_0x4d04;
-	undefined field_0x4d05;
-	undefined field_0x4d06;
-	undefined field_0x4d07;
-	undefined field_0x4d08;
-	undefined field_0x4d09;
-	undefined field_0x4d0a;
-	undefined field_0x4d0b;
-	undefined field_0x4d0c;
-	undefined field_0x4d0d;
-	undefined field_0x4d0e;
-	undefined field_0x4d0f;
-	undefined field_0x4d10;
-	undefined field_0x4d11;
-	undefined field_0x4d12;
-	undefined field_0x4d13;
-	undefined field_0x4d14;
-	undefined field_0x4d15;
-	undefined field_0x4d16;
-	undefined field_0x4d17;
-	undefined field_0x4d18;
-	undefined field_0x4d19;
-	undefined field_0x4d1a;
-	undefined field_0x4d1b;
-	undefined field_0x4d1c;
-	undefined field_0x4d1d;
-	undefined field_0x4d1e;
-	undefined field_0x4d1f;
-	undefined field_0x4d20;
-	undefined field_0x4d21;
-	undefined field_0x4d22;
-	undefined field_0x4d23;
-	undefined field_0x4d24;
-	undefined field_0x4d25;
-	undefined field_0x4d26;
-	undefined field_0x4d27;
-	undefined field_0x4d28;
-	undefined field_0x4d29;
-	undefined field_0x4d2a;
-	undefined field_0x4d2b;
-	undefined field_0x4d2c;
-	undefined field_0x4d2d;
-	undefined field_0x4d2e;
-	undefined field_0x4d2f;
-	undefined field_0x4d30;
-	undefined field_0x4d31;
-	undefined field_0x4d32;
-	undefined field_0x4d33;
-	undefined field_0x4d34;
-	undefined field_0x4d35;
-	undefined field_0x4d36;
-	undefined field_0x4d37;
-	undefined field_0x4d38;
-	undefined field_0x4d39;
-	undefined field_0x4d3a;
-	undefined field_0x4d3b;
-	undefined field_0x4d3c;
-	undefined field_0x4d3d;
-	undefined field_0x4d3e;
-	undefined field_0x4d3f;
-	undefined field_0x4d40;
-	undefined field_0x4d41;
-	undefined field_0x4d42;
-	undefined field_0x4d43;
-	undefined field_0x4d44;
-	undefined field_0x4d45;
-	undefined field_0x4d46;
-	undefined field_0x4d47;
-	undefined field_0x4d48;
-	undefined field_0x4d49;
-	undefined field_0x4d4a;
-	undefined field_0x4d4b;
-	undefined field_0x4d4c;
-	undefined field_0x4d4d;
-	undefined field_0x4d4e;
-	undefined field_0x4d4f;
-	undefined field_0x4d50;
-	undefined field_0x4d51;
-	undefined field_0x4d52;
-	undefined field_0x4d53;
-	undefined field_0x4d54;
-	undefined field_0x4d55;
-	undefined field_0x4d56;
-	undefined field_0x4d57;
-	undefined field_0x4d58;
-	undefined field_0x4d59;
-	undefined field_0x4d5a;
-	undefined field_0x4d5b;
-	undefined field_0x4d5c;
-	undefined field_0x4d5d;
-	undefined field_0x4d5e;
-	undefined field_0x4d5f;
-	undefined field_0x4d60;
-	undefined field_0x4d61;
-	undefined field_0x4d62;
-	undefined field_0x4d63;
-	undefined field_0x4d64;
-	undefined field_0x4d65;
-	undefined field_0x4d66;
-	undefined field_0x4d67;
-	undefined field_0x4d68;
-	undefined field_0x4d69;
-	undefined field_0x4d6a;
-	undefined field_0x4d6b;
-	undefined field_0x4d6c;
-	undefined field_0x4d6d;
-	undefined field_0x4d6e;
-	undefined field_0x4d6f;
-	undefined field_0x4d70;
-	undefined field_0x4d71;
-	undefined field_0x4d72;
-	undefined field_0x4d73;
-	undefined field_0x4d74;
-	undefined field_0x4d75;
-	undefined field_0x4d76;
-	undefined field_0x4d77;
-	undefined field_0x4d78;
-	undefined field_0x4d79;
-	undefined field_0x4d7a;
-	undefined field_0x4d7b;
-	undefined field_0x4d7c;
-	undefined field_0x4d7d;
-	undefined field_0x4d7e;
-	undefined field_0x4d7f;
-	undefined field_0x4d80;
-	undefined field_0x4d81;
-	undefined field_0x4d82;
-	undefined field_0x4d83;
-	undefined field_0x4d84;
-	undefined field_0x4d85;
-	undefined field_0x4d86;
-	undefined field_0x4d87;
-	undefined field_0x4d88;
-	undefined field_0x4d89;
-	undefined field_0x4d8a;
-	undefined field_0x4d8b;
-	undefined field_0x4d8c;
-	undefined field_0x4d8d;
-	undefined field_0x4d8e;
-	undefined field_0x4d8f;
-	undefined field_0x4d90;
-	undefined field_0x4d91;
-	undefined field_0x4d92;
-	undefined field_0x4d93;
-	undefined field_0x4d94;
-	undefined field_0x4d95;
-	undefined field_0x4d96;
-	undefined field_0x4d97;
-	undefined field_0x4d98;
-	undefined field_0x4d99;
-	undefined field_0x4d9a;
-	undefined field_0x4d9b;
-	undefined field_0x4d9c;
-	undefined field_0x4d9d;
-	undefined field_0x4d9e;
-	undefined field_0x4d9f;
-	undefined field_0x4da0;
-	undefined field_0x4da1;
-	undefined field_0x4da2;
-	undefined field_0x4da3;
-	undefined field_0x4da4;
-	undefined field_0x4da5;
-	undefined field_0x4da6;
-	undefined field_0x4da7;
-	undefined field_0x4da8;
-	undefined field_0x4da9;
-	undefined field_0x4daa;
-	undefined field_0x4dab;
-	undefined field_0x4dac;
-	undefined field_0x4dad;
-	undefined field_0x4dae;
-	undefined field_0x4daf;
-	undefined field_0x4db0;
-	undefined field_0x4db1;
-	undefined field_0x4db2;
-	undefined field_0x4db3;
-	undefined field_0x4db4;
-	undefined field_0x4db5;
-	undefined field_0x4db6;
-	undefined field_0x4db7;
-	undefined field_0x4db8;
-	undefined field_0x4db9;
-	undefined field_0x4dba;
-	undefined field_0x4dbb;
-	undefined field_0x4dbc;
-	undefined field_0x4dbd;
-	undefined field_0x4dbe;
-	undefined field_0x4dbf;
-	undefined field_0x4dc0;
-	undefined field_0x4dc1;
-	undefined field_0x4dc2;
-	undefined field_0x4dc3;
-	undefined field_0x4dc4;
-	undefined field_0x4dc5;
-	undefined field_0x4dc6;
-	undefined field_0x4dc7;
-	undefined field_0x4dc8;
-	undefined field_0x4dc9;
-	undefined field_0x4dca;
-	undefined field_0x4dcb;
-	undefined field_0x4dcc;
-	undefined field_0x4dcd;
-	undefined field_0x4dce;
-	undefined field_0x4dcf;
-	undefined field_0x4dd0;
-	undefined field_0x4dd1;
-	undefined field_0x4dd2;
-	undefined field_0x4dd3;
-	undefined field_0x4dd4;
-	undefined field_0x4dd5;
-	undefined field_0x4dd6;
-	undefined field_0x4dd7;
-	undefined field_0x4dd8;
-	undefined field_0x4dd9;
-	undefined field_0x4dda;
-	undefined field_0x4ddb;
-	undefined field_0x4ddc;
-	undefined field_0x4ddd;
-	undefined field_0x4dde;
-	undefined field_0x4ddf;
-	undefined field_0x4de0;
-	undefined field_0x4de1;
-	undefined field_0x4de2;
-	undefined field_0x4de3;
-	undefined field_0x4de4;
-	undefined field_0x4de5;
-	undefined field_0x4de6;
-	undefined field_0x4de7;
-	undefined field_0x4de8;
-	undefined field_0x4de9;
-	undefined field_0x4dea;
-	undefined field_0x4deb;
-	undefined field_0x4dec;
-	undefined field_0x4ded;
-	undefined field_0x4dee;
-	undefined field_0x4def;
-	undefined field_0x4df0;
-	undefined field_0x4df1;
-	undefined field_0x4df2;
-	undefined field_0x4df3;
-	undefined field_0x4df4;
-	undefined field_0x4df5;
-	undefined field_0x4df6;
-	undefined field_0x4df7;
-	undefined field_0x4df8;
-	undefined field_0x4df9;
-	undefined field_0x4dfa;
-	undefined field_0x4dfb;
-	undefined field_0x4dfc;
-	undefined field_0x4dfd;
-	undefined field_0x4dfe;
-	undefined field_0x4dff;
-	undefined field_0x4e00;
-	undefined field_0x4e01;
-	undefined field_0x4e02;
-	undefined field_0x4e03;
-	undefined field_0x4e04;
-	undefined field_0x4e05;
-	undefined field_0x4e06;
-	undefined field_0x4e07;
-	undefined field_0x4e08;
-	undefined field_0x4e09;
-	undefined field_0x4e0a;
-	undefined field_0x4e0b;
-	undefined field_0x4e0c;
-	undefined field_0x4e0d;
-	undefined field_0x4e0e;
-	undefined field_0x4e0f;
-	undefined field_0x4e10;
-	undefined field_0x4e11;
-	undefined field_0x4e12;
-	undefined field_0x4e13;
-	undefined field_0x4e14;
-	undefined field_0x4e15;
-	undefined field_0x4e16;
-	undefined field_0x4e17;
-	undefined field_0x4e18;
-	undefined field_0x4e19;
-	undefined field_0x4e1a;
-	undefined field_0x4e1b;
-	undefined field_0x4e1c;
-	undefined field_0x4e1d;
-	undefined field_0x4e1e;
-	undefined field_0x4e1f;
-	undefined field_0x4e20;
-	undefined field_0x4e21;
-	undefined field_0x4e22;
-	undefined field_0x4e23;
-	undefined field_0x4e24;
-	undefined field_0x4e25;
-	undefined field_0x4e26;
-	undefined field_0x4e27;
-	undefined field_0x4e28;
-	undefined field_0x4e29;
-	undefined field_0x4e2a;
-	undefined field_0x4e2b;
-	undefined field_0x4e2c;
-	undefined field_0x4e2d;
-	undefined field_0x4e2e;
-	undefined field_0x4e2f;
-	undefined field_0x4e30;
-	undefined field_0x4e31;
-	undefined field_0x4e32;
-	undefined field_0x4e33;
-	undefined field_0x4e34;
-	undefined field_0x4e35;
-	undefined field_0x4e36;
-	undefined field_0x4e37;
-	undefined field_0x4e38;
-	undefined field_0x4e39;
-	undefined field_0x4e3a;
-	undefined field_0x4e3b;
-	undefined field_0x4e3c;
-	undefined field_0x4e3d;
-	undefined field_0x4e3e;
-	undefined field_0x4e3f;
-	undefined field_0x4e40;
-	undefined field_0x4e41;
-	undefined field_0x4e42;
-	undefined field_0x4e43;
-	undefined field_0x4e44;
-	undefined field_0x4e45;
-	undefined field_0x4e46;
-	undefined field_0x4e47;
-	undefined field_0x4e48;
-	undefined field_0x4e49;
-	undefined field_0x4e4a;
-	undefined field_0x4e4b;
-	undefined field_0x4e4c;
-	undefined field_0x4e4d;
-	undefined field_0x4e4e;
-	undefined field_0x4e4f;
-	undefined field_0x4e50;
-	undefined field_0x4e51;
-	undefined field_0x4e52;
-	undefined field_0x4e53;
-	undefined field_0x4e54;
-	undefined field_0x4e55;
-	undefined field_0x4e56;
-	undefined field_0x4e57;
-	undefined field_0x4e58;
-	undefined field_0x4e59;
-	undefined field_0x4e5a;
-	undefined field_0x4e5b;
-	undefined field_0x4e5c;
-	undefined field_0x4e5d;
-	undefined field_0x4e5e;
-	undefined field_0x4e5f;
-	undefined field_0x4e60;
-	undefined field_0x4e61;
-	undefined field_0x4e62;
-	undefined field_0x4e63;
-	undefined field_0x4e64;
-	undefined field_0x4e65;
-	undefined field_0x4e66;
-	undefined field_0x4e67;
-	undefined field_0x4e68;
-	undefined field_0x4e69;
-	undefined field_0x4e6a;
-	undefined field_0x4e6b;
-	undefined field_0x4e6c;
-	undefined field_0x4e6d;
-	undefined field_0x4e6e;
-	undefined field_0x4e6f;
-	undefined field_0x4e70;
-	undefined field_0x4e71;
-	undefined field_0x4e72;
-	undefined field_0x4e73;
-	undefined field_0x4e74;
-	undefined field_0x4e75;
-	undefined field_0x4e76;
-	undefined field_0x4e77;
-	undefined field_0x4e78;
-	undefined field_0x4e79;
-	undefined field_0x4e7a;
-	undefined field_0x4e7b;
-	undefined field_0x4e7c;
-	undefined field_0x4e7d;
-	undefined field_0x4e7e;
-	undefined field_0x4e7f;
-	undefined field_0x4e80;
-	undefined field_0x4e81;
-	undefined field_0x4e82;
-	undefined field_0x4e83;
-	undefined field_0x4e84;
-	undefined field_0x4e85;
-	undefined field_0x4e86;
-	undefined field_0x4e87;
-	undefined field_0x4e88;
-	undefined field_0x4e89;
-	undefined field_0x4e8a;
-	undefined field_0x4e8b;
-	undefined field_0x4e8c;
-	undefined field_0x4e8d;
-	undefined field_0x4e8e;
-	undefined field_0x4e8f;
-	undefined field_0x4e90;
-	undefined field_0x4e91;
-	undefined field_0x4e92;
-	undefined field_0x4e93;
-	undefined field_0x4e94;
-	undefined field_0x4e95;
-	undefined field_0x4e96;
-	undefined field_0x4e97;
-	undefined field_0x4e98;
-	undefined field_0x4e99;
-	undefined field_0x4e9a;
-	undefined field_0x4e9b;
-	undefined field_0x4e9c;
-	undefined field_0x4e9d;
-	undefined field_0x4e9e;
-	undefined field_0x4e9f;
-	undefined field_0x4ea0;
-	undefined field_0x4ea1;
-	undefined field_0x4ea2;
-	undefined field_0x4ea3;
-	undefined field_0x4ea4;
-	undefined field_0x4ea5;
-	undefined field_0x4ea6;
-	undefined field_0x4ea7;
-	undefined field_0x4ea8;
-	undefined field_0x4ea9;
-	undefined field_0x4eaa;
-	undefined field_0x4eab;
-	undefined field_0x4eac;
-	undefined field_0x4ead;
-	undefined field_0x4eae;
-	undefined field_0x4eaf;
-	undefined field_0x4eb0;
-	undefined field_0x4eb1;
-	undefined field_0x4eb2;
-	undefined field_0x4eb3;
-	undefined field_0x4eb4;
-	undefined field_0x4eb5;
-	undefined field_0x4eb6;
-	undefined field_0x4eb7;
-	undefined field_0x4eb8;
-	undefined field_0x4eb9;
-	undefined field_0x4eba;
-	undefined field_0x4ebb;
-	undefined field_0x4ebc;
-	undefined field_0x4ebd;
-	undefined field_0x4ebe;
-	undefined field_0x4ebf;
-	undefined field_0x4ec0;
-	undefined field_0x4ec1;
-	undefined field_0x4ec2;
-	undefined field_0x4ec3;
-	undefined field_0x4ec4;
-	undefined field_0x4ec5;
-	undefined field_0x4ec6;
-	undefined field_0x4ec7;
-	undefined field_0x4ec8;
-	undefined field_0x4ec9;
-	undefined field_0x4eca;
-	undefined field_0x4ecb;
-	undefined field_0x4ecc;
-	undefined field_0x4ecd;
-	undefined field_0x4ece;
-	undefined field_0x4ecf;
-	undefined field_0x4ed0;
-	undefined field_0x4ed1;
-	undefined field_0x4ed2;
-	undefined field_0x4ed3;
-	undefined field_0x4ed4;
-	undefined field_0x4ed5;
-	undefined field_0x4ed6;
-	undefined field_0x4ed7;
-	undefined field_0x4ed8;
-	undefined field_0x4ed9;
-	undefined field_0x4eda;
-	undefined field_0x4edb;
-	undefined field_0x4edc;
-	undefined field_0x4edd;
-	undefined field_0x4ede;
-	undefined field_0x4edf;
-	undefined field_0x4ee0;
-	undefined field_0x4ee1;
-	undefined field_0x4ee2;
-	undefined field_0x4ee3;
-	undefined field_0x4ee4;
-	undefined field_0x4ee5;
-	undefined field_0x4ee6;
-	undefined field_0x4ee7;
-	undefined field_0x4ee8;
-	undefined field_0x4ee9;
-	undefined field_0x4eea;
-	undefined field_0x4eeb;
-	undefined field_0x4eec;
-	undefined field_0x4eed;
-	undefined field_0x4eee;
-	undefined field_0x4eef;
-	undefined field_0x4ef0;
-	undefined field_0x4ef1;
-	undefined field_0x4ef2;
-	undefined field_0x4ef3;
-	undefined field_0x4ef4;
-	undefined field_0x4ef5;
-	undefined field_0x4ef6;
-	undefined field_0x4ef7;
-	undefined field_0x4ef8;
-	undefined field_0x4ef9;
-	undefined field_0x4efa;
-	undefined field_0x4efb;
-	undefined field_0x4efc;
-	undefined field_0x4efd;
-	undefined field_0x4efe;
-	undefined field_0x4eff;
-	undefined field_0x4f00;
-	undefined field_0x4f01;
-	undefined field_0x4f02;
-	undefined field_0x4f03;
-	undefined field_0x4f04;
-	undefined field_0x4f05;
-	undefined field_0x4f06;
-	undefined field_0x4f07;
-	undefined field_0x4f08;
-	undefined field_0x4f09;
-	undefined field_0x4f0a;
-	undefined field_0x4f0b;
-	undefined field_0x4f0c;
-	undefined field_0x4f0d;
-	undefined field_0x4f0e;
-	undefined field_0x4f0f;
-	undefined field_0x4f10;
-	undefined field_0x4f11;
-	undefined field_0x4f12;
-	undefined field_0x4f13;
-	undefined field_0x4f14;
-	undefined field_0x4f15;
-	undefined field_0x4f16;
-	undefined field_0x4f17;
-	undefined field_0x4f18;
-	undefined field_0x4f19;
-	undefined field_0x4f1a;
-	undefined field_0x4f1b;
-	undefined field_0x4f1c;
-	undefined field_0x4f1d;
-	undefined field_0x4f1e;
-	undefined field_0x4f1f;
-	undefined field_0x4f20;
-	undefined field_0x4f21;
-	undefined field_0x4f22;
-	undefined field_0x4f23;
-	undefined field_0x4f24;
-	undefined field_0x4f25;
-	undefined field_0x4f26;
-	undefined field_0x4f27;
-	undefined field_0x4f28;
-	undefined field_0x4f29;
-	undefined field_0x4f2a;
-	undefined field_0x4f2b;
-	undefined field_0x4f2c;
-	undefined field_0x4f2d;
-	undefined field_0x4f2e;
-	undefined field_0x4f2f;
-	undefined field_0x4f30;
-	undefined field_0x4f31;
-	undefined field_0x4f32;
-	undefined field_0x4f33;
-	undefined field_0x4f34;
-	undefined field_0x4f35;
-	undefined field_0x4f36;
-	undefined field_0x4f37;
-	undefined field_0x4f38;
-	undefined field_0x4f39;
-	undefined field_0x4f3a;
-	undefined field_0x4f3b;
-	undefined field_0x4f3c;
-	undefined field_0x4f3d;
-	undefined field_0x4f3e;
-	undefined field_0x4f3f;
-	undefined field_0x4f40;
-	undefined field_0x4f41;
-	undefined field_0x4f42;
-	undefined field_0x4f43;
-	undefined field_0x4f44;
-	undefined field_0x4f45;
-	undefined field_0x4f46;
-	undefined field_0x4f47;
-	undefined field_0x4f48;
-	undefined field_0x4f49;
-	undefined field_0x4f4a;
-	undefined field_0x4f4b;
-	undefined field_0x4f4c;
-	undefined field_0x4f4d;
-	undefined field_0x4f4e;
-	undefined field_0x4f4f;
-	undefined field_0x4f50;
-	undefined field_0x4f51;
-	undefined field_0x4f52;
-	undefined field_0x4f53;
-	undefined field_0x4f54;
-	undefined field_0x4f55;
-	undefined field_0x4f56;
-	undefined field_0x4f57;
-	undefined field_0x4f58;
-	undefined field_0x4f59;
-	undefined field_0x4f5a;
-	undefined field_0x4f5b;
-	undefined field_0x4f5c;
-	undefined field_0x4f5d;
-	undefined field_0x4f5e;
-	undefined field_0x4f5f;
-	undefined field_0x4f60;
-	undefined field_0x4f61;
-	undefined field_0x4f62;
-	undefined field_0x4f63;
-	undefined field_0x4f64;
-	undefined field_0x4f65;
-	undefined field_0x4f66;
-	undefined field_0x4f67;
-	undefined field_0x4f68;
-	undefined field_0x4f69;
-	undefined field_0x4f6a;
-	undefined field_0x4f6b;
-	undefined field_0x4f6c;
-	undefined field_0x4f6d;
-	undefined field_0x4f6e;
-	undefined field_0x4f6f;
-	undefined field_0x4f70;
-	undefined field_0x4f71;
-	undefined field_0x4f72;
-	undefined field_0x4f73;
-	undefined field_0x4f74;
-	undefined field_0x4f75;
-	undefined field_0x4f76;
-	undefined field_0x4f77;
-	undefined field_0x4f78;
-	undefined field_0x4f79;
-	undefined field_0x4f7a;
-	undefined field_0x4f7b;
-	undefined field_0x4f7c;
-	undefined field_0x4f7d;
-	undefined field_0x4f7e;
-	undefined field_0x4f7f;
-	undefined field_0x4f80;
-	undefined field_0x4f81;
-	undefined field_0x4f82;
-	undefined field_0x4f83;
-	undefined field_0x4f84;
-	undefined field_0x4f85;
-	undefined field_0x4f86;
-	undefined field_0x4f87;
-	undefined field_0x4f88;
-	undefined field_0x4f89;
-	undefined field_0x4f8a;
-	undefined field_0x4f8b;
-	undefined field_0x4f8c;
-	undefined field_0x4f8d;
-	undefined field_0x4f8e;
-	undefined field_0x4f8f;
-	undefined field_0x4f90;
-	undefined field_0x4f91;
-	undefined field_0x4f92;
-	undefined field_0x4f93;
-	undefined field_0x4f94;
-	undefined field_0x4f95;
-	undefined field_0x4f96;
-	undefined field_0x4f97;
-	undefined field_0x4f98;
-	undefined field_0x4f99;
-	undefined field_0x4f9a;
-	undefined field_0x4f9b;
-	undefined field_0x4f9c;
-	undefined field_0x4f9d;
-	undefined field_0x4f9e;
-	undefined field_0x4f9f;
-	undefined field_0x4fa0;
-	undefined field_0x4fa1;
-	undefined field_0x4fa2;
-	undefined field_0x4fa3;
-	undefined field_0x4fa4;
-	undefined field_0x4fa5;
-	undefined field_0x4fa6;
-	undefined field_0x4fa7;
-	undefined field_0x4fa8;
-	undefined field_0x4fa9;
-	undefined field_0x4faa;
-	undefined field_0x4fab;
-	undefined field_0x4fac;
-	undefined field_0x4fad;
-	undefined field_0x4fae;
-	undefined field_0x4faf;
-	undefined field_0x4fb0;
-	undefined field_0x4fb1;
-	undefined field_0x4fb2;
-	undefined field_0x4fb3;
-	undefined field_0x4fb4;
-	undefined field_0x4fb5;
-	undefined field_0x4fb6;
-	undefined field_0x4fb7;
-	undefined field_0x4fb8;
-	undefined field_0x4fb9;
-	undefined field_0x4fba;
-	undefined field_0x4fbb;
-	undefined field_0x4fbc;
-	undefined field_0x4fbd;
-	undefined field_0x4fbe;
-	undefined field_0x4fbf;
-	undefined field_0x4fc0;
-	undefined field_0x4fc1;
-	undefined field_0x4fc2;
-	undefined field_0x4fc3;
-	undefined field_0x4fc4;
-	undefined field_0x4fc5;
-	undefined field_0x4fc6;
-	undefined field_0x4fc7;
-	undefined field_0x4fc8;
-	undefined field_0x4fc9;
-	undefined field_0x4fca;
-	undefined field_0x4fcb;
-	undefined field_0x4fcc;
-	undefined field_0x4fcd;
-	undefined field_0x4fce;
-	undefined field_0x4fcf;
-	undefined field_0x4fd0;
-	undefined field_0x4fd1;
-	undefined field_0x4fd2;
-	undefined field_0x4fd3;
-	undefined field_0x4fd4;
-	undefined field_0x4fd5;
-	undefined field_0x4fd6;
-	undefined field_0x4fd7;
-	undefined field_0x4fd8;
-	undefined field_0x4fd9;
-	undefined field_0x4fda;
-	undefined field_0x4fdb;
-	undefined field_0x4fdc;
-	undefined field_0x4fdd;
-	undefined field_0x4fde;
-	undefined field_0x4fdf;
-	undefined field_0x4fe0;
-	undefined field_0x4fe1;
-	undefined field_0x4fe2;
-	undefined field_0x4fe3;
-	undefined field_0x4fe4;
-	undefined field_0x4fe5;
-	undefined field_0x4fe6;
-	undefined field_0x4fe7;
-	undefined field_0x4fe8;
-	undefined field_0x4fe9;
-	undefined field_0x4fea;
-	undefined field_0x4feb;
-	undefined field_0x4fec;
-	undefined field_0x4fed;
-	undefined field_0x4fee;
-	undefined field_0x4fef;
-	undefined field_0x4ff0;
-	undefined field_0x4ff1;
-	undefined field_0x4ff2;
-	undefined field_0x4ff3;
-	undefined field_0x4ff4;
-	undefined field_0x4ff5;
-	undefined field_0x4ff6;
-	undefined field_0x4ff7;
-	undefined field_0x4ff8;
-	undefined field_0x4ff9;
-	undefined field_0x4ffa;
-	undefined field_0x4ffb;
-	undefined field_0x4ffc;
-	undefined field_0x4ffd;
-	undefined field_0x4ffe;
-	undefined field_0x4fff;
-	undefined field_0x5000;
-	undefined field_0x5001;
-	undefined field_0x5002;
-	undefined field_0x5003;
-	undefined field_0x5004;
-	undefined field_0x5005;
-	undefined field_0x5006;
-	undefined field_0x5007;
-	undefined field_0x5008;
-	undefined field_0x5009;
-	undefined field_0x500a;
-	undefined field_0x500b;
-	undefined field_0x500c;
-	undefined field_0x500d;
-	undefined field_0x500e;
-	undefined field_0x500f;
-	undefined field_0x5010;
-	undefined field_0x5011;
-	undefined field_0x5012;
-	undefined field_0x5013;
-	undefined field_0x5014;
-	undefined field_0x5015;
-	undefined field_0x5016;
-	undefined field_0x5017;
-	undefined field_0x5018;
-	undefined field_0x5019;
-	undefined field_0x501a;
-	undefined field_0x501b;
-	undefined field_0x501c;
-	undefined field_0x501d;
-	undefined field_0x501e;
-	undefined field_0x501f;
-	undefined field_0x5020;
-	undefined field_0x5021;
-	undefined field_0x5022;
-	undefined field_0x5023;
-	undefined field_0x5024;
-	undefined field_0x5025;
-	undefined field_0x5026;
-	undefined field_0x5027;
-	undefined field_0x5028;
-	undefined field_0x5029;
-	undefined field_0x502a;
-	undefined field_0x502b;
-	undefined field_0x502c;
-	undefined field_0x502d;
-	undefined field_0x502e;
-	undefined field_0x502f;
-	undefined field_0x5030;
-	undefined field_0x5031;
-	undefined field_0x5032;
-	undefined field_0x5033;
-	undefined field_0x5034;
-	undefined field_0x5035;
-	undefined field_0x5036;
-	undefined field_0x5037;
-	undefined field_0x5038;
-	undefined field_0x5039;
-	undefined field_0x503a;
-	undefined field_0x503b;
-	undefined field_0x503c;
-	undefined field_0x503d;
-	undefined field_0x503e;
-	undefined field_0x503f;
-	undefined field_0x5040;
-	undefined field_0x5041;
-	undefined field_0x5042;
-	undefined field_0x5043;
-	undefined field_0x5044;
-	undefined field_0x5045;
-	undefined field_0x5046;
-	undefined field_0x5047;
-	undefined field_0x5048;
-	undefined field_0x5049;
-	undefined field_0x504a;
-	undefined field_0x504b;
-	undefined field_0x504c;
-	undefined field_0x504d;
-	undefined field_0x504e;
-	undefined field_0x504f;
-	undefined field_0x5050;
-	undefined field_0x5051;
-	undefined field_0x5052;
-	undefined field_0x5053;
-	undefined field_0x5054;
-	undefined field_0x5055;
-	undefined field_0x5056;
-	undefined field_0x5057;
-	undefined field_0x5058;
-	undefined field_0x5059;
-	undefined field_0x505a;
-	undefined field_0x505b;
-	undefined field_0x505c;
-	undefined field_0x505d;
-	undefined field_0x505e;
-	undefined field_0x505f;
-	undefined field_0x5060;
-	undefined field_0x5061;
-	undefined field_0x5062;
-	undefined field_0x5063;
-	undefined field_0x5064;
-	undefined field_0x5065;
-	undefined field_0x5066;
-	undefined field_0x5067;
-	undefined field_0x5068;
-	undefined field_0x5069;
-	undefined field_0x506a;
-	undefined field_0x506b;
-	undefined field_0x506c;
-	undefined field_0x506d;
-	undefined field_0x506e;
-	undefined field_0x506f;
-	undefined field_0x5070;
-	undefined field_0x5071;
-	undefined field_0x5072;
-	undefined field_0x5073;
-	undefined field_0x5074;
-	undefined field_0x5075;
-	undefined field_0x5076;
-	undefined field_0x5077;
-	undefined field_0x5078;
-	undefined field_0x5079;
-	undefined field_0x507a;
-	undefined field_0x507b;
-	undefined field_0x507c;
-	undefined field_0x507d;
-	undefined field_0x507e;
-	undefined field_0x507f;
-	undefined field_0x5080;
-	undefined field_0x5081;
-	undefined field_0x5082;
-	undefined field_0x5083;
-	undefined field_0x5084;
-	undefined field_0x5085;
-	undefined field_0x5086;
-	undefined field_0x5087;
-	undefined field_0x5088;
-	undefined field_0x5089;
-	undefined field_0x508a;
-	undefined field_0x508b;
-	undefined field_0x508c;
-	undefined field_0x508d;
-	undefined field_0x508e;
-	undefined field_0x508f;
-	undefined field_0x5090;
-	undefined field_0x5091;
-	undefined field_0x5092;
-	undefined field_0x5093;
-	undefined field_0x5094;
-	undefined field_0x5095;
-	undefined field_0x5096;
-	undefined field_0x5097;
-	undefined field_0x5098;
-	undefined field_0x5099;
-	undefined field_0x509a;
-	undefined field_0x509b;
-	undefined field_0x509c;
-	undefined field_0x509d;
-	undefined field_0x509e;
-	undefined field_0x509f;
-	undefined field_0x50a0;
-	undefined field_0x50a1;
-	undefined field_0x50a2;
-	undefined field_0x50a3;
-	undefined field_0x50a4;
-	undefined field_0x50a5;
-	undefined field_0x50a6;
-	undefined field_0x50a7;
-	undefined field_0x50a8;
-	undefined field_0x50a9;
-	undefined field_0x50aa;
-	undefined field_0x50ab;
-	undefined field_0x50ac;
-	undefined field_0x50ad;
-	undefined field_0x50ae;
-	undefined field_0x50af;
-	undefined field_0x50b0;
-	undefined field_0x50b1;
-	undefined field_0x50b2;
-	undefined field_0x50b3;
-	undefined field_0x50b4;
-	undefined field_0x50b5;
-	undefined field_0x50b6;
-	undefined field_0x50b7;
-	undefined field_0x50b8;
-	undefined field_0x50b9;
-	undefined field_0x50ba;
-	undefined field_0x50bb;
-	undefined field_0x50bc;
-	undefined field_0x50bd;
-	undefined field_0x50be;
-	undefined field_0x50bf;
-	undefined field_0x50c0;
-	undefined field_0x50c1;
-	undefined field_0x50c2;
-	undefined field_0x50c3;
-	undefined field_0x50c4;
-	undefined field_0x50c5;
-	undefined field_0x50c6;
-	undefined field_0x50c7;
-	undefined field_0x50c8;
-	undefined field_0x50c9;
-	undefined field_0x50ca;
-	undefined field_0x50cb;
-	undefined field_0x50cc;
-	undefined field_0x50cd;
-	undefined field_0x50ce;
-	undefined field_0x50cf;
-	undefined field_0x50d0;
-	undefined field_0x50d1;
-	undefined field_0x50d2;
-	undefined field_0x50d3;
-	undefined field_0x50d4;
-	undefined field_0x50d5;
-	undefined field_0x50d6;
-	undefined field_0x50d7;
-	undefined field_0x50d8;
-	undefined field_0x50d9;
-	undefined field_0x50da;
-	undefined field_0x50db;
-	undefined field_0x50dc;
-	undefined field_0x50dd;
-	undefined field_0x50de;
-	undefined field_0x50df;
-	undefined field_0x50e0;
-	undefined field_0x50e1;
-	undefined field_0x50e2;
-	undefined field_0x50e3;
-	undefined field_0x50e4;
-	undefined field_0x50e5;
-	undefined field_0x50e6;
-	undefined field_0x50e7;
-	undefined field_0x50e8;
-	undefined field_0x50e9;
-	undefined field_0x50ea;
-	undefined field_0x50eb;
-	undefined field_0x50ec;
-	undefined field_0x50ed;
-	undefined field_0x50ee;
-	undefined field_0x50ef;
-	undefined field_0x50f0;
-	undefined field_0x50f1;
-	undefined field_0x50f2;
-	undefined field_0x50f3;
-	undefined field_0x50f4;
-	undefined field_0x50f5;
-	undefined field_0x50f6;
-	undefined field_0x50f7;
-	undefined field_0x50f8;
-	undefined field_0x50f9;
-	undefined field_0x50fa;
-	undefined field_0x50fb;
-	undefined field_0x50fc;
-	undefined field_0x50fd;
-	undefined field_0x50fe;
-	undefined field_0x50ff;
-	undefined field_0x5100;
-	undefined field_0x5101;
-	undefined field_0x5102;
-	undefined field_0x5103;
-	undefined field_0x5104;
-	undefined field_0x5105;
-	undefined field_0x5106;
-	undefined field_0x5107;
-	undefined field_0x5108;
-	undefined field_0x5109;
-	undefined field_0x510a;
-	undefined field_0x510b;
-	undefined field_0x510c;
-	undefined field_0x510d;
-	undefined field_0x510e;
-	undefined field_0x510f;
-	undefined field_0x5110;
-	undefined field_0x5111;
-	undefined field_0x5112;
-	undefined field_0x5113;
-	undefined field_0x5114;
-	undefined field_0x5115;
-	undefined field_0x5116;
-	undefined field_0x5117;
-	undefined field_0x5118;
-	undefined field_0x5119;
-	undefined field_0x511a;
-	undefined field_0x511b;
-	undefined field_0x511c;
-	undefined field_0x511d;
-	undefined field_0x511e;
-	undefined field_0x511f;
-	undefined field_0x5120;
-	undefined field_0x5121;
-	undefined field_0x5122;
-	undefined field_0x5123;
-	undefined field_0x5124;
-	undefined field_0x5125;
-	undefined field_0x5126;
-	undefined field_0x5127;
-	undefined field_0x5128;
-	undefined field_0x5129;
-	undefined field_0x512a;
-	undefined field_0x512b;
-	undefined field_0x512c;
-	undefined field_0x512d;
-	undefined field_0x512e;
-	undefined field_0x512f;
-	undefined field_0x5130;
-	undefined field_0x5131;
-	undefined field_0x5132;
-	undefined field_0x5133;
-	undefined field_0x5134;
-	undefined field_0x5135;
-	undefined field_0x5136;
-	undefined field_0x5137;
-	undefined field_0x5138;
-	undefined field_0x5139;
-	undefined field_0x513a;
-	undefined field_0x513b;
-	undefined field_0x513c;
-	undefined field_0x513d;
-	undefined field_0x513e;
-	undefined field_0x513f;
-	undefined field_0x5140;
-	undefined field_0x5141;
-	undefined field_0x5142;
-	undefined field_0x5143;
-	undefined field_0x5144;
-	undefined field_0x5145;
-	undefined field_0x5146;
-	undefined field_0x5147;
-	undefined field_0x5148;
-	undefined field_0x5149;
-	undefined field_0x514a;
-	undefined field_0x514b;
-	undefined field_0x514c;
-	undefined field_0x514d;
-	undefined field_0x514e;
-	undefined field_0x514f;
-	undefined field_0x5150;
-	undefined field_0x5151;
-	undefined field_0x5152;
-	undefined field_0x5153;
-	undefined field_0x5154;
-	undefined field_0x5155;
-	undefined field_0x5156;
-	undefined field_0x5157;
-	undefined field_0x5158;
-	undefined field_0x5159;
-	undefined field_0x515a;
-	undefined field_0x515b;
-	undefined field_0x515c;
-	undefined field_0x515d;
-	undefined field_0x515e;
-	undefined field_0x515f;
-	undefined field_0x5160;
-	undefined field_0x5161;
-	undefined field_0x5162;
-	undefined field_0x5163;
-	undefined field_0x5164;
-	undefined field_0x5165;
-	undefined field_0x5166;
-	undefined field_0x5167;
-	undefined field_0x5168;
-	undefined field_0x5169;
-	undefined field_0x516a;
-	undefined field_0x516b;
-	undefined field_0x516c;
-	undefined field_0x516d;
-	undefined field_0x516e;
-	undefined field_0x516f;
-	undefined field_0x5170;
-	undefined field_0x5171;
-	undefined field_0x5172;
-	undefined field_0x5173;
-	undefined field_0x5174;
-	undefined field_0x5175;
-	undefined field_0x5176;
-	undefined field_0x5177;
-	undefined field_0x5178;
-	undefined field_0x5179;
-	undefined field_0x517a;
-	undefined field_0x517b;
-	undefined field_0x517c;
-	undefined field_0x517d;
-	undefined field_0x517e;
-	undefined field_0x517f;
-	undefined field_0x5180;
-	undefined field_0x5181;
-	undefined field_0x5182;
-	undefined field_0x5183;
-	undefined field_0x5184;
-	undefined field_0x5185;
-	undefined field_0x5186;
-	undefined field_0x5187;
-	undefined field_0x5188;
-	undefined field_0x5189;
-	undefined field_0x518a;
-	undefined field_0x518b;
-	undefined field_0x518c;
-	undefined field_0x518d;
-	undefined field_0x518e;
-	undefined field_0x518f;
-	undefined field_0x5190;
-	undefined field_0x5191;
-	undefined field_0x5192;
-	undefined field_0x5193;
-	undefined field_0x5194;
-	undefined field_0x5195;
-	undefined field_0x5196;
-	undefined field_0x5197;
-	undefined field_0x5198;
-	undefined field_0x5199;
-	undefined field_0x519a;
-	undefined field_0x519b;
-	undefined field_0x519c;
-	undefined field_0x519d;
-	undefined field_0x519e;
-	undefined field_0x519f;
-	undefined field_0x51a0;
-	undefined field_0x51a1;
-	undefined field_0x51a2;
-	undefined field_0x51a3;
-	undefined field_0x51a4;
-	undefined field_0x51a5;
-	undefined field_0x51a6;
-	undefined field_0x51a7;
-	undefined field_0x51a8;
-	undefined field_0x51a9;
-	undefined field_0x51aa;
-	undefined field_0x51ab;
-	undefined field_0x51ac;
-	undefined field_0x51ad;
-	undefined field_0x51ae;
-	undefined field_0x51af;
-	undefined field_0x51b0;
-	undefined field_0x51b1;
-	undefined field_0x51b2;
-	undefined field_0x51b3;
-	undefined field_0x51b4;
-	undefined field_0x51b5;
-	undefined field_0x51b6;
-	undefined field_0x51b7;
-	undefined field_0x51b8;
-	undefined field_0x51b9;
-	undefined field_0x51ba;
-	undefined field_0x51bb;
-	undefined field_0x51bc;
-	undefined field_0x51bd;
-	undefined field_0x51be;
-	undefined field_0x51bf;
-	undefined field_0x51c0;
-	undefined field_0x51c1;
-	undefined field_0x51c2;
-	undefined field_0x51c3;
-	undefined field_0x51c4;
-	undefined field_0x51c5;
-	undefined field_0x51c6;
-	undefined field_0x51c7;
-	undefined field_0x51c8;
-	undefined field_0x51c9;
-	undefined field_0x51ca;
-	undefined field_0x51cb;
-	undefined field_0x51cc;
-	undefined field_0x51cd;
-	undefined field_0x51ce;
-	undefined field_0x51cf;
-	undefined field_0x51d0;
-	undefined field_0x51d1;
-	undefined field_0x51d2;
-	undefined field_0x51d3;
-	undefined field_0x51d4;
-	undefined field_0x51d5;
-	undefined field_0x51d6;
-	undefined field_0x51d7;
-	undefined field_0x51d8;
-	undefined field_0x51d9;
-	undefined field_0x51da;
-	undefined field_0x51db;
-	undefined field_0x51dc;
-	undefined field_0x51dd;
-	undefined field_0x51de;
-	undefined field_0x51df;
-	undefined field_0x51e0;
-	undefined field_0x51e1;
-	undefined field_0x51e2;
-	undefined field_0x51e3;
-	undefined field_0x51e4;
-	undefined field_0x51e5;
-	undefined field_0x51e6;
-	undefined field_0x51e7;
-	undefined field_0x51e8;
-	undefined field_0x51e9;
-	undefined field_0x51ea;
-	undefined field_0x51eb;
-	undefined field_0x51ec;
-	undefined field_0x51ed;
-	undefined field_0x51ee;
-	undefined field_0x51ef;
-	undefined field_0x51f0;
-	undefined field_0x51f1;
-	undefined field_0x51f2;
-	undefined field_0x51f3;
-	undefined field_0x51f4;
-	undefined field_0x51f5;
-	undefined field_0x51f6;
-	undefined field_0x51f7;
-	undefined field_0x51f8;
-	undefined field_0x51f9;
-	undefined field_0x51fa;
-	undefined field_0x51fb;
-	undefined field_0x51fc;
-	undefined field_0x51fd;
-	undefined field_0x51fe;
-	undefined field_0x51ff;
-	undefined field_0x5200;
-	undefined field_0x5201;
-	undefined field_0x5202;
-	undefined field_0x5203;
-	undefined field_0x5204;
-	undefined field_0x5205;
-	undefined field_0x5206;
-	undefined field_0x5207;
-	undefined field_0x5208;
-	undefined field_0x5209;
-	undefined field_0x520a;
-	undefined field_0x520b;
-	undefined field_0x520c;
-	undefined field_0x520d;
-	undefined field_0x520e;
-	undefined field_0x520f;
-	undefined field_0x5210;
-	undefined field_0x5211;
-	undefined field_0x5212;
-	undefined field_0x5213;
-	undefined field_0x5214;
-	undefined field_0x5215;
-	undefined field_0x5216;
-	undefined field_0x5217;
-	undefined field_0x5218;
-	undefined field_0x5219;
-	undefined field_0x521a;
-	undefined field_0x521b;
-	undefined field_0x521c;
-	undefined field_0x521d;
-	undefined field_0x521e;
-	undefined field_0x521f;
-	undefined field_0x5220;
-	undefined field_0x5221;
-	undefined field_0x5222;
-	undefined field_0x5223;
-	undefined field_0x5224;
-	undefined field_0x5225;
-	undefined field_0x5226;
-	undefined field_0x5227;
-	undefined field_0x5228;
-	undefined field_0x5229;
-	undefined field_0x522a;
-	undefined field_0x522b;
-	undefined field_0x522c;
-	undefined field_0x522d;
-	undefined field_0x522e;
-	undefined field_0x522f;
-	undefined field_0x5230;
-	undefined field_0x5231;
-	undefined field_0x5232;
-	undefined field_0x5233;
-	undefined field_0x5234;
-	undefined field_0x5235;
-	undefined field_0x5236;
-	undefined field_0x5237;
-	undefined field_0x5238;
-	undefined field_0x5239;
-	undefined field_0x523a;
-	undefined field_0x523b;
-	undefined field_0x523c;
-	undefined field_0x523d;
-	undefined field_0x523e;
-	undefined field_0x523f;
-	undefined field_0x5240;
-	undefined field_0x5241;
-	undefined field_0x5242;
-	undefined field_0x5243;
-	undefined field_0x5244;
-	undefined field_0x5245;
-	undefined field_0x5246;
-	undefined field_0x5247;
-	undefined field_0x5248;
-	undefined field_0x5249;
-	undefined field_0x524a;
-	undefined field_0x524b;
-	undefined field_0x524c;
-	undefined field_0x524d;
-	undefined field_0x524e;
-	undefined field_0x524f;
-	undefined field_0x5250;
-	undefined field_0x5251;
-	undefined field_0x5252;
-	undefined field_0x5253;
-	undefined field_0x5254;
-	undefined field_0x5255;
-	undefined field_0x5256;
-	undefined field_0x5257;
-	undefined field_0x5258;
-	undefined field_0x5259;
-	undefined field_0x525a;
-	undefined field_0x525b;
-	undefined field_0x525c;
-	undefined field_0x525d;
-	undefined field_0x525e;
-	undefined field_0x525f;
-	undefined field_0x5260;
-	undefined field_0x5261;
-	undefined field_0x5262;
-	undefined field_0x5263;
-	undefined field_0x5264;
-	undefined field_0x5265;
-	undefined field_0x5266;
-	undefined field_0x5267;
-	undefined field_0x5268;
-	undefined field_0x5269;
-	undefined field_0x526a;
-	undefined field_0x526b;
-	undefined field_0x526c;
-	undefined field_0x526d;
-	undefined field_0x526e;
-	undefined field_0x526f;
-	undefined field_0x5270;
-	undefined field_0x5271;
-	undefined field_0x5272;
-	undefined field_0x5273;
-	undefined field_0x5274;
-	undefined field_0x5275;
-	undefined field_0x5276;
-	undefined field_0x5277;
-	undefined field_0x5278;
-	undefined field_0x5279;
-	undefined field_0x527a;
-	undefined field_0x527b;
-	undefined field_0x527c;
-	undefined field_0x527d;
-	undefined field_0x527e;
-	undefined field_0x527f;
-	undefined field_0x5280;
-	undefined field_0x5281;
-	undefined field_0x5282;
-	undefined field_0x5283;
-	undefined field_0x5284;
-	undefined field_0x5285;
-	undefined field_0x5286;
-	undefined field_0x5287;
-	undefined field_0x5288;
-	undefined field_0x5289;
-	undefined field_0x528a;
-	undefined field_0x528b;
-	undefined field_0x528c;
-	undefined field_0x528d;
-	undefined field_0x528e;
-	undefined field_0x528f;
-	undefined field_0x5290;
-	undefined field_0x5291;
-	undefined field_0x5292;
-	undefined field_0x5293;
-	undefined field_0x5294;
-	undefined field_0x5295;
-	undefined field_0x5296;
-	undefined field_0x5297;
-	undefined field_0x5298;
-	undefined field_0x5299;
-	undefined field_0x529a;
-	undefined field_0x529b;
-	undefined field_0x529c;
-	undefined field_0x529d;
-	undefined field_0x529e;
-	undefined field_0x529f;
-	undefined field_0x52a0;
-	undefined field_0x52a1;
-	undefined field_0x52a2;
-	undefined field_0x52a3;
-	undefined field_0x52a4;
-	undefined field_0x52a5;
-	undefined field_0x52a6;
-	undefined field_0x52a7;
-	undefined field_0x52a8;
-	undefined field_0x52a9;
-	undefined field_0x52aa;
-	undefined field_0x52ab;
-	undefined field_0x52ac;
-	undefined field_0x52ad;
-	undefined field_0x52ae;
-	undefined field_0x52af;
-	undefined field_0x52b0;
-	undefined field_0x52b1;
-	undefined field_0x52b2;
-	undefined field_0x52b3;
-	undefined field_0x52b4;
-	undefined field_0x52b5;
-	undefined field_0x52b6;
-	undefined field_0x52b7;
-	undefined field_0x52b8;
-	undefined field_0x52b9;
-	undefined field_0x52ba;
-	undefined field_0x52bb;
-	undefined field_0x52bc;
-	undefined field_0x52bd;
-	undefined field_0x52be;
-	undefined field_0x52bf;
-	undefined field_0x52c0;
-	undefined field_0x52c1;
-	undefined field_0x52c2;
-	undefined field_0x52c3;
-	undefined field_0x52c4;
-	undefined field_0x52c5;
-	undefined field_0x52c6;
-	undefined field_0x52c7;
-	undefined field_0x52c8;
-	undefined field_0x52c9;
-	undefined field_0x52ca;
-	undefined field_0x52cb;
-	undefined field_0x52cc;
-	undefined field_0x52cd;
-	undefined field_0x52ce;
-	undefined field_0x52cf;
-	undefined field_0x52d0;
-	undefined field_0x52d1;
-	undefined field_0x52d2;
-	undefined field_0x52d3;
-	undefined field_0x52d4;
-	undefined field_0x52d5;
-	undefined field_0x52d6;
-	undefined field_0x52d7;
-	undefined field_0x52d8;
-	undefined field_0x52d9;
-	undefined field_0x52da;
-	undefined field_0x52db;
-	undefined field_0x52dc;
-	undefined field_0x52dd;
-	undefined field_0x52de;
-	undefined field_0x52df;
-	undefined field_0x52e0;
-	undefined field_0x52e1;
-	undefined field_0x52e2;
-	undefined field_0x52e3;
-	undefined field_0x52e4;
-	undefined field_0x52e5;
-	undefined field_0x52e6;
-	undefined field_0x52e7;
-	undefined field_0x52e8;
-	undefined field_0x52e9;
-	undefined field_0x52ea;
-	undefined field_0x52eb;
-	undefined field_0x52ec;
-	undefined field_0x52ed;
-	undefined field_0x52ee;
-	undefined field_0x52ef;
-	undefined field_0x52f0;
-	undefined field_0x52f1;
-	undefined field_0x52f2;
-	undefined field_0x52f3;
-	undefined field_0x52f4;
-	undefined field_0x52f5;
-	undefined field_0x52f6;
-	undefined field_0x52f7;
-	undefined field_0x52f8;
-	undefined field_0x52f9;
-	undefined field_0x52fa;
-	undefined field_0x52fb;
-	undefined field_0x52fc;
-	undefined field_0x52fd;
-	undefined field_0x52fe;
-	undefined field_0x52ff;
-	undefined field_0x5300;
-	undefined field_0x5301;
-	undefined field_0x5302;
-	undefined field_0x5303;
-	undefined field_0x5304;
-	undefined field_0x5305;
-	undefined field_0x5306;
-	undefined field_0x5307;
-	undefined field_0x5308;
-	undefined field_0x5309;
-	undefined field_0x530a;
-	undefined field_0x530b;
-	undefined field_0x530c;
-	undefined field_0x530d;
-	undefined field_0x530e;
-	undefined field_0x530f;
-	undefined field_0x5310;
-	undefined field_0x5311;
-	undefined field_0x5312;
-	undefined field_0x5313;
-	undefined field_0x5314;
-	undefined field_0x5315;
-	undefined field_0x5316;
-	undefined field_0x5317;
-	undefined field_0x5318;
-	undefined field_0x5319;
-	undefined field_0x531a;
-	undefined field_0x531b;
-	undefined field_0x531c;
-	undefined field_0x531d;
-	undefined field_0x531e;
-	undefined field_0x531f;
-	undefined field_0x5320;
-	undefined field_0x5321;
-	undefined field_0x5322;
-	undefined field_0x5323;
-	undefined field_0x5324;
-	undefined field_0x5325;
-	undefined field_0x5326;
-	undefined field_0x5327;
-	undefined field_0x5328;
-	undefined field_0x5329;
-	undefined field_0x532a;
-	undefined field_0x532b;
-	undefined field_0x532c;
-	undefined field_0x532d;
-	undefined field_0x532e;
-	undefined field_0x532f;
-	undefined field_0x5330;
-	undefined field_0x5331;
-	undefined field_0x5332;
-	undefined field_0x5333;
-	undefined field_0x5334;
-	undefined field_0x5335;
-	undefined field_0x5336;
-	undefined field_0x5337;
-	undefined field_0x5338;
-	undefined field_0x5339;
-	undefined field_0x533a;
-	undefined field_0x533b;
-	undefined field_0x533c;
-	undefined field_0x533d;
-	undefined field_0x533e;
-	undefined field_0x533f;
-	undefined field_0x5340;
-	undefined field_0x5341;
-	undefined field_0x5342;
-	undefined field_0x5343;
-	undefined field_0x5344;
-	undefined field_0x5345;
-	undefined field_0x5346;
-	undefined field_0x5347;
-	undefined field_0x5348;
-	undefined field_0x5349;
-	undefined field_0x534a;
-	undefined field_0x534b;
-	undefined field_0x534c;
-	undefined field_0x534d;
-	undefined field_0x534e;
-	undefined field_0x534f;
-	undefined field_0x5350;
-	undefined field_0x5351;
-	undefined field_0x5352;
-	undefined field_0x5353;
-	undefined field_0x5354;
-	undefined field_0x5355;
-	undefined field_0x5356;
-	undefined field_0x5357;
-	undefined field_0x5358;
-	undefined field_0x5359;
-	undefined field_0x535a;
-	undefined field_0x535b;
-	undefined field_0x535c;
-	undefined field_0x535d;
-	undefined field_0x535e;
-	undefined field_0x535f;
-	undefined field_0x5360;
-	undefined field_0x5361;
-	undefined field_0x5362;
-	undefined field_0x5363;
-	undefined field_0x5364;
-	undefined field_0x5365;
-	undefined field_0x5366;
-	undefined field_0x5367;
-	undefined field_0x5368;
-	undefined field_0x5369;
-	undefined field_0x536a;
-	undefined field_0x536b;
-	undefined field_0x536c;
-	undefined field_0x536d;
-	undefined field_0x536e;
-	undefined field_0x536f;
-	undefined field_0x5370;
-	undefined field_0x5371;
-	undefined field_0x5372;
-	undefined field_0x5373;
-	undefined field_0x5374;
-	undefined field_0x5375;
-	undefined field_0x5376;
-	undefined field_0x5377;
-	undefined field_0x5378;
-	undefined field_0x5379;
-	undefined field_0x537a;
-	undefined field_0x537b;
-	undefined field_0x537c;
-	undefined field_0x537d;
-	undefined field_0x537e;
-	undefined field_0x537f;
-	undefined field_0x5380;
-	undefined field_0x5381;
-	undefined field_0x5382;
-	undefined field_0x5383;
-	undefined field_0x5384;
-	undefined field_0x5385;
-	undefined field_0x5386;
-	undefined field_0x5387;
-	undefined field_0x5388;
-	undefined field_0x5389;
-	undefined field_0x538a;
-	undefined field_0x538b;
-	undefined field_0x538c;
-	undefined field_0x538d;
-	undefined field_0x538e;
-	undefined field_0x538f;
-	undefined field_0x5390;
-	undefined field_0x5391;
-	undefined field_0x5392;
-	undefined field_0x5393;
-	undefined field_0x5394;
-	undefined field_0x5395;
-	undefined field_0x5396;
-	undefined field_0x5397;
-	undefined field_0x5398;
-	undefined field_0x5399;
-	undefined field_0x539a;
-	undefined field_0x539b;
-	undefined field_0x539c;
-	undefined field_0x539d;
-	undefined field_0x539e;
-	undefined field_0x539f;
-	undefined field_0x53a0;
-	undefined field_0x53a1;
-	undefined field_0x53a2;
-	undefined field_0x53a3;
-	undefined field_0x53a4;
-	undefined field_0x53a5;
-	undefined field_0x53a6;
-	undefined field_0x53a7;
-	undefined field_0x53a8;
-	undefined field_0x53a9;
-	undefined field_0x53aa;
-	undefined field_0x53ab;
-	undefined field_0x53ac;
-	undefined field_0x53ad;
-	undefined field_0x53ae;
-	undefined field_0x53af;
-	undefined field_0x53b0;
-	undefined field_0x53b1;
-	undefined field_0x53b2;
-	undefined field_0x53b3;
-	undefined field_0x53b4;
-	undefined field_0x53b5;
-	undefined field_0x53b6;
-	undefined field_0x53b7;
-	undefined field_0x53b8;
-	undefined field_0x53b9;
-	undefined field_0x53ba;
-	undefined field_0x53bb;
-	undefined field_0x53bc;
-	undefined field_0x53bd;
-	undefined field_0x53be;
-	undefined field_0x53bf;
-	undefined field_0x53c0;
-	undefined field_0x53c1;
-	undefined field_0x53c2;
-	undefined field_0x53c3;
-	undefined field_0x53c4;
-	undefined field_0x53c5;
-	undefined field_0x53c6;
-	undefined field_0x53c7;
-	undefined field_0x53c8;
-	undefined field_0x53c9;
-	undefined field_0x53ca;
-	undefined field_0x53cb;
-	undefined field_0x53cc;
-	undefined field_0x53cd;
-	undefined field_0x53ce;
-	undefined field_0x53cf;
-	undefined field_0x53d0;
-	undefined field_0x53d1;
-	undefined field_0x53d2;
-	undefined field_0x53d3;
-	undefined field_0x53d4;
-	undefined field_0x53d5;
-	undefined field_0x53d6;
-	undefined field_0x53d7;
-	undefined field_0x53d8;
-	undefined field_0x53d9;
-	undefined field_0x53da;
-	undefined field_0x53db;
-	undefined field_0x53dc;
-	undefined field_0x53dd;
-	undefined field_0x53de;
-	undefined field_0x53df;
-	undefined field_0x53e0;
-	undefined field_0x53e1;
-	undefined field_0x53e2;
-	undefined field_0x53e3;
-	undefined field_0x53e4;
-	undefined field_0x53e5;
-	undefined field_0x53e6;
-	undefined field_0x53e7;
-	undefined field_0x53e8;
-	undefined field_0x53e9;
-	undefined field_0x53ea;
-	undefined field_0x53eb;
-	undefined field_0x53ec;
-	undefined field_0x53ed;
-	undefined field_0x53ee;
-	undefined field_0x53ef;
-	undefined field_0x53f0;
-	undefined field_0x53f1;
-	undefined field_0x53f2;
-	undefined field_0x53f3;
-	undefined field_0x53f4;
-	undefined field_0x53f5;
-	undefined field_0x53f6;
-	undefined field_0x53f7;
-	undefined field_0x53f8;
-	undefined field_0x53f9;
-	undefined field_0x53fa;
-	undefined field_0x53fb;
-	undefined field_0x53fc;
-	undefined field_0x53fd;
-	undefined field_0x53fe;
-	undefined field_0x53ff;
-	undefined field_0x5400;
-	undefined field_0x5401;
-	undefined field_0x5402;
-	undefined field_0x5403;
-	undefined field_0x5404;
-	undefined field_0x5405;
-	undefined field_0x5406;
-	undefined field_0x5407;
-	undefined field_0x5408;
-	undefined field_0x5409;
-	undefined field_0x540a;
-	undefined field_0x540b;
-	undefined field_0x540c;
-	undefined field_0x540d;
-	undefined field_0x540e;
-	undefined field_0x540f;
-	undefined field_0x5410;
-	undefined field_0x5411;
-	undefined field_0x5412;
-	undefined field_0x5413;
-	undefined field_0x5414;
-	undefined field_0x5415;
-	undefined field_0x5416;
-	undefined field_0x5417;
-	undefined field_0x5418;
-	undefined field_0x5419;
-	undefined field_0x541a;
-	undefined field_0x541b;
-	undefined field_0x541c;
-	undefined field_0x541d;
-	undefined field_0x541e;
-	undefined field_0x541f;
-	undefined field_0x5420;
-	undefined field_0x5421;
-	undefined field_0x5422;
-	undefined field_0x5423;
-	undefined field_0x5424;
-	undefined field_0x5425;
-	undefined field_0x5426;
-	undefined field_0x5427;
-	undefined field_0x5428;
-	undefined field_0x5429;
-	undefined field_0x542a;
-	undefined field_0x542b;
-	undefined field_0x542c;
-	undefined field_0x542d;
-	undefined field_0x542e;
-	undefined field_0x542f;
-	undefined field_0x5430;
-	undefined field_0x5431;
-	undefined field_0x5432;
-	undefined field_0x5433;
-	undefined field_0x5434;
-	undefined field_0x5435;
-	undefined field_0x5436;
-	undefined field_0x5437;
-	undefined field_0x5438;
-	undefined field_0x5439;
-	undefined field_0x543a;
-	undefined field_0x543b;
-	undefined field_0x543c;
-	undefined field_0x543d;
-	undefined field_0x543e;
-	undefined field_0x543f;
-	undefined field_0x5440;
-	undefined field_0x5441;
-	undefined field_0x5442;
-	undefined field_0x5443;
-	undefined field_0x5444;
-	undefined field_0x5445;
-	undefined field_0x5446;
-	undefined field_0x5447;
-	undefined field_0x5448;
-	undefined field_0x5449;
-	undefined field_0x544a;
-	undefined field_0x544b;
-	undefined field_0x544c;
-	undefined field_0x544d;
-	undefined field_0x544e;
-	undefined field_0x544f;
-	undefined field_0x5450;
-	undefined field_0x5451;
-	undefined field_0x5452;
-	undefined field_0x5453;
-	undefined field_0x5454;
-	undefined field_0x5455;
-	undefined field_0x5456;
-	undefined field_0x5457;
-	undefined field_0x5458;
-	undefined field_0x5459;
-	undefined field_0x545a;
-	undefined field_0x545b;
-	undefined field_0x545c;
-	undefined field_0x545d;
-	undefined field_0x545e;
-	undefined field_0x545f;
-	undefined field_0x5460;
-	undefined field_0x5461;
-	undefined field_0x5462;
-	undefined field_0x5463;
-	undefined field_0x5464;
-	undefined field_0x5465;
-	undefined field_0x5466;
-	undefined field_0x5467;
-	undefined field_0x5468;
-	undefined field_0x5469;
-	undefined field_0x546a;
-	undefined field_0x546b;
-	undefined field_0x546c;
-	undefined field_0x546d;
-	undefined field_0x546e;
-	undefined field_0x546f;
-	undefined field_0x5470;
-	undefined field_0x5471;
-	undefined field_0x5472;
-	undefined field_0x5473;
-	undefined field_0x5474;
-	undefined field_0x5475;
-	undefined field_0x5476;
-	undefined field_0x5477;
-	undefined field_0x5478;
-	undefined field_0x5479;
-	undefined field_0x547a;
-	undefined field_0x547b;
-	undefined field_0x547c;
-	undefined field_0x547d;
-	undefined field_0x547e;
-	undefined field_0x547f;
-	undefined field_0x5480;
-	undefined field_0x5481;
-	undefined field_0x5482;
-	undefined field_0x5483;
-	undefined field_0x5484;
-	undefined field_0x5485;
-	undefined field_0x5486;
-	undefined field_0x5487;
-	undefined field_0x5488;
-	undefined field_0x5489;
-	undefined field_0x548a;
-	undefined field_0x548b;
-	undefined field_0x548c;
-	undefined field_0x548d;
-	undefined field_0x548e;
-	undefined field_0x548f;
-	undefined field_0x5490;
-	undefined field_0x5491;
-	undefined field_0x5492;
-	undefined field_0x5493;
-	undefined field_0x5494;
-	undefined field_0x5495;
-	undefined field_0x5496;
-	undefined field_0x5497;
-	undefined field_0x5498;
-	undefined field_0x5499;
-	undefined field_0x549a;
-	undefined field_0x549b;
-	undefined field_0x549c;
-	undefined field_0x549d;
-	undefined field_0x549e;
-	undefined field_0x549f;
-	undefined field_0x54a0;
-	undefined field_0x54a1;
-	undefined field_0x54a2;
-	undefined field_0x54a3;
-	undefined field_0x54a4;
-	undefined field_0x54a5;
-	undefined field_0x54a6;
-	undefined field_0x54a7;
-	undefined field_0x54a8;
-	undefined field_0x54a9;
-	undefined field_0x54aa;
-	undefined field_0x54ab;
-	undefined field_0x54ac;
-	undefined field_0x54ad;
-	undefined field_0x54ae;
-	undefined field_0x54af;
-	undefined field_0x54b0;
-	undefined field_0x54b1;
-	undefined field_0x54b2;
-	undefined field_0x54b3;
-	undefined field_0x54b4;
-	undefined field_0x54b5;
-	undefined field_0x54b6;
-	undefined field_0x54b7;
-	undefined field_0x54b8;
-	undefined field_0x54b9;
-	undefined field_0x54ba;
-	undefined field_0x54bb;
-	undefined field_0x54bc;
-	undefined field_0x54bd;
-	undefined field_0x54be;
-	undefined field_0x54bf;
-	undefined field_0x54c0;
-	undefined field_0x54c1;
-	undefined field_0x54c2;
-	undefined field_0x54c3;
-	undefined field_0x54c4;
-	undefined field_0x54c5;
-	undefined field_0x54c6;
-	undefined field_0x54c7;
-	undefined field_0x54c8;
-	undefined field_0x54c9;
-	undefined field_0x54ca;
-	undefined field_0x54cb;
-	undefined field_0x54cc;
-	undefined field_0x54cd;
-	undefined field_0x54ce;
-	undefined field_0x54cf;
-	undefined field_0x54d0;
-	undefined field_0x54d1;
-	undefined field_0x54d2;
-	undefined field_0x54d3;
-	undefined field_0x54d4;
-	undefined field_0x54d5;
-	undefined field_0x54d6;
-	undefined field_0x54d7;
-	undefined field_0x54d8;
-	undefined field_0x54d9;
-	undefined field_0x54da;
-	undefined field_0x54db;
-	undefined field_0x54dc;
-	undefined field_0x54dd;
-	undefined field_0x54de;
-	undefined field_0x54df;
-	undefined field_0x54e0;
-	undefined field_0x54e1;
-	undefined field_0x54e2;
-	undefined field_0x54e3;
-	undefined field_0x54e4;
-	undefined field_0x54e5;
-	undefined field_0x54e6;
-	undefined field_0x54e7;
-	undefined field_0x54e8;
-	undefined field_0x54e9;
-	undefined field_0x54ea;
-	undefined field_0x54eb;
-	undefined field_0x54ec;
-	undefined field_0x54ed;
-	undefined field_0x54ee;
-	undefined field_0x54ef;
-	undefined field_0x54f0;
-	undefined field_0x54f1;
-	undefined field_0x54f2;
-	undefined field_0x54f3;
-	undefined field_0x54f4;
-	undefined field_0x54f5;
-	undefined field_0x54f6;
-	undefined field_0x54f7;
-	undefined field_0x54f8;
-	undefined field_0x54f9;
-	undefined field_0x54fa;
-	undefined field_0x54fb;
-	undefined field_0x54fc;
-	undefined field_0x54fd;
-	undefined field_0x54fe;
-	undefined field_0x54ff;
-	undefined field_0x5500;
-	undefined field_0x5501;
-	undefined field_0x5502;
-	undefined field_0x5503;
-	undefined field_0x5504;
-	undefined field_0x5505;
-	undefined field_0x5506;
-	undefined field_0x5507;
-	undefined field_0x5508;
-	undefined field_0x5509;
-	undefined field_0x550a;
-	undefined field_0x550b;
-	undefined field_0x550c;
-	undefined field_0x550d;
-	undefined field_0x550e;
-	undefined field_0x550f;
-	undefined field_0x5510;
-	undefined field_0x5511;
-	undefined field_0x5512;
-	undefined field_0x5513;
-	undefined field_0x5514;
-	undefined field_0x5515;
-	undefined field_0x5516;
-	undefined field_0x5517;
-	undefined field_0x5518;
-	undefined field_0x5519;
-	undefined field_0x551a;
-	undefined field_0x551b;
-	undefined field_0x551c;
-	undefined field_0x551d;
-	undefined field_0x551e;
-	undefined field_0x551f;
-	undefined field_0x5520;
-	undefined field_0x5521;
-	undefined field_0x5522;
-	undefined field_0x5523;
-	undefined field_0x5524;
-	undefined field_0x5525;
-	undefined field_0x5526;
-	undefined field_0x5527;
-	undefined field_0x5528;
-	undefined field_0x5529;
-	undefined field_0x552a;
-	undefined field_0x552b;
-	undefined field_0x552c;
-	undefined field_0x552d;
-	undefined field_0x552e;
-	undefined field_0x552f;
-	undefined field_0x5530;
-	undefined field_0x5531;
-	undefined field_0x5532;
-	undefined field_0x5533;
-	undefined field_0x5534;
-	undefined field_0x5535;
-	undefined field_0x5536;
-	undefined field_0x5537;
-	undefined field_0x5538;
-	undefined field_0x5539;
-	undefined field_0x553a;
-	undefined field_0x553b;
-	undefined field_0x553c;
-	undefined field_0x553d;
-	undefined field_0x553e;
-	undefined field_0x553f;
-	undefined field_0x5540;
-	undefined field_0x5541;
-	undefined field_0x5542;
-	undefined field_0x5543;
-	undefined field_0x5544;
-	undefined field_0x5545;
-	undefined field_0x5546;
-	undefined field_0x5547;
-	undefined field_0x5548;
-	undefined field_0x5549;
-	undefined field_0x554a;
-	undefined field_0x554b;
-	undefined field_0x554c;
-	undefined field_0x554d;
-	undefined field_0x554e;
-	undefined field_0x554f;
-	undefined field_0x5550;
-	undefined field_0x5551;
-	undefined field_0x5552;
-	undefined field_0x5553;
-	undefined field_0x5554;
-	undefined field_0x5555;
-	undefined field_0x5556;
-	undefined field_0x5557;
-	undefined field_0x5558;
-	undefined field_0x5559;
-	undefined field_0x555a;
-	undefined field_0x555b;
-	undefined field_0x555c;
-	undefined field_0x555d;
-	undefined field_0x555e;
-	undefined field_0x555f;
-	undefined field_0x5560;
-	undefined field_0x5561;
-	undefined field_0x5562;
-	undefined field_0x5563;
-	undefined field_0x5564;
-	undefined field_0x5565;
-	undefined field_0x5566;
-	undefined field_0x5567;
-	undefined field_0x5568;
-	undefined field_0x5569;
-	undefined field_0x556a;
-	undefined field_0x556b;
-	undefined field_0x556c;
-	undefined field_0x556d;
-	undefined field_0x556e;
-	undefined field_0x556f;
-	undefined field_0x5570;
-	undefined field_0x5571;
-	undefined field_0x5572;
-	undefined field_0x5573;
-	undefined field_0x5574;
-	undefined field_0x5575;
-	undefined field_0x5576;
-	undefined field_0x5577;
-	undefined field_0x5578;
-	undefined field_0x5579;
-	undefined field_0x557a;
-	undefined field_0x557b;
-	undefined field_0x557c;
-	undefined field_0x557d;
-	undefined field_0x557e;
-	undefined field_0x557f;
-	undefined field_0x5580;
-	undefined field_0x5581;
-	undefined field_0x5582;
-	undefined field_0x5583;
-	undefined field_0x5584;
-	undefined field_0x5585;
-	undefined field_0x5586;
-	undefined field_0x5587;
-	undefined field_0x5588;
-	undefined field_0x5589;
-	undefined field_0x558a;
-	undefined field_0x558b;
-	undefined field_0x558c;
-	undefined field_0x558d;
-	undefined field_0x558e;
-	undefined field_0x558f;
-	undefined field_0x5590;
-	undefined field_0x5591;
-	undefined field_0x5592;
-	undefined field_0x5593;
-	undefined field_0x5594;
-	undefined field_0x5595;
-	undefined field_0x5596;
-	undefined field_0x5597;
-	undefined field_0x5598;
-	undefined field_0x5599;
-	undefined field_0x559a;
-	undefined field_0x559b;
-	undefined field_0x559c;
-	undefined field_0x559d;
-	undefined field_0x559e;
-	undefined field_0x559f;
-	undefined field_0x55a0;
-	undefined field_0x55a1;
-	undefined field_0x55a2;
-	undefined field_0x55a3;
-	undefined field_0x55a4;
-	undefined field_0x55a5;
-	undefined field_0x55a6;
-	undefined field_0x55a7;
-	undefined field_0x55a8;
-	undefined field_0x55a9;
-	undefined field_0x55aa;
-	undefined field_0x55ab;
-	undefined field_0x55ac;
-	undefined field_0x55ad;
-	undefined field_0x55ae;
-	undefined field_0x55af;
-	undefined field_0x55b0;
-	undefined field_0x55b1;
-	undefined field_0x55b2;
-	undefined field_0x55b3;
-	undefined field_0x55b4;
-	undefined field_0x55b5;
-	undefined field_0x55b6;
-	undefined field_0x55b7;
-	undefined field_0x55b8;
-	undefined field_0x55b9;
-	undefined field_0x55ba;
-	undefined field_0x55bb;
-	undefined field_0x55bc;
-	undefined field_0x55bd;
-	undefined field_0x55be;
-	undefined field_0x55bf;
-	undefined field_0x55c0;
-	undefined field_0x55c1;
-	undefined field_0x55c2;
-	undefined field_0x55c3;
-	undefined field_0x55c4;
-	undefined field_0x55c5;
-	undefined field_0x55c6;
-	undefined field_0x55c7;
-	undefined field_0x55c8;
-	undefined field_0x55c9;
-	undefined field_0x55ca;
-	undefined field_0x55cb;
-	undefined field_0x55cc;
-	undefined field_0x55cd;
-	undefined field_0x55ce;
-	undefined field_0x55cf;
-	undefined field_0x55d0;
-	undefined field_0x55d1;
-	undefined field_0x55d2;
-	undefined field_0x55d3;
-	undefined field_0x55d4;
-	undefined field_0x55d5;
-	undefined field_0x55d6;
-	undefined field_0x55d7;
-	undefined field_0x55d8;
-	undefined field_0x55d9;
-	undefined field_0x55da;
-	undefined field_0x55db;
-	undefined field_0x55dc;
-	undefined field_0x55dd;
-	undefined field_0x55de;
-	undefined field_0x55df;
-	undefined field_0x55e0;
-	undefined field_0x55e1;
-	undefined field_0x55e2;
-	undefined field_0x55e3;
-	undefined field_0x55e4;
-	undefined field_0x55e5;
-	undefined field_0x55e6;
-	undefined field_0x55e7;
-	undefined field_0x55e8;
-	undefined field_0x55e9;
-	undefined field_0x55ea;
-	undefined field_0x55eb;
-	undefined field_0x55ec;
-	undefined field_0x55ed;
-	undefined field_0x55ee;
-	undefined field_0x55ef;
-	undefined field_0x55f0;
-	undefined field_0x55f1;
-	undefined field_0x55f2;
-	undefined field_0x55f3;
-	undefined field_0x55f4;
-	undefined field_0x55f5;
-	undefined field_0x55f6;
-	undefined field_0x55f7;
-	undefined field_0x55f8;
-	undefined field_0x55f9;
-	undefined field_0x55fa;
-	undefined field_0x55fb;
-	undefined field_0x55fc;
-	undefined field_0x55fd;
-	undefined field_0x55fe;
-	undefined field_0x55ff;
-	undefined field_0x5600;
-	undefined field_0x5601;
-	undefined field_0x5602;
-	undefined field_0x5603;
-	undefined field_0x5604;
-	undefined field_0x5605;
-	undefined field_0x5606;
-	undefined field_0x5607;
-	undefined field_0x5608;
-	undefined field_0x5609;
-	undefined field_0x560a;
-	undefined field_0x560b;
-	undefined field_0x560c;
-	undefined field_0x560d;
-	undefined field_0x560e;
-	undefined field_0x560f;
-	undefined field_0x5610;
-	undefined field_0x5611;
-	undefined field_0x5612;
-	undefined field_0x5613;
-	undefined field_0x5614;
-	undefined field_0x5615;
-	undefined field_0x5616;
-	undefined field_0x5617;
-	undefined field_0x5618;
-	undefined field_0x5619;
-	undefined field_0x561a;
-	undefined field_0x561b;
-	undefined field_0x561c;
-	undefined field_0x561d;
-	undefined field_0x561e;
-	undefined field_0x561f;
-	undefined field_0x5620;
-	undefined field_0x5621;
-	undefined field_0x5622;
-	undefined field_0x5623;
-	undefined field_0x5624;
-	undefined field_0x5625;
-	undefined field_0x5626;
-	undefined field_0x5627;
-	undefined field_0x5628;
-	undefined field_0x5629;
-	undefined field_0x562a;
-	undefined field_0x562b;
-	undefined field_0x562c;
-	undefined field_0x562d;
-	undefined field_0x562e;
-	undefined field_0x562f;
-	undefined field_0x5630;
-	undefined field_0x5631;
-	undefined field_0x5632;
-	undefined field_0x5633;
-	undefined field_0x5634;
-	undefined field_0x5635;
-	undefined field_0x5636;
-	undefined field_0x5637;
-	undefined field_0x5638;
-	undefined field_0x5639;
-	undefined field_0x563a;
-	undefined field_0x563b;
-	undefined field_0x563c;
-	undefined field_0x563d;
-	undefined field_0x563e;
-	undefined field_0x563f;
-	undefined field_0x5640;
-	undefined field_0x5641;
-	undefined field_0x5642;
-	undefined field_0x5643;
-	undefined field_0x5644;
-	undefined field_0x5645;
-	undefined field_0x5646;
-	undefined field_0x5647;
-	undefined field_0x5648;
-	undefined field_0x5649;
-	undefined field_0x564a;
-	undefined field_0x564b;
-	undefined field_0x564c;
-	undefined field_0x564d;
-	undefined field_0x564e;
-	undefined field_0x564f;
-	undefined field_0x5650;
-	undefined field_0x5651;
-	undefined field_0x5652;
-	undefined field_0x5653;
-	undefined field_0x5654;
-	undefined field_0x5655;
-	undefined field_0x5656;
-	undefined field_0x5657;
-	undefined field_0x5658;
-	undefined field_0x5659;
-	undefined field_0x565a;
-	undefined field_0x565b;
-	undefined field_0x565c;
-	undefined field_0x565d;
-	undefined field_0x565e;
-	undefined field_0x565f;
-	undefined field_0x5660;
-	undefined field_0x5661;
-	undefined field_0x5662;
-	undefined field_0x5663;
-	undefined field_0x5664;
-	undefined field_0x5665;
-	undefined field_0x5666;
-	undefined field_0x5667;
-	undefined field_0x5668;
-	undefined field_0x5669;
-	undefined field_0x566a;
-	undefined field_0x566b;
-	undefined field_0x566c;
-	undefined field_0x566d;
-	undefined field_0x566e;
-	undefined field_0x566f;
-	undefined field_0x5670;
-	undefined field_0x5671;
-	undefined field_0x5672;
-	undefined field_0x5673;
-	undefined field_0x5674;
-	undefined field_0x5675;
-	undefined field_0x5676;
-	undefined field_0x5677;
-	undefined field_0x5678;
-	undefined field_0x5679;
-	undefined field_0x567a;
-	undefined field_0x567b;
-	undefined field_0x567c;
-	undefined field_0x567d;
-	undefined field_0x567e;
-	undefined field_0x567f;
-	undefined field_0x5680;
-	undefined field_0x5681;
-	undefined field_0x5682;
-	undefined field_0x5683;
-	undefined field_0x5684;
-	undefined field_0x5685;
-	undefined field_0x5686;
-	undefined field_0x5687;
-	undefined field_0x5688;
-	undefined field_0x5689;
-	undefined field_0x568a;
-	undefined field_0x568b;
-	undefined field_0x568c;
-	undefined field_0x568d;
-	undefined field_0x568e;
-	undefined field_0x568f;
-	undefined field_0x5690;
-	undefined field_0x5691;
-	undefined field_0x5692;
-	undefined field_0x5693;
-	undefined field_0x5694;
-	undefined field_0x5695;
-	undefined field_0x5696;
-	undefined field_0x5697;
-	undefined field_0x5698;
-	undefined field_0x5699;
-	undefined field_0x569a;
-	undefined field_0x569b;
-	undefined field_0x569c;
-	undefined field_0x569d;
-	undefined field_0x569e;
-	undefined field_0x569f;
-	undefined field_0x56a0;
-	undefined field_0x56a1;
-	undefined field_0x56a2;
-	undefined field_0x56a3;
-	undefined field_0x56a4;
-	undefined field_0x56a5;
-	undefined field_0x56a6;
-	undefined field_0x56a7;
-	undefined field_0x56a8;
-	undefined field_0x56a9;
-	undefined field_0x56aa;
-	undefined field_0x56ab;
-	undefined field_0x56ac;
-	undefined field_0x56ad;
-	undefined field_0x56ae;
-	undefined field_0x56af;
-	undefined field_0x56b0;
-	undefined field_0x56b1;
-	undefined field_0x56b2;
-	undefined field_0x56b3;
-	undefined field_0x56b4;
-	undefined field_0x56b5;
-	undefined field_0x56b6;
-	undefined field_0x56b7;
-	undefined field_0x56b8;
-	undefined field_0x56b9;
-	undefined field_0x56ba;
-	undefined field_0x56bb;
-	undefined field_0x56bc;
-	undefined field_0x56bd;
-	undefined field_0x56be;
-	undefined field_0x56bf;
-	undefined field_0x56c0;
-	undefined field_0x56c1;
-	undefined field_0x56c2;
-	undefined field_0x56c3;
-	undefined field_0x56c4;
-	undefined field_0x56c5;
-	undefined field_0x56c6;
-	undefined field_0x56c7;
-	undefined field_0x56c8;
-	undefined field_0x56c9;
-	undefined field_0x56ca;
-	undefined field_0x56cb;
-	undefined field_0x56cc;
-	undefined field_0x56cd;
-	undefined field_0x56ce;
-	undefined field_0x56cf;
-	undefined field_0x56d0;
-	undefined field_0x56d1;
-	undefined field_0x56d2;
-	undefined field_0x56d3;
-	undefined field_0x56d4;
-	undefined field_0x56d5;
-	undefined field_0x56d6;
-	undefined field_0x56d7;
-	undefined field_0x56d8;
-	undefined field_0x56d9;
-	undefined field_0x56da;
-	undefined field_0x56db;
-	undefined field_0x56dc;
-	undefined field_0x56dd;
-	undefined field_0x56de;
-	undefined field_0x56df;
-	undefined field_0x56e0;
-	undefined field_0x56e1;
-	undefined field_0x56e2;
-	undefined field_0x56e3;
-	undefined field_0x56e4;
-	undefined field_0x56e5;
-	undefined field_0x56e6;
-	undefined field_0x56e7;
-	undefined field_0x56e8;
-	undefined field_0x56e9;
-	undefined field_0x56ea;
-	undefined field_0x56eb;
-	undefined field_0x56ec;
-	undefined field_0x56ed;
-	undefined field_0x56ee;
-	undefined field_0x56ef;
-	undefined field_0x56f0;
-	undefined field_0x56f1;
-	undefined field_0x56f2;
-	undefined field_0x56f3;
-	undefined field_0x56f4;
-	undefined field_0x56f5;
-	undefined field_0x56f6;
-	undefined field_0x56f7;
-	undefined field_0x56f8;
-	undefined field_0x56f9;
-	undefined field_0x56fa;
-	undefined field_0x56fb;
-	undefined field_0x56fc;
-	undefined field_0x56fd;
-	undefined field_0x56fe;
-	undefined field_0x56ff;
-	undefined field_0x5700;
-	undefined field_0x5701;
-	undefined field_0x5702;
-	undefined field_0x5703;
-	undefined field_0x5704;
-	undefined field_0x5705;
-	undefined field_0x5706;
-	undefined field_0x5707;
-	undefined field_0x5708;
-	undefined field_0x5709;
-	undefined field_0x570a;
-	undefined field_0x570b;
-	undefined field_0x570c;
-	undefined field_0x570d;
-	undefined field_0x570e;
-	undefined field_0x570f;
-	undefined field_0x5710;
-	undefined field_0x5711;
-	undefined field_0x5712;
-	undefined field_0x5713;
-	undefined field_0x5714;
-	undefined field_0x5715;
-	undefined field_0x5716;
-	undefined field_0x5717;
-	undefined field_0x5718;
-	undefined field_0x5719;
-	undefined field_0x571a;
-	undefined field_0x571b;
-	undefined field_0x571c;
-	undefined field_0x571d;
-	undefined field_0x571e;
-	undefined field_0x571f;
-	undefined field_0x5720;
-	undefined field_0x5721;
-	undefined field_0x5722;
-	undefined field_0x5723;
-	undefined field_0x5724;
-	undefined field_0x5725;
-	undefined field_0x5726;
-	undefined field_0x5727;
-	undefined field_0x5728;
-	undefined field_0x5729;
-	undefined field_0x572a;
-	undefined field_0x572b;
-	undefined field_0x572c;
-	undefined field_0x572d;
-	undefined field_0x572e;
-	undefined field_0x572f;
-	undefined field_0x5730;
-	undefined field_0x5731;
-	undefined field_0x5732;
-	undefined field_0x5733;
-	undefined field_0x5734;
-	undefined field_0x5735;
-	undefined field_0x5736;
-	undefined field_0x5737;
-	undefined field_0x5738;
-	undefined field_0x5739;
-	undefined field_0x573a;
-	undefined field_0x573b;
-	undefined field_0x573c;
-	undefined field_0x573d;
-	undefined field_0x573e;
-	undefined field_0x573f;
-	undefined field_0x5740;
-	undefined field_0x5741;
-	undefined field_0x5742;
-	undefined field_0x5743;
-	undefined field_0x5744;
-	undefined field_0x5745;
-	undefined field_0x5746;
-	undefined field_0x5747;
-	undefined field_0x5748;
-	undefined field_0x5749;
-	undefined field_0x574a;
-	undefined field_0x574b;
-	undefined field_0x574c;
-	undefined field_0x574d;
-	undefined field_0x574e;
-	undefined field_0x574f;
-	undefined field_0x5750;
-	undefined field_0x5751;
-	undefined field_0x5752;
-	undefined field_0x5753;
-	undefined field_0x5754;
-	undefined field_0x5755;
-	undefined field_0x5756;
-	undefined field_0x5757;
-	undefined field_0x5758;
-	undefined field_0x5759;
-	undefined field_0x575a;
-	undefined field_0x575b;
-	undefined field_0x575c;
-	undefined field_0x575d;
-	undefined field_0x575e;
-	undefined field_0x575f;
-	undefined field_0x5760;
-	undefined field_0x5761;
-	undefined field_0x5762;
-	undefined field_0x5763;
-	undefined field_0x5764;
-	undefined field_0x5765;
-	undefined field_0x5766;
-	undefined field_0x5767;
-	undefined field_0x5768;
-	undefined field_0x5769;
-	undefined field_0x576a;
-	undefined field_0x576b;
-	undefined field_0x576c;
-	undefined field_0x576d;
-	undefined field_0x576e;
-	undefined field_0x576f;
-	undefined field_0x5770;
-	undefined field_0x5771;
-	undefined field_0x5772;
-	undefined field_0x5773;
-	undefined field_0x5774;
-	undefined field_0x5775;
-	undefined field_0x5776;
-	undefined field_0x5777;
-	undefined field_0x5778;
-	undefined field_0x5779;
-	undefined field_0x577a;
-	undefined field_0x577b;
-	undefined field_0x577c;
-	undefined field_0x577d;
-	undefined field_0x577e;
-	undefined field_0x577f;
-	undefined field_0x5780;
-	undefined field_0x5781;
-	undefined field_0x5782;
-	undefined field_0x5783;
-	undefined field_0x5784;
-	undefined field_0x5785;
-	undefined field_0x5786;
-	undefined field_0x5787;
-	undefined field_0x5788;
-	undefined field_0x5789;
-	undefined field_0x578a;
-	undefined field_0x578b;
-	undefined field_0x578c;
-	undefined field_0x578d;
-	undefined field_0x578e;
-	undefined field_0x578f;
-	undefined field_0x5790;
-	undefined field_0x5791;
-	undefined field_0x5792;
-	undefined field_0x5793;
-	undefined field_0x5794;
-	undefined field_0x5795;
-	undefined field_0x5796;
-	undefined field_0x5797;
-	undefined field_0x5798;
-	undefined field_0x5799;
-	undefined field_0x579a;
-	undefined field_0x579b;
-	undefined field_0x579c;
-	undefined field_0x579d;
-	undefined field_0x579e;
-	undefined field_0x579f;
-	undefined field_0x57a0;
-	undefined field_0x57a1;
-	undefined field_0x57a2;
-	undefined field_0x57a3;
-	undefined field_0x57a4;
-	undefined field_0x57a5;
-	undefined field_0x57a6;
-	undefined field_0x57a7;
-	undefined field_0x57a8;
-	undefined field_0x57a9;
-	undefined field_0x57aa;
-	undefined field_0x57ab;
-	undefined field_0x57ac;
-	undefined field_0x57ad;
-	undefined field_0x57ae;
-	undefined field_0x57af;
-	undefined field_0x57b0;
-	undefined field_0x57b1;
-	undefined field_0x57b2;
-	undefined field_0x57b3;
-	undefined field_0x57b4;
-	undefined field_0x57b5;
-	undefined field_0x57b6;
-	undefined field_0x57b7;
-	undefined field_0x57b8;
-	undefined field_0x57b9;
-	undefined field_0x57ba;
-	undefined field_0x57bb;
-	undefined field_0x57bc;
-	undefined field_0x57bd;
-	undefined field_0x57be;
-	undefined field_0x57bf;
-	undefined field_0x57c0;
-	undefined field_0x57c1;
-	undefined field_0x57c2;
-	undefined field_0x57c3;
-	undefined field_0x57c4;
-	undefined field_0x57c5;
-	undefined field_0x57c6;
-	undefined field_0x57c7;
-	undefined field_0x57c8;
-	undefined field_0x57c9;
-	undefined field_0x57ca;
-	undefined field_0x57cb;
-	undefined field_0x57cc;
-	undefined field_0x57cd;
-	undefined field_0x57ce;
-	undefined field_0x57cf;
-	undefined field_0x57d0;
-	undefined field_0x57d1;
-	undefined field_0x57d2;
-	undefined field_0x57d3;
-	undefined field_0x57d4;
-	undefined field_0x57d5;
-	undefined field_0x57d6;
-	undefined field_0x57d7;
-	undefined field_0x57d8;
-	undefined field_0x57d9;
-	undefined field_0x57da;
-	undefined field_0x57db;
-	undefined field_0x57dc;
-	undefined field_0x57dd;
-	undefined field_0x57de;
-	undefined field_0x57df;
-	undefined field_0x57e0;
-	undefined field_0x57e1;
-	undefined field_0x57e2;
-	undefined field_0x57e3;
-	undefined field_0x57e4;
-	undefined field_0x57e5;
-	undefined field_0x57e6;
-	undefined field_0x57e7;
-	undefined field_0x57e8;
-	undefined field_0x57e9;
-	undefined field_0x57ea;
-	undefined field_0x57eb;
-	undefined field_0x57ec;
-	undefined field_0x57ed;
-	undefined field_0x57ee;
-	undefined field_0x57ef;
-	undefined field_0x57f0;
-	undefined field_0x57f1;
-	undefined field_0x57f2;
-	undefined field_0x57f3;
-	undefined field_0x57f4;
-	undefined field_0x57f5;
-	undefined field_0x57f6;
-	undefined field_0x57f7;
-	undefined field_0x57f8;
-	undefined field_0x57f9;
-	undefined field_0x57fa;
-	undefined field_0x57fb;
-	undefined field_0x57fc;
-	undefined field_0x57fd;
-	undefined field_0x57fe;
-	undefined field_0x57ff;
-	undefined field_0x5800;
-	undefined field_0x5801;
-	undefined field_0x5802;
-	undefined field_0x5803;
-	undefined field_0x5804;
-	undefined field_0x5805;
-	undefined field_0x5806;
-	undefined field_0x5807;
-	undefined field_0x5808;
-	undefined field_0x5809;
-	undefined field_0x580a;
-	undefined field_0x580b;
-	undefined field_0x580c;
-	undefined field_0x580d;
-	undefined field_0x580e;
-	undefined field_0x580f;
-	undefined field_0x5810;
-	undefined field_0x5811;
-	undefined field_0x5812;
-	undefined field_0x5813;
-	undefined field_0x5814;
-	undefined field_0x5815;
-	undefined field_0x5816;
-	undefined field_0x5817;
-	undefined field_0x5818;
-	undefined field_0x5819;
-	undefined field_0x581a;
-	undefined field_0x581b;
-	undefined field_0x581c;
-	undefined field_0x581d;
-	undefined field_0x581e;
-	undefined field_0x581f;
-	undefined field_0x5820;
-	undefined field_0x5821;
-	undefined field_0x5822;
-	undefined field_0x5823;
-	undefined field_0x5824;
-	undefined field_0x5825;
-	undefined field_0x5826;
-	undefined field_0x5827;
-	undefined field_0x5828;
-	undefined field_0x5829;
-	undefined field_0x582a;
-	undefined field_0x582b;
-	undefined field_0x582c;
-	undefined field_0x582d;
-	undefined field_0x582e;
-	undefined field_0x582f;
-	undefined field_0x5830;
-	undefined field_0x5831;
-	undefined field_0x5832;
-	undefined field_0x5833;
-	undefined field_0x5834;
-	undefined field_0x5835;
-	undefined field_0x5836;
-	undefined field_0x5837;
-	undefined field_0x5838;
-	undefined field_0x5839;
-	undefined field_0x583a;
-	undefined field_0x583b;
-	undefined field_0x583c;
-	undefined field_0x583d;
-	undefined field_0x583e;
-	undefined field_0x583f;
-	undefined field_0x5840;
-	undefined field_0x5841;
-	undefined field_0x5842;
-	undefined field_0x5843;
-	undefined field_0x5844;
-	undefined field_0x5845;
-	undefined field_0x5846;
-	undefined field_0x5847;
-	undefined field_0x5848;
-	undefined field_0x5849;
-	undefined field_0x584a;
-	undefined field_0x584b;
-	undefined field_0x584c;
-	undefined field_0x584d;
-	undefined field_0x584e;
-	undefined field_0x584f;
-	undefined field_0x5850;
-	undefined field_0x5851;
-	undefined field_0x5852;
-	undefined field_0x5853;
-	undefined field_0x5854;
-	undefined field_0x5855;
-	undefined field_0x5856;
-	undefined field_0x5857;
-	undefined field_0x5858;
-	undefined field_0x5859;
-	undefined field_0x585a;
-	undefined field_0x585b;
-	undefined field_0x585c;
-	undefined field_0x585d;
-	undefined field_0x585e;
-	undefined field_0x585f;
-	undefined field_0x5860;
-	undefined field_0x5861;
-	undefined field_0x5862;
-	undefined field_0x5863;
-	undefined field_0x5864;
-	undefined field_0x5865;
-	undefined field_0x5866;
-	undefined field_0x5867;
-	undefined field_0x5868;
-	undefined field_0x5869;
-	undefined field_0x586a;
-	undefined field_0x586b;
-	undefined field_0x586c;
-	undefined field_0x586d;
-	undefined field_0x586e;
-	undefined field_0x586f;
-	undefined field_0x5870;
-	undefined field_0x5871;
-	undefined field_0x5872;
-	undefined field_0x5873;
-	undefined field_0x5874;
-	undefined field_0x5875;
-	undefined field_0x5876;
-	undefined field_0x5877;
-	undefined field_0x5878;
-	undefined field_0x5879;
-	undefined field_0x587a;
-	undefined field_0x587b;
-	undefined field_0x587c;
-	undefined field_0x587d;
-	undefined field_0x587e;
-	undefined field_0x587f;
-	undefined field_0x5880;
-	undefined field_0x5881;
-	undefined field_0x5882;
-	undefined field_0x5883;
-	undefined field_0x5884;
-	undefined field_0x5885;
-	undefined field_0x5886;
-	undefined field_0x5887;
-	undefined field_0x5888;
-	undefined field_0x5889;
-	undefined field_0x588a;
-	undefined field_0x588b;
-	undefined field_0x588c;
-	undefined field_0x588d;
-	undefined field_0x588e;
-	undefined field_0x588f;
-	undefined field_0x5890;
-	undefined field_0x5891;
-	undefined field_0x5892;
-	undefined field_0x5893;
-	undefined field_0x5894;
-	undefined field_0x5895;
-	undefined field_0x5896;
-	undefined field_0x5897;
-	undefined field_0x5898;
-	undefined field_0x5899;
-	undefined field_0x589a;
-	undefined field_0x589b;
-	undefined field_0x589c;
-	undefined field_0x589d;
-	undefined field_0x589e;
-	undefined field_0x589f;
-	undefined field_0x58a0;
-	undefined field_0x58a1;
-	undefined field_0x58a2;
-	undefined field_0x58a3;
-	undefined field_0x58a4;
-	undefined field_0x58a5;
-	undefined field_0x58a6;
-	undefined field_0x58a7;
-	undefined field_0x58a8;
-	undefined field_0x58a9;
-	undefined field_0x58aa;
-	undefined field_0x58ab;
-	undefined field_0x58ac;
-	undefined field_0x58ad;
-	undefined field_0x58ae;
-	undefined field_0x58af;
-	undefined field_0x58b0;
-	undefined field_0x58b1;
-	undefined field_0x58b2;
-	undefined field_0x58b3;
-	undefined field_0x58b4;
-	undefined field_0x58b5;
-	undefined field_0x58b6;
-	undefined field_0x58b7;
-	undefined field_0x58b8;
-	undefined field_0x58b9;
-	undefined field_0x58ba;
-	undefined field_0x58bb;
-	undefined field_0x58bc;
-	undefined field_0x58bd;
-	undefined field_0x58be;
-	undefined field_0x58bf;
-	undefined field_0x58c0;
-	undefined field_0x58c1;
-	undefined field_0x58c2;
-	undefined field_0x58c3;
-	undefined field_0x58c4;
-	undefined field_0x58c5;
-	undefined field_0x58c6;
-	undefined field_0x58c7;
-	undefined field_0x58c8;
-	undefined field_0x58c9;
-	undefined field_0x58ca;
-	undefined field_0x58cb;
-	undefined field_0x58cc;
-	undefined field_0x58cd;
-	undefined field_0x58ce;
-	undefined field_0x58cf;
-	undefined field_0x58d0;
-	undefined field_0x58d1;
-	undefined field_0x58d2;
-	undefined field_0x58d3;
-	undefined field_0x58d4;
-	undefined field_0x58d5;
-	undefined field_0x58d6;
-	undefined field_0x58d7;
-	undefined field_0x58d8;
-	undefined field_0x58d9;
-	undefined field_0x58da;
-	undefined field_0x58db;
-	undefined field_0x58dc;
-	undefined field_0x58dd;
-	undefined field_0x58de;
-	undefined field_0x58df;
-	undefined field_0x58e0;
-	undefined field_0x58e1;
-	undefined field_0x58e2;
-	undefined field_0x58e3;
-	undefined field_0x58e4;
-	undefined field_0x58e5;
-	undefined field_0x58e6;
-	undefined field_0x58e7;
-	undefined field_0x58e8;
-	undefined field_0x58e9;
-	undefined field_0x58ea;
-	undefined field_0x58eb;
-	undefined field_0x58ec;
-	undefined field_0x58ed;
-	undefined field_0x58ee;
-	undefined field_0x58ef;
-	undefined field_0x58f0;
-	undefined field_0x58f1;
-	undefined field_0x58f2;
-	undefined field_0x58f3;
-	undefined field_0x58f4;
-	undefined field_0x58f5;
-	undefined field_0x58f6;
-	undefined field_0x58f7;
-	undefined field_0x58f8;
-	undefined field_0x58f9;
-	undefined field_0x58fa;
-	undefined field_0x58fb;
-	undefined field_0x58fc;
-	undefined field_0x58fd;
-	undefined field_0x58fe;
-	undefined field_0x58ff;
-	undefined field_0x5900;
-	undefined field_0x5901;
-	undefined field_0x5902;
-	undefined field_0x5903;
-	undefined field_0x5904;
-	undefined field_0x5905;
-	undefined field_0x5906;
-	undefined field_0x5907;
-	undefined field_0x5908;
-	undefined field_0x5909;
-	undefined field_0x590a;
-	undefined field_0x590b;
-	undefined field_0x590c;
-	undefined field_0x590d;
-	undefined field_0x590e;
-	undefined field_0x590f;
-	undefined field_0x5910;
-	undefined field_0x5911;
-	undefined field_0x5912;
-	undefined field_0x5913;
-	undefined field_0x5914;
-	undefined field_0x5915;
-	undefined field_0x5916;
-	undefined field_0x5917;
-	undefined field_0x5918;
-	undefined field_0x5919;
-	undefined field_0x591a;
-	undefined field_0x591b;
-	undefined field_0x591c;
-	undefined field_0x591d;
-	undefined field_0x591e;
-	undefined field_0x591f;
-	undefined field_0x5920;
-	undefined field_0x5921;
-	undefined field_0x5922;
-	undefined field_0x5923;
-	undefined field_0x5924;
-	undefined field_0x5925;
-	undefined field_0x5926;
-	undefined field_0x5927;
-	undefined field_0x5928;
-	undefined field_0x5929;
-	undefined field_0x592a;
-	undefined field_0x592b;
-	undefined field_0x592c;
-	undefined field_0x592d;
-	undefined field_0x592e;
-	undefined field_0x592f;
-	undefined field_0x5930;
-	undefined field_0x5931;
-	undefined field_0x5932;
-	undefined field_0x5933;
-	undefined field_0x5934;
-	undefined field_0x5935;
-	undefined field_0x5936;
-	undefined field_0x5937;
-	undefined field_0x5938;
-	undefined field_0x5939;
-	undefined field_0x593a;
-	undefined field_0x593b;
-	undefined field_0x593c;
-	undefined field_0x593d;
-	undefined field_0x593e;
-	undefined field_0x593f;
-	undefined field_0x5940;
-	undefined field_0x5941;
-	undefined field_0x5942;
-	undefined field_0x5943;
-	undefined field_0x5944;
-	undefined field_0x5945;
-	undefined field_0x5946;
-	undefined field_0x5947;
-	undefined field_0x5948;
-	undefined field_0x5949;
-	undefined field_0x594a;
-	undefined field_0x594b;
-	undefined field_0x594c;
-	undefined field_0x594d;
-	undefined field_0x594e;
-	undefined field_0x594f;
-	undefined field_0x5950;
-	undefined field_0x5951;
-	undefined field_0x5952;
-	undefined field_0x5953;
-	undefined field_0x5954;
-	undefined field_0x5955;
-	undefined field_0x5956;
-	undefined field_0x5957;
-	undefined field_0x5958;
-	undefined field_0x5959;
-	undefined field_0x595a;
-	undefined field_0x595b;
-	undefined field_0x595c;
-	undefined field_0x595d;
-	undefined field_0x595e;
-	undefined field_0x595f;
-	undefined field_0x5960;
-	undefined field_0x5961;
-	undefined field_0x5962;
-	undefined field_0x5963;
-	undefined field_0x5964;
-	undefined field_0x5965;
-	undefined field_0x5966;
-	undefined field_0x5967;
-	undefined field_0x5968;
-	undefined field_0x5969;
-	undefined field_0x596a;
-	undefined field_0x596b;
-	undefined field_0x596c;
-	undefined field_0x596d;
-	undefined field_0x596e;
-	undefined field_0x596f;
-	undefined field_0x5970;
-	undefined field_0x5971;
-	undefined field_0x5972;
-	undefined field_0x5973;
-	undefined field_0x5974;
-	undefined field_0x5975;
-	undefined field_0x5976;
-	undefined field_0x5977;
-	undefined field_0x5978;
-	undefined field_0x5979;
-	undefined field_0x597a;
-	undefined field_0x597b;
-	undefined field_0x597c;
-	undefined field_0x597d;
-	undefined field_0x597e;
-	undefined field_0x597f;
-	undefined field_0x5980;
-	undefined field_0x5981;
-	undefined field_0x5982;
-	undefined field_0x5983;
-	undefined field_0x5984;
-	undefined field_0x5985;
-	undefined field_0x5986;
-	undefined field_0x5987;
-	undefined field_0x5988;
-	undefined field_0x5989;
-	undefined field_0x598a;
-	undefined field_0x598b;
-	undefined field_0x598c;
-	undefined field_0x598d;
-	undefined field_0x598e;
-	undefined field_0x598f;
-	undefined field_0x5990;
-	undefined field_0x5991;
-	undefined field_0x5992;
-	undefined field_0x5993;
-	undefined field_0x5994;
-	undefined field_0x5995;
-	undefined field_0x5996;
-	undefined field_0x5997;
-	undefined field_0x5998;
-	undefined field_0x5999;
-	undefined field_0x599a;
-	undefined field_0x599b;
-	undefined field_0x599c;
-	undefined field_0x599d;
-	undefined field_0x599e;
-	undefined field_0x599f;
-	undefined field_0x59a0;
-	undefined field_0x59a1;
-	undefined field_0x59a2;
-	undefined field_0x59a3;
-	undefined field_0x59a4;
-	undefined field_0x59a5;
-	undefined field_0x59a6;
-	undefined field_0x59a7;
-	undefined field_0x59a8;
-	undefined field_0x59a9;
-	undefined field_0x59aa;
-	undefined field_0x59ab;
-	undefined field_0x59ac;
-	undefined field_0x59ad;
-	undefined field_0x59ae;
-	undefined field_0x59af;
-	undefined field_0x59b0;
-	undefined field_0x59b1;
-	undefined field_0x59b2;
-	undefined field_0x59b3;
-	undefined field_0x59b4;
-	undefined field_0x59b5;
-	undefined field_0x59b6;
-	undefined field_0x59b7;
-	undefined field_0x59b8;
-	undefined field_0x59b9;
-	undefined field_0x59ba;
-	undefined field_0x59bb;
-	undefined field_0x59bc;
-	undefined field_0x59bd;
-	undefined field_0x59be;
-	undefined field_0x59bf;
-	undefined field_0x59c0;
-	undefined field_0x59c1;
-	undefined field_0x59c2;
-	undefined field_0x59c3;
-	undefined field_0x59c4;
-	undefined field_0x59c5;
-	undefined field_0x59c6;
-	undefined field_0x59c7;
-	undefined field_0x59c8;
-	undefined field_0x59c9;
-	undefined field_0x59ca;
-	undefined field_0x59cb;
-	undefined field_0x59cc;
-	undefined field_0x59cd;
-	undefined field_0x59ce;
-	undefined field_0x59cf;
-	undefined field_0x59d0;
-	undefined field_0x59d1;
-	undefined field_0x59d2;
-	undefined field_0x59d3;
-	undefined field_0x59d4;
-	undefined field_0x59d5;
-	undefined field_0x59d6;
-	undefined field_0x59d7;
-	undefined field_0x59d8;
-	undefined field_0x59d9;
-	undefined field_0x59da;
-	undefined field_0x59db;
-	undefined field_0x59dc;
-	undefined field_0x59dd;
-	undefined field_0x59de;
-	undefined field_0x59df;
-	undefined field_0x59e0;
-	undefined field_0x59e1;
-	undefined field_0x59e2;
-	undefined field_0x59e3;
-	undefined field_0x59e4;
-	undefined field_0x59e5;
-	undefined field_0x59e6;
-	undefined field_0x59e7;
-	undefined field_0x59e8;
-	undefined field_0x59e9;
-	undefined field_0x59ea;
-	undefined field_0x59eb;
-	undefined field_0x59ec;
-	undefined field_0x59ed;
-	undefined field_0x59ee;
-	undefined field_0x59ef;
-	undefined field_0x59f0;
-	undefined field_0x59f1;
-	undefined field_0x59f2;
-	undefined field_0x59f3;
-	undefined field_0x59f4;
-	undefined field_0x59f5;
-	undefined field_0x59f6;
-	undefined field_0x59f7;
-	undefined field_0x59f8;
-	undefined field_0x59f9;
-	undefined field_0x59fa;
-	undefined field_0x59fb;
-	undefined field_0x59fc;
-	undefined field_0x59fd;
-	undefined field_0x59fe;
-	undefined field_0x59ff;
-	undefined field_0x5a00;
-	undefined field_0x5a01;
-	undefined field_0x5a02;
-	undefined field_0x5a03;
-	undefined field_0x5a04;
-	undefined field_0x5a05;
-	undefined field_0x5a06;
-	undefined field_0x5a07;
-	undefined field_0x5a08;
-	undefined field_0x5a09;
-	undefined field_0x5a0a;
-	undefined field_0x5a0b;
-	undefined field_0x5a0c;
-	undefined field_0x5a0d;
-	undefined field_0x5a0e;
-	undefined field_0x5a0f;
-	undefined field_0x5a10;
-	undefined field_0x5a11;
-	undefined field_0x5a12;
-	undefined field_0x5a13;
-	undefined field_0x5a14;
-	undefined field_0x5a15;
-	undefined field_0x5a16;
-	undefined field_0x5a17;
-	undefined field_0x5a18;
-	undefined field_0x5a19;
-	undefined field_0x5a1a;
-	undefined field_0x5a1b;
-	undefined field_0x5a1c;
-	undefined field_0x5a1d;
-	undefined field_0x5a1e;
-	undefined field_0x5a1f;
-	undefined field_0x5a20;
-	undefined field_0x5a21;
-	undefined field_0x5a22;
-	undefined field_0x5a23;
-	undefined field_0x5a24;
-	undefined field_0x5a25;
-	undefined field_0x5a26;
-	undefined field_0x5a27;
-	undefined field_0x5a28;
-	undefined field_0x5a29;
-	undefined field_0x5a2a;
-	undefined field_0x5a2b;
-	undefined field_0x5a2c;
-	undefined field_0x5a2d;
-	undefined field_0x5a2e;
-	undefined field_0x5a2f;
-	undefined field_0x5a30;
-	undefined field_0x5a31;
-	undefined field_0x5a32;
-	undefined field_0x5a33;
-	undefined field_0x5a34;
-	undefined field_0x5a35;
-	undefined field_0x5a36;
-	undefined field_0x5a37;
-	undefined field_0x5a38;
-	undefined field_0x5a39;
-	undefined field_0x5a3a;
-	undefined field_0x5a3b;
-	undefined field_0x5a3c;
-	undefined field_0x5a3d;
-	undefined field_0x5a3e;
-	undefined field_0x5a3f;
-	undefined field_0x5a40;
-	undefined field_0x5a41;
-	undefined field_0x5a42;
-	undefined field_0x5a43;
-	undefined field_0x5a44;
-	undefined field_0x5a45;
-	undefined field_0x5a46;
-	undefined field_0x5a47;
-	undefined field_0x5a48;
-	undefined field_0x5a49;
-	undefined field_0x5a4a;
-	undefined field_0x5a4b;
-	undefined field_0x5a4c;
-	undefined field_0x5a4d;
-	undefined field_0x5a4e;
-	undefined field_0x5a4f;
-	undefined field_0x5a50;
-	undefined field_0x5a51;
-	undefined field_0x5a52;
-	undefined field_0x5a53;
-	undefined field_0x5a54;
-	undefined field_0x5a55;
-	undefined field_0x5a56;
-	undefined field_0x5a57;
-	undefined field_0x5a58;
-	undefined field_0x5a59;
-	undefined field_0x5a5a;
-	undefined field_0x5a5b;
-	undefined field_0x5a5c;
-	undefined field_0x5a5d;
-	undefined field_0x5a5e;
-	undefined field_0x5a5f;
-	undefined field_0x5a60;
-	undefined field_0x5a61;
-	undefined field_0x5a62;
-	undefined field_0x5a63;
-	undefined field_0x5a64;
-	undefined field_0x5a65;
-	undefined field_0x5a66;
-	undefined field_0x5a67;
-	undefined field_0x5a68;
-	undefined field_0x5a69;
-	undefined field_0x5a6a;
-	undefined field_0x5a6b;
-	undefined field_0x5a6c;
-	undefined field_0x5a6d;
-	undefined field_0x5a6e;
-	undefined field_0x5a6f;
-	undefined field_0x5a70;
-	undefined field_0x5a71;
-	undefined field_0x5a72;
-	undefined field_0x5a73;
-	undefined field_0x5a74;
-	undefined field_0x5a75;
-	undefined field_0x5a76;
-	undefined field_0x5a77;
-	undefined field_0x5a78;
-	undefined field_0x5a79;
-	undefined field_0x5a7a;
-	undefined field_0x5a7b;
-	undefined field_0x5a7c;
-	undefined field_0x5a7d;
-	undefined field_0x5a7e;
-	undefined field_0x5a7f;
-	undefined field_0x5a80;
-	undefined field_0x5a81;
-	undefined field_0x5a82;
-	undefined field_0x5a83;
-	undefined field_0x5a84;
-	undefined field_0x5a85;
-	undefined field_0x5a86;
-	undefined field_0x5a87;
-	undefined field_0x5a88;
-	undefined field_0x5a89;
-	undefined field_0x5a8a;
-	undefined field_0x5a8b;
-	undefined field_0x5a8c;
-	undefined field_0x5a8d;
-	undefined field_0x5a8e;
-	undefined field_0x5a8f;
-	undefined field_0x5a90;
-	undefined field_0x5a91;
-	undefined field_0x5a92;
-	undefined field_0x5a93;
-	undefined field_0x5a94;
-	undefined field_0x5a95;
-	undefined field_0x5a96;
-	undefined field_0x5a97;
-	undefined field_0x5a98;
-	undefined field_0x5a99;
-	undefined field_0x5a9a;
-	undefined field_0x5a9b;
-	undefined field_0x5a9c;
-	undefined field_0x5a9d;
-	undefined field_0x5a9e;
-	undefined field_0x5a9f;
-	undefined field_0x5aa0;
-	undefined field_0x5aa1;
-	undefined field_0x5aa2;
-	undefined field_0x5aa3;
-	undefined field_0x5aa4;
-	undefined field_0x5aa5;
-	undefined field_0x5aa6;
-	undefined field_0x5aa7;
-	undefined field_0x5aa8;
-	undefined field_0x5aa9;
-	undefined field_0x5aaa;
-	undefined field_0x5aab;
-	undefined field_0x5aac;
-	undefined field_0x5aad;
-	undefined field_0x5aae;
-	undefined field_0x5aaf;
-	undefined field_0x5ab0;
-	undefined field_0x5ab1;
-	undefined field_0x5ab2;
-	undefined field_0x5ab3;
-	undefined field_0x5ab4;
-	undefined field_0x5ab5;
-	undefined field_0x5ab6;
-	undefined field_0x5ab7;
-	undefined field_0x5ab8;
-	undefined field_0x5ab9;
-	undefined field_0x5aba;
-	undefined field_0x5abb;
-	undefined field_0x5abc;
-	undefined field_0x5abd;
-	undefined field_0x5abe;
-	undefined field_0x5abf;
-	undefined field_0x5ac0;
-	undefined field_0x5ac1;
-	undefined field_0x5ac2;
-	undefined field_0x5ac3;
-	undefined field_0x5ac4;
-	undefined field_0x5ac5;
-	undefined field_0x5ac6;
-	undefined field_0x5ac7;
-	undefined field_0x5ac8;
-	undefined field_0x5ac9;
-	undefined field_0x5aca;
-	undefined field_0x5acb;
-	undefined field_0x5acc;
-	undefined field_0x5acd;
-	undefined field_0x5ace;
-	undefined field_0x5acf;
-	undefined field_0x5ad0;
-	undefined field_0x5ad1;
-	undefined field_0x5ad2;
-	undefined field_0x5ad3;
-	undefined field_0x5ad4;
-	undefined field_0x5ad5;
-	undefined field_0x5ad6;
-	undefined field_0x5ad7;
-	undefined field_0x5ad8;
-	undefined field_0x5ad9;
-	undefined field_0x5ada;
-	undefined field_0x5adb;
-	undefined field_0x5adc;
-	undefined field_0x5add;
-	undefined field_0x5ade;
-	undefined field_0x5adf;
-	undefined field_0x5ae0;
-	undefined field_0x5ae1;
-	undefined field_0x5ae2;
-	undefined field_0x5ae3;
-	undefined field_0x5ae4;
-	undefined field_0x5ae5;
-	undefined field_0x5ae6;
-	undefined field_0x5ae7;
-	undefined field_0x5ae8;
-	undefined field_0x5ae9;
-	undefined field_0x5aea;
-	undefined field_0x5aeb;
-	undefined field_0x5aec;
-	undefined field_0x5aed;
-	undefined field_0x5aee;
-	undefined field_0x5aef;
-	undefined field_0x5af0;
-	undefined field_0x5af1;
-	undefined field_0x5af2;
-	undefined field_0x5af3;
-	undefined field_0x5af4;
-	undefined field_0x5af5;
-	undefined field_0x5af6;
-	undefined field_0x5af7;
-	undefined field_0x5af8;
-	undefined field_0x5af9;
-	undefined field_0x5afa;
-	undefined field_0x5afb;
-	undefined field_0x5afc;
-	undefined field_0x5afd;
-	undefined field_0x5afe;
-	undefined field_0x5aff;
-	undefined field_0x5b00;
-	undefined field_0x5b01;
-	undefined field_0x5b02;
-	undefined field_0x5b03;
-	undefined field_0x5b04;
-	undefined field_0x5b05;
-	undefined field_0x5b06;
-	undefined field_0x5b07;
-	undefined field_0x5b08;
-	undefined field_0x5b09;
-	undefined field_0x5b0a;
-	undefined field_0x5b0b;
-	undefined field_0x5b0c;
-	undefined field_0x5b0d;
-	undefined field_0x5b0e;
-	undefined field_0x5b0f;
-	undefined field_0x5b10;
-	undefined field_0x5b11;
-	undefined field_0x5b12;
-	undefined field_0x5b13;
-	undefined field_0x5b14;
-	undefined field_0x5b15;
-	undefined field_0x5b16;
-	undefined field_0x5b17;
-	undefined field_0x5b18;
-	undefined field_0x5b19;
-	undefined field_0x5b1a;
-	undefined field_0x5b1b;
-	undefined field_0x5b1c;
-	undefined field_0x5b1d;
-	undefined field_0x5b1e;
-	undefined field_0x5b1f;
-	undefined field_0x5b20;
-	undefined field_0x5b21;
-	undefined field_0x5b22;
-	undefined field_0x5b23;
-	undefined field_0x5b24;
-	undefined field_0x5b25;
-	undefined field_0x5b26;
-	undefined field_0x5b27;
-	undefined field_0x5b28;
-	undefined field_0x5b29;
-	undefined field_0x5b2a;
-	undefined field_0x5b2b;
-	undefined field_0x5b2c;
-	undefined field_0x5b2d;
-	undefined field_0x5b2e;
-	undefined field_0x5b2f;
-	undefined field_0x5b30;
-	undefined field_0x5b31;
-	undefined field_0x5b32;
-	undefined field_0x5b33;
-	undefined field_0x5b34;
-	undefined field_0x5b35;
-	undefined field_0x5b36;
-	undefined field_0x5b37;
-	undefined field_0x5b38;
-	undefined field_0x5b39;
-	undefined field_0x5b3a;
-	undefined field_0x5b3b;
-	undefined field_0x5b3c;
-	undefined field_0x5b3d;
-	undefined field_0x5b3e;
-	undefined field_0x5b3f;
-	undefined field_0x5b40;
-	undefined field_0x5b41;
-	undefined field_0x5b42;
-	undefined field_0x5b43;
-	undefined field_0x5b44;
-	undefined field_0x5b45;
-	undefined field_0x5b46;
-	undefined field_0x5b47;
-	undefined field_0x5b48;
-	undefined field_0x5b49;
-	undefined field_0x5b4a;
-	undefined field_0x5b4b;
-	undefined field_0x5b4c;
-	undefined field_0x5b4d;
-	undefined field_0x5b4e;
-	undefined field_0x5b4f;
-	undefined field_0x5b50;
-	undefined field_0x5b51;
-	undefined field_0x5b52;
-	undefined field_0x5b53;
-	undefined field_0x5b54;
-	undefined field_0x5b55;
-	undefined field_0x5b56;
-	undefined field_0x5b57;
-	undefined field_0x5b58;
-	undefined field_0x5b59;
-	undefined field_0x5b5a;
-	undefined field_0x5b5b;
-	undefined field_0x5b5c;
-	undefined field_0x5b5d;
-	undefined field_0x5b5e;
-	undefined field_0x5b5f;
-	undefined field_0x5b60;
-	undefined field_0x5b61;
-	undefined field_0x5b62;
-	undefined field_0x5b63;
-	undefined field_0x5b64;
-	undefined field_0x5b65;
-	undefined field_0x5b66;
-	undefined field_0x5b67;
-	undefined field_0x5b68;
-	undefined field_0x5b69;
-	undefined field_0x5b6a;
-	undefined field_0x5b6b;
-	undefined field_0x5b6c;
-	undefined field_0x5b6d;
-	undefined field_0x5b6e;
-	undefined field_0x5b6f;
-	undefined field_0x5b70;
-	undefined field_0x5b71;
-	undefined field_0x5b72;
-	undefined field_0x5b73;
-	undefined field_0x5b74;
-	undefined field_0x5b75;
-	undefined field_0x5b76;
-	undefined field_0x5b77;
-	undefined field_0x5b78;
-	undefined field_0x5b79;
-	undefined field_0x5b7a;
-	undefined field_0x5b7b;
-	undefined field_0x5b7c;
-	undefined field_0x5b7d;
-	undefined field_0x5b7e;
-	undefined field_0x5b7f;
-	undefined field_0x5b80;
-	undefined field_0x5b81;
-	undefined field_0x5b82;
-	undefined field_0x5b83;
-	undefined field_0x5b84;
-	undefined field_0x5b85;
-	undefined field_0x5b86;
-	undefined field_0x5b87;
-	undefined field_0x5b88;
-	undefined field_0x5b89;
-	undefined field_0x5b8a;
-	undefined field_0x5b8b;
-	undefined field_0x5b8c;
-	undefined field_0x5b8d;
-	undefined field_0x5b8e;
-	undefined field_0x5b8f;
-	undefined field_0x5b90;
-	undefined field_0x5b91;
-	undefined field_0x5b92;
-	undefined field_0x5b93;
-	undefined field_0x5b94;
-	undefined field_0x5b95;
-	undefined field_0x5b96;
-	undefined field_0x5b97;
-	undefined field_0x5b98;
-	undefined field_0x5b99;
-	undefined field_0x5b9a;
-	undefined field_0x5b9b;
-	undefined field_0x5b9c;
-	undefined field_0x5b9d;
-	undefined field_0x5b9e;
-	undefined field_0x5b9f;
-	undefined field_0x5ba0;
-	undefined field_0x5ba1;
-	undefined field_0x5ba2;
-	undefined field_0x5ba3;
-	undefined field_0x5ba4;
-	undefined field_0x5ba5;
-	undefined field_0x5ba6;
-	undefined field_0x5ba7;
-	undefined field_0x5ba8;
-	undefined field_0x5ba9;
-	undefined field_0x5baa;
-	undefined field_0x5bab;
-	undefined field_0x5bac;
-	undefined field_0x5bad;
-	undefined field_0x5bae;
-	undefined field_0x5baf;
-	undefined field_0x5bb0;
-	undefined field_0x5bb1;
-	undefined field_0x5bb2;
-	undefined field_0x5bb3;
-	undefined field_0x5bb4;
-	undefined field_0x5bb5;
-	undefined field_0x5bb6;
-	undefined field_0x5bb7;
-	undefined field_0x5bb8;
-	undefined field_0x5bb9;
-	undefined field_0x5bba;
-	undefined field_0x5bbb;
-	undefined field_0x5bbc;
-	undefined field_0x5bbd;
-	undefined field_0x5bbe;
-	undefined field_0x5bbf;
-	undefined field_0x5bc0;
-	undefined field_0x5bc1;
-	undefined field_0x5bc2;
-	undefined field_0x5bc3;
-	undefined field_0x5bc4;
-	undefined field_0x5bc5;
-	undefined field_0x5bc6;
-	undefined field_0x5bc7;
-	undefined field_0x5bc8;
-	undefined field_0x5bc9;
-	undefined field_0x5bca;
-	undefined field_0x5bcb;
-	undefined field_0x5bcc;
-	undefined field_0x5bcd;
-	undefined field_0x5bce;
-	undefined field_0x5bcf;
-	undefined field_0x5bd0;
-	undefined field_0x5bd1;
-	undefined field_0x5bd2;
-	undefined field_0x5bd3;
-	undefined field_0x5bd4;
-	undefined field_0x5bd5;
-	undefined field_0x5bd6;
-	undefined field_0x5bd7;
-	undefined field_0x5bd8;
-	undefined field_0x5bd9;
-	undefined field_0x5bda;
-	undefined field_0x5bdb;
-	undefined field_0x5bdc;
-	undefined field_0x5bdd;
-	undefined field_0x5bde;
-	undefined field_0x5bdf;
-	undefined field_0x5be0;
-	undefined field_0x5be1;
-	undefined field_0x5be2;
-	undefined field_0x5be3;
-	undefined field_0x5be4;
-	undefined field_0x5be5;
-	undefined field_0x5be6;
-	undefined field_0x5be7;
-	undefined field_0x5be8;
-	undefined field_0x5be9;
-	undefined field_0x5bea;
-	undefined field_0x5beb;
-	undefined field_0x5bec;
-	undefined field_0x5bed;
-	undefined field_0x5bee;
-	undefined field_0x5bef;
-	undefined field_0x5bf0;
-	undefined field_0x5bf1;
-	undefined field_0x5bf2;
-	undefined field_0x5bf3;
-	undefined field_0x5bf4;
-	undefined field_0x5bf5;
-	undefined field_0x5bf6;
-	undefined field_0x5bf7;
-	undefined field_0x5bf8;
-	undefined field_0x5bf9;
-	undefined field_0x5bfa;
-	undefined field_0x5bfb;
-	undefined field_0x5bfc;
-	undefined field_0x5bfd;
-	undefined field_0x5bfe;
-	undefined field_0x5bff;
-	undefined field_0x5c00;
-	undefined field_0x5c01;
-	undefined field_0x5c02;
-	undefined field_0x5c03;
-	undefined field_0x5c04;
-	undefined field_0x5c05;
-	undefined field_0x5c06;
-	undefined field_0x5c07;
-	undefined field_0x5c08;
-	undefined field_0x5c09;
-	undefined field_0x5c0a;
-	undefined field_0x5c0b;
-	undefined field_0x5c0c;
-	undefined field_0x5c0d;
-	undefined field_0x5c0e;
-	undefined field_0x5c0f;
-	undefined field_0x5c10;
-	undefined field_0x5c11;
-	undefined field_0x5c12;
-	undefined field_0x5c13;
-	undefined field_0x5c14;
-	undefined field_0x5c15;
-	undefined field_0x5c16;
-	undefined field_0x5c17;
-	undefined field_0x5c18;
-	undefined field_0x5c19;
-	undefined field_0x5c1a;
-	undefined field_0x5c1b;
-	undefined field_0x5c1c;
-	undefined field_0x5c1d;
-	undefined field_0x5c1e;
-	undefined field_0x5c1f;
-	undefined field_0x5c20;
-	undefined field_0x5c21;
-	undefined field_0x5c22;
-	undefined field_0x5c23;
-	undefined field_0x5c24;
-	undefined field_0x5c25;
-	undefined field_0x5c26;
-	undefined field_0x5c27;
-	undefined field_0x5c28;
-	undefined field_0x5c29;
-	undefined field_0x5c2a;
-	undefined field_0x5c2b;
-	undefined field_0x5c2c;
-	undefined field_0x5c2d;
-	undefined field_0x5c2e;
-	undefined field_0x5c2f;
-	undefined field_0x5c30;
-	undefined field_0x5c31;
-	undefined field_0x5c32;
-	undefined field_0x5c33;
-	undefined field_0x5c34;
-	undefined field_0x5c35;
-	undefined field_0x5c36;
-	undefined field_0x5c37;
-	undefined field_0x5c38;
-	undefined field_0x5c39;
-	undefined field_0x5c3a;
-	undefined field_0x5c3b;
-	undefined field_0x5c3c;
-	undefined field_0x5c3d;
-	undefined field_0x5c3e;
-	undefined field_0x5c3f;
-	undefined field_0x5c40;
-	undefined field_0x5c41;
-	undefined field_0x5c42;
-	undefined field_0x5c43;
-	undefined field_0x5c44;
-	undefined field_0x5c45;
-	undefined field_0x5c46;
-	undefined field_0x5c47;
-	undefined field_0x5c48;
-	undefined field_0x5c49;
-	undefined field_0x5c4a;
-	undefined field_0x5c4b;
-	undefined field_0x5c4c;
-	undefined field_0x5c4d;
-	undefined field_0x5c4e;
-	undefined field_0x5c4f;
-	undefined field_0x5c50;
-	undefined field_0x5c51;
-	undefined field_0x5c52;
-	undefined field_0x5c53;
-	undefined field_0x5c54;
-	undefined field_0x5c55;
-	undefined field_0x5c56;
-	undefined field_0x5c57;
-	undefined field_0x5c58;
-	undefined field_0x5c59;
-	undefined field_0x5c5a;
-	undefined field_0x5c5b;
-	undefined field_0x5c5c;
-	undefined field_0x5c5d;
-	undefined field_0x5c5e;
-	undefined field_0x5c5f;
-	undefined field_0x5c60;
-	undefined field_0x5c61;
-	undefined field_0x5c62;
-	undefined field_0x5c63;
-	undefined field_0x5c64;
-	undefined field_0x5c65;
-	undefined field_0x5c66;
-	undefined field_0x5c67;
-	undefined field_0x5c68;
-	undefined field_0x5c69;
-	undefined field_0x5c6a;
-	undefined field_0x5c6b;
-	undefined field_0x5c6c;
-	undefined field_0x5c6d;
-	undefined field_0x5c6e;
-	undefined field_0x5c6f;
-	undefined field_0x5c70;
-	undefined field_0x5c71;
-	undefined field_0x5c72;
-	undefined field_0x5c73;
-	undefined field_0x5c74;
-	undefined field_0x5c75;
-	undefined field_0x5c76;
-	undefined field_0x5c77;
-	undefined field_0x5c78;
-	undefined field_0x5c79;
-	undefined field_0x5c7a;
-	undefined field_0x5c7b;
-	undefined field_0x5c7c;
-	undefined field_0x5c7d;
-	undefined field_0x5c7e;
-	undefined field_0x5c7f;
-	undefined field_0x5c80;
-	undefined field_0x5c81;
-	undefined field_0x5c82;
-	undefined field_0x5c83;
-	undefined field_0x5c84;
-	undefined field_0x5c85;
-	undefined field_0x5c86;
-	undefined field_0x5c87;
-	undefined field_0x5c88;
-	undefined field_0x5c89;
-	undefined field_0x5c8a;
-	undefined field_0x5c8b;
-	undefined field_0x5c8c;
-	undefined field_0x5c8d;
-	undefined field_0x5c8e;
-	undefined field_0x5c8f;
-	undefined field_0x5c90;
-	undefined field_0x5c91;
-	undefined field_0x5c92;
-	undefined field_0x5c93;
-	undefined field_0x5c94;
-	undefined field_0x5c95;
-	undefined field_0x5c96;
-	undefined field_0x5c97;
-	undefined field_0x5c98;
-	undefined field_0x5c99;
-	undefined field_0x5c9a;
-	undefined field_0x5c9b;
-	undefined field_0x5c9c;
-	undefined field_0x5c9d;
-	undefined field_0x5c9e;
-	undefined field_0x5c9f;
-	undefined field_0x5ca0;
-	undefined field_0x5ca1;
-	undefined field_0x5ca2;
-	undefined field_0x5ca3;
-	undefined field_0x5ca4;
-	undefined field_0x5ca5;
-	undefined field_0x5ca6;
-	undefined field_0x5ca7;
-	undefined field_0x5ca8;
-	undefined field_0x5ca9;
-	undefined field_0x5caa;
-	undefined field_0x5cab;
-	undefined field_0x5cac;
-	undefined field_0x5cad;
-	undefined field_0x5cae;
-	undefined field_0x5caf;
-	undefined field_0x5cb0;
-	undefined field_0x5cb1;
-	undefined field_0x5cb2;
-	undefined field_0x5cb3;
-	undefined field_0x5cb4;
-	undefined field_0x5cb5;
-	undefined field_0x5cb6;
-	undefined field_0x5cb7;
-	undefined field_0x5cb8;
-	undefined field_0x5cb9;
-	undefined field_0x5cba;
-	undefined field_0x5cbb;
-	undefined field_0x5cbc;
-	undefined field_0x5cbd;
-	undefined field_0x5cbe;
-	undefined field_0x5cbf;
-	undefined field_0x5cc0;
-	undefined field_0x5cc1;
-	undefined field_0x5cc2;
-	undefined field_0x5cc3;
-	undefined field_0x5cc4;
-	undefined field_0x5cc5;
-	undefined field_0x5cc6;
-	undefined field_0x5cc7;
-	undefined field_0x5cc8;
-	undefined field_0x5cc9;
-	undefined field_0x5cca;
-	undefined field_0x5ccb;
-	undefined field_0x5ccc;
-	undefined field_0x5ccd;
-	undefined field_0x5cce;
-	undefined field_0x5ccf;
-	undefined field_0x5cd0;
-	undefined field_0x5cd1;
-	undefined field_0x5cd2;
-	undefined field_0x5cd3;
-	undefined field_0x5cd4;
-	undefined field_0x5cd5;
-	undefined field_0x5cd6;
-	undefined field_0x5cd7;
-	undefined field_0x5cd8;
-	undefined field_0x5cd9;
-	undefined field_0x5cda;
-	undefined field_0x5cdb;
-	undefined field_0x5cdc;
-	undefined field_0x5cdd;
-	undefined field_0x5cde;
-	undefined field_0x5cdf;
-	undefined field_0x5ce0;
-	undefined field_0x5ce1;
-	undefined field_0x5ce2;
-	undefined field_0x5ce3;
-	undefined field_0x5ce4;
-	undefined field_0x5ce5;
-	undefined field_0x5ce6;
-	undefined field_0x5ce7;
-	undefined field_0x5ce8;
-	undefined field_0x5ce9;
-	undefined field_0x5cea;
-	undefined field_0x5ceb;
-	undefined field_0x5cec;
-	undefined field_0x5ced;
-	undefined field_0x5cee;
-	undefined field_0x5cef;
-	undefined field_0x5cf0;
-	undefined field_0x5cf1;
-	undefined field_0x5cf2;
-	undefined field_0x5cf3;
-	undefined field_0x5cf4;
-	undefined field_0x5cf5;
-	undefined field_0x5cf6;
-	undefined field_0x5cf7;
-	undefined field_0x5cf8;
-	undefined field_0x5cf9;
-	undefined field_0x5cfa;
-	undefined field_0x5cfb;
-	undefined field_0x5cfc;
-	undefined field_0x5cfd;
-	undefined field_0x5cfe;
-	undefined field_0x5cff;
-	undefined field_0x5d00;
-	undefined field_0x5d01;
-	undefined field_0x5d02;
-	undefined field_0x5d03;
-	undefined field_0x5d04;
-	undefined field_0x5d05;
-	undefined field_0x5d06;
-	undefined field_0x5d07;
-	undefined field_0x5d08;
-	undefined field_0x5d09;
-	undefined field_0x5d0a;
-	undefined field_0x5d0b;
-	undefined field_0x5d0c;
-	undefined field_0x5d0d;
-	undefined field_0x5d0e;
-	undefined field_0x5d0f;
-	undefined field_0x5d10;
-	undefined field_0x5d11;
-	undefined field_0x5d12;
-	undefined field_0x5d13;
-	undefined field_0x5d14;
-	undefined field_0x5d15;
-	undefined field_0x5d16;
-	undefined field_0x5d17;
-	undefined field_0x5d18;
-	undefined field_0x5d19;
-	undefined field_0x5d1a;
-	undefined field_0x5d1b;
-	undefined field_0x5d1c;
-	undefined field_0x5d1d;
-	undefined field_0x5d1e;
-	undefined field_0x5d1f;
-	undefined field_0x5d20;
-	undefined field_0x5d21;
-	undefined field_0x5d22;
-	undefined field_0x5d23;
-	undefined field_0x5d24;
-	undefined field_0x5d25;
-	undefined field_0x5d26;
-	undefined field_0x5d27;
-	undefined field_0x5d28;
-	undefined field_0x5d29;
-	undefined field_0x5d2a;
-	undefined field_0x5d2b;
-	undefined field_0x5d2c;
-	undefined field_0x5d2d;
-	undefined field_0x5d2e;
-	undefined field_0x5d2f;
-	undefined field_0x5d30;
-	undefined field_0x5d31;
-	undefined field_0x5d32;
-	undefined field_0x5d33;
-	undefined field_0x5d34;
-	undefined field_0x5d35;
-	undefined field_0x5d36;
-	undefined field_0x5d37;
-	undefined field_0x5d38;
-	undefined field_0x5d39;
-	undefined field_0x5d3a;
-	undefined field_0x5d3b;
-	undefined field_0x5d3c;
-	undefined field_0x5d3d;
-	undefined field_0x5d3e;
-	undefined field_0x5d3f;
-	undefined field_0x5d40;
-	undefined field_0x5d41;
-	undefined field_0x5d42;
-	undefined field_0x5d43;
-	undefined field_0x5d44;
-	undefined field_0x5d45;
-	undefined field_0x5d46;
-	undefined field_0x5d47;
-	undefined field_0x5d48;
-	undefined field_0x5d49;
-	undefined field_0x5d4a;
-	undefined field_0x5d4b;
-	undefined field_0x5d4c;
-	undefined field_0x5d4d;
-	undefined field_0x5d4e;
-	undefined field_0x5d4f;
-	undefined field_0x5d50;
-	undefined field_0x5d51;
-	undefined field_0x5d52;
-	undefined field_0x5d53;
-	undefined field_0x5d54;
-	undefined field_0x5d55;
-	undefined field_0x5d56;
-	undefined field_0x5d57;
-	undefined field_0x5d58;
-	undefined field_0x5d59;
-	undefined field_0x5d5a;
-	undefined field_0x5d5b;
-	undefined field_0x5d5c;
-	undefined field_0x5d5d;
-	undefined field_0x5d5e;
-	undefined field_0x5d5f;
-	undefined field_0x5d60;
-	undefined field_0x5d61;
-	undefined field_0x5d62;
-	undefined field_0x5d63;
-	undefined field_0x5d64;
-	undefined field_0x5d65;
-	undefined field_0x5d66;
-	undefined field_0x5d67;
-	undefined field_0x5d68;
-	undefined field_0x5d69;
-	undefined field_0x5d6a;
-	undefined field_0x5d6b;
-	undefined field_0x5d6c;
-	undefined field_0x5d6d;
-	undefined field_0x5d6e;
-	undefined field_0x5d6f;
-	undefined field_0x5d70;
-	undefined field_0x5d71;
-	undefined field_0x5d72;
-	undefined field_0x5d73;
-	undefined field_0x5d74;
-	undefined field_0x5d75;
-	undefined field_0x5d76;
-	undefined field_0x5d77;
-	undefined field_0x5d78;
-	undefined field_0x5d79;
-	undefined field_0x5d7a;
-	undefined field_0x5d7b;
-	undefined field_0x5d7c;
-	undefined field_0x5d7d;
-	undefined field_0x5d7e;
-	undefined field_0x5d7f;
-	undefined field_0x5d80;
-	undefined field_0x5d81;
-	undefined field_0x5d82;
-	undefined field_0x5d83;
-	undefined field_0x5d84;
-	undefined field_0x5d85;
-	undefined field_0x5d86;
-	undefined field_0x5d87;
-	undefined field_0x5d88;
-	undefined field_0x5d89;
-	undefined field_0x5d8a;
-	undefined field_0x5d8b;
-	undefined field_0x5d8c;
-	undefined field_0x5d8d;
-	undefined field_0x5d8e;
-	undefined field_0x5d8f;
-	undefined field_0x5d90;
-	undefined field_0x5d91;
-	undefined field_0x5d92;
-	undefined field_0x5d93;
-	undefined field_0x5d94;
-	undefined field_0x5d95;
-	undefined field_0x5d96;
-	undefined field_0x5d97;
-	undefined field_0x5d98;
-	undefined field_0x5d99;
-	undefined field_0x5d9a;
-	undefined field_0x5d9b;
-	undefined field_0x5d9c;
-	undefined field_0x5d9d;
-	undefined field_0x5d9e;
-	undefined field_0x5d9f;
-	undefined field_0x5da0;
-	undefined field_0x5da1;
-	undefined field_0x5da2;
-	undefined field_0x5da3;
-	undefined field_0x5da4;
-	undefined field_0x5da5;
-	undefined field_0x5da6;
-	undefined field_0x5da7;
-	undefined field_0x5da8;
-	undefined field_0x5da9;
-	undefined field_0x5daa;
-	undefined field_0x5dab;
-	undefined field_0x5dac;
-	undefined field_0x5dad;
-	undefined field_0x5dae;
-	undefined field_0x5daf;
-	undefined field_0x5db0;
-	undefined field_0x5db1;
-	undefined field_0x5db2;
-	undefined field_0x5db3;
-	undefined field_0x5db4;
-	undefined field_0x5db5;
-	undefined field_0x5db6;
-	undefined field_0x5db7;
-	undefined field_0x5db8;
-	undefined field_0x5db9;
-	undefined field_0x5dba;
-	undefined field_0x5dbb;
-	undefined field_0x5dbc;
-	undefined field_0x5dbd;
-	undefined field_0x5dbe;
-	undefined field_0x5dbf;
-	undefined field_0x5dc0;
-	undefined field_0x5dc1;
-	undefined field_0x5dc2;
-	undefined field_0x5dc3;
-	undefined field_0x5dc4;
-	undefined field_0x5dc5;
-	undefined field_0x5dc6;
-	undefined field_0x5dc7;
-	undefined field_0x5dc8;
-	undefined field_0x5dc9;
-	undefined field_0x5dca;
-	undefined field_0x5dcb;
-	undefined field_0x5dcc;
-	undefined field_0x5dcd;
-	undefined field_0x5dce;
-	undefined field_0x5dcf;
-	undefined field_0x5dd0;
-	undefined field_0x5dd1;
-	undefined field_0x5dd2;
-	undefined field_0x5dd3;
-	undefined field_0x5dd4;
-	undefined field_0x5dd5;
-	undefined field_0x5dd6;
-	undefined field_0x5dd7;
-	undefined field_0x5dd8;
-	undefined field_0x5dd9;
-	undefined field_0x5dda;
-	undefined field_0x5ddb;
-	undefined field_0x5ddc;
-	undefined field_0x5ddd;
-	undefined field_0x5dde;
-	undefined field_0x5ddf;
-	undefined field_0x5de0;
-	undefined field_0x5de1;
-	undefined field_0x5de2;
-	undefined field_0x5de3;
-	undefined field_0x5de4;
-	undefined field_0x5de5;
-	undefined field_0x5de6;
-	undefined field_0x5de7;
-	undefined field_0x5de8;
-	undefined field_0x5de9;
-	undefined field_0x5dea;
-	undefined field_0x5deb;
-	undefined field_0x5dec;
-	undefined field_0x5ded;
-	undefined field_0x5dee;
-	undefined field_0x5def;
-	undefined field_0x5df0;
-	undefined field_0x5df1;
-	undefined field_0x5df2;
-	undefined field_0x5df3;
-	undefined field_0x5df4;
-	undefined field_0x5df5;
-	undefined field_0x5df6;
-	undefined field_0x5df7;
-	undefined field_0x5df8;
-	undefined field_0x5df9;
-	undefined field_0x5dfa;
-	undefined field_0x5dfb;
-	undefined field_0x5dfc;
-	undefined field_0x5dfd;
-	undefined field_0x5dfe;
-	undefined field_0x5dff;
-	undefined field_0x5e00;
-	undefined field_0x5e01;
-	undefined field_0x5e02;
-	undefined field_0x5e03;
-	undefined field_0x5e04;
-	undefined field_0x5e05;
-	undefined field_0x5e06;
-	undefined field_0x5e07;
-	undefined field_0x5e08;
-	undefined field_0x5e09;
-	undefined field_0x5e0a;
-	undefined field_0x5e0b;
-	undefined field_0x5e0c;
-	undefined field_0x5e0d;
-	undefined field_0x5e0e;
-	undefined field_0x5e0f;
-	undefined field_0x5e10;
-	undefined field_0x5e11;
-	undefined field_0x5e12;
-	undefined field_0x5e13;
-	undefined field_0x5e14;
-	undefined field_0x5e15;
-	undefined field_0x5e16;
-	undefined field_0x5e17;
-	undefined field_0x5e18;
-	undefined field_0x5e19;
-	undefined field_0x5e1a;
-	undefined field_0x5e1b;
-	undefined field_0x5e1c;
-	undefined field_0x5e1d;
-	undefined field_0x5e1e;
-	undefined field_0x5e1f;
-	undefined field_0x5e20;
-	undefined field_0x5e21;
-	undefined field_0x5e22;
-	undefined field_0x5e23;
-	undefined field_0x5e24;
-	undefined field_0x5e25;
-	undefined field_0x5e26;
-	undefined field_0x5e27;
-	undefined field_0x5e28;
-	undefined field_0x5e29;
-	undefined field_0x5e2a;
-	undefined field_0x5e2b;
-	undefined field_0x5e2c;
-	undefined field_0x5e2d;
-	undefined field_0x5e2e;
-	undefined field_0x5e2f;
-	undefined field_0x5e30;
-	undefined field_0x5e31;
-	undefined field_0x5e32;
-	undefined field_0x5e33;
-	undefined field_0x5e34;
-	undefined field_0x5e35;
-	undefined field_0x5e36;
-	undefined field_0x5e37;
-	undefined field_0x5e38;
-	undefined field_0x5e39;
-	undefined field_0x5e3a;
-	undefined field_0x5e3b;
-	undefined field_0x5e3c;
-	undefined field_0x5e3d;
-	undefined field_0x5e3e;
-	undefined field_0x5e3f;
-	undefined field_0x5e40;
-	undefined field_0x5e41;
-	undefined field_0x5e42;
-	undefined field_0x5e43;
-	undefined field_0x5e44;
-	undefined field_0x5e45;
-	undefined field_0x5e46;
-	undefined field_0x5e47;
-	undefined field_0x5e48;
-	undefined field_0x5e49;
-	undefined field_0x5e4a;
-	undefined field_0x5e4b;
-	undefined field_0x5e4c;
-	undefined field_0x5e4d;
-	undefined field_0x5e4e;
-	undefined field_0x5e4f;
-	undefined field_0x5e50;
-	undefined field_0x5e51;
-	undefined field_0x5e52;
-	undefined field_0x5e53;
-	undefined field_0x5e54;
-	undefined field_0x5e55;
-	undefined field_0x5e56;
-	undefined field_0x5e57;
-	undefined field_0x5e58;
-	undefined field_0x5e59;
-	undefined field_0x5e5a;
-	undefined field_0x5e5b;
-	undefined field_0x5e5c;
-	undefined field_0x5e5d;
-	undefined field_0x5e5e;
-	undefined field_0x5e5f;
-	undefined field_0x5e60;
-	undefined field_0x5e61;
-	undefined field_0x5e62;
-	undefined field_0x5e63;
-	undefined field_0x5e64;
-	undefined field_0x5e65;
-	undefined field_0x5e66;
-	undefined field_0x5e67;
-	undefined field_0x5e68;
-	undefined field_0x5e69;
-	undefined field_0x5e6a;
-	undefined field_0x5e6b;
-	undefined field_0x5e6c;
-	undefined field_0x5e6d;
-	undefined field_0x5e6e;
-	undefined field_0x5e6f;
-	undefined field_0x5e70;
-	undefined field_0x5e71;
-	undefined field_0x5e72;
-	undefined field_0x5e73;
-	undefined field_0x5e74;
-	undefined field_0x5e75;
-	undefined field_0x5e76;
-	undefined field_0x5e77;
-	undefined field_0x5e78;
-	undefined field_0x5e79;
-	undefined field_0x5e7a;
-	undefined field_0x5e7b;
-	undefined field_0x5e7c;
-	undefined field_0x5e7d;
-	undefined field_0x5e7e;
-	undefined field_0x5e7f;
-	undefined field_0x5e80;
-	undefined field_0x5e81;
-	undefined field_0x5e82;
-	undefined field_0x5e83;
-	undefined field_0x5e84;
-	undefined field_0x5e85;
-	undefined field_0x5e86;
-	undefined field_0x5e87;
-	undefined field_0x5e88;
-	undefined field_0x5e89;
-	undefined field_0x5e8a;
-	undefined field_0x5e8b;
-	undefined field_0x5e8c;
-	undefined field_0x5e8d;
-	undefined field_0x5e8e;
-	undefined field_0x5e8f;
-	undefined field_0x5e90;
-	undefined field_0x5e91;
-	undefined field_0x5e92;
-	undefined field_0x5e93;
-	undefined field_0x5e94;
-	undefined field_0x5e95;
-	undefined field_0x5e96;
-	undefined field_0x5e97;
-	undefined field_0x5e98;
-	undefined field_0x5e99;
-	undefined field_0x5e9a;
-	undefined field_0x5e9b;
-	undefined field_0x5e9c;
-	undefined field_0x5e9d;
-	undefined field_0x5e9e;
-	undefined field_0x5e9f;
-	undefined field_0x5ea0;
-	undefined field_0x5ea1;
-	undefined field_0x5ea2;
-	undefined field_0x5ea3;
-	undefined field_0x5ea4;
-	undefined field_0x5ea5;
-	undefined field_0x5ea6;
-	undefined field_0x5ea7;
-	undefined field_0x5ea8;
-	undefined field_0x5ea9;
-	undefined field_0x5eaa;
-	undefined field_0x5eab;
-	undefined field_0x5eac;
-	undefined field_0x5ead;
-	undefined field_0x5eae;
-	undefined field_0x5eaf;
-	undefined field_0x5eb0;
-	undefined field_0x5eb1;
-	undefined field_0x5eb2;
-	undefined field_0x5eb3;
-	undefined field_0x5eb4;
-	undefined field_0x5eb5;
-	undefined field_0x5eb6;
-	undefined field_0x5eb7;
-	undefined field_0x5eb8;
-	undefined field_0x5eb9;
-	undefined field_0x5eba;
-	undefined field_0x5ebb;
-	undefined field_0x5ebc;
-	undefined field_0x5ebd;
-	undefined field_0x5ebe;
-	undefined field_0x5ebf;
-	undefined field_0x5ec0;
-	undefined field_0x5ec1;
-	undefined field_0x5ec2;
-	undefined field_0x5ec3;
-	undefined field_0x5ec4;
-	undefined field_0x5ec5;
-	undefined field_0x5ec6;
-	undefined field_0x5ec7;
-	undefined field_0x5ec8;
-	undefined field_0x5ec9;
-	undefined field_0x5eca;
-	undefined field_0x5ecb;
-	undefined field_0x5ecc;
-	undefined field_0x5ecd;
-	undefined field_0x5ece;
-	undefined field_0x5ecf;
-	undefined field_0x5ed0;
-	undefined field_0x5ed1;
-	undefined field_0x5ed2;
-	undefined field_0x5ed3;
-	undefined field_0x5ed4;
-	undefined field_0x5ed5;
-	undefined field_0x5ed6;
-	undefined field_0x5ed7;
-	undefined field_0x5ed8;
-	undefined field_0x5ed9;
-	undefined field_0x5eda;
-	undefined field_0x5edb;
-	undefined field_0x5edc;
-	undefined field_0x5edd;
-	undefined field_0x5ede;
-	undefined field_0x5edf;
-	undefined field_0x5ee0;
-	undefined field_0x5ee1;
-	undefined field_0x5ee2;
-	undefined field_0x5ee3;
-	undefined field_0x5ee4;
-	undefined field_0x5ee5;
-	undefined field_0x5ee6;
-	undefined field_0x5ee7;
-	undefined field_0x5ee8;
-	undefined field_0x5ee9;
-	undefined field_0x5eea;
-	undefined field_0x5eeb;
-	undefined field_0x5eec;
-	undefined field_0x5eed;
-	undefined field_0x5eee;
-	undefined field_0x5eef;
-	undefined field_0x5ef0;
-	undefined field_0x5ef1;
-	undefined field_0x5ef2;
-	undefined field_0x5ef3;
-	undefined field_0x5ef4;
-	undefined field_0x5ef5;
-	undefined field_0x5ef6;
-	undefined field_0x5ef7;
-	undefined field_0x5ef8;
-	undefined field_0x5ef9;
-	undefined field_0x5efa;
-	undefined field_0x5efb;
-	undefined field_0x5efc;
-	undefined field_0x5efd;
-	undefined field_0x5efe;
-	undefined field_0x5eff;
-	undefined field_0x5f00;
-	undefined field_0x5f01;
-	undefined field_0x5f02;
-	undefined field_0x5f03;
-	undefined field_0x5f04;
-	undefined field_0x5f05;
-	undefined field_0x5f06;
-	undefined field_0x5f07;
-	undefined field_0x5f08;
-	undefined field_0x5f09;
-	undefined field_0x5f0a;
-	undefined field_0x5f0b;
-	undefined field_0x5f0c;
-	undefined field_0x5f0d;
-	undefined field_0x5f0e;
-	undefined field_0x5f0f;
-	undefined field_0x5f10;
-	undefined field_0x5f11;
-	undefined field_0x5f12;
-	undefined field_0x5f13;
-	undefined field_0x5f14;
-	undefined field_0x5f15;
-	undefined field_0x5f16;
-	undefined field_0x5f17;
-	undefined field_0x5f18;
-	undefined field_0x5f19;
-	undefined field_0x5f1a;
-	undefined field_0x5f1b;
-	undefined field_0x5f1c;
-	undefined field_0x5f1d;
-	undefined field_0x5f1e;
-	undefined field_0x5f1f;
-	undefined field_0x5f20;
-	undefined field_0x5f21;
-	undefined field_0x5f22;
-	undefined field_0x5f23;
-	undefined field_0x5f24;
-	undefined field_0x5f25;
-	undefined field_0x5f26;
-	undefined field_0x5f27;
-	undefined field_0x5f28;
-	undefined field_0x5f29;
-	undefined field_0x5f2a;
-	undefined field_0x5f2b;
-	undefined field_0x5f2c;
-	undefined field_0x5f2d;
-	undefined field_0x5f2e;
-	undefined field_0x5f2f;
-	undefined field_0x5f30;
-	undefined field_0x5f31;
-	undefined field_0x5f32;
-	undefined field_0x5f33;
-	undefined field_0x5f34;
-	undefined field_0x5f35;
-	undefined field_0x5f36;
-	undefined field_0x5f37;
-	undefined field_0x5f38;
-	undefined field_0x5f39;
-	undefined field_0x5f3a;
-	undefined field_0x5f3b;
-	undefined field_0x5f3c;
-	undefined field_0x5f3d;
-	undefined field_0x5f3e;
-	undefined field_0x5f3f;
-	undefined field_0x5f40;
-	undefined field_0x5f41;
-	undefined field_0x5f42;
-	undefined field_0x5f43;
-	undefined field_0x5f44;
-	undefined field_0x5f45;
-	undefined field_0x5f46;
-	undefined field_0x5f47;
-	undefined field_0x5f48;
-	undefined field_0x5f49;
-	undefined field_0x5f4a;
-	undefined field_0x5f4b;
-	undefined field_0x5f4c;
-	undefined field_0x5f4d;
-	undefined field_0x5f4e;
-	undefined field_0x5f4f;
-	undefined field_0x5f50;
-	undefined field_0x5f51;
-	undefined field_0x5f52;
-	undefined field_0x5f53;
-	undefined field_0x5f54;
-	undefined field_0x5f55;
-	undefined field_0x5f56;
-	undefined field_0x5f57;
-	undefined field_0x5f58;
-	undefined field_0x5f59;
-	undefined field_0x5f5a;
-	undefined field_0x5f5b;
-	undefined field_0x5f5c;
-	undefined field_0x5f5d;
-	undefined field_0x5f5e;
-	undefined field_0x5f5f;
-	undefined field_0x5f60;
-	undefined field_0x5f61;
-	undefined field_0x5f62;
-	undefined field_0x5f63;
-	undefined field_0x5f64;
-	undefined field_0x5f65;
-	undefined field_0x5f66;
-	undefined field_0x5f67;
-	undefined field_0x5f68;
-	undefined field_0x5f69;
-	undefined field_0x5f6a;
-	undefined field_0x5f6b;
-	undefined field_0x5f6c;
-	undefined field_0x5f6d;
-	undefined field_0x5f6e;
-	undefined field_0x5f6f;
-	undefined field_0x5f70;
-	undefined field_0x5f71;
-	undefined field_0x5f72;
-	undefined field_0x5f73;
-	undefined field_0x5f74;
-	undefined field_0x5f75;
-	undefined field_0x5f76;
-	undefined field_0x5f77;
-	undefined field_0x5f78;
-	undefined field_0x5f79;
-	undefined field_0x5f7a;
-	undefined field_0x5f7b;
-	undefined field_0x5f7c;
-	undefined field_0x5f7d;
-	undefined field_0x5f7e;
-	undefined field_0x5f7f;
-	undefined field_0x5f80;
-	undefined field_0x5f81;
-	undefined field_0x5f82;
-	undefined field_0x5f83;
-	undefined field_0x5f84;
-	undefined field_0x5f85;
-	undefined field_0x5f86;
-	undefined field_0x5f87;
-	undefined field_0x5f88;
-	undefined field_0x5f89;
-	undefined field_0x5f8a;
-	undefined field_0x5f8b;
-	undefined field_0x5f8c;
-	undefined field_0x5f8d;
-	undefined field_0x5f8e;
-	undefined field_0x5f8f;
-	undefined field_0x5f90;
-	undefined field_0x5f91;
-	undefined field_0x5f92;
-	undefined field_0x5f93;
-	undefined field_0x5f94;
-	undefined field_0x5f95;
-	undefined field_0x5f96;
-	undefined field_0x5f97;
-	undefined field_0x5f98;
-	undefined field_0x5f99;
-	undefined field_0x5f9a;
-	undefined field_0x5f9b;
-	undefined field_0x5f9c;
-	undefined field_0x5f9d;
-	undefined field_0x5f9e;
-	undefined field_0x5f9f;
-	undefined field_0x5fa0;
-	undefined field_0x5fa1;
-	undefined field_0x5fa2;
-	undefined field_0x5fa3;
-	undefined field_0x5fa4;
-	undefined field_0x5fa5;
-	undefined field_0x5fa6;
-	undefined field_0x5fa7;
-	undefined field_0x5fa8;
-	undefined field_0x5fa9;
-	undefined field_0x5faa;
-	undefined field_0x5fab;
-	undefined field_0x5fac;
-	undefined field_0x5fad;
-	undefined field_0x5fae;
-	undefined field_0x5faf;
-	undefined field_0x5fb0;
-	undefined field_0x5fb1;
-	undefined field_0x5fb2;
-	undefined field_0x5fb3;
-	undefined field_0x5fb4;
-	undefined field_0x5fb5;
-	undefined field_0x5fb6;
-	undefined field_0x5fb7;
-	undefined field_0x5fb8;
-	undefined field_0x5fb9;
-	undefined field_0x5fba;
-	undefined field_0x5fbb;
-	undefined field_0x5fbc;
-	undefined field_0x5fbd;
-	undefined field_0x5fbe;
-	undefined field_0x5fbf;
-	undefined field_0x5fc0;
-	undefined field_0x5fc1;
-	undefined field_0x5fc2;
-	undefined field_0x5fc3;
-	undefined field_0x5fc4;
-	undefined field_0x5fc5;
-	undefined field_0x5fc6;
-	undefined field_0x5fc7;
-	undefined field_0x5fc8;
-	undefined field_0x5fc9;
-	undefined field_0x5fca;
-	undefined field_0x5fcb;
-	undefined field_0x5fcc;
-	undefined field_0x5fcd;
-	undefined field_0x5fce;
-	undefined field_0x5fcf;
-	undefined field_0x5fd0;
-	undefined field_0x5fd1;
-	undefined field_0x5fd2;
-	undefined field_0x5fd3;
-	undefined field_0x5fd4;
-	undefined field_0x5fd5;
-	undefined field_0x5fd6;
-	undefined field_0x5fd7;
-	undefined field_0x5fd8;
-	undefined field_0x5fd9;
-	undefined field_0x5fda;
-	undefined field_0x5fdb;
-	undefined field_0x5fdc;
-	undefined field_0x5fdd;
-	undefined field_0x5fde;
-	undefined field_0x5fdf;
-	undefined field_0x5fe0;
-	undefined field_0x5fe1;
-	undefined field_0x5fe2;
-	undefined field_0x5fe3;
-	undefined field_0x5fe4;
-	undefined field_0x5fe5;
-	undefined field_0x5fe6;
-	undefined field_0x5fe7;
-	undefined field_0x5fe8;
-	undefined field_0x5fe9;
-	undefined field_0x5fea;
-	undefined field_0x5feb;
-	undefined field_0x5fec;
-	undefined field_0x5fed;
-	undefined field_0x5fee;
-	undefined field_0x5fef;
-	undefined field_0x5ff0;
-	undefined field_0x5ff1;
-	undefined field_0x5ff2;
-	undefined field_0x5ff3;
-	undefined field_0x5ff4;
-	undefined field_0x5ff5;
-	undefined field_0x5ff6;
-	undefined field_0x5ff7;
-	undefined field_0x5ff8;
-	undefined field_0x5ff9;
-	undefined field_0x5ffa;
-	undefined field_0x5ffb;
-	undefined field_0x5ffc;
-	undefined field_0x5ffd;
-	undefined field_0x5ffe;
-	undefined field_0x5fff;
-	undefined field_0x6000;
-	undefined field_0x6001;
-	undefined field_0x6002;
-	undefined field_0x6003;
-	undefined field_0x6004;
-	undefined field_0x6005;
-	undefined field_0x6006;
-	undefined field_0x6007;
-	undefined field_0x6008;
-	undefined field_0x6009;
-	undefined field_0x600a;
-	undefined field_0x600b;
-	undefined field_0x600c;
-	undefined field_0x600d;
-	undefined field_0x600e;
-	undefined field_0x600f;
-	undefined field_0x6010;
-	undefined field_0x6011;
-	undefined field_0x6012;
-	undefined field_0x6013;
-	undefined field_0x6014;
-	undefined field_0x6015;
-	undefined field_0x6016;
-	undefined field_0x6017;
-	undefined field_0x6018;
-	undefined field_0x6019;
-	undefined field_0x601a;
-	undefined field_0x601b;
-	undefined field_0x601c;
-	undefined field_0x601d;
-	undefined field_0x601e;
-	undefined field_0x601f;
-	undefined field_0x6020;
-	undefined field_0x6021;
-	undefined field_0x6022;
-	undefined field_0x6023;
-	undefined field_0x6024;
-	undefined field_0x6025;
-	undefined field_0x6026;
-	undefined field_0x6027;
-	undefined field_0x6028;
-	undefined field_0x6029;
-	undefined field_0x602a;
-	undefined field_0x602b;
-	undefined field_0x602c;
-	undefined field_0x602d;
-	undefined field_0x602e;
-	undefined field_0x602f;
-	undefined field_0x6030;
-	undefined field_0x6031;
-	undefined field_0x6032;
-	undefined field_0x6033;
-	undefined field_0x6034;
-	undefined field_0x6035;
-	undefined field_0x6036;
-	undefined field_0x6037;
-	undefined field_0x6038;
-	undefined field_0x6039;
-	undefined field_0x603a;
-	undefined field_0x603b;
-	undefined field_0x603c;
-	undefined field_0x603d;
-	undefined field_0x603e;
-	undefined field_0x603f;
-	undefined field_0x6040;
-	undefined field_0x6041;
-	undefined field_0x6042;
-	undefined field_0x6043;
-	undefined field_0x6044;
-	undefined field_0x6045;
-	undefined field_0x6046;
-	undefined field_0x6047;
-	undefined field_0x6048;
-	undefined field_0x6049;
-	undefined field_0x604a;
-	undefined field_0x604b;
-	undefined field_0x604c;
-	undefined field_0x604d;
-	undefined field_0x604e;
-	undefined field_0x604f;
-	undefined field_0x6050;
-	undefined field_0x6051;
-	undefined field_0x6052;
-	undefined field_0x6053;
-	undefined field_0x6054;
-	undefined field_0x6055;
-	undefined field_0x6056;
-	undefined field_0x6057;
-	undefined field_0x6058;
-	undefined field_0x6059;
-	undefined field_0x605a;
-	undefined field_0x605b;
-	undefined field_0x605c;
-	undefined field_0x605d;
-	undefined field_0x605e;
-	undefined field_0x605f;
-	undefined field_0x6060;
-	undefined field_0x6061;
-	undefined field_0x6062;
-	undefined field_0x6063;
-	undefined field_0x6064;
-	undefined field_0x6065;
-	undefined field_0x6066;
-	undefined field_0x6067;
-	undefined field_0x6068;
-	undefined field_0x6069;
-	undefined field_0x606a;
-	undefined field_0x606b;
-	undefined field_0x606c;
-	undefined field_0x606d;
-	undefined field_0x606e;
-	undefined field_0x606f;
-	undefined field_0x6070;
-	undefined field_0x6071;
-	undefined field_0x6072;
-	undefined field_0x6073;
-	undefined field_0x6074;
-	undefined field_0x6075;
-	undefined field_0x6076;
-	undefined field_0x6077;
-	undefined field_0x6078;
-	undefined field_0x6079;
-	undefined field_0x607a;
-	undefined field_0x607b;
-	undefined field_0x607c;
-	undefined field_0x607d;
-	undefined field_0x607e;
-	undefined field_0x607f;
-	undefined field_0x6080;
-	undefined field_0x6081;
-	undefined field_0x6082;
-	undefined field_0x6083;
-	undefined field_0x6084;
-	undefined field_0x6085;
-	undefined field_0x6086;
-	undefined field_0x6087;
-	undefined field_0x6088;
-	undefined field_0x6089;
-	undefined field_0x608a;
-	undefined field_0x608b;
-	undefined field_0x608c;
-	undefined field_0x608d;
-	undefined field_0x608e;
-	undefined field_0x608f;
-	undefined field_0x6090;
-	undefined field_0x6091;
-	undefined field_0x6092;
-	undefined field_0x6093;
-	undefined field_0x6094;
-	undefined field_0x6095;
-	undefined field_0x6096;
-	undefined field_0x6097;
-	undefined field_0x6098;
-	undefined field_0x6099;
-	undefined field_0x609a;
-	undefined field_0x609b;
-	undefined field_0x609c;
-	undefined field_0x609d;
-	undefined field_0x609e;
-	undefined field_0x609f;
-	undefined field_0x60a0;
-	undefined field_0x60a1;
-	undefined field_0x60a2;
-	undefined field_0x60a3;
-	undefined field_0x60a4;
-	undefined field_0x60a5;
-	undefined field_0x60a6;
-	undefined field_0x60a7;
-	undefined field_0x60a8;
-	undefined field_0x60a9;
-	undefined field_0x60aa;
-	undefined field_0x60ab;
-	undefined field_0x60ac;
-	undefined field_0x60ad;
-	undefined field_0x60ae;
-	undefined field_0x60af;
-	undefined field_0x60b0;
-	undefined field_0x60b1;
-	undefined field_0x60b2;
-	undefined field_0x60b3;
-	undefined field_0x60b4;
-	undefined field_0x60b5;
-	undefined field_0x60b6;
-	undefined field_0x60b7;
-	undefined field_0x60b8;
-	undefined field_0x60b9;
-	undefined field_0x60ba;
-	undefined field_0x60bb;
-	undefined field_0x60bc;
-	undefined field_0x60bd;
-	undefined field_0x60be;
-	undefined field_0x60bf;
-	undefined field_0x60c0;
-	undefined field_0x60c1;
-	undefined field_0x60c2;
-	undefined field_0x60c3;
-	undefined field_0x60c4;
-	undefined field_0x60c5;
-	undefined field_0x60c6;
-	undefined field_0x60c7;
-	undefined field_0x60c8;
-	undefined field_0x60c9;
-	undefined field_0x60ca;
-	undefined field_0x60cb;
-	undefined field_0x60cc;
-	undefined field_0x60cd;
-	undefined field_0x60ce;
-	undefined field_0x60cf;
-	undefined field_0x60d0;
-	undefined field_0x60d1;
-	undefined field_0x60d2;
-	undefined field_0x60d3;
-	undefined field_0x60d4;
-	undefined field_0x60d5;
-	undefined field_0x60d6;
-	undefined field_0x60d7;
-	undefined field_0x60d8;
-	undefined field_0x60d9;
-	undefined field_0x60da;
-	undefined field_0x60db;
-	undefined field_0x60dc;
-	undefined field_0x60dd;
-	undefined field_0x60de;
-	undefined field_0x60df;
-	undefined field_0x60e0;
-	undefined field_0x60e1;
-	undefined field_0x60e2;
-	undefined field_0x60e3;
-	undefined field_0x60e4;
-	undefined field_0x60e5;
-	undefined field_0x60e6;
-	undefined field_0x60e7;
-	undefined field_0x60e8;
-	undefined field_0x60e9;
-	undefined field_0x60ea;
-	undefined field_0x60eb;
-	undefined field_0x60ec;
-	undefined field_0x60ed;
-	undefined field_0x60ee;
-	undefined field_0x60ef;
-	undefined field_0x60f0;
-	undefined field_0x60f1;
-	undefined field_0x60f2;
-	undefined field_0x60f3;
-	undefined field_0x60f4;
-	undefined field_0x60f5;
-	undefined field_0x60f6;
-	undefined field_0x60f7;
-	undefined field_0x60f8;
-	undefined field_0x60f9;
-	undefined field_0x60fa;
-	undefined field_0x60fb;
-	undefined field_0x60fc;
-	undefined field_0x60fd;
-	undefined field_0x60fe;
-	undefined field_0x60ff;
-	undefined field_0x6100;
-	undefined field_0x6101;
-	undefined field_0x6102;
-	undefined field_0x6103;
-	undefined field_0x6104;
-	undefined field_0x6105;
-	undefined field_0x6106;
-	undefined field_0x6107;
-	undefined field_0x6108;
-	undefined field_0x6109;
-	undefined field_0x610a;
-	undefined field_0x610b;
-	undefined field_0x610c;
-	undefined field_0x610d;
-	undefined field_0x610e;
-	undefined field_0x610f;
-	undefined field_0x6110;
-	undefined field_0x6111;
-	undefined field_0x6112;
-	undefined field_0x6113;
-	undefined field_0x6114;
-	undefined field_0x6115;
-	undefined field_0x6116;
-	undefined field_0x6117;
-	undefined field_0x6118;
-	undefined field_0x6119;
-	undefined field_0x611a;
-	undefined field_0x611b;
-	undefined field_0x611c;
-	undefined field_0x611d;
-	undefined field_0x611e;
-	undefined field_0x611f;
-	undefined field_0x6120;
-	undefined field_0x6121;
-	undefined field_0x6122;
-	undefined field_0x6123;
-	undefined field_0x6124;
-	undefined field_0x6125;
-	undefined field_0x6126;
-	undefined field_0x6127;
-	undefined field_0x6128;
-	undefined field_0x6129;
-	undefined field_0x612a;
-	undefined field_0x612b;
-	undefined field_0x612c;
-	undefined field_0x612d;
-	undefined field_0x612e;
-	undefined field_0x612f;
-	undefined field_0x6130;
-	undefined field_0x6131;
-	undefined field_0x6132;
-	undefined field_0x6133;
-	undefined field_0x6134;
-	undefined field_0x6135;
-	undefined field_0x6136;
-	undefined field_0x6137;
-	undefined field_0x6138;
-	undefined field_0x6139;
-	undefined field_0x613a;
-	undefined field_0x613b;
-	undefined field_0x613c;
-	undefined field_0x613d;
-	undefined field_0x613e;
-	undefined field_0x613f;
-	undefined field_0x6140;
-	undefined field_0x6141;
-	undefined field_0x6142;
-	undefined field_0x6143;
-	undefined field_0x6144;
-	undefined field_0x6145;
-	undefined field_0x6146;
-	undefined field_0x6147;
-	undefined field_0x6148;
-	undefined field_0x6149;
-	undefined field_0x614a;
-	undefined field_0x614b;
-	undefined field_0x614c;
-	undefined field_0x614d;
-	undefined field_0x614e;
-	undefined field_0x614f;
-	undefined field_0x6150;
-	undefined field_0x6151;
-	undefined field_0x6152;
-	undefined field_0x6153;
-	undefined field_0x6154;
-	undefined field_0x6155;
-	undefined field_0x6156;
-	undefined field_0x6157;
-	undefined field_0x6158;
-	undefined field_0x6159;
-	undefined field_0x615a;
-	undefined field_0x615b;
-	undefined field_0x615c;
-	undefined field_0x615d;
-	undefined field_0x615e;
-	undefined field_0x615f;
-	undefined field_0x6160;
-	undefined field_0x6161;
-	undefined field_0x6162;
-	undefined field_0x6163;
-	undefined field_0x6164;
-	undefined field_0x6165;
-	undefined field_0x6166;
-	undefined field_0x6167;
-	undefined field_0x6168;
-	undefined field_0x6169;
-	undefined field_0x616a;
-	undefined field_0x616b;
-	undefined field_0x616c;
-	undefined field_0x616d;
-	undefined field_0x616e;
-	undefined field_0x616f;
-	undefined field_0x6170;
-	undefined field_0x6171;
-	undefined field_0x6172;
-	undefined field_0x6173;
-	undefined field_0x6174;
-	undefined field_0x6175;
-	undefined field_0x6176;
-	undefined field_0x6177;
-	undefined field_0x6178;
-	undefined field_0x6179;
-	undefined field_0x617a;
-	undefined field_0x617b;
-	undefined field_0x617c;
-	undefined field_0x617d;
-	undefined field_0x617e;
-	undefined field_0x617f;
-	undefined field_0x6180;
-	undefined field_0x6181;
-	undefined field_0x6182;
-	undefined field_0x6183;
-	undefined field_0x6184;
-	undefined field_0x6185;
-	undefined field_0x6186;
-	undefined field_0x6187;
-	undefined field_0x6188;
-	undefined field_0x6189;
-	undefined field_0x618a;
-	undefined field_0x618b;
-	undefined field_0x618c;
-	undefined field_0x618d;
-	undefined field_0x618e;
-	undefined field_0x618f;
-	undefined field_0x6190;
-	undefined field_0x6191;
-	undefined field_0x6192;
-	undefined field_0x6193;
-	undefined field_0x6194;
-	undefined field_0x6195;
-	undefined field_0x6196;
-	undefined field_0x6197;
-	undefined field_0x6198;
-	undefined field_0x6199;
-	undefined field_0x619a;
-	undefined field_0x619b;
-	undefined field_0x619c;
-	undefined field_0x619d;
-	undefined field_0x619e;
-	undefined field_0x619f;
-	undefined field_0x61a0;
-	undefined field_0x61a1;
-	undefined field_0x61a2;
-	undefined field_0x61a3;
-	undefined field_0x61a4;
-	undefined field_0x61a5;
-	undefined field_0x61a6;
-	undefined field_0x61a7;
-	undefined field_0x61a8;
-	undefined field_0x61a9;
-	undefined field_0x61aa;
-	undefined field_0x61ab;
-	undefined field_0x61ac;
-	undefined field_0x61ad;
-	undefined field_0x61ae;
-	undefined field_0x61af;
-	undefined field_0x61b0;
-	undefined field_0x61b1;
-	undefined field_0x61b2;
-	undefined field_0x61b3;
-	undefined field_0x61b4;
-	undefined field_0x61b5;
-	undefined field_0x61b6;
-	undefined field_0x61b7;
-	undefined field_0x61b8;
-	undefined field_0x61b9;
-	undefined field_0x61ba;
-	undefined field_0x61bb;
-	undefined field_0x61bc;
-	undefined field_0x61bd;
-	undefined field_0x61be;
-	undefined field_0x61bf;
-	undefined field_0x61c0;
-	undefined field_0x61c1;
-	undefined field_0x61c2;
-	undefined field_0x61c3;
-	undefined field_0x61c4;
-	undefined field_0x61c5;
-	undefined field_0x61c6;
-	undefined field_0x61c7;
-	undefined field_0x61c8;
-	undefined field_0x61c9;
-	undefined field_0x61ca;
-	undefined field_0x61cb;
-	undefined field_0x61cc;
-	undefined field_0x61cd;
-	undefined field_0x61ce;
-	undefined field_0x61cf;
-	undefined field_0x61d0;
-	undefined field_0x61d1;
-	undefined field_0x61d2;
-	undefined field_0x61d3;
-	undefined field_0x61d4;
-	undefined field_0x61d5;
-	undefined field_0x61d6;
-	undefined field_0x61d7;
-	undefined field_0x61d8;
-	undefined field_0x61d9;
-	undefined field_0x61da;
-	undefined field_0x61db;
-	undefined field_0x61dc;
-	undefined field_0x61dd;
-	undefined field_0x61de;
-	undefined field_0x61df;
-	undefined field_0x61e0;
-	undefined field_0x61e1;
-	undefined field_0x61e2;
-	undefined field_0x61e3;
-	undefined field_0x61e4;
-	undefined field_0x61e5;
-	undefined field_0x61e6;
-	undefined field_0x61e7;
-	undefined field_0x61e8;
-	undefined field_0x61e9;
-	undefined field_0x61ea;
-	undefined field_0x61eb;
-	undefined field_0x61ec;
-	undefined field_0x61ed;
-	undefined field_0x61ee;
-	undefined field_0x61ef;
-	undefined field_0x61f0;
-	undefined field_0x61f1;
-	undefined field_0x61f2;
-	undefined field_0x61f3;
-	undefined field_0x61f4;
-	undefined field_0x61f5;
-	undefined field_0x61f6;
-	undefined field_0x61f7;
-	undefined field_0x61f8;
-	undefined field_0x61f9;
-	undefined field_0x61fa;
-	undefined field_0x61fb;
-	undefined field_0x61fc;
-	undefined field_0x61fd;
-	undefined field_0x61fe;
-	undefined field_0x61ff;
-	undefined field_0x6200;
-	undefined field_0x6201;
-	undefined field_0x6202;
-	undefined field_0x6203;
-	undefined field_0x6204;
-	undefined field_0x6205;
-	undefined field_0x6206;
-	undefined field_0x6207;
-	undefined field_0x6208;
-	undefined field_0x6209;
-	undefined field_0x620a;
-	undefined field_0x620b;
-	undefined field_0x620c;
-	undefined field_0x620d;
-	undefined field_0x620e;
-	undefined field_0x620f;
-	undefined field_0x6210;
-	undefined field_0x6211;
-	undefined field_0x6212;
-	undefined field_0x6213;
-	undefined field_0x6214;
-	undefined field_0x6215;
-	undefined field_0x6216;
-	undefined field_0x6217;
-	undefined field_0x6218;
-	undefined field_0x6219;
-	undefined field_0x621a;
-	undefined field_0x621b;
-	undefined field_0x621c;
-	undefined field_0x621d;
-	undefined field_0x621e;
-	undefined field_0x621f;
-	undefined field_0x6220;
-	undefined field_0x6221;
-	undefined field_0x6222;
-	undefined field_0x6223;
-	undefined field_0x6224;
-	undefined field_0x6225;
-	undefined field_0x6226;
-	undefined field_0x6227;
-	undefined field_0x6228;
-	undefined field_0x6229;
-	undefined field_0x622a;
-	undefined field_0x622b;
-	undefined field_0x622c;
-	undefined field_0x622d;
-	undefined field_0x622e;
-	undefined field_0x622f;
-	undefined field_0x6230;
-	undefined field_0x6231;
-	undefined field_0x6232;
-	undefined field_0x6233;
-	undefined field_0x6234;
-	undefined field_0x6235;
-	undefined field_0x6236;
-	undefined field_0x6237;
-	undefined field_0x6238;
-	undefined field_0x6239;
-	undefined field_0x623a;
-	undefined field_0x623b;
-	undefined field_0x623c;
-	undefined field_0x623d;
-	undefined field_0x623e;
-	undefined field_0x623f;
-	undefined field_0x6240;
-	undefined field_0x6241;
-	undefined field_0x6242;
-	undefined field_0x6243;
-	undefined field_0x6244;
-	undefined field_0x6245;
-	undefined field_0x6246;
-	undefined field_0x6247;
-	undefined field_0x6248;
-	undefined field_0x6249;
-	undefined field_0x624a;
-	undefined field_0x624b;
-	undefined field_0x624c;
-	undefined field_0x624d;
-	undefined field_0x624e;
-	undefined field_0x624f;
-	undefined field_0x6250;
-	undefined field_0x6251;
-	undefined field_0x6252;
-	undefined field_0x6253;
-	undefined field_0x6254;
-	undefined field_0x6255;
-	undefined field_0x6256;
-	undefined field_0x6257;
-	undefined field_0x6258;
-	undefined field_0x6259;
-	undefined field_0x625a;
-	undefined field_0x625b;
-	undefined field_0x625c;
-	undefined field_0x625d;
-	undefined field_0x625e;
-	undefined field_0x625f;
-	undefined field_0x6260;
-	undefined field_0x6261;
-	undefined field_0x6262;
-	undefined field_0x6263;
-	undefined field_0x6264;
-	undefined field_0x6265;
-	undefined field_0x6266;
-	undefined field_0x6267;
-	undefined field_0x6268;
-	undefined field_0x6269;
-	undefined field_0x626a;
-	undefined field_0x626b;
-	undefined field_0x626c;
-	undefined field_0x626d;
-	undefined field_0x626e;
-	undefined field_0x626f;
-	undefined field_0x6270;
-	undefined field_0x6271;
-	undefined field_0x6272;
-	undefined field_0x6273;
-	undefined field_0x6274;
-	undefined field_0x6275;
-	undefined field_0x6276;
-	undefined field_0x6277;
-	undefined field_0x6278;
-	undefined field_0x6279;
-	undefined field_0x627a;
-	undefined field_0x627b;
-	undefined field_0x627c;
-	undefined field_0x627d;
-	undefined field_0x627e;
-	undefined field_0x627f;
-	undefined field_0x6280;
-	undefined field_0x6281;
-	undefined field_0x6282;
-	undefined field_0x6283;
-	undefined field_0x6284;
-	undefined field_0x6285;
-	undefined field_0x6286;
-	undefined field_0x6287;
-	undefined field_0x6288;
-	undefined field_0x6289;
-	undefined field_0x628a;
-	undefined field_0x628b;
-	undefined field_0x628c;
-	undefined field_0x628d;
-	undefined field_0x628e;
-	undefined field_0x628f;
-	undefined field_0x6290;
-	undefined field_0x6291;
-	undefined field_0x6292;
-	undefined field_0x6293;
-	undefined field_0x6294;
-	undefined field_0x6295;
-	undefined field_0x6296;
-	undefined field_0x6297;
-	undefined field_0x6298;
-	undefined field_0x6299;
-	undefined field_0x629a;
-	undefined field_0x629b;
-	undefined field_0x629c;
-	undefined field_0x629d;
-	undefined field_0x629e;
-	undefined field_0x629f;
-	undefined field_0x62a0;
-	undefined field_0x62a1;
-	undefined field_0x62a2;
-	undefined field_0x62a3;
-	undefined field_0x62a4;
-	undefined field_0x62a5;
-	undefined field_0x62a6;
-	undefined field_0x62a7;
-	undefined field_0x62a8;
-	undefined field_0x62a9;
-	undefined field_0x62aa;
-	undefined field_0x62ab;
-	undefined field_0x62ac;
-	undefined field_0x62ad;
-	undefined field_0x62ae;
-	undefined field_0x62af;
-	undefined field_0x62b0;
-	undefined field_0x62b1;
-	undefined field_0x62b2;
-	undefined field_0x62b3;
-	undefined field_0x62b4;
-	undefined field_0x62b5;
-	undefined field_0x62b6;
-	undefined field_0x62b7;
-	undefined field_0x62b8;
-	undefined field_0x62b9;
-	undefined field_0x62ba;
-	undefined field_0x62bb;
-	undefined field_0x62bc;
-	undefined field_0x62bd;
-	undefined field_0x62be;
-	undefined field_0x62bf;
-	undefined field_0x62c0;
-	undefined field_0x62c1;
-	undefined field_0x62c2;
-	undefined field_0x62c3;
-	undefined field_0x62c4;
-	undefined field_0x62c5;
-	undefined field_0x62c6;
-	undefined field_0x62c7;
-	undefined field_0x62c8;
-	undefined field_0x62c9;
-	undefined field_0x62ca;
-	undefined field_0x62cb;
-	undefined field_0x62cc;
-	undefined field_0x62cd;
-	undefined field_0x62ce;
-	undefined field_0x62cf;
-	undefined field_0x62d0;
-	undefined field_0x62d1;
-	undefined field_0x62d2;
-	undefined field_0x62d3;
-	undefined field_0x62d4;
-	undefined field_0x62d5;
-	undefined field_0x62d6;
-	undefined field_0x62d7;
-	undefined field_0x62d8;
-	undefined field_0x62d9;
-	undefined field_0x62da;
-	undefined field_0x62db;
-	undefined field_0x62dc;
-	undefined field_0x62dd;
-	undefined field_0x62de;
-	undefined field_0x62df;
-	undefined field_0x62e0;
-	undefined field_0x62e1;
-	undefined field_0x62e2;
-	undefined field_0x62e3;
-	undefined field_0x62e4;
-	undefined field_0x62e5;
-	undefined field_0x62e6;
-	undefined field_0x62e7;
-	undefined field_0x62e8;
-	undefined field_0x62e9;
-	undefined field_0x62ea;
-	undefined field_0x62eb;
-	undefined field_0x62ec;
-	undefined field_0x62ed;
-	undefined field_0x62ee;
-	undefined field_0x62ef;
-	undefined field_0x62f0;
-	undefined field_0x62f1;
-	undefined field_0x62f2;
-	undefined field_0x62f3;
-	undefined field_0x62f4;
-	undefined field_0x62f5;
-	undefined field_0x62f6;
-	undefined field_0x62f7;
-	undefined field_0x62f8;
-	undefined field_0x62f9;
-	undefined field_0x62fa;
-	undefined field_0x62fb;
-	undefined field_0x62fc;
-	undefined field_0x62fd;
-	undefined field_0x62fe;
-	undefined field_0x62ff;
-	undefined field_0x6300;
-	undefined field_0x6301;
-	undefined field_0x6302;
-	undefined field_0x6303;
-	undefined field_0x6304;
-	undefined field_0x6305;
-	undefined field_0x6306;
-	undefined field_0x6307;
-	undefined field_0x6308;
-	undefined field_0x6309;
-	undefined field_0x630a;
-	undefined field_0x630b;
-	undefined field_0x630c;
-	undefined field_0x630d;
-	undefined field_0x630e;
-	undefined field_0x630f;
-	undefined field_0x6310;
-	undefined field_0x6311;
-	undefined field_0x6312;
-	undefined field_0x6313;
-	undefined field_0x6314;
-	undefined field_0x6315;
-	undefined field_0x6316;
-	undefined field_0x6317;
-	undefined field_0x6318;
-	undefined field_0x6319;
-	undefined field_0x631a;
-	undefined field_0x631b;
-	undefined field_0x631c;
-	undefined field_0x631d;
-	undefined field_0x631e;
-	undefined field_0x631f;
-	undefined field_0x6320;
-	undefined field_0x6321;
-	undefined field_0x6322;
-	undefined field_0x6323;
-	undefined field_0x6324;
-	undefined field_0x6325;
-	undefined field_0x6326;
-	undefined field_0x6327;
-	undefined field_0x6328;
-	undefined field_0x6329;
-	undefined field_0x632a;
-	undefined field_0x632b;
-	undefined field_0x632c;
-	undefined field_0x632d;
-	undefined field_0x632e;
-	undefined field_0x632f;
-	undefined field_0x6330;
-	undefined field_0x6331;
-	undefined field_0x6332;
-	undefined field_0x6333;
-	undefined field_0x6334;
-	undefined field_0x6335;
-	undefined field_0x6336;
-	undefined field_0x6337;
-	undefined field_0x6338;
-	undefined field_0x6339;
-	undefined field_0x633a;
-	undefined field_0x633b;
-	undefined field_0x633c;
-	undefined field_0x633d;
-	undefined field_0x633e;
-	undefined field_0x633f;
-	undefined field_0x6340;
-	undefined field_0x6341;
-	undefined field_0x6342;
-	undefined field_0x6343;
-	undefined field_0x6344;
-	undefined field_0x6345;
-	undefined field_0x6346;
-	undefined field_0x6347;
-	undefined field_0x6348;
-	undefined field_0x6349;
-	undefined field_0x634a;
-	undefined field_0x634b;
-	undefined field_0x634c;
-	undefined field_0x634d;
-	undefined field_0x634e;
-	undefined field_0x634f;
-	undefined field_0x6350;
-	undefined field_0x6351;
-	undefined field_0x6352;
-	undefined field_0x6353;
-	undefined field_0x6354;
-	undefined field_0x6355;
-	undefined field_0x6356;
-	undefined field_0x6357;
-	undefined field_0x6358;
-	undefined field_0x6359;
-	undefined field_0x635a;
-	undefined field_0x635b;
-	undefined field_0x635c;
-	undefined field_0x635d;
-	undefined field_0x635e;
-	undefined field_0x635f;
-	undefined field_0x6360;
-	undefined field_0x6361;
-	undefined field_0x6362;
-	undefined field_0x6363;
-	undefined field_0x6364;
-	undefined field_0x6365;
-	undefined field_0x6366;
-	undefined field_0x6367;
-	undefined field_0x6368;
-	undefined field_0x6369;
-	undefined field_0x636a;
-	undefined field_0x636b;
-	undefined field_0x636c;
-	undefined field_0x636d;
-	undefined field_0x636e;
-	undefined field_0x636f;
-	undefined field_0x6370;
-	undefined field_0x6371;
-	undefined field_0x6372;
-	undefined field_0x6373;
-	undefined field_0x6374;
-	undefined field_0x6375;
-	undefined field_0x6376;
-	undefined field_0x6377;
-	undefined field_0x6378;
-	undefined field_0x6379;
-	undefined field_0x637a;
-	undefined field_0x637b;
-	undefined field_0x637c;
-	undefined field_0x637d;
-	undefined field_0x637e;
-	undefined field_0x637f;
-	undefined field_0x6380;
-	undefined field_0x6381;
-	undefined field_0x6382;
-	undefined field_0x6383;
-	undefined field_0x6384;
-	undefined field_0x6385;
-	undefined field_0x6386;
-	undefined field_0x6387;
-	undefined field_0x6388;
-	undefined field_0x6389;
-	undefined field_0x638a;
-	undefined field_0x638b;
-	undefined field_0x638c;
-	undefined field_0x638d;
-	undefined field_0x638e;
-	undefined field_0x638f;
-	undefined field_0x6390;
-	undefined field_0x6391;
-	undefined field_0x6392;
-	undefined field_0x6393;
-	undefined field_0x6394;
-	undefined field_0x6395;
-	undefined field_0x6396;
-	undefined field_0x6397;
-	undefined field_0x6398;
-	undefined field_0x6399;
-	undefined field_0x639a;
-	undefined field_0x639b;
-	undefined field_0x639c;
-	undefined field_0x639d;
-	undefined field_0x639e;
-	undefined field_0x639f;
-	undefined field_0x63a0;
-	undefined field_0x63a1;
-	undefined field_0x63a2;
-	undefined field_0x63a3;
-	undefined field_0x63a4;
-	undefined field_0x63a5;
-	undefined field_0x63a6;
-	undefined field_0x63a7;
-	undefined field_0x63a8;
-	undefined field_0x63a9;
-	undefined field_0x63aa;
-	undefined field_0x63ab;
-	undefined field_0x63ac;
-	undefined field_0x63ad;
-	undefined field_0x63ae;
-	undefined field_0x63af;
-	undefined field_0x63b0;
-	undefined field_0x63b1;
-	undefined field_0x63b2;
-	undefined field_0x63b3;
-	undefined field_0x63b4;
-	undefined field_0x63b5;
-	undefined field_0x63b6;
-	undefined field_0x63b7;
-	undefined field_0x63b8;
-	undefined field_0x63b9;
-	undefined field_0x63ba;
-	undefined field_0x63bb;
-	undefined field_0x63bc;
-	undefined field_0x63bd;
-	undefined field_0x63be;
-	undefined field_0x63bf;
-	undefined field_0x63c0;
-	undefined field_0x63c1;
-	undefined field_0x63c2;
-	undefined field_0x63c3;
-	undefined field_0x63c4;
-	undefined field_0x63c5;
-	undefined field_0x63c6;
-	undefined field_0x63c7;
-	undefined field_0x63c8;
-	undefined field_0x63c9;
-	undefined field_0x63ca;
-	undefined field_0x63cb;
-	undefined field_0x63cc;
-	undefined field_0x63cd;
-	undefined field_0x63ce;
-	undefined field_0x63cf;
-	undefined field_0x63d0;
-	undefined field_0x63d1;
-	undefined field_0x63d2;
-	undefined field_0x63d3;
-	undefined field_0x63d4;
-	undefined field_0x63d5;
-	undefined field_0x63d6;
-	undefined field_0x63d7;
-	undefined field_0x63d8;
-	undefined field_0x63d9;
-	undefined field_0x63da;
-	undefined field_0x63db;
-	undefined field_0x63dc;
-	undefined field_0x63dd;
-	undefined field_0x63de;
-	undefined field_0x63df;
-	undefined field_0x63e0;
-	undefined field_0x63e1;
-	undefined field_0x63e2;
-	undefined field_0x63e3;
-	undefined field_0x63e4;
-	undefined field_0x63e5;
-	undefined field_0x63e6;
-	undefined field_0x63e7;
-	undefined field_0x63e8;
-	undefined field_0x63e9;
-	undefined field_0x63ea;
-	undefined field_0x63eb;
-	undefined field_0x63ec;
-	undefined field_0x63ed;
-	undefined field_0x63ee;
-	undefined field_0x63ef;
-	undefined field_0x63f0;
-	undefined field_0x63f1;
-	undefined field_0x63f2;
-	undefined field_0x63f3;
-	undefined field_0x63f4;
-	undefined field_0x63f5;
-	undefined field_0x63f6;
-	undefined field_0x63f7;
-	undefined field_0x63f8;
-	undefined field_0x63f9;
-	undefined field_0x63fa;
-	undefined field_0x63fb;
-	undefined field_0x63fc;
-	undefined field_0x63fd;
-	undefined field_0x63fe;
-	undefined field_0x63ff;
-	undefined field_0x6400;
-	undefined field_0x6401;
-	undefined field_0x6402;
-	undefined field_0x6403;
-	undefined field_0x6404;
-	undefined field_0x6405;
-	undefined field_0x6406;
-	undefined field_0x6407;
-	undefined field_0x6408;
-	undefined field_0x6409;
-	undefined field_0x640a;
-	undefined field_0x640b;
-	undefined field_0x640c;
-	undefined field_0x640d;
-	undefined field_0x640e;
-	undefined field_0x640f;
-	undefined field_0x6410;
-	undefined field_0x6411;
-	undefined field_0x6412;
-	undefined field_0x6413;
-	undefined field_0x6414;
-	undefined field_0x6415;
-	undefined field_0x6416;
-	undefined field_0x6417;
-	undefined field_0x6418;
-	undefined field_0x6419;
-	undefined field_0x641a;
-	undefined field_0x641b;
-	undefined field_0x641c;
-	undefined field_0x641d;
-	undefined field_0x641e;
-	undefined field_0x641f;
-	undefined field_0x6420;
-	undefined field_0x6421;
-	undefined field_0x6422;
-	undefined field_0x6423;
-	undefined field_0x6424;
-	undefined field_0x6425;
-	undefined field_0x6426;
-	undefined field_0x6427;
-	undefined field_0x6428;
-	undefined field_0x6429;
-	undefined field_0x642a;
-	undefined field_0x642b;
-	undefined field_0x642c;
-	undefined field_0x642d;
-	undefined field_0x642e;
-	undefined field_0x642f;
-	undefined field_0x6430;
-	undefined field_0x6431;
-	undefined field_0x6432;
-	undefined field_0x6433;
-	undefined field_0x6434;
-	undefined field_0x6435;
-	undefined field_0x6436;
-	undefined field_0x6437;
-	undefined field_0x6438;
-	undefined field_0x6439;
-	undefined field_0x643a;
-	undefined field_0x643b;
-	undefined field_0x643c;
-	undefined field_0x643d;
-	undefined field_0x643e;
-	undefined field_0x643f;
-	undefined field_0x6440;
-	undefined field_0x6441;
-	undefined field_0x6442;
-	undefined field_0x6443;
-	undefined field_0x6444;
-	undefined field_0x6445;
-	undefined field_0x6446;
-	undefined field_0x6447;
-	undefined field_0x6448;
-	undefined field_0x6449;
-	undefined field_0x644a;
-	undefined field_0x644b;
-	undefined field_0x644c;
-	undefined field_0x644d;
-	undefined field_0x644e;
-	undefined field_0x644f;
-	undefined field_0x6450;
-	undefined field_0x6451;
-	undefined field_0x6452;
-	undefined field_0x6453;
-	undefined field_0x6454;
-	undefined field_0x6455;
-	undefined field_0x6456;
-	undefined field_0x6457;
-	undefined field_0x6458;
-	undefined field_0x6459;
-	undefined field_0x645a;
-	undefined field_0x645b;
-	undefined field_0x645c;
-	undefined field_0x645d;
-	undefined field_0x645e;
-	undefined field_0x645f;
-	undefined field_0x6460;
-	undefined field_0x6461;
-	undefined field_0x6462;
-	undefined field_0x6463;
-	undefined field_0x6464;
-	undefined field_0x6465;
-	undefined field_0x6466;
-	undefined field_0x6467;
-	undefined field_0x6468;
-	undefined field_0x6469;
-	undefined field_0x646a;
-	undefined field_0x646b;
-	undefined field_0x646c;
-	undefined field_0x646d;
-	undefined field_0x646e;
-	undefined field_0x646f;
-	undefined field_0x6470;
-	undefined field_0x6471;
-	undefined field_0x6472;
-	undefined field_0x6473;
-	undefined field_0x6474;
-	undefined field_0x6475;
-	undefined field_0x6476;
-	undefined field_0x6477;
-	undefined field_0x6478;
-	undefined field_0x6479;
-	undefined field_0x647a;
-	undefined field_0x647b;
-	undefined field_0x647c;
-	undefined field_0x647d;
-	undefined field_0x647e;
-	undefined field_0x647f;
-	undefined field_0x6480;
-	undefined field_0x6481;
-	undefined field_0x6482;
-	undefined field_0x6483;
-	undefined field_0x6484;
-	undefined field_0x6485;
-	undefined field_0x6486;
-	undefined field_0x6487;
-	undefined field_0x6488;
-	undefined field_0x6489;
-	undefined field_0x648a;
-	undefined field_0x648b;
-	undefined field_0x648c;
-	undefined field_0x648d;
-	undefined field_0x648e;
-	undefined field_0x648f;
-	undefined field_0x6490;
-	undefined field_0x6491;
-	undefined field_0x6492;
-	undefined field_0x6493;
-	undefined field_0x6494;
-	undefined field_0x6495;
-	undefined field_0x6496;
-	undefined field_0x6497;
-	undefined field_0x6498;
-	undefined field_0x6499;
-	undefined field_0x649a;
-	undefined field_0x649b;
-	undefined field_0x649c;
-	undefined field_0x649d;
-	undefined field_0x649e;
-	undefined field_0x649f;
-	undefined field_0x64a0;
-	undefined field_0x64a1;
-	undefined field_0x64a2;
-	undefined field_0x64a3;
-	undefined field_0x64a4;
-	undefined field_0x64a5;
-	undefined field_0x64a6;
-	undefined field_0x64a7;
-	undefined field_0x64a8;
-	undefined field_0x64a9;
-	undefined field_0x64aa;
-	undefined field_0x64ab;
-	undefined field_0x64ac;
-	undefined field_0x64ad;
-	undefined field_0x64ae;
-	undefined field_0x64af;
-	undefined field_0x64b0;
-	undefined field_0x64b1;
-	undefined field_0x64b2;
-	undefined field_0x64b3;
-	undefined field_0x64b4;
-	undefined field_0x64b5;
-	undefined field_0x64b6;
-	undefined field_0x64b7;
-	undefined field_0x64b8;
-	undefined field_0x64b9;
-	undefined field_0x64ba;
-	undefined field_0x64bb;
-	undefined field_0x64bc;
-	undefined field_0x64bd;
-	undefined field_0x64be;
-	undefined field_0x64bf;
-	undefined field_0x64c0;
-	undefined field_0x64c1;
-	undefined field_0x64c2;
-	undefined field_0x64c3;
-	undefined field_0x64c4;
-	undefined field_0x64c5;
-	undefined field_0x64c6;
-	undefined field_0x64c7;
-	undefined field_0x64c8;
-	undefined field_0x64c9;
-	undefined field_0x64ca;
-	undefined field_0x64cb;
-	undefined field_0x64cc;
-	undefined field_0x64cd;
-	undefined field_0x64ce;
-	undefined field_0x64cf;
-	undefined field_0x64d0;
-	undefined field_0x64d1;
-	undefined field_0x64d2;
-	undefined field_0x64d3;
-	undefined field_0x64d4;
-	undefined field_0x64d5;
-	undefined field_0x64d6;
-	undefined field_0x64d7;
-	undefined field_0x64d8;
-	undefined field_0x64d9;
-	undefined field_0x64da;
-	undefined field_0x64db;
-	undefined field_0x64dc;
-	undefined field_0x64dd;
-	undefined field_0x64de;
-	undefined field_0x64df;
-	undefined field_0x64e0;
-	undefined field_0x64e1;
-	undefined field_0x64e2;
-	undefined field_0x64e3;
-	undefined field_0x64e4;
-	undefined field_0x64e5;
-	undefined field_0x64e6;
-	undefined field_0x64e7;
-	undefined field_0x64e8;
-	undefined field_0x64e9;
-	undefined field_0x64ea;
-	undefined field_0x64eb;
-	undefined field_0x64ec;
-	undefined field_0x64ed;
-	undefined field_0x64ee;
-	undefined field_0x64ef;
-	undefined field_0x64f0;
-	undefined field_0x64f1;
-	undefined field_0x64f2;
-	undefined field_0x64f3;
-	undefined field_0x64f4;
-	undefined field_0x64f5;
-	undefined field_0x64f6;
-	undefined field_0x64f7;
-	undefined field_0x64f8;
-	undefined field_0x64f9;
-	undefined field_0x64fa;
-	undefined field_0x64fb;
-	undefined field_0x64fc;
-	undefined field_0x64fd;
-	undefined field_0x64fe;
-	undefined field_0x64ff;
-	undefined field_0x6500;
-	undefined field_0x6501;
-	undefined field_0x6502;
-	undefined field_0x6503;
-	undefined field_0x6504;
-	undefined field_0x6505;
-	undefined field_0x6506;
-	undefined field_0x6507;
-	undefined field_0x6508;
-	undefined field_0x6509;
-	undefined field_0x650a;
-	undefined field_0x650b;
-	undefined field_0x650c;
-	undefined field_0x650d;
-	undefined field_0x650e;
-	undefined field_0x650f;
-	undefined field_0x6510;
-	undefined field_0x6511;
-	undefined field_0x6512;
-	undefined field_0x6513;
-	undefined field_0x6514;
-	undefined field_0x6515;
-	undefined field_0x6516;
-	undefined field_0x6517;
-	undefined field_0x6518;
-	undefined field_0x6519;
-	undefined field_0x651a;
-	undefined field_0x651b;
-	undefined field_0x651c;
-	undefined field_0x651d;
-	undefined field_0x651e;
-	undefined field_0x651f;
-	undefined field_0x6520;
-	undefined field_0x6521;
-	undefined field_0x6522;
-	undefined field_0x6523;
-	undefined field_0x6524;
-	undefined field_0x6525;
-	undefined field_0x6526;
-	undefined field_0x6527;
-	undefined field_0x6528;
-	undefined field_0x6529;
-	undefined field_0x652a;
-	undefined field_0x652b;
-	undefined field_0x652c;
-	undefined field_0x652d;
-	undefined field_0x652e;
-	undefined field_0x652f;
-	undefined field_0x6530;
-	undefined field_0x6531;
-	undefined field_0x6532;
-	undefined field_0x6533;
-	undefined field_0x6534;
-	undefined field_0x6535;
-	undefined field_0x6536;
-	undefined field_0x6537;
-	undefined field_0x6538;
-	undefined field_0x6539;
-	undefined field_0x653a;
-	undefined field_0x653b;
-	undefined field_0x653c;
-	undefined field_0x653d;
-	undefined field_0x653e;
-	undefined field_0x653f;
-	undefined field_0x6540;
-	undefined field_0x6541;
-	undefined field_0x6542;
-	undefined field_0x6543;
-	undefined field_0x6544;
-	undefined field_0x6545;
-	undefined field_0x6546;
-	undefined field_0x6547;
-	undefined field_0x6548;
-	undefined field_0x6549;
-	undefined field_0x654a;
-	undefined field_0x654b;
-	undefined field_0x654c;
-	undefined field_0x654d;
-	undefined field_0x654e;
-	undefined field_0x654f;
-	undefined field_0x6550;
-	undefined field_0x6551;
-	undefined field_0x6552;
-	undefined field_0x6553;
-	undefined field_0x6554;
-	undefined field_0x6555;
-	undefined field_0x6556;
-	undefined field_0x6557;
-	undefined field_0x6558;
-	undefined field_0x6559;
-	undefined field_0x655a;
-	undefined field_0x655b;
-	undefined field_0x655c;
-	undefined field_0x655d;
-	undefined field_0x655e;
-	undefined field_0x655f;
-	undefined field_0x6560;
-	undefined field_0x6561;
-	undefined field_0x6562;
-	undefined field_0x6563;
-	undefined field_0x6564;
-	undefined field_0x6565;
-	undefined field_0x6566;
-	undefined field_0x6567;
-	undefined field_0x6568;
-	undefined field_0x6569;
-	undefined field_0x656a;
-	undefined field_0x656b;
-	undefined field_0x656c;
-	undefined field_0x656d;
-	undefined field_0x656e;
-	undefined field_0x656f;
-	undefined field_0x6570;
-	undefined field_0x6571;
-	undefined field_0x6572;
-	undefined field_0x6573;
-	undefined field_0x6574;
-	undefined field_0x6575;
-	undefined field_0x6576;
-	undefined field_0x6577;
-	undefined field_0x6578;
-	undefined field_0x6579;
-	undefined field_0x657a;
-	undefined field_0x657b;
-	undefined field_0x657c;
-	undefined field_0x657d;
-	undefined field_0x657e;
-	undefined field_0x657f;
-	undefined field_0x6580;
-	undefined field_0x6581;
-	undefined field_0x6582;
-	undefined field_0x6583;
-	undefined field_0x6584;
-	undefined field_0x6585;
-	undefined field_0x6586;
-	undefined field_0x6587;
-	undefined field_0x6588;
-	undefined field_0x6589;
-	undefined field_0x658a;
-	undefined field_0x658b;
-	undefined field_0x658c;
-	undefined field_0x658d;
-	undefined field_0x658e;
-	undefined field_0x658f;
-	undefined field_0x6590;
-	undefined field_0x6591;
-	undefined field_0x6592;
-	undefined field_0x6593;
-	undefined field_0x6594;
-	undefined field_0x6595;
-	undefined field_0x6596;
-	undefined field_0x6597;
-	undefined field_0x6598;
-	undefined field_0x6599;
-	undefined field_0x659a;
-	undefined field_0x659b;
-	undefined field_0x659c;
-	undefined field_0x659d;
-	undefined field_0x659e;
-	undefined field_0x659f;
-	undefined field_0x65a0;
-	undefined field_0x65a1;
-	undefined field_0x65a2;
-	undefined field_0x65a3;
-	undefined field_0x65a4;
-	undefined field_0x65a5;
-	undefined field_0x65a6;
-	undefined field_0x65a7;
-	undefined field_0x65a8;
-	undefined field_0x65a9;
-	undefined field_0x65aa;
-	undefined field_0x65ab;
-	undefined field_0x65ac;
-	undefined field_0x65ad;
-	undefined field_0x65ae;
-	undefined field_0x65af;
-	undefined field_0x65b0;
-	undefined field_0x65b1;
-	undefined field_0x65b2;
-	undefined field_0x65b3;
-	undefined field_0x65b4;
-	undefined field_0x65b5;
-	undefined field_0x65b6;
-	undefined field_0x65b7;
-	undefined field_0x65b8;
-	undefined field_0x65b9;
-	undefined field_0x65ba;
-	undefined field_0x65bb;
-	undefined field_0x65bc;
-	undefined field_0x65bd;
-	undefined field_0x65be;
-	undefined field_0x65bf;
-	undefined field_0x65c0;
-	undefined field_0x65c1;
-	undefined field_0x65c2;
-	undefined field_0x65c3;
-	undefined field_0x65c4;
-	undefined field_0x65c5;
-	undefined field_0x65c6;
-	undefined field_0x65c7;
-	undefined field_0x65c8;
-	undefined field_0x65c9;
-	undefined field_0x65ca;
-	undefined field_0x65cb;
-	undefined field_0x65cc;
-	undefined field_0x65cd;
-	undefined field_0x65ce;
-	undefined field_0x65cf;
-	undefined field_0x65d0;
-	undefined field_0x65d1;
-	undefined field_0x65d2;
-	undefined field_0x65d3;
-	undefined field_0x65d4;
-	undefined field_0x65d5;
-	undefined field_0x65d6;
-	undefined field_0x65d7;
-	undefined field_0x65d8;
-	undefined field_0x65d9;
-	undefined field_0x65da;
-	undefined field_0x65db;
-	undefined field_0x65dc;
-	undefined field_0x65dd;
-	undefined field_0x65de;
-	undefined field_0x65df;
-	undefined field_0x65e0;
-	undefined field_0x65e1;
-	undefined field_0x65e2;
-	undefined field_0x65e3;
-	undefined field_0x65e4;
-	undefined field_0x65e5;
-	undefined field_0x65e6;
-	undefined field_0x65e7;
-	undefined field_0x65e8;
-	undefined field_0x65e9;
-	undefined field_0x65ea;
-	undefined field_0x65eb;
-	undefined field_0x65ec;
-	undefined field_0x65ed;
-	undefined field_0x65ee;
-	undefined field_0x65ef;
-	undefined field_0x65f0;
-	undefined field_0x65f1;
-	undefined field_0x65f2;
-	undefined field_0x65f3;
-	undefined field_0x65f4;
-	undefined field_0x65f5;
-	undefined field_0x65f6;
-	undefined field_0x65f7;
-	undefined field_0x65f8;
-	undefined field_0x65f9;
-	undefined field_0x65fa;
-	undefined field_0x65fb;
-	undefined field_0x65fc;
-	undefined field_0x65fd;
-	undefined field_0x65fe;
-	undefined field_0x65ff;
-	undefined field_0x6600;
-	undefined field_0x6601;
-	undefined field_0x6602;
-	undefined field_0x6603;
-	undefined field_0x6604;
-	undefined field_0x6605;
-	undefined field_0x6606;
-	undefined field_0x6607;
-	undefined field_0x6608;
-	undefined field_0x6609;
-	undefined field_0x660a;
-	undefined field_0x660b;
-	undefined field_0x660c;
-	undefined field_0x660d;
-	undefined field_0x660e;
-	undefined field_0x660f;
-	undefined field_0x6610;
-	undefined field_0x6611;
-	undefined field_0x6612;
-	undefined field_0x6613;
-	undefined field_0x6614;
-	undefined field_0x6615;
-	undefined field_0x6616;
-	undefined field_0x6617;
-	undefined field_0x6618;
-	undefined field_0x6619;
-	undefined field_0x661a;
-	undefined field_0x661b;
-	undefined field_0x661c;
-	undefined field_0x661d;
-	undefined field_0x661e;
-	undefined field_0x661f;
-	undefined field_0x6620;
-	undefined field_0x6621;
-	undefined field_0x6622;
-	undefined field_0x6623;
-	undefined field_0x6624;
-	undefined field_0x6625;
-	undefined field_0x6626;
-	undefined field_0x6627;
-	undefined field_0x6628;
-	undefined field_0x6629;
-	undefined field_0x662a;
-	undefined field_0x662b;
-	undefined field_0x662c;
-	undefined field_0x662d;
-	undefined field_0x662e;
-	undefined field_0x662f;
-	undefined field_0x6630;
-	undefined field_0x6631;
-	undefined field_0x6632;
-	undefined field_0x6633;
-	undefined field_0x6634;
-	undefined field_0x6635;
-	undefined field_0x6636;
-	undefined field_0x6637;
-	undefined field_0x6638;
-	undefined field_0x6639;
-	undefined field_0x663a;
-	undefined field_0x663b;
-	undefined field_0x663c;
-	undefined field_0x663d;
-	undefined field_0x663e;
-	undefined field_0x663f;
-	undefined field_0x6640;
-	undefined field_0x6641;
-	undefined field_0x6642;
-	undefined field_0x6643;
-	undefined field_0x6644;
-	undefined field_0x6645;
-	undefined field_0x6646;
-	undefined field_0x6647;
-	undefined field_0x6648;
-	undefined field_0x6649;
-	undefined field_0x664a;
-	undefined field_0x664b;
-	undefined field_0x664c;
-	undefined field_0x664d;
-	undefined field_0x664e;
-	undefined field_0x664f;
-	undefined field_0x6650;
-	undefined field_0x6651;
-	undefined field_0x6652;
-	undefined field_0x6653;
-	undefined field_0x6654;
-	undefined field_0x6655;
-	undefined field_0x6656;
-	undefined field_0x6657;
-	undefined field_0x6658;
-	undefined field_0x6659;
-	undefined field_0x665a;
-	undefined field_0x665b;
-	undefined field_0x665c;
-	undefined field_0x665d;
-	undefined field_0x665e;
-	undefined field_0x665f;
-	undefined field_0x6660;
-	undefined field_0x6661;
-	undefined field_0x6662;
-	undefined field_0x6663;
-	undefined field_0x6664;
-	undefined field_0x6665;
-	undefined field_0x6666;
-	undefined field_0x6667;
-	undefined field_0x6668;
-	undefined field_0x6669;
-	undefined field_0x666a;
-	undefined field_0x666b;
-	undefined field_0x666c;
-	undefined field_0x666d;
-	undefined field_0x666e;
-	undefined field_0x666f;
-	undefined field_0x6670;
-	undefined field_0x6671;
-	undefined field_0x6672;
-	undefined field_0x6673;
-	undefined field_0x6674;
-	undefined field_0x6675;
-	undefined field_0x6676;
-	undefined field_0x6677;
-	undefined field_0x6678;
-	undefined field_0x6679;
-	undefined field_0x667a;
-	undefined field_0x667b;
-	undefined field_0x667c;
-	undefined field_0x667d;
-	undefined field_0x667e;
-	undefined field_0x667f;
-	undefined field_0x6680;
-	undefined field_0x6681;
-	undefined field_0x6682;
-	undefined field_0x6683;
-	undefined field_0x6684;
-	undefined field_0x6685;
-	undefined field_0x6686;
-	undefined field_0x6687;
-	undefined field_0x6688;
-	undefined field_0x6689;
-	undefined field_0x668a;
-	undefined field_0x668b;
-	undefined field_0x668c;
-	undefined field_0x668d;
-	undefined field_0x668e;
-	undefined field_0x668f;
-	undefined field_0x6690;
-	undefined field_0x6691;
-	undefined field_0x6692;
-	undefined field_0x6693;
-	undefined field_0x6694;
-	undefined field_0x6695;
-	undefined field_0x6696;
-	undefined field_0x6697;
-	undefined field_0x6698;
-	undefined field_0x6699;
-	undefined field_0x669a;
-	undefined field_0x669b;
-	undefined field_0x669c;
-	undefined field_0x669d;
-	undefined field_0x669e;
-	undefined field_0x669f;
-	undefined field_0x66a0;
-	undefined field_0x66a1;
-	undefined field_0x66a2;
-	undefined field_0x66a3;
-	undefined field_0x66a4;
-	undefined field_0x66a5;
-	undefined field_0x66a6;
-	undefined field_0x66a7;
-	undefined field_0x66a8;
-	undefined field_0x66a9;
-	undefined field_0x66aa;
-	undefined field_0x66ab;
-	undefined field_0x66ac;
-	undefined field_0x66ad;
-	undefined field_0x66ae;
-	undefined field_0x66af;
-	undefined field_0x66b0;
-	undefined field_0x66b1;
-	undefined field_0x66b2;
-	undefined field_0x66b3;
-	undefined field_0x66b4;
-	undefined field_0x66b5;
-	undefined field_0x66b6;
-	undefined field_0x66b7;
-	undefined field_0x66b8;
-	undefined field_0x66b9;
-	undefined field_0x66ba;
-	undefined field_0x66bb;
-	undefined field_0x66bc;
-	undefined field_0x66bd;
-	undefined field_0x66be;
-	undefined field_0x66bf;
-	undefined field_0x66c0;
-	undefined field_0x66c1;
-	undefined field_0x66c2;
-	undefined field_0x66c3;
-	undefined field_0x66c4;
-	undefined field_0x66c5;
-	undefined field_0x66c6;
-	undefined field_0x66c7;
-	undefined field_0x66c8;
-	undefined field_0x66c9;
-	undefined field_0x66ca;
-	undefined field_0x66cb;
-	undefined field_0x66cc;
-	undefined field_0x66cd;
-	undefined field_0x66ce;
-	undefined field_0x66cf;
-	undefined field_0x66d0;
-	undefined field_0x66d1;
-	undefined field_0x66d2;
-	undefined field_0x66d3;
-	undefined field_0x66d4;
-	undefined field_0x66d5;
-	undefined field_0x66d6;
-	undefined field_0x66d7;
-	undefined field_0x66d8;
-	undefined field_0x66d9;
-	undefined field_0x66da;
-	undefined field_0x66db;
-	undefined field_0x66dc;
-	undefined field_0x66dd;
-	undefined field_0x66de;
-	undefined field_0x66df;
-	undefined field_0x66e0;
-	undefined field_0x66e1;
-	undefined field_0x66e2;
-	undefined field_0x66e3;
-	undefined field_0x66e4;
-	undefined field_0x66e5;
-	undefined field_0x66e6;
-	undefined field_0x66e7;
-	undefined field_0x66e8;
-	undefined field_0x66e9;
-	undefined field_0x66ea;
-	undefined field_0x66eb;
-	undefined field_0x66ec;
-	undefined field_0x66ed;
-	undefined field_0x66ee;
-	undefined field_0x66ef;
-	undefined field_0x66f0;
-	undefined field_0x66f1;
-	undefined field_0x66f2;
-	undefined field_0x66f3;
-	undefined field_0x66f4;
-	undefined field_0x66f5;
-	undefined field_0x66f6;
-	undefined field_0x66f7;
-	undefined field_0x66f8;
-	undefined field_0x66f9;
-	undefined field_0x66fa;
-	undefined field_0x66fb;
-	undefined field_0x66fc;
-	undefined field_0x66fd;
-	undefined field_0x66fe;
-	undefined field_0x66ff;
-	undefined field_0x6700;
-	undefined field_0x6701;
-	undefined field_0x6702;
-	undefined field_0x6703;
-	undefined field_0x6704;
-	undefined field_0x6705;
-	undefined field_0x6706;
-	undefined field_0x6707;
-	undefined field_0x6708;
-	undefined field_0x6709;
-	undefined field_0x670a;
-	undefined field_0x670b;
-	undefined field_0x670c;
-	undefined field_0x670d;
-	undefined field_0x670e;
-	undefined field_0x670f;
-	undefined field_0x6710;
-	undefined field_0x6711;
-	undefined field_0x6712;
-	undefined field_0x6713;
-	undefined field_0x6714;
-	undefined field_0x6715;
-	undefined field_0x6716;
-	undefined field_0x6717;
-	undefined field_0x6718;
-	undefined field_0x6719;
-	undefined field_0x671a;
-	undefined field_0x671b;
-	undefined field_0x671c;
-	undefined field_0x671d;
-	undefined field_0x671e;
-	undefined field_0x671f;
-	undefined field_0x6720;
-	undefined field_0x6721;
-	undefined field_0x6722;
-	undefined field_0x6723;
-	undefined field_0x6724;
-	undefined field_0x6725;
-	undefined field_0x6726;
-	undefined field_0x6727;
-	undefined field_0x6728;
-	undefined field_0x6729;
-	undefined field_0x672a;
-	undefined field_0x672b;
-	undefined field_0x672c;
-	undefined field_0x672d;
-	undefined field_0x672e;
-	undefined field_0x672f;
-	undefined field_0x6730;
-	undefined field_0x6731;
-	undefined field_0x6732;
-	undefined field_0x6733;
-	undefined field_0x6734;
-	undefined field_0x6735;
-	undefined field_0x6736;
-	undefined field_0x6737;
-	undefined field_0x6738;
-	undefined field_0x6739;
-	undefined field_0x673a;
-	undefined field_0x673b;
-	undefined field_0x673c;
-	undefined field_0x673d;
-	undefined field_0x673e;
-	undefined field_0x673f;
-	undefined field_0x6740;
-	undefined field_0x6741;
-	undefined field_0x6742;
-	undefined field_0x6743;
-	undefined field_0x6744;
-	undefined field_0x6745;
-	undefined field_0x6746;
-	undefined field_0x6747;
-	undefined field_0x6748;
-	undefined field_0x6749;
-	undefined field_0x674a;
-	undefined field_0x674b;
-	undefined field_0x674c;
-	undefined field_0x674d;
-	undefined field_0x674e;
-	undefined field_0x674f;
-	undefined field_0x6750;
-	undefined field_0x6751;
-	undefined field_0x6752;
-	undefined field_0x6753;
-	undefined field_0x6754;
-	undefined field_0x6755;
-	undefined field_0x6756;
-	undefined field_0x6757;
-	undefined field_0x6758;
-	undefined field_0x6759;
-	undefined field_0x675a;
-	undefined field_0x675b;
-	undefined field_0x675c;
-	undefined field_0x675d;
-	undefined field_0x675e;
-	undefined field_0x675f;
-	undefined field_0x6760;
-	undefined field_0x6761;
-	undefined field_0x6762;
-	undefined field_0x6763;
-	undefined field_0x6764;
-	undefined field_0x6765;
-	undefined field_0x6766;
-	undefined field_0x6767;
-	undefined field_0x6768;
-	undefined field_0x6769;
-	undefined field_0x676a;
-	undefined field_0x676b;
-	undefined field_0x676c;
-	undefined field_0x676d;
-	undefined field_0x676e;
-	undefined field_0x676f;
-	undefined field_0x6770;
-	undefined field_0x6771;
-	undefined field_0x6772;
-	undefined field_0x6773;
-	undefined field_0x6774;
-	undefined field_0x6775;
-	undefined field_0x6776;
-	undefined field_0x6777;
-	undefined field_0x6778;
-	undefined field_0x6779;
-	undefined field_0x677a;
-	undefined field_0x677b;
-	undefined field_0x677c;
-	undefined field_0x677d;
-	undefined field_0x677e;
-	undefined field_0x677f;
-	undefined field_0x6780;
-	undefined field_0x6781;
-	undefined field_0x6782;
-	undefined field_0x6783;
-	undefined field_0x6784;
-	undefined field_0x6785;
-	undefined field_0x6786;
-	undefined field_0x6787;
-	undefined field_0x6788;
-	undefined field_0x6789;
-	undefined field_0x678a;
-	undefined field_0x678b;
-	undefined field_0x678c;
-	undefined field_0x678d;
-	undefined field_0x678e;
-	undefined field_0x678f;
-	undefined field_0x6790;
-	undefined field_0x6791;
-	undefined field_0x6792;
-	undefined field_0x6793;
-	undefined field_0x6794;
-	undefined field_0x6795;
-	undefined field_0x6796;
-	undefined field_0x6797;
-	undefined field_0x6798;
-	undefined field_0x6799;
-	undefined field_0x679a;
-	undefined field_0x679b;
-	undefined field_0x679c;
-	undefined field_0x679d;
-	undefined field_0x679e;
-	undefined field_0x679f;
-	undefined field_0x67a0;
-	undefined field_0x67a1;
-	undefined field_0x67a2;
-	undefined field_0x67a3;
-	undefined field_0x67a4;
-	undefined field_0x67a5;
-	undefined field_0x67a6;
-	undefined field_0x67a7;
-	undefined field_0x67a8;
-	undefined field_0x67a9;
-	undefined field_0x67aa;
-	undefined field_0x67ab;
-	undefined field_0x67ac;
-	undefined field_0x67ad;
-	undefined field_0x67ae;
-	undefined field_0x67af;
-	undefined field_0x67b0;
-	undefined field_0x67b1;
-	undefined field_0x67b2;
-	undefined field_0x67b3;
-	undefined field_0x67b4;
-	undefined field_0x67b5;
-	undefined field_0x67b6;
-	undefined field_0x67b7;
-	undefined field_0x67b8;
-	undefined field_0x67b9;
-	undefined field_0x67ba;
-	undefined field_0x67bb;
-	undefined field_0x67bc;
-	undefined field_0x67bd;
-	undefined field_0x67be;
-	undefined field_0x67bf;
-	undefined field_0x67c0;
-	undefined field_0x67c1;
-	undefined field_0x67c2;
-	undefined field_0x67c3;
-	undefined field_0x67c4;
-	undefined field_0x67c5;
-	undefined field_0x67c6;
-	undefined field_0x67c7;
-	undefined field_0x67c8;
-	undefined field_0x67c9;
-	undefined field_0x67ca;
-	undefined field_0x67cb;
-	undefined field_0x67cc;
-	undefined field_0x67cd;
-	undefined field_0x67ce;
-	undefined field_0x67cf;
-	undefined field_0x67d0;
-	undefined field_0x67d1;
-	undefined field_0x67d2;
-	undefined field_0x67d3;
-	undefined field_0x67d4;
-	undefined field_0x67d5;
-	undefined field_0x67d6;
-	undefined field_0x67d7;
-	undefined field_0x67d8;
-	undefined field_0x67d9;
-	undefined field_0x67da;
-	undefined field_0x67db;
-	undefined field_0x67dc;
-	undefined field_0x67dd;
-	undefined field_0x67de;
-	undefined field_0x67df;
-	undefined field_0x67e0;
-	undefined field_0x67e1;
-	undefined field_0x67e2;
-	undefined field_0x67e3;
-	undefined field_0x67e4;
-	undefined field_0x67e5;
-	undefined field_0x67e6;
-	undefined field_0x67e7;
-	undefined field_0x67e8;
-	undefined field_0x67e9;
-	undefined field_0x67ea;
-	undefined field_0x67eb;
-	undefined field_0x67ec;
-	undefined field_0x67ed;
-	undefined field_0x67ee;
-	undefined field_0x67ef;
-	undefined field_0x67f0;
-	undefined field_0x67f1;
-	undefined field_0x67f2;
-	undefined field_0x67f3;
-	undefined field_0x67f4;
-	undefined field_0x67f5;
-	undefined field_0x67f6;
-	undefined field_0x67f7;
-	undefined field_0x67f8;
-	undefined field_0x67f9;
-	undefined field_0x67fa;
-	undefined field_0x67fb;
-	undefined field_0x67fc;
-	undefined field_0x67fd;
-	undefined field_0x67fe;
-	undefined field_0x67ff;
-	undefined field_0x6800;
-	undefined field_0x6801;
-	undefined field_0x6802;
-	undefined field_0x6803;
-	undefined field_0x6804;
-	undefined field_0x6805;
-	undefined field_0x6806;
-	undefined field_0x6807;
-	undefined field_0x6808;
-	undefined field_0x6809;
-	undefined field_0x680a;
-	undefined field_0x680b;
-	undefined field_0x680c;
-	undefined field_0x680d;
-	undefined field_0x680e;
-	undefined field_0x680f;
-	undefined field_0x6810;
-	undefined field_0x6811;
-	undefined field_0x6812;
-	undefined field_0x6813;
-	undefined field_0x6814;
-	undefined field_0x6815;
-	undefined field_0x6816;
-	undefined field_0x6817;
-	undefined field_0x6818;
-	undefined field_0x6819;
-	undefined field_0x681a;
-	undefined field_0x681b;
-	undefined field_0x681c;
-	undefined field_0x681d;
-	undefined field_0x681e;
-	undefined field_0x681f;
-	undefined field_0x6820;
-	undefined field_0x6821;
-	undefined field_0x6822;
-	undefined field_0x6823;
-	undefined field_0x6824;
-	undefined field_0x6825;
-	undefined field_0x6826;
-	undefined field_0x6827;
-	undefined field_0x6828;
-	undefined field_0x6829;
-	undefined field_0x682a;
-	undefined field_0x682b;
-	undefined field_0x682c;
-	undefined field_0x682d;
-	undefined field_0x682e;
-	undefined field_0x682f;
-	undefined field_0x6830;
-	undefined field_0x6831;
-	undefined field_0x6832;
-	undefined field_0x6833;
-	undefined field_0x6834;
-	undefined field_0x6835;
-	undefined field_0x6836;
-	undefined field_0x6837;
-	undefined field_0x6838;
-	undefined field_0x6839;
-	undefined field_0x683a;
-	undefined field_0x683b;
-	undefined field_0x683c;
-	undefined field_0x683d;
-	undefined field_0x683e;
-	undefined field_0x683f;
-	undefined field_0x6840;
-	undefined field_0x6841;
-	undefined field_0x6842;
-	undefined field_0x6843;
-	undefined field_0x6844;
-	undefined field_0x6845;
-	undefined field_0x6846;
-	undefined field_0x6847;
-	undefined field_0x6848;
-	undefined field_0x6849;
-	undefined field_0x684a;
-	undefined field_0x684b;
-	undefined field_0x684c;
-	undefined field_0x684d;
-	undefined field_0x684e;
-	undefined field_0x684f;
-	undefined field_0x6850;
-	undefined field_0x6851;
-	undefined field_0x6852;
-	undefined field_0x6853;
-	undefined field_0x6854;
-	undefined field_0x6855;
-	undefined field_0x6856;
-	undefined field_0x6857;
-	undefined field_0x6858;
-	undefined field_0x6859;
-	undefined field_0x685a;
-	undefined field_0x685b;
-	undefined field_0x685c;
-	undefined field_0x685d;
-	undefined field_0x685e;
-	undefined field_0x685f;
-	undefined field_0x6860;
-	undefined field_0x6861;
-	undefined field_0x6862;
-	undefined field_0x6863;
-	undefined field_0x6864;
-	undefined field_0x6865;
-	undefined field_0x6866;
-	undefined field_0x6867;
-	undefined field_0x6868;
-	undefined field_0x6869;
-	undefined field_0x686a;
-	undefined field_0x686b;
-	undefined field_0x686c;
-	undefined field_0x686d;
-	undefined field_0x686e;
-	undefined field_0x686f;
-	undefined field_0x6870;
-	undefined field_0x6871;
-	undefined field_0x6872;
-	undefined field_0x6873;
-	undefined field_0x6874;
-	undefined field_0x6875;
-	undefined field_0x6876;
-	undefined field_0x6877;
-	undefined field_0x6878;
-	undefined field_0x6879;
-	undefined field_0x687a;
-	undefined field_0x687b;
-	undefined field_0x687c;
-	undefined field_0x687d;
-	undefined field_0x687e;
-	undefined field_0x687f;
-	undefined field_0x6880;
-	undefined field_0x6881;
-	undefined field_0x6882;
-	undefined field_0x6883;
-	undefined field_0x6884;
-	undefined field_0x6885;
-	undefined field_0x6886;
-	undefined field_0x6887;
-	undefined field_0x6888;
-	undefined field_0x6889;
-	undefined field_0x688a;
-	undefined field_0x688b;
-	undefined field_0x688c;
-	undefined field_0x688d;
-	undefined field_0x688e;
-	undefined field_0x688f;
-	undefined field_0x6890;
-	undefined field_0x6891;
-	undefined field_0x6892;
-	undefined field_0x6893;
-	undefined field_0x6894;
-	undefined field_0x6895;
-	undefined field_0x6896;
-	undefined field_0x6897;
-	undefined field_0x6898;
-	undefined field_0x6899;
-	undefined field_0x689a;
-	undefined field_0x689b;
-	undefined field_0x689c;
-	undefined field_0x689d;
-	undefined field_0x689e;
-	undefined field_0x689f;
-	undefined field_0x68a0;
-	undefined field_0x68a1;
-	undefined field_0x68a2;
-	undefined field_0x68a3;
-	undefined field_0x68a4;
-	undefined field_0x68a5;
-	undefined field_0x68a6;
-	undefined field_0x68a7;
-	undefined field_0x68a8;
-	undefined field_0x68a9;
-	undefined field_0x68aa;
-	undefined field_0x68ab;
-	undefined field_0x68ac;
-	undefined field_0x68ad;
-	undefined field_0x68ae;
-	undefined field_0x68af;
-	undefined field_0x68b0;
-	undefined field_0x68b1;
-	undefined field_0x68b2;
-	undefined field_0x68b3;
-	undefined field_0x68b4;
-	undefined field_0x68b5;
-	undefined field_0x68b6;
-	undefined field_0x68b7;
-	undefined field_0x68b8;
-	undefined field_0x68b9;
-	undefined field_0x68ba;
-	undefined field_0x68bb;
-	undefined field_0x68bc;
-	undefined field_0x68bd;
-	undefined field_0x68be;
-	undefined field_0x68bf;
-	undefined field_0x68c0;
-	undefined field_0x68c1;
-	undefined field_0x68c2;
-	undefined field_0x68c3;
-	undefined field_0x68c4;
-	undefined field_0x68c5;
-	undefined field_0x68c6;
-	undefined field_0x68c7;
-	undefined field_0x68c8;
-	undefined field_0x68c9;
-	undefined field_0x68ca;
-	undefined field_0x68cb;
-	undefined field_0x68cc;
-	undefined field_0x68cd;
-	undefined field_0x68ce;
-	undefined field_0x68cf;
-	undefined field_0x68d0;
-	undefined field_0x68d1;
-	undefined field_0x68d2;
-	undefined field_0x68d3;
-	undefined field_0x68d4;
-	undefined field_0x68d5;
-	undefined field_0x68d6;
-	undefined field_0x68d7;
-	undefined field_0x68d8;
-	undefined field_0x68d9;
-	undefined field_0x68da;
-	undefined field_0x68db;
-	undefined field_0x68dc;
-	undefined field_0x68dd;
-	undefined field_0x68de;
-	undefined field_0x68df;
-	undefined field_0x68e0;
-	undefined field_0x68e1;
-	undefined field_0x68e2;
-	undefined field_0x68e3;
-	undefined field_0x68e4;
-	undefined field_0x68e5;
-	undefined field_0x68e6;
-	undefined field_0x68e7;
-	undefined field_0x68e8;
-	undefined field_0x68e9;
-	undefined field_0x68ea;
-	undefined field_0x68eb;
-	undefined field_0x68ec;
-	undefined field_0x68ed;
-	undefined field_0x68ee;
-	undefined field_0x68ef;
-	undefined field_0x68f0;
-	undefined field_0x68f1;
-	undefined field_0x68f2;
-	undefined field_0x68f3;
-	undefined field_0x68f4;
-	undefined field_0x68f5;
-	undefined field_0x68f6;
-	undefined field_0x68f7;
-	undefined field_0x68f8;
-	undefined field_0x68f9;
-	undefined field_0x68fa;
-	undefined field_0x68fb;
-	undefined field_0x68fc;
-	undefined field_0x68fd;
-	undefined field_0x68fe;
-	undefined field_0x68ff;
-	undefined field_0x6900;
-	undefined field_0x6901;
-	undefined field_0x6902;
-	undefined field_0x6903;
-	undefined field_0x6904;
-	undefined field_0x6905;
-	undefined field_0x6906;
-	undefined field_0x6907;
-	undefined field_0x6908;
-	undefined field_0x6909;
-	undefined field_0x690a;
-	undefined field_0x690b;
-	undefined field_0x690c;
-	undefined field_0x690d;
-	undefined field_0x690e;
-	undefined field_0x690f;
-	undefined field_0x6910;
-	undefined field_0x6911;
-	undefined field_0x6912;
-	undefined field_0x6913;
-	undefined field_0x6914;
-	undefined field_0x6915;
-	undefined field_0x6916;
-	undefined field_0x6917;
-	undefined field_0x6918;
-	undefined field_0x6919;
-	undefined field_0x691a;
-	undefined field_0x691b;
-	undefined field_0x691c;
-	undefined field_0x691d;
-	undefined field_0x691e;
-	undefined field_0x691f;
-	undefined field_0x6920;
-	undefined field_0x6921;
-	undefined field_0x6922;
-	undefined field_0x6923;
-	undefined field_0x6924;
-	undefined field_0x6925;
-	undefined field_0x6926;
-	undefined field_0x6927;
-	undefined field_0x6928;
-	undefined field_0x6929;
-	undefined field_0x692a;
-	undefined field_0x692b;
-	undefined field_0x692c;
-	undefined field_0x692d;
-	undefined field_0x692e;
-	undefined field_0x692f;
-	undefined field_0x6930;
-	undefined field_0x6931;
-	undefined field_0x6932;
-	undefined field_0x6933;
-	undefined field_0x6934;
-	undefined field_0x6935;
-	undefined field_0x6936;
-	undefined field_0x6937;
-	undefined field_0x6938;
-	undefined field_0x6939;
-	undefined field_0x693a;
-	undefined field_0x693b;
-	undefined field_0x693c;
-	undefined field_0x693d;
-	undefined field_0x693e;
-	undefined field_0x693f;
-	undefined field_0x6940;
-	undefined field_0x6941;
-	undefined field_0x6942;
-	undefined field_0x6943;
-	undefined field_0x6944;
-	undefined field_0x6945;
-	undefined field_0x6946;
-	undefined field_0x6947;
-	undefined field_0x6948;
-	undefined field_0x6949;
-	undefined field_0x694a;
-	undefined field_0x694b;
-	undefined field_0x694c;
-	undefined field_0x694d;
-	undefined field_0x694e;
-	undefined field_0x694f;
-	undefined field_0x6950;
-	undefined field_0x6951;
-	undefined field_0x6952;
-	undefined field_0x6953;
-	undefined field_0x6954;
-	undefined field_0x6955;
-	undefined field_0x6956;
-	undefined field_0x6957;
-	undefined field_0x6958;
-	undefined field_0x6959;
-	undefined field_0x695a;
-	undefined field_0x695b;
-	undefined field_0x695c;
-	undefined field_0x695d;
-	undefined field_0x695e;
-	undefined field_0x695f;
-	undefined field_0x6960;
-	undefined field_0x6961;
-	undefined field_0x6962;
-	undefined field_0x6963;
-	undefined field_0x6964;
-	undefined field_0x6965;
-	undefined field_0x6966;
-	undefined field_0x6967;
-	undefined field_0x6968;
-	undefined field_0x6969;
-	undefined field_0x696a;
-	undefined field_0x696b;
-	undefined field_0x696c;
-	undefined field_0x696d;
-	undefined field_0x696e;
-	undefined field_0x696f;
-	undefined field_0x6970;
-	undefined field_0x6971;
-	undefined field_0x6972;
-	undefined field_0x6973;
-	undefined field_0x6974;
-	undefined field_0x6975;
-	undefined field_0x6976;
-	undefined field_0x6977;
-	undefined field_0x6978;
-	undefined field_0x6979;
-	undefined field_0x697a;
-	undefined field_0x697b;
-	undefined field_0x697c;
-	undefined field_0x697d;
-	undefined field_0x697e;
-	undefined field_0x697f;
-	undefined field_0x6980;
-	undefined field_0x6981;
-	undefined field_0x6982;
-	undefined field_0x6983;
-	undefined field_0x6984;
-	undefined field_0x6985;
-	undefined field_0x6986;
-	undefined field_0x6987;
-	undefined field_0x6988;
-	undefined field_0x6989;
-	undefined field_0x698a;
-	undefined field_0x698b;
-	undefined field_0x698c;
-	undefined field_0x698d;
-	undefined field_0x698e;
-	undefined field_0x698f;
-	undefined field_0x6990;
-	undefined field_0x6991;
-	undefined field_0x6992;
-	undefined field_0x6993;
-	undefined field_0x6994;
-	undefined field_0x6995;
-	undefined field_0x6996;
-	undefined field_0x6997;
-	undefined field_0x6998;
-	undefined field_0x6999;
-	undefined field_0x699a;
-	undefined field_0x699b;
-	undefined field_0x699c;
-	undefined field_0x699d;
-	undefined field_0x699e;
-	undefined field_0x699f;
-	undefined field_0x69a0;
-	undefined field_0x69a1;
-	undefined field_0x69a2;
-	undefined field_0x69a3;
-	undefined field_0x69a4;
-	undefined field_0x69a5;
-	undefined field_0x69a6;
-	undefined field_0x69a7;
-	undefined field_0x69a8;
-	undefined field_0x69a9;
-	undefined field_0x69aa;
-	undefined field_0x69ab;
-	undefined field_0x69ac;
-	undefined field_0x69ad;
-	undefined field_0x69ae;
-	undefined field_0x69af;
-	undefined field_0x69b0;
-	undefined field_0x69b1;
-	undefined field_0x69b2;
-	undefined field_0x69b3;
-	undefined field_0x69b4;
-	undefined field_0x69b5;
-	undefined field_0x69b6;
-	undefined field_0x69b7;
-	undefined field_0x69b8;
-	undefined field_0x69b9;
-	undefined field_0x69ba;
-	undefined field_0x69bb;
-	undefined field_0x69bc;
-	undefined field_0x69bd;
-	undefined field_0x69be;
-	undefined field_0x69bf;
-	undefined field_0x69c0;
-	undefined field_0x69c1;
-	undefined field_0x69c2;
-	undefined field_0x69c3;
-	undefined field_0x69c4;
-	undefined field_0x69c5;
-	undefined field_0x69c6;
-	undefined field_0x69c7;
-	undefined field_0x69c8;
-	undefined field_0x69c9;
-	undefined field_0x69ca;
-	undefined field_0x69cb;
-	undefined field_0x69cc;
-	undefined field_0x69cd;
-	undefined field_0x69ce;
-	undefined field_0x69cf;
-	undefined field_0x69d0;
-	undefined field_0x69d1;
-	undefined field_0x69d2;
-	undefined field_0x69d3;
-	undefined field_0x69d4;
-	undefined field_0x69d5;
-	undefined field_0x69d6;
-	undefined field_0x69d7;
-	undefined field_0x69d8;
-	undefined field_0x69d9;
-	undefined field_0x69da;
-	undefined field_0x69db;
-	undefined field_0x69dc;
-	undefined field_0x69dd;
-	undefined field_0x69de;
-	undefined field_0x69df;
-	undefined field_0x69e0;
-	undefined field_0x69e1;
-	undefined field_0x69e2;
-	undefined field_0x69e3;
-	undefined field_0x69e4;
-	undefined field_0x69e5;
-	undefined field_0x69e6;
-	undefined field_0x69e7;
-	undefined field_0x69e8;
-	undefined field_0x69e9;
-	undefined field_0x69ea;
-	undefined field_0x69eb;
-	undefined field_0x69ec;
-	undefined field_0x69ed;
-	undefined field_0x69ee;
-	undefined field_0x69ef;
-	undefined field_0x69f0;
-	undefined field_0x69f1;
-	undefined field_0x69f2;
-	undefined field_0x69f3;
-	undefined field_0x69f4;
-	undefined field_0x69f5;
-	undefined field_0x69f6;
-	undefined field_0x69f7;
-	undefined field_0x69f8;
-	undefined field_0x69f9;
-	undefined field_0x69fa;
-	undefined field_0x69fb;
-	undefined field_0x69fc;
-	undefined field_0x69fd;
-	undefined field_0x69fe;
-	undefined field_0x69ff;
-	undefined field_0x6a00;
-	undefined field_0x6a01;
-	undefined field_0x6a02;
-	undefined field_0x6a03;
-	undefined field_0x6a04;
-	undefined field_0x6a05;
-	undefined field_0x6a06;
-	undefined field_0x6a07;
-	undefined field_0x6a08;
-	undefined field_0x6a09;
-	undefined field_0x6a0a;
-	undefined field_0x6a0b;
-	undefined field_0x6a0c;
-	undefined field_0x6a0d;
-	undefined field_0x6a0e;
-	undefined field_0x6a0f;
-	undefined field_0x6a10;
-	undefined field_0x6a11;
-	undefined field_0x6a12;
-	undefined field_0x6a13;
-	undefined field_0x6a14;
-	undefined field_0x6a15;
-	undefined field_0x6a16;
-	undefined field_0x6a17;
-	undefined field_0x6a18;
-	undefined field_0x6a19;
-	undefined field_0x6a1a;
-	undefined field_0x6a1b;
-	undefined field_0x6a1c;
-	undefined field_0x6a1d;
-	undefined field_0x6a1e;
-	undefined field_0x6a1f;
-	undefined field_0x6a20;
-	undefined field_0x6a21;
-	undefined field_0x6a22;
-	undefined field_0x6a23;
-	undefined field_0x6a24;
-	undefined field_0x6a25;
-	undefined field_0x6a26;
-	undefined field_0x6a27;
-	undefined field_0x6a28;
-	undefined field_0x6a29;
-	undefined field_0x6a2a;
-	undefined field_0x6a2b;
-	undefined field_0x6a2c;
-	undefined field_0x6a2d;
-	undefined field_0x6a2e;
-	undefined field_0x6a2f;
-	undefined field_0x6a30;
-	undefined field_0x6a31;
-	undefined field_0x6a32;
-	undefined field_0x6a33;
-	undefined field_0x6a34;
-	undefined field_0x6a35;
-	undefined field_0x6a36;
-	undefined field_0x6a37;
-	undefined field_0x6a38;
-	undefined field_0x6a39;
-	undefined field_0x6a3a;
-	undefined field_0x6a3b;
-	undefined field_0x6a3c;
-	undefined field_0x6a3d;
-	undefined field_0x6a3e;
-	undefined field_0x6a3f;
-	undefined field_0x6a40;
-	undefined field_0x6a41;
-	undefined field_0x6a42;
-	undefined field_0x6a43;
-	undefined field_0x6a44;
-	undefined field_0x6a45;
-	undefined field_0x6a46;
-	undefined field_0x6a47;
-	undefined field_0x6a48;
-	undefined field_0x6a49;
-	undefined field_0x6a4a;
-	undefined field_0x6a4b;
-	undefined field_0x6a4c;
-	undefined field_0x6a4d;
-	undefined field_0x6a4e;
-	undefined field_0x6a4f;
-	undefined field_0x6a50;
-	undefined field_0x6a51;
-	undefined field_0x6a52;
-	undefined field_0x6a53;
-	undefined field_0x6a54;
-	undefined field_0x6a55;
-	undefined field_0x6a56;
-	undefined field_0x6a57;
-	undefined field_0x6a58;
-	undefined field_0x6a59;
-	undefined field_0x6a5a;
-	undefined field_0x6a5b;
-	undefined field_0x6a5c;
-	undefined field_0x6a5d;
-	undefined field_0x6a5e;
-	undefined field_0x6a5f;
-	undefined field_0x6a60;
-	undefined field_0x6a61;
-	undefined field_0x6a62;
-	undefined field_0x6a63;
-	undefined field_0x6a64;
-	undefined field_0x6a65;
-	undefined field_0x6a66;
-	undefined field_0x6a67;
-	undefined field_0x6a68;
-	undefined field_0x6a69;
-	undefined field_0x6a6a;
-	undefined field_0x6a6b;
-	undefined field_0x6a6c;
-	undefined field_0x6a6d;
-	undefined field_0x6a6e;
-	undefined field_0x6a6f;
-	undefined field_0x6a70;
-	undefined field_0x6a71;
-	undefined field_0x6a72;
-	undefined field_0x6a73;
-	undefined field_0x6a74;
-	undefined field_0x6a75;
-	undefined field_0x6a76;
-	undefined field_0x6a77;
-	undefined field_0x6a78;
-	undefined field_0x6a79;
-	undefined field_0x6a7a;
-	undefined field_0x6a7b;
-	undefined field_0x6a7c;
-	undefined field_0x6a7d;
-	undefined field_0x6a7e;
-	undefined field_0x6a7f;
-	undefined field_0x6a80;
-	undefined field_0x6a81;
-	undefined field_0x6a82;
-	undefined field_0x6a83;
-	undefined field_0x6a84;
-	undefined field_0x6a85;
-	undefined field_0x6a86;
-	undefined field_0x6a87;
-	undefined field_0x6a88;
-	undefined field_0x6a89;
-	undefined field_0x6a8a;
-	undefined field_0x6a8b;
-	undefined field_0x6a8c;
-	undefined field_0x6a8d;
-	undefined field_0x6a8e;
-	undefined field_0x6a8f;
-	undefined field_0x6a90;
-	undefined field_0x6a91;
-	undefined field_0x6a92;
-	undefined field_0x6a93;
-	undefined field_0x6a94;
-	undefined field_0x6a95;
-	undefined field_0x6a96;
-	undefined field_0x6a97;
-	undefined field_0x6a98;
-	undefined field_0x6a99;
-	undefined field_0x6a9a;
-	undefined field_0x6a9b;
-	undefined field_0x6a9c;
-	undefined field_0x6a9d;
-	undefined field_0x6a9e;
-	undefined field_0x6a9f;
-	undefined field_0x6aa0;
-	undefined field_0x6aa1;
-	undefined field_0x6aa2;
-	undefined field_0x6aa3;
-	undefined field_0x6aa4;
-	undefined field_0x6aa5;
-	undefined field_0x6aa6;
-	undefined field_0x6aa7;
-	undefined field_0x6aa8;
-	undefined field_0x6aa9;
-	undefined field_0x6aaa;
-	undefined field_0x6aab;
-	undefined field_0x6aac;
-	undefined field_0x6aad;
-	undefined field_0x6aae;
-	undefined field_0x6aaf;
-	undefined field_0x6ab0;
-	undefined field_0x6ab1;
-	undefined field_0x6ab2;
-	undefined field_0x6ab3;
-	undefined field_0x6ab4;
-	undefined field_0x6ab5;
-	undefined field_0x6ab6;
-	undefined field_0x6ab7;
-	undefined field_0x6ab8;
-	undefined field_0x6ab9;
-	undefined field_0x6aba;
-	undefined field_0x6abb;
-	undefined field_0x6abc;
-	undefined field_0x6abd;
-	undefined field_0x6abe;
-	undefined field_0x6abf;
-	undefined field_0x6ac0;
-	undefined field_0x6ac1;
-	undefined field_0x6ac2;
-	undefined field_0x6ac3;
-	undefined field_0x6ac4;
-	undefined field_0x6ac5;
-	undefined field_0x6ac6;
-	undefined field_0x6ac7;
-	undefined field_0x6ac8;
-	undefined field_0x6ac9;
-	undefined field_0x6aca;
-	undefined field_0x6acb;
-	undefined field_0x6acc;
-	undefined field_0x6acd;
-	undefined field_0x6ace;
-	undefined field_0x6acf;
-	undefined field_0x6ad0;
-	undefined field_0x6ad1;
-	undefined field_0x6ad2;
-	undefined field_0x6ad3;
-	undefined field_0x6ad4;
-	undefined field_0x6ad5;
-	undefined field_0x6ad6;
-	undefined field_0x6ad7;
-	undefined field_0x6ad8;
-	undefined field_0x6ad9;
-	undefined field_0x6ada;
-	undefined field_0x6adb;
-	undefined field_0x6adc;
-	undefined field_0x6add;
-	undefined field_0x6ade;
-	undefined field_0x6adf;
-	undefined field_0x6ae0;
-	undefined field_0x6ae1;
-	undefined field_0x6ae2;
-	undefined field_0x6ae3;
-	undefined field_0x6ae4;
-	undefined field_0x6ae5;
-	undefined field_0x6ae6;
-	undefined field_0x6ae7;
-	undefined field_0x6ae8;
-	undefined field_0x6ae9;
-	undefined field_0x6aea;
-	undefined field_0x6aeb;
-	undefined field_0x6aec;
-	undefined field_0x6aed;
-	undefined field_0x6aee;
-	undefined field_0x6aef;
-	undefined field_0x6af0;
-	undefined field_0x6af1;
-	undefined field_0x6af2;
-	undefined field_0x6af3;
-	undefined field_0x6af4;
-	undefined field_0x6af5;
-	undefined field_0x6af6;
-	undefined field_0x6af7;
-	undefined field_0x6af8;
-	undefined field_0x6af9;
-	undefined field_0x6afa;
-	undefined field_0x6afb;
-	undefined field_0x6afc;
-	undefined field_0x6afd;
-	undefined field_0x6afe;
-	undefined field_0x6aff;
-	undefined field_0x6b00;
-	undefined field_0x6b01;
-	undefined field_0x6b02;
-	undefined field_0x6b03;
-	undefined field_0x6b04;
-	undefined field_0x6b05;
-	undefined field_0x6b06;
-	undefined field_0x6b07;
-	undefined field_0x6b08;
-	undefined field_0x6b09;
-	undefined field_0x6b0a;
-	undefined field_0x6b0b;
-	undefined field_0x6b0c;
-	undefined field_0x6b0d;
-	undefined field_0x6b0e;
-	undefined field_0x6b0f;
-	undefined field_0x6b10;
-	undefined field_0x6b11;
-	undefined field_0x6b12;
-	undefined field_0x6b13;
-	undefined field_0x6b14;
-	undefined field_0x6b15;
-	undefined field_0x6b16;
-	undefined field_0x6b17;
-	undefined field_0x6b18;
-	undefined field_0x6b19;
-	undefined field_0x6b1a;
-	undefined field_0x6b1b;
-	undefined field_0x6b1c;
-	undefined field_0x6b1d;
-	undefined field_0x6b1e;
-	undefined field_0x6b1f;
-	undefined field_0x6b20;
-	undefined field_0x6b21;
-	undefined field_0x6b22;
-	undefined field_0x6b23;
-	undefined field_0x6b24;
-	undefined field_0x6b25;
-	undefined field_0x6b26;
-	undefined field_0x6b27;
-	undefined field_0x6b28;
-	undefined field_0x6b29;
-	undefined field_0x6b2a;
-	undefined field_0x6b2b;
-	undefined field_0x6b2c;
-	undefined field_0x6b2d;
-	undefined field_0x6b2e;
-	undefined field_0x6b2f;
-	undefined field_0x6b30;
-	undefined field_0x6b31;
-	undefined field_0x6b32;
-	undefined field_0x6b33;
-	undefined field_0x6b34;
-	undefined field_0x6b35;
-	undefined field_0x6b36;
-	undefined field_0x6b37;
-	undefined field_0x6b38;
-	undefined field_0x6b39;
-	undefined field_0x6b3a;
-	undefined field_0x6b3b;
-	undefined field_0x6b3c;
-	undefined field_0x6b3d;
-	undefined field_0x6b3e;
-	undefined field_0x6b3f;
-	undefined field_0x6b40;
-	undefined field_0x6b41;
-	undefined field_0x6b42;
-	undefined field_0x6b43;
-	undefined field_0x6b44;
-	undefined field_0x6b45;
-	undefined field_0x6b46;
-	undefined field_0x6b47;
-	undefined field_0x6b48;
-	undefined field_0x6b49;
-	undefined field_0x6b4a;
-	undefined field_0x6b4b;
-	undefined field_0x6b4c;
-	undefined field_0x6b4d;
-	undefined field_0x6b4e;
-	undefined field_0x6b4f;
-	undefined field_0x6b50;
-	undefined field_0x6b51;
-	undefined field_0x6b52;
-	undefined field_0x6b53;
-	undefined field_0x6b54;
-	undefined field_0x6b55;
-	undefined field_0x6b56;
-	undefined field_0x6b57;
-	undefined field_0x6b58;
-	undefined field_0x6b59;
-	undefined field_0x6b5a;
-	undefined field_0x6b5b;
-	undefined field_0x6b5c;
-	undefined field_0x6b5d;
-	undefined field_0x6b5e;
-	undefined field_0x6b5f;
-	undefined field_0x6b60;
-	undefined field_0x6b61;
-	undefined field_0x6b62;
-	undefined field_0x6b63;
-	undefined field_0x6b64;
-	undefined field_0x6b65;
-	undefined field_0x6b66;
-	undefined field_0x6b67;
-	undefined field_0x6b68;
-	undefined field_0x6b69;
-	undefined field_0x6b6a;
-	undefined field_0x6b6b;
-	undefined field_0x6b6c;
-	undefined field_0x6b6d;
-	undefined field_0x6b6e;
-	undefined field_0x6b6f;
-	undefined field_0x6b70;
-	undefined field_0x6b71;
-	undefined field_0x6b72;
-	undefined field_0x6b73;
-	undefined field_0x6b74;
-	undefined field_0x6b75;
-	undefined field_0x6b76;
-	undefined field_0x6b77;
-	undefined field_0x6b78;
-	undefined field_0x6b79;
-	undefined field_0x6b7a;
-	undefined field_0x6b7b;
-	undefined field_0x6b7c;
-	undefined field_0x6b7d;
-	undefined field_0x6b7e;
-	undefined field_0x6b7f;
-	undefined field_0x6b80;
-	undefined field_0x6b81;
-	undefined field_0x6b82;
-	undefined field_0x6b83;
-	undefined field_0x6b84;
-	undefined field_0x6b85;
-	undefined field_0x6b86;
-	undefined field_0x6b87;
-	undefined field_0x6b88;
-	undefined field_0x6b89;
-	undefined field_0x6b8a;
-	undefined field_0x6b8b;
-	undefined field_0x6b8c;
-	undefined field_0x6b8d;
-	undefined field_0x6b8e;
-	undefined field_0x6b8f;
-	undefined field_0x6b90;
-	undefined field_0x6b91;
-	undefined field_0x6b92;
-	undefined field_0x6b93;
-	undefined field_0x6b94;
-	undefined field_0x6b95;
-	undefined field_0x6b96;
-	undefined field_0x6b97;
-	undefined field_0x6b98;
-	undefined field_0x6b99;
-	undefined field_0x6b9a;
-	undefined field_0x6b9b;
-	undefined field_0x6b9c;
-	undefined field_0x6b9d;
-	undefined field_0x6b9e;
-	undefined field_0x6b9f;
-	undefined field_0x6ba0;
-	undefined field_0x6ba1;
-	undefined field_0x6ba2;
-	undefined field_0x6ba3;
-	undefined field_0x6ba4;
-	undefined field_0x6ba5;
-	undefined field_0x6ba6;
-	undefined field_0x6ba7;
-	undefined field_0x6ba8;
-	undefined field_0x6ba9;
-	undefined field_0x6baa;
-	undefined field_0x6bab;
-	undefined field_0x6bac;
-	undefined field_0x6bad;
-	undefined field_0x6bae;
-	undefined field_0x6baf;
-	undefined field_0x6bb0;
-	undefined field_0x6bb1;
-	undefined field_0x6bb2;
-	undefined field_0x6bb3;
-	undefined field_0x6bb4;
-	undefined field_0x6bb5;
-	undefined field_0x6bb6;
-	undefined field_0x6bb7;
-	undefined field_0x6bb8;
-	undefined field_0x6bb9;
-	undefined field_0x6bba;
-	undefined field_0x6bbb;
-	undefined field_0x6bbc;
-	undefined field_0x6bbd;
-	undefined field_0x6bbe;
-	undefined field_0x6bbf;
-	undefined field_0x6bc0;
-	undefined field_0x6bc1;
-	undefined field_0x6bc2;
-	undefined field_0x6bc3;
-	undefined field_0x6bc4;
-	undefined field_0x6bc5;
-	undefined field_0x6bc6;
-	undefined field_0x6bc7;
-	undefined field_0x6bc8;
-	undefined field_0x6bc9;
-	undefined field_0x6bca;
-	undefined field_0x6bcb;
-	undefined field_0x6bcc;
-	undefined field_0x6bcd;
-	undefined field_0x6bce;
-	undefined field_0x6bcf;
-	undefined field_0x6bd0;
-	undefined field_0x6bd1;
-	undefined field_0x6bd2;
-	undefined field_0x6bd3;
-	undefined field_0x6bd4;
-	undefined field_0x6bd5;
-	undefined field_0x6bd6;
-	undefined field_0x6bd7;
-	undefined field_0x6bd8;
-	undefined field_0x6bd9;
-	undefined field_0x6bda;
-	undefined field_0x6bdb;
-	undefined field_0x6bdc;
-	undefined field_0x6bdd;
-	undefined field_0x6bde;
-	undefined field_0x6bdf;
-	undefined field_0x6be0;
-	undefined field_0x6be1;
-	undefined field_0x6be2;
-	undefined field_0x6be3;
-	undefined field_0x6be4;
-	undefined field_0x6be5;
-	undefined field_0x6be6;
-	undefined field_0x6be7;
-	undefined field_0x6be8;
-	undefined field_0x6be9;
-	undefined field_0x6bea;
-	undefined field_0x6beb;
-	undefined field_0x6bec;
-	undefined field_0x6bed;
-	undefined field_0x6bee;
-	undefined field_0x6bef;
-	undefined field_0x6bf0;
-	undefined field_0x6bf1;
-	undefined field_0x6bf2;
-	undefined field_0x6bf3;
-	undefined field_0x6bf4;
-	undefined field_0x6bf5;
-	undefined field_0x6bf6;
-	undefined field_0x6bf7;
-	undefined field_0x6bf8;
-	undefined field_0x6bf9;
-	undefined field_0x6bfa;
-	undefined field_0x6bfb;
-	undefined field_0x6bfc;
-	undefined field_0x6bfd;
-	undefined field_0x6bfe;
-	undefined field_0x6bff;
-	undefined field_0x6c00;
-	undefined field_0x6c01;
-	undefined field_0x6c02;
-	undefined field_0x6c03;
-	undefined field_0x6c04;
-	undefined field_0x6c05;
-	undefined field_0x6c06;
-	undefined field_0x6c07;
-	undefined field_0x6c08;
-	undefined field_0x6c09;
-	undefined field_0x6c0a;
-	undefined field_0x6c0b;
-	undefined field_0x6c0c;
-	undefined field_0x6c0d;
-	undefined field_0x6c0e;
-	undefined field_0x6c0f;
-	undefined field_0x6c10;
-	undefined field_0x6c11;
-	undefined field_0x6c12;
-	undefined field_0x6c13;
-	undefined field_0x6c14;
-	undefined field_0x6c15;
-	undefined field_0x6c16;
-	undefined field_0x6c17;
-	undefined field_0x6c18;
-	undefined field_0x6c19;
-	undefined field_0x6c1a;
-	undefined field_0x6c1b;
-	undefined field_0x6c1c;
-	undefined field_0x6c1d;
-	undefined field_0x6c1e;
-	undefined field_0x6c1f;
-	undefined field_0x6c20;
-	undefined field_0x6c21;
-	undefined field_0x6c22;
-	undefined field_0x6c23;
-	undefined field_0x6c24;
-	undefined field_0x6c25;
-	undefined field_0x6c26;
-	undefined field_0x6c27;
-	undefined field_0x6c28;
-	undefined field_0x6c29;
-	undefined field_0x6c2a;
-	undefined field_0x6c2b;
-	undefined field_0x6c2c;
-	undefined field_0x6c2d;
-	undefined field_0x6c2e;
-	undefined field_0x6c2f;
-	undefined field_0x6c30;
-	undefined field_0x6c31;
-	undefined field_0x6c32;
-	undefined field_0x6c33;
-	undefined field_0x6c34;
-	undefined field_0x6c35;
-	undefined field_0x6c36;
-	undefined field_0x6c37;
-	undefined field_0x6c38;
-	undefined field_0x6c39;
-	undefined field_0x6c3a;
-	undefined field_0x6c3b;
-	undefined field_0x6c3c;
-	undefined field_0x6c3d;
-	undefined field_0x6c3e;
-	undefined field_0x6c3f;
-	undefined field_0x6c40;
-	undefined field_0x6c41;
-	undefined field_0x6c42;
-	undefined field_0x6c43;
-	undefined field_0x6c44;
-	undefined field_0x6c45;
-	undefined field_0x6c46;
-	undefined field_0x6c47;
-	undefined field_0x6c48;
-	undefined field_0x6c49;
-	undefined field_0x6c4a;
-	undefined field_0x6c4b;
-	undefined field_0x6c4c;
-	undefined field_0x6c4d;
-	undefined field_0x6c4e;
-	undefined field_0x6c4f;
-	undefined field_0x6c50;
-	undefined field_0x6c51;
-	undefined field_0x6c52;
-	undefined field_0x6c53;
-	undefined field_0x6c54;
-	undefined field_0x6c55;
-	undefined field_0x6c56;
-	undefined field_0x6c57;
-	undefined field_0x6c58;
-	undefined field_0x6c59;
-	undefined field_0x6c5a;
-	undefined field_0x6c5b;
-	undefined field_0x6c5c;
-	undefined field_0x6c5d;
-	undefined field_0x6c5e;
-	undefined field_0x6c5f;
-	undefined field_0x6c60;
-	undefined field_0x6c61;
-	undefined field_0x6c62;
-	undefined field_0x6c63;
-	undefined field_0x6c64;
-	undefined field_0x6c65;
-	undefined field_0x6c66;
-	undefined field_0x6c67;
-	undefined field_0x6c68;
-	undefined field_0x6c69;
-	undefined field_0x6c6a;
-	undefined field_0x6c6b;
-	undefined field_0x6c6c;
-	undefined field_0x6c6d;
-	undefined field_0x6c6e;
-	undefined field_0x6c6f;
-	undefined field_0x6c70;
-	undefined field_0x6c71;
-	undefined field_0x6c72;
-	undefined field_0x6c73;
-	undefined field_0x6c74;
-	undefined field_0x6c75;
-	undefined field_0x6c76;
-	undefined field_0x6c77;
-	undefined field_0x6c78;
-	undefined field_0x6c79;
-	undefined field_0x6c7a;
-	undefined field_0x6c7b;
-	undefined field_0x6c7c;
-	undefined field_0x6c7d;
-	undefined field_0x6c7e;
-	undefined field_0x6c7f;
-	undefined field_0x6c80;
-	undefined field_0x6c81;
-	undefined field_0x6c82;
-	undefined field_0x6c83;
-	undefined field_0x6c84;
-	undefined field_0x6c85;
-	undefined field_0x6c86;
-	undefined field_0x6c87;
-	undefined field_0x6c88;
-	undefined field_0x6c89;
-	undefined field_0x6c8a;
-	undefined field_0x6c8b;
-	undefined field_0x6c8c;
-	undefined field_0x6c8d;
-	undefined field_0x6c8e;
-	undefined field_0x6c8f;
-	undefined field_0x6c90;
-	undefined field_0x6c91;
-	undefined field_0x6c92;
-	undefined field_0x6c93;
-	undefined field_0x6c94;
-	undefined field_0x6c95;
-	undefined field_0x6c96;
-	undefined field_0x6c97;
-	undefined field_0x6c98;
-	undefined field_0x6c99;
-	undefined field_0x6c9a;
-	undefined field_0x6c9b;
-	undefined field_0x6c9c;
-	undefined field_0x6c9d;
-	undefined field_0x6c9e;
-	undefined field_0x6c9f;
-	undefined field_0x6ca0;
-	undefined field_0x6ca1;
-	undefined field_0x6ca2;
-	undefined field_0x6ca3;
-	undefined field_0x6ca4;
-	undefined field_0x6ca5;
-	undefined field_0x6ca6;
-	undefined field_0x6ca7;
-	undefined field_0x6ca8;
-	undefined field_0x6ca9;
-	undefined field_0x6caa;
-	undefined field_0x6cab;
-	undefined field_0x6cac;
-	undefined field_0x6cad;
-	undefined field_0x6cae;
-	undefined field_0x6caf;
-	undefined field_0x6cb0;
-	undefined field_0x6cb1;
-	undefined field_0x6cb2;
-	undefined field_0x6cb3;
-	undefined field_0x6cb4;
-	undefined field_0x6cb5;
-	undefined field_0x6cb6;
-	undefined field_0x6cb7;
-	undefined field_0x6cb8;
-	undefined field_0x6cb9;
-	undefined field_0x6cba;
-	undefined field_0x6cbb;
-	undefined field_0x6cbc;
-	undefined field_0x6cbd;
-	undefined field_0x6cbe;
-	undefined field_0x6cbf;
-	undefined field_0x6cc0;
-	undefined field_0x6cc1;
-	undefined field_0x6cc2;
-	undefined field_0x6cc3;
-	undefined field_0x6cc4;
-	undefined field_0x6cc5;
-	undefined field_0x6cc6;
-	undefined field_0x6cc7;
-	undefined field_0x6cc8;
-	undefined field_0x6cc9;
-	undefined field_0x6cca;
-	undefined field_0x6ccb;
-	undefined field_0x6ccc;
-	undefined field_0x6ccd;
-	undefined field_0x6cce;
-	undefined field_0x6ccf;
-	undefined field_0x6cd0;
-	undefined field_0x6cd1;
-	undefined field_0x6cd2;
-	undefined field_0x6cd3;
-	undefined field_0x6cd4;
-	undefined field_0x6cd5;
-	undefined field_0x6cd6;
-	undefined field_0x6cd7;
-	undefined field_0x6cd8;
-	undefined field_0x6cd9;
-	undefined field_0x6cda;
-	undefined field_0x6cdb;
-	undefined field_0x6cdc;
-	undefined field_0x6cdd;
-	undefined field_0x6cde;
-	undefined field_0x6cdf;
-	undefined field_0x6ce0;
-	undefined field_0x6ce1;
-	undefined field_0x6ce2;
-	undefined field_0x6ce3;
-	undefined field_0x6ce4;
-	undefined field_0x6ce5;
-	undefined field_0x6ce6;
-	undefined field_0x6ce7;
-	undefined field_0x6ce8;
-	undefined field_0x6ce9;
-	undefined field_0x6cea;
-	undefined field_0x6ceb;
-	undefined field_0x6cec;
-	undefined field_0x6ced;
-	undefined field_0x6cee;
-	undefined field_0x6cef;
-	undefined field_0x6cf0;
-	undefined field_0x6cf1;
-	undefined field_0x6cf2;
-	undefined field_0x6cf3;
-	undefined field_0x6cf4;
-	undefined field_0x6cf5;
-	undefined field_0x6cf6;
-	undefined field_0x6cf7;
-	undefined field_0x6cf8;
-	undefined field_0x6cf9;
-	undefined field_0x6cfa;
-	undefined field_0x6cfb;
-	undefined field_0x6cfc;
-	undefined field_0x6cfd;
-	undefined field_0x6cfe;
-	undefined field_0x6cff;
-	undefined field_0x6d00;
-	undefined field_0x6d01;
-	undefined field_0x6d02;
-	undefined field_0x6d03;
-	undefined field_0x6d04;
-	undefined field_0x6d05;
-	undefined field_0x6d06;
-	undefined field_0x6d07;
-	undefined field_0x6d08;
-	undefined field_0x6d09;
-	undefined field_0x6d0a;
-	undefined field_0x6d0b;
-	undefined field_0x6d0c;
-	undefined field_0x6d0d;
-	undefined field_0x6d0e;
-	undefined field_0x6d0f;
-	undefined field_0x6d10;
-	undefined field_0x6d11;
-	undefined field_0x6d12;
-	undefined field_0x6d13;
-	undefined field_0x6d14;
-	undefined field_0x6d15;
-	undefined field_0x6d16;
-	undefined field_0x6d17;
-	undefined field_0x6d18;
-	undefined field_0x6d19;
-	undefined field_0x6d1a;
-	undefined field_0x6d1b;
-	undefined field_0x6d1c;
-	undefined field_0x6d1d;
-	undefined field_0x6d1e;
-	undefined field_0x6d1f;
-	undefined field_0x6d20;
-	undefined field_0x6d21;
-	undefined field_0x6d22;
-	undefined field_0x6d23;
-	undefined field_0x6d24;
-	undefined field_0x6d25;
-	undefined field_0x6d26;
-	undefined field_0x6d27;
-	undefined field_0x6d28;
-	undefined field_0x6d29;
-	undefined field_0x6d2a;
-	undefined field_0x6d2b;
-	undefined field_0x6d2c;
-	undefined field_0x6d2d;
-	undefined field_0x6d2e;
-	undefined field_0x6d2f;
-	undefined field_0x6d30;
-	undefined field_0x6d31;
-	undefined field_0x6d32;
-	undefined field_0x6d33;
-	undefined field_0x6d34;
-	undefined field_0x6d35;
-	undefined field_0x6d36;
-	undefined field_0x6d37;
-	undefined field_0x6d38;
-	undefined field_0x6d39;
-	undefined field_0x6d3a;
-	undefined field_0x6d3b;
-	undefined field_0x6d3c;
-	undefined field_0x6d3d;
-	undefined field_0x6d3e;
-	undefined field_0x6d3f;
-	undefined field_0x6d40;
-	undefined field_0x6d41;
-	undefined field_0x6d42;
-	undefined field_0x6d43;
-	undefined field_0x6d44;
-	undefined field_0x6d45;
-	undefined field_0x6d46;
-	undefined field_0x6d47;
-	undefined field_0x6d48;
-	undefined field_0x6d49;
-	undefined field_0x6d4a;
-	undefined field_0x6d4b;
-	undefined field_0x6d4c;
-	undefined field_0x6d4d;
-	undefined field_0x6d4e;
-	undefined field_0x6d4f;
-	undefined field_0x6d50;
-	undefined field_0x6d51;
-	undefined field_0x6d52;
-	undefined field_0x6d53;
-	undefined field_0x6d54;
-	undefined field_0x6d55;
-	undefined field_0x6d56;
-	undefined field_0x6d57;
-	undefined field_0x6d58;
-	undefined field_0x6d59;
-	undefined field_0x6d5a;
-	undefined field_0x6d5b;
-	undefined field_0x6d5c;
-	undefined field_0x6d5d;
-	undefined field_0x6d5e;
-	undefined field_0x6d5f;
-	undefined field_0x6d60;
-	undefined field_0x6d61;
-	undefined field_0x6d62;
-	undefined field_0x6d63;
-	undefined field_0x6d64;
-	undefined field_0x6d65;
-	undefined field_0x6d66;
-	undefined field_0x6d67;
-	undefined field_0x6d68;
-	undefined field_0x6d69;
-	undefined field_0x6d6a;
-	undefined field_0x6d6b;
-	undefined field_0x6d6c;
-	undefined field_0x6d6d;
-	undefined field_0x6d6e;
-	undefined field_0x6d6f;
-	undefined field_0x6d70;
-	undefined field_0x6d71;
-	undefined field_0x6d72;
-	undefined field_0x6d73;
-	undefined field_0x6d74;
-	undefined field_0x6d75;
-	undefined field_0x6d76;
-	undefined field_0x6d77;
-	undefined field_0x6d78;
-	undefined field_0x6d79;
-	undefined field_0x6d7a;
-	undefined field_0x6d7b;
-	undefined field_0x6d7c;
-	undefined field_0x6d7d;
-	undefined field_0x6d7e;
-	undefined field_0x6d7f;
-	undefined field_0x6d80;
-	undefined field_0x6d81;
-	undefined field_0x6d82;
-	undefined field_0x6d83;
-	undefined field_0x6d84;
-	undefined field_0x6d85;
-	undefined field_0x6d86;
-	undefined field_0x6d87;
-	undefined field_0x6d88;
-	undefined field_0x6d89;
-	undefined field_0x6d8a;
-	undefined field_0x6d8b;
-	undefined field_0x6d8c;
-	undefined field_0x6d8d;
-	undefined field_0x6d8e;
-	undefined field_0x6d8f;
-	undefined field_0x6d90;
-	undefined field_0x6d91;
-	undefined field_0x6d92;
-	undefined field_0x6d93;
-	undefined field_0x6d94;
-	undefined field_0x6d95;
-	undefined field_0x6d96;
-	undefined field_0x6d97;
-	undefined field_0x6d98;
-	undefined field_0x6d99;
-	undefined field_0x6d9a;
-	undefined field_0x6d9b;
-	undefined field_0x6d9c;
-	undefined field_0x6d9d;
-	undefined field_0x6d9e;
-	undefined field_0x6d9f;
-	undefined field_0x6da0;
-	undefined field_0x6da1;
-	undefined field_0x6da2;
-	undefined field_0x6da3;
-	undefined field_0x6da4;
-	undefined field_0x6da5;
-	undefined field_0x6da6;
-	undefined field_0x6da7;
-	undefined field_0x6da8;
-	undefined field_0x6da9;
-	undefined field_0x6daa;
-	undefined field_0x6dab;
-	undefined field_0x6dac;
-	undefined field_0x6dad;
-	undefined field_0x6dae;
-	undefined field_0x6daf;
-	undefined field_0x6db0;
-	undefined field_0x6db1;
-	undefined field_0x6db2;
-	undefined field_0x6db3;
-	undefined field_0x6db4;
-	undefined field_0x6db5;
-	undefined field_0x6db6;
-	undefined field_0x6db7;
-	undefined field_0x6db8;
-	undefined field_0x6db9;
-	undefined field_0x6dba;
-	undefined field_0x6dbb;
-	undefined field_0x6dbc;
-	undefined field_0x6dbd;
-	undefined field_0x6dbe;
-	undefined field_0x6dbf;
-	undefined field_0x6dc0;
-	undefined field_0x6dc1;
-	undefined field_0x6dc2;
-	undefined field_0x6dc3;
-	undefined field_0x6dc4;
-	undefined field_0x6dc5;
-	undefined field_0x6dc6;
-	undefined field_0x6dc7;
-	undefined field_0x6dc8;
-	undefined field_0x6dc9;
-	undefined field_0x6dca;
-	undefined field_0x6dcb;
-	undefined field_0x6dcc;
-	undefined field_0x6dcd;
-	undefined field_0x6dce;
-	undefined field_0x6dcf;
-	undefined field_0x6dd0;
-	undefined field_0x6dd1;
-	undefined field_0x6dd2;
-	undefined field_0x6dd3;
-	undefined field_0x6dd4;
-	undefined field_0x6dd5;
-	undefined field_0x6dd6;
-	undefined field_0x6dd7;
-	undefined field_0x6dd8;
-	undefined field_0x6dd9;
-	undefined field_0x6dda;
-	undefined field_0x6ddb;
-	undefined field_0x6ddc;
-	undefined field_0x6ddd;
-	undefined field_0x6dde;
-	undefined field_0x6ddf;
-	undefined field_0x6de0;
-	undefined field_0x6de1;
-	undefined field_0x6de2;
-	undefined field_0x6de3;
-	undefined field_0x6de4;
-	undefined field_0x6de5;
-	undefined field_0x6de6;
-	undefined field_0x6de7;
-	undefined field_0x6de8;
-	undefined field_0x6de9;
-	undefined field_0x6dea;
-	undefined field_0x6deb;
-	undefined field_0x6dec;
-	undefined field_0x6ded;
-	undefined field_0x6dee;
-	undefined field_0x6def;
-	undefined field_0x6df0;
-	undefined field_0x6df1;
-	undefined field_0x6df2;
-	undefined field_0x6df3;
-	undefined field_0x6df4;
-	undefined field_0x6df5;
-	undefined field_0x6df6;
-	undefined field_0x6df7;
-	undefined field_0x6df8;
-	undefined field_0x6df9;
-	undefined field_0x6dfa;
-	undefined field_0x6dfb;
-	undefined field_0x6dfc;
-	undefined field_0x6dfd;
-	undefined field_0x6dfe;
-	undefined field_0x6dff;
-	undefined field_0x6e00;
-	undefined field_0x6e01;
-	undefined field_0x6e02;
-	undefined field_0x6e03;
-	undefined field_0x6e04;
-	undefined field_0x6e05;
-	undefined field_0x6e06;
-	undefined field_0x6e07;
-	undefined field_0x6e08;
-	undefined field_0x6e09;
-	undefined field_0x6e0a;
-	undefined field_0x6e0b;
-	undefined field_0x6e0c;
-	undefined field_0x6e0d;
-	undefined field_0x6e0e;
-	undefined field_0x6e0f;
-	undefined field_0x6e10;
-	undefined field_0x6e11;
-	undefined field_0x6e12;
-	undefined field_0x6e13;
-	undefined field_0x6e14;
-	undefined field_0x6e15;
-	undefined field_0x6e16;
-	undefined field_0x6e17;
-	undefined field_0x6e18;
-	undefined field_0x6e19;
-	undefined field_0x6e1a;
-	undefined field_0x6e1b;
-	undefined field_0x6e1c;
-	undefined field_0x6e1d;
-	undefined field_0x6e1e;
-	undefined field_0x6e1f;
-	undefined field_0x6e20;
-	undefined field_0x6e21;
-	undefined field_0x6e22;
-	undefined field_0x6e23;
-	undefined field_0x6e24;
-	undefined field_0x6e25;
-	undefined field_0x6e26;
-	undefined field_0x6e27;
-	undefined field_0x6e28;
-	undefined field_0x6e29;
-	undefined field_0x6e2a;
-	undefined field_0x6e2b;
-	undefined field_0x6e2c;
-	undefined field_0x6e2d;
-	undefined field_0x6e2e;
-	undefined field_0x6e2f;
-	undefined field_0x6e30;
-	undefined field_0x6e31;
-	undefined field_0x6e32;
-	undefined field_0x6e33;
-	undefined field_0x6e34;
-	undefined field_0x6e35;
-	undefined field_0x6e36;
-	undefined field_0x6e37;
-	undefined field_0x6e38;
-	undefined field_0x6e39;
-	undefined field_0x6e3a;
-	undefined field_0x6e3b;
-	undefined field_0x6e3c;
-	undefined field_0x6e3d;
-	undefined field_0x6e3e;
-	undefined field_0x6e3f;
-	undefined field_0x6e40;
-	undefined field_0x6e41;
-	undefined field_0x6e42;
-	undefined field_0x6e43;
-	undefined field_0x6e44;
-	undefined field_0x6e45;
-	undefined field_0x6e46;
-	undefined field_0x6e47;
-	undefined field_0x6e48;
-	undefined field_0x6e49;
-	undefined field_0x6e4a;
-	undefined field_0x6e4b;
-	undefined field_0x6e4c;
-	undefined field_0x6e4d;
-	undefined field_0x6e4e;
-	undefined field_0x6e4f;
-	undefined field_0x6e50;
-	undefined field_0x6e51;
-	undefined field_0x6e52;
-	undefined field_0x6e53;
-	undefined field_0x6e54;
-	undefined field_0x6e55;
-	undefined field_0x6e56;
-	undefined field_0x6e57;
-	undefined field_0x6e58;
-	undefined field_0x6e59;
-	undefined field_0x6e5a;
-	undefined field_0x6e5b;
-	undefined field_0x6e5c;
-	undefined field_0x6e5d;
-	undefined field_0x6e5e;
-	undefined field_0x6e5f;
-	undefined field_0x6e60;
-	undefined field_0x6e61;
-	undefined field_0x6e62;
-	undefined field_0x6e63;
-	undefined field_0x6e64;
-	undefined field_0x6e65;
-	undefined field_0x6e66;
-	undefined field_0x6e67;
-	undefined field_0x6e68;
-	undefined field_0x6e69;
-	undefined field_0x6e6a;
-	undefined field_0x6e6b;
-	undefined field_0x6e6c;
-	undefined field_0x6e6d;
-	undefined field_0x6e6e;
-	undefined field_0x6e6f;
-	undefined field_0x6e70;
-	undefined field_0x6e71;
-	undefined field_0x6e72;
-	undefined field_0x6e73;
-	undefined field_0x6e74;
-	undefined field_0x6e75;
-	undefined field_0x6e76;
-	undefined field_0x6e77;
-	undefined field_0x6e78;
-	undefined field_0x6e79;
-	undefined field_0x6e7a;
-	undefined field_0x6e7b;
-	undefined field_0x6e7c;
-	undefined field_0x6e7d;
-	undefined field_0x6e7e;
-	undefined field_0x6e7f;
-	undefined field_0x6e80;
-	undefined field_0x6e81;
-	undefined field_0x6e82;
-	undefined field_0x6e83;
-	undefined field_0x6e84;
-	undefined field_0x6e85;
-	undefined field_0x6e86;
-	undefined field_0x6e87;
-	undefined field_0x6e88;
-	undefined field_0x6e89;
-	undefined field_0x6e8a;
-	undefined field_0x6e8b;
-	undefined field_0x6e8c;
-	undefined field_0x6e8d;
-	undefined field_0x6e8e;
-	undefined field_0x6e8f;
-	undefined field_0x6e90;
-	undefined field_0x6e91;
-	undefined field_0x6e92;
-	undefined field_0x6e93;
-	undefined field_0x6e94;
-	undefined field_0x6e95;
-	undefined field_0x6e96;
-	undefined field_0x6e97;
-	undefined field_0x6e98;
-	undefined field_0x6e99;
-	undefined field_0x6e9a;
-	undefined field_0x6e9b;
-	undefined field_0x6e9c;
-	undefined field_0x6e9d;
-	undefined field_0x6e9e;
-	undefined field_0x6e9f;
-	undefined field_0x6ea0;
-	undefined field_0x6ea1;
-	undefined field_0x6ea2;
-	undefined field_0x6ea3;
-	undefined field_0x6ea4;
-	undefined field_0x6ea5;
-	undefined field_0x6ea6;
-	undefined field_0x6ea7;
-	undefined field_0x6ea8;
-	undefined field_0x6ea9;
-	undefined field_0x6eaa;
-	undefined field_0x6eab;
-	undefined field_0x6eac;
-	undefined field_0x6ead;
-	undefined field_0x6eae;
-	undefined field_0x6eaf;
-	undefined field_0x6eb0;
-	undefined field_0x6eb1;
-	undefined field_0x6eb2;
-	undefined field_0x6eb3;
-	undefined field_0x6eb4;
-	undefined field_0x6eb5;
-	undefined field_0x6eb6;
-	undefined field_0x6eb7;
-	undefined field_0x6eb8;
-	undefined field_0x6eb9;
-	undefined field_0x6eba;
-	undefined field_0x6ebb;
-	undefined field_0x6ebc;
-	undefined field_0x6ebd;
-	undefined field_0x6ebe;
-	undefined field_0x6ebf;
-	undefined field_0x6ec0;
-	undefined field_0x6ec1;
-	undefined field_0x6ec2;
-	undefined field_0x6ec3;
-	undefined field_0x6ec4;
-	undefined field_0x6ec5;
-	undefined field_0x6ec6;
-	undefined field_0x6ec7;
-	undefined field_0x6ec8;
-	undefined field_0x6ec9;
-	undefined field_0x6eca;
-	undefined field_0x6ecb;
-	undefined field_0x6ecc;
-	undefined field_0x6ecd;
-	undefined field_0x6ece;
-	undefined field_0x6ecf;
-	undefined field_0x6ed0;
-	undefined field_0x6ed1;
-	undefined field_0x6ed2;
-	undefined field_0x6ed3;
-	undefined field_0x6ed4;
-	undefined field_0x6ed5;
-	undefined field_0x6ed6;
-	undefined field_0x6ed7;
-	undefined field_0x6ed8;
-	undefined field_0x6ed9;
-	undefined field_0x6eda;
-	undefined field_0x6edb;
-	undefined field_0x6edc;
-	undefined field_0x6edd;
-	undefined field_0x6ede;
-	undefined field_0x6edf;
-	undefined field_0x6ee0;
-	undefined field_0x6ee1;
-	undefined field_0x6ee2;
-	undefined field_0x6ee3;
-	undefined field_0x6ee4;
-	undefined field_0x6ee5;
-	undefined field_0x6ee6;
-	undefined field_0x6ee7;
-	undefined field_0x6ee8;
-	undefined field_0x6ee9;
-	undefined field_0x6eea;
-	undefined field_0x6eeb;
-	undefined field_0x6eec;
-	undefined field_0x6eed;
-	undefined field_0x6eee;
-	undefined field_0x6eef;
-	undefined field_0x6ef0;
-	undefined field_0x6ef1;
-	undefined field_0x6ef2;
-	undefined field_0x6ef3;
-	undefined field_0x6ef4;
-	undefined field_0x6ef5;
-	undefined field_0x6ef6;
-	undefined field_0x6ef7;
-	undefined field_0x6ef8;
-	undefined field_0x6ef9;
-	undefined field_0x6efa;
-	undefined field_0x6efb;
-	undefined field_0x6efc;
-	undefined field_0x6efd;
-	undefined field_0x6efe;
-	undefined field_0x6eff;
-	undefined field_0x6f00;
-	undefined field_0x6f01;
-	undefined field_0x6f02;
-	undefined field_0x6f03;
-	undefined field_0x6f04;
-	undefined field_0x6f05;
-	undefined field_0x6f06;
-	undefined field_0x6f07;
-	undefined field_0x6f08;
-	undefined field_0x6f09;
-	undefined field_0x6f0a;
-	undefined field_0x6f0b;
-	undefined field_0x6f0c;
-	undefined field_0x6f0d;
-	undefined field_0x6f0e;
-	undefined field_0x6f0f;
-	undefined field_0x6f10;
-	undefined field_0x6f11;
-	undefined field_0x6f12;
-	undefined field_0x6f13;
-	undefined field_0x6f14;
-	undefined field_0x6f15;
-	undefined field_0x6f16;
-	undefined field_0x6f17;
-	undefined field_0x6f18;
-	undefined field_0x6f19;
-	undefined field_0x6f1a;
-	undefined field_0x6f1b;
-	undefined field_0x6f1c;
-	undefined field_0x6f1d;
-	undefined field_0x6f1e;
-	undefined field_0x6f1f;
-	undefined field_0x6f20;
-	undefined field_0x6f21;
-	undefined field_0x6f22;
-	undefined field_0x6f23;
-	undefined field_0x6f24;
-	undefined field_0x6f25;
-	undefined field_0x6f26;
-	undefined field_0x6f27;
-	undefined field_0x6f28;
-	undefined field_0x6f29;
-	undefined field_0x6f2a;
-	undefined field_0x6f2b;
-	undefined field_0x6f2c;
-	undefined field_0x6f2d;
-	undefined field_0x6f2e;
-	undefined field_0x6f2f;
-	undefined field_0x6f30;
-	undefined field_0x6f31;
-	undefined field_0x6f32;
-	undefined field_0x6f33;
-	undefined field_0x6f34;
-	undefined field_0x6f35;
-	undefined field_0x6f36;
-	undefined field_0x6f37;
-	undefined field_0x6f38;
-	undefined field_0x6f39;
-	undefined field_0x6f3a;
-	undefined field_0x6f3b;
-	undefined field_0x6f3c;
-	undefined field_0x6f3d;
-	undefined field_0x6f3e;
-	undefined field_0x6f3f;
-	undefined field_0x6f40;
-	undefined field_0x6f41;
-	undefined field_0x6f42;
-	undefined field_0x6f43;
-	undefined field_0x6f44;
-	undefined field_0x6f45;
-	undefined field_0x6f46;
-	undefined field_0x6f47;
-	undefined field_0x6f48;
-	undefined field_0x6f49;
-	undefined field_0x6f4a;
-	undefined field_0x6f4b;
-	undefined field_0x6f4c;
-	undefined field_0x6f4d;
-	undefined field_0x6f4e;
-	undefined field_0x6f4f;
-	undefined field_0x6f50;
-	undefined field_0x6f51;
-	undefined field_0x6f52;
-	undefined field_0x6f53;
-	undefined field_0x6f54;
-	undefined field_0x6f55;
-	undefined field_0x6f56;
-	undefined field_0x6f57;
-	undefined field_0x6f58;
-	undefined field_0x6f59;
-	undefined field_0x6f5a;
-	undefined field_0x6f5b;
-	undefined field_0x6f5c;
-	undefined field_0x6f5d;
-	undefined field_0x6f5e;
-	undefined field_0x6f5f;
-	undefined field_0x6f60;
-	undefined field_0x6f61;
-	undefined field_0x6f62;
-	undefined field_0x6f63;
-	undefined field_0x6f64;
-	undefined field_0x6f65;
-	undefined field_0x6f66;
-	undefined field_0x6f67;
-	undefined field_0x6f68;
-	undefined field_0x6f69;
-	undefined field_0x6f6a;
-	undefined field_0x6f6b;
-	undefined field_0x6f6c;
-	undefined field_0x6f6d;
-	undefined field_0x6f6e;
-	undefined field_0x6f6f;
-	undefined field_0x6f70;
-	undefined field_0x6f71;
-	undefined field_0x6f72;
-	undefined field_0x6f73;
-	undefined field_0x6f74;
-	undefined field_0x6f75;
-	undefined field_0x6f76;
-	undefined field_0x6f77;
-	undefined field_0x6f78;
-	undefined field_0x6f79;
-	undefined field_0x6f7a;
-	undefined field_0x6f7b;
-	undefined field_0x6f7c;
-	undefined field_0x6f7d;
-	undefined field_0x6f7e;
-	undefined field_0x6f7f;
-	undefined field_0x6f80;
-	undefined field_0x6f81;
-	undefined field_0x6f82;
-	undefined field_0x6f83;
-	undefined field_0x6f84;
-	undefined field_0x6f85;
-	undefined field_0x6f86;
-	undefined field_0x6f87;
-	undefined field_0x6f88;
-	undefined field_0x6f89;
-	undefined field_0x6f8a;
-	undefined field_0x6f8b;
-	undefined field_0x6f8c;
-	undefined field_0x6f8d;
-	undefined field_0x6f8e;
-	undefined field_0x6f8f;
-	undefined field_0x6f90;
-	undefined field_0x6f91;
-	undefined field_0x6f92;
-	undefined field_0x6f93;
-	undefined field_0x6f94;
-	undefined field_0x6f95;
-	undefined field_0x6f96;
-	undefined field_0x6f97;
-	undefined field_0x6f98;
-	undefined field_0x6f99;
-	undefined field_0x6f9a;
-	undefined field_0x6f9b;
-	undefined field_0x6f9c;
-	undefined field_0x6f9d;
-	undefined field_0x6f9e;
-	undefined field_0x6f9f;
-	undefined field_0x6fa0;
-	undefined field_0x6fa1;
-	undefined field_0x6fa2;
-	undefined field_0x6fa3;
-	undefined field_0x6fa4;
-	undefined field_0x6fa5;
-	undefined field_0x6fa6;
-	undefined field_0x6fa7;
-	undefined field_0x6fa8;
-	undefined field_0x6fa9;
-	undefined field_0x6faa;
-	undefined field_0x6fab;
-	undefined field_0x6fac;
-	undefined field_0x6fad;
-	undefined field_0x6fae;
-	undefined field_0x6faf;
-	undefined field_0x6fb0;
-	undefined field_0x6fb1;
-	undefined field_0x6fb2;
-	undefined field_0x6fb3;
-	undefined field_0x6fb4;
-	undefined field_0x6fb5;
-	undefined field_0x6fb6;
-	undefined field_0x6fb7;
-	undefined field_0x6fb8;
-	undefined field_0x6fb9;
-	undefined field_0x6fba;
-	undefined field_0x6fbb;
-	undefined field_0x6fbc;
-	undefined field_0x6fbd;
-	undefined field_0x6fbe;
-	undefined field_0x6fbf;
-	undefined field_0x6fc0;
-	undefined field_0x6fc1;
-	undefined field_0x6fc2;
-	undefined field_0x6fc3;
-	undefined field_0x6fc4;
-	undefined field_0x6fc5;
-	undefined field_0x6fc6;
-	undefined field_0x6fc7;
-	undefined field_0x6fc8;
-	undefined field_0x6fc9;
-	undefined field_0x6fca;
-	undefined field_0x6fcb;
-	undefined field_0x6fcc;
-	undefined field_0x6fcd;
-	undefined field_0x6fce;
-	undefined field_0x6fcf;
-	undefined field_0x6fd0;
-	undefined field_0x6fd1;
-	undefined field_0x6fd2;
-	undefined field_0x6fd3;
-	undefined field_0x6fd4;
-	undefined field_0x6fd5;
-	undefined field_0x6fd6;
-	undefined field_0x6fd7;
-	undefined field_0x6fd8;
-	undefined field_0x6fd9;
-	undefined field_0x6fda;
-	undefined field_0x6fdb;
-	undefined field_0x6fdc;
-	undefined field_0x6fdd;
-	undefined field_0x6fde;
-	undefined field_0x6fdf;
-	undefined field_0x6fe0;
-	undefined field_0x6fe1;
-	undefined field_0x6fe2;
-	undefined field_0x6fe3;
-	undefined field_0x6fe4;
-	undefined field_0x6fe5;
-	undefined field_0x6fe6;
-	undefined field_0x6fe7;
-	undefined field_0x6fe8;
-	undefined field_0x6fe9;
-	undefined field_0x6fea;
-	undefined field_0x6feb;
-	undefined field_0x6fec;
-	undefined field_0x6fed;
-	undefined field_0x6fee;
-	undefined field_0x6fef;
-	undefined field_0x6ff0;
-	undefined field_0x6ff1;
-	undefined field_0x6ff2;
-	undefined field_0x6ff3;
-	undefined field_0x6ff4;
-	undefined field_0x6ff5;
-	undefined field_0x6ff6;
-	undefined field_0x6ff7;
-	undefined field_0x6ff8;
-	undefined field_0x6ff9;
-	undefined field_0x6ffa;
-	undefined field_0x6ffb;
-	undefined field_0x6ffc;
-	undefined field_0x6ffd;
-	undefined field_0x6ffe;
-	undefined field_0x6fff;
-	undefined field_0x7000;
-	undefined field_0x7001;
-	undefined field_0x7002;
-	undefined field_0x7003;
-	undefined field_0x7004;
-	undefined field_0x7005;
-	undefined field_0x7006;
-	undefined field_0x7007;
-	undefined field_0x7008;
-	undefined field_0x7009;
-	undefined field_0x700a;
-	undefined field_0x700b;
-	undefined field_0x700c;
-	undefined field_0x700d;
-	undefined field_0x700e;
-	undefined field_0x700f;
-	undefined field_0x7010;
-	undefined field_0x7011;
-	undefined field_0x7012;
-	undefined field_0x7013;
-	undefined field_0x7014;
-	undefined field_0x7015;
-	undefined field_0x7016;
-	undefined field_0x7017;
-	undefined field_0x7018;
-	undefined field_0x7019;
-	undefined field_0x701a;
-	undefined field_0x701b;
-	undefined field_0x701c;
-	undefined field_0x701d;
-	undefined field_0x701e;
-	undefined field_0x701f;
-	undefined field_0x7020;
-	undefined field_0x7021;
-	undefined field_0x7022;
-	undefined field_0x7023;
-	undefined field_0x7024;
-	undefined field_0x7025;
-	undefined field_0x7026;
-	undefined field_0x7027;
-	undefined field_0x7028;
-	undefined field_0x7029;
-	undefined field_0x702a;
-	undefined field_0x702b;
-	undefined field_0x702c;
-	undefined field_0x702d;
-	undefined field_0x702e;
-	undefined field_0x702f;
-	undefined field_0x7030;
-	undefined field_0x7031;
-	undefined field_0x7032;
-	undefined field_0x7033;
-	undefined field_0x7034;
-	undefined field_0x7035;
-	undefined field_0x7036;
-	undefined field_0x7037;
-	undefined field_0x7038;
-	undefined field_0x7039;
-	undefined field_0x703a;
-	undefined field_0x703b;
-	undefined field_0x703c;
-	undefined field_0x703d;
-	undefined field_0x703e;
-	undefined field_0x703f;
-	undefined field_0x7040;
-	undefined field_0x7041;
-	undefined field_0x7042;
-	undefined field_0x7043;
-	undefined field_0x7044;
-	undefined field_0x7045;
-	undefined field_0x7046;
-	undefined field_0x7047;
-	undefined field_0x7048;
-	undefined field_0x7049;
-	undefined field_0x704a;
-	undefined field_0x704b;
-	undefined field_0x704c;
-	undefined field_0x704d;
-	undefined field_0x704e;
-	undefined field_0x704f;
-	undefined field_0x7050;
-	undefined field_0x7051;
-	undefined field_0x7052;
-	undefined field_0x7053;
-	undefined field_0x7054;
-	undefined field_0x7055;
-	undefined field_0x7056;
-	undefined field_0x7057;
-	undefined field_0x7058;
-	undefined field_0x7059;
-	undefined field_0x705a;
-	undefined field_0x705b;
-	undefined field_0x705c;
-	undefined field_0x705d;
-	undefined field_0x705e;
-	undefined field_0x705f;
-	undefined field_0x7060;
-	undefined field_0x7061;
-	undefined field_0x7062;
-	undefined field_0x7063;
-	undefined field_0x7064;
-	undefined field_0x7065;
-	undefined field_0x7066;
-	undefined field_0x7067;
-	undefined field_0x7068;
-	undefined field_0x7069;
-	undefined field_0x706a;
-	undefined field_0x706b;
-	undefined field_0x706c;
-	undefined field_0x706d;
-	undefined field_0x706e;
-	undefined field_0x706f;
-	undefined field_0x7070;
-	undefined field_0x7071;
-	undefined field_0x7072;
-	undefined field_0x7073;
-	undefined field_0x7074;
-	undefined field_0x7075;
-	undefined field_0x7076;
-	undefined field_0x7077;
-	undefined field_0x7078;
-	undefined field_0x7079;
-	undefined field_0x707a;
-	undefined field_0x707b;
-	undefined field_0x707c;
-	undefined field_0x707d;
-	undefined field_0x707e;
-	undefined field_0x707f;
-	undefined field_0x7080;
-	undefined field_0x7081;
-	undefined field_0x7082;
-	undefined field_0x7083;
-	undefined field_0x7084;
-	undefined field_0x7085;
-	undefined field_0x7086;
-	undefined field_0x7087;
-	undefined field_0x7088;
-	undefined field_0x7089;
-	undefined field_0x708a;
-	undefined field_0x708b;
-	undefined field_0x708c;
-	undefined field_0x708d;
-	undefined field_0x708e;
-	undefined field_0x708f;
-	undefined field_0x7090;
-	undefined field_0x7091;
-	undefined field_0x7092;
-	undefined field_0x7093;
-	undefined field_0x7094;
-	undefined field_0x7095;
-	undefined field_0x7096;
-	undefined field_0x7097;
-	undefined field_0x7098;
-	undefined field_0x7099;
-	undefined field_0x709a;
-	undefined field_0x709b;
-	undefined field_0x709c;
-	undefined field_0x709d;
-	undefined field_0x709e;
-	undefined field_0x709f;
-	undefined field_0x70a0;
-	undefined field_0x70a1;
-	undefined field_0x70a2;
-	undefined field_0x70a3;
-	undefined field_0x70a4;
-	undefined field_0x70a5;
-	undefined field_0x70a6;
-	undefined field_0x70a7;
-	undefined field_0x70a8;
-	undefined field_0x70a9;
-	undefined field_0x70aa;
-	undefined field_0x70ab;
-	undefined field_0x70ac;
-	undefined field_0x70ad;
-	undefined field_0x70ae;
-	undefined field_0x70af;
-	undefined field_0x70b0;
-	undefined field_0x70b1;
-	undefined field_0x70b2;
-	undefined field_0x70b3;
-	undefined field_0x70b4;
-	undefined field_0x70b5;
-	undefined field_0x70b6;
-	undefined field_0x70b7;
-	undefined field_0x70b8;
-	undefined field_0x70b9;
-	undefined field_0x70ba;
-	undefined field_0x70bb;
-	undefined field_0x70bc;
-	undefined field_0x70bd;
-	undefined field_0x70be;
-	undefined field_0x70bf;
-	undefined field_0x70c0;
-	undefined field_0x70c1;
-	undefined field_0x70c2;
-	undefined field_0x70c3;
-	undefined field_0x70c4;
-	undefined field_0x70c5;
-	undefined field_0x70c6;
-	undefined field_0x70c7;
-	undefined field_0x70c8;
-	undefined field_0x70c9;
-	undefined field_0x70ca;
-	undefined field_0x70cb;
-	undefined field_0x70cc;
-	undefined field_0x70cd;
-	undefined field_0x70ce;
-	undefined field_0x70cf;
-	undefined field_0x70d0;
-	undefined field_0x70d1;
-	undefined field_0x70d2;
-	undefined field_0x70d3;
-	undefined field_0x70d4;
-	undefined field_0x70d5;
-	undefined field_0x70d6;
-	undefined field_0x70d7;
-	undefined field_0x70d8;
-	undefined field_0x70d9;
-	undefined field_0x70da;
-	undefined field_0x70db;
-	undefined field_0x70dc;
-	undefined field_0x70dd;
-	undefined field_0x70de;
-	undefined field_0x70df;
-	undefined field_0x70e0;
-	undefined field_0x70e1;
-	undefined field_0x70e2;
-	undefined field_0x70e3;
-	undefined field_0x70e4;
-	undefined field_0x70e5;
-	undefined field_0x70e6;
-	undefined field_0x70e7;
-	undefined field_0x70e8;
-	undefined field_0x70e9;
-	undefined field_0x70ea;
-	undefined field_0x70eb;
-	undefined field_0x70ec;
-	undefined field_0x70ed;
-	undefined field_0x70ee;
-	undefined field_0x70ef;
-	undefined field_0x70f0;
-	undefined field_0x70f1;
-	undefined field_0x70f2;
-	undefined field_0x70f3;
-	undefined field_0x70f4;
-	undefined field_0x70f5;
-	undefined field_0x70f6;
-	undefined field_0x70f7;
-	undefined field_0x70f8;
-	undefined field_0x70f9;
-	undefined field_0x70fa;
-	undefined field_0x70fb;
-	undefined field_0x70fc;
-	undefined field_0x70fd;
-	undefined field_0x70fe;
-	undefined field_0x70ff;
-	undefined field_0x7100;
-	undefined field_0x7101;
-	undefined field_0x7102;
-	undefined field_0x7103;
-	undefined field_0x7104;
-	undefined field_0x7105;
-	undefined field_0x7106;
-	undefined field_0x7107;
-	undefined field_0x7108;
-	undefined field_0x7109;
-	undefined field_0x710a;
-	undefined field_0x710b;
-	undefined field_0x710c;
-	undefined field_0x710d;
-	undefined field_0x710e;
-	undefined field_0x710f;
-	undefined field_0x7110;
-	undefined field_0x7111;
-	undefined field_0x7112;
-	undefined field_0x7113;
-	undefined field_0x7114;
-	undefined field_0x7115;
-	undefined field_0x7116;
-	undefined field_0x7117;
-	undefined field_0x7118;
-	undefined field_0x7119;
-	undefined field_0x711a;
-	undefined field_0x711b;
-	undefined field_0x711c;
-	undefined field_0x711d;
-	undefined field_0x711e;
-	undefined field_0x711f;
-	undefined field_0x7120;
-	undefined field_0x7121;
-	undefined field_0x7122;
-	undefined field_0x7123;
-	undefined field_0x7124;
-	undefined field_0x7125;
-	undefined field_0x7126;
-	undefined field_0x7127;
-	undefined field_0x7128;
-	undefined field_0x7129;
-	undefined field_0x712a;
-	undefined field_0x712b;
-	undefined field_0x712c;
-	undefined field_0x712d;
-	undefined field_0x712e;
-	undefined field_0x712f;
-	undefined field_0x7130;
-	undefined field_0x7131;
-	undefined field_0x7132;
-	undefined field_0x7133;
-	undefined field_0x7134;
-	undefined field_0x7135;
-	undefined field_0x7136;
-	undefined field_0x7137;
-	undefined field_0x7138;
-	undefined field_0x7139;
-	undefined field_0x713a;
-	undefined field_0x713b;
-	undefined field_0x713c;
-	undefined field_0x713d;
-	undefined field_0x713e;
-	undefined field_0x713f;
-	undefined field_0x7140;
-	undefined field_0x7141;
-	undefined field_0x7142;
-	undefined field_0x7143;
-	undefined field_0x7144;
-	undefined field_0x7145;
-	undefined field_0x7146;
-	undefined field_0x7147;
-	undefined field_0x7148;
-	undefined field_0x7149;
-	undefined field_0x714a;
-	undefined field_0x714b;
-	undefined field_0x714c;
-	undefined field_0x714d;
-	undefined field_0x714e;
-	undefined field_0x714f;
-	undefined field_0x7150;
-	undefined field_0x7151;
-	undefined field_0x7152;
-	undefined field_0x7153;
-	undefined field_0x7154;
-	undefined field_0x7155;
-	undefined field_0x7156;
-	undefined field_0x7157;
-	undefined field_0x7158;
-	undefined field_0x7159;
-	undefined field_0x715a;
-	undefined field_0x715b;
-	undefined field_0x715c;
-	undefined field_0x715d;
-	undefined field_0x715e;
-	undefined field_0x715f;
-	undefined field_0x7160;
-	undefined field_0x7161;
-	undefined field_0x7162;
-	undefined field_0x7163;
-	undefined field_0x7164;
-	undefined field_0x7165;
-	undefined field_0x7166;
-	undefined field_0x7167;
-	undefined field_0x7168;
-	undefined field_0x7169;
-	undefined field_0x716a;
-	undefined field_0x716b;
-	undefined field_0x716c;
-	undefined field_0x716d;
-	undefined field_0x716e;
-	undefined field_0x716f;
-	undefined field_0x7170;
-	undefined field_0x7171;
-	undefined field_0x7172;
-	undefined field_0x7173;
-	undefined field_0x7174;
-	undefined field_0x7175;
-	undefined field_0x7176;
-	undefined field_0x7177;
-	undefined field_0x7178;
-	undefined field_0x7179;
-	undefined field_0x717a;
-	undefined field_0x717b;
-	undefined field_0x717c;
-	undefined field_0x717d;
-	undefined field_0x717e;
-	undefined field_0x717f;
-	undefined field_0x7180;
-	undefined field_0x7181;
-	undefined field_0x7182;
-	undefined field_0x7183;
-	undefined field_0x7184;
-	undefined field_0x7185;
-	undefined field_0x7186;
-	undefined field_0x7187;
-	undefined field_0x7188;
-	undefined field_0x7189;
-	undefined field_0x718a;
-	undefined field_0x718b;
-	undefined field_0x718c;
-	undefined field_0x718d;
-	undefined field_0x718e;
-	undefined field_0x718f;
-	undefined field_0x7190;
-	undefined field_0x7191;
-	undefined field_0x7192;
-	undefined field_0x7193;
-	undefined field_0x7194;
-	undefined field_0x7195;
-	undefined field_0x7196;
-	undefined field_0x7197;
-	undefined4 field_7198;
-	struct SurfaceMapStruct38 table38_719c[10];
-	struct Container * resData_73cc;
-	undefined4 field_73d0;
-};
-
-struct CameraData { // May be camera data (which is related to- but not the same as viewports)
-	enum CameraType camType;
-	struct LiveObject * object_4;
-	float float_8;
-	float float_c;
-	float float_10;
-	undefined4 field_14;
-	struct Vector3F vector_18;
-	struct Container * resData1; // only resData created for FP type (null attachment)
-	struct Container * resData2; // attached to resRoot
-	struct Container * resData3; // attached to resRoot
-	struct Container * resData4; // attached to resData2
-	struct Container * resTableunk_34; // attached to resData4 (topdown type only)
-	undefined field_0x38;
-	undefined field_0x39;
-	undefined field_0x3a;
-	undefined field_0x3b;
-	undefined field_0x3c;
-	undefined field_0x3d;
-	undefined field_0x3e;
-	undefined field_0x3f;
-	undefined field_0x40;
-	undefined field_0x41;
-	undefined field_0x42;
-	undefined field_0x43;
-	undefined field_0x44;
-	undefined field_0x45;
-	undefined field_0x46;
-	undefined field_0x47;
-	undefined field_0x48;
-	undefined field_0x49;
-	undefined field_0x4a;
-	undefined field_0x4b;
-	undefined field_0x4c;
-	undefined field_0x4d;
-	undefined field_0x4e;
-	undefined field_0x4f;
-	undefined field_0x50;
-	undefined field_0x51;
-	undefined field_0x52;
-	undefined field_0x53;
-	undefined field_0x54;
-	undefined field_0x55;
-	undefined field_0x56;
-	undefined field_0x57;
-	undefined field_0x58;
-	undefined field_0x59;
-	undefined field_0x5a;
-	undefined field_0x5b;
-	undefined field_0x5c;
-	undefined field_0x5d;
-	undefined field_0x5e;
-	undefined field_0x5f;
-	undefined field_0x60;
-	undefined field_0x61;
-	undefined field_0x62;
-	undefined field_0x63;
-	undefined field_0x64;
-	undefined field_0x65;
-	undefined field_0x66;
-	undefined field_0x67;
-	undefined field_0x68;
-	undefined field_0x69;
-	undefined field_0x6a;
-	undefined field_0x6b;
-	undefined field_0x6c;
-	undefined field_0x6d;
-	undefined field_0x6e;
-	undefined field_0x6f;
-	undefined field_0x70;
-	undefined field_0x71;
-	undefined field_0x72;
-	undefined field_0x73;
-	undefined field_0x74;
-	undefined field_0x75;
-	undefined field_0x76;
-	undefined field_0x77;
-	float tilt;
-	struct Range2F TiltRange;
-	float yaw;
-	struct Range2F YawRange;
-	float dist;
-	struct Range2F DistRange;
-	float speedAccel_9c;
-	struct Vector3F vector_a0;
-	struct Vector3F vector_ac;
-	enum CameraFlags flags;
+struct TeleporterService {
+	struct Point2F cameraPos; // (init: if flags 0x2)
+	float float_8; // (init: 0 if flags 0x2)
+	float float_c; // (init: 3.0 if flags 0x2)
+	uint count; // (init: 0)
+	int int_14; // (init: 40 if flags 0x1)
+	uint flags; // (init: flags)
+	struct TeleporterService * next;
 };
 
 struct ImageBMP {
@@ -16605,7 +3193,7 @@ struct ImageBMP {
 	uint penZero; // Palette entry 0
 	uint pen255; // Palette entry 255
 	uint penZeroRGB; // Palette entry 0 (as unpacked RGB)
-	uint flags; // 2 is font?
+	enum ImageFlags flags; // 2 is font?
 	struct ImageBMP * nextFree;
 };
 
@@ -16613,11 +3201,11 @@ struct FlockSubdata {
 	struct Vector3F vector_0;
 	struct Vector3F vector_c;
 	struct Vector3F vector_18;
-	float float_24;
-	float float_28;
-	float float_2c;
+	float rotationY_24;
+	float rotationX_28;
+	float rotationZ_2c;
 	float float_30;
-	undefined4 field_34;
+	float float_34;
 	float GoalUpdate1;
 	float Turn1;
 	float Speed1;
@@ -16626,92 +3214,18 @@ struct FlockSubdata {
 	float Turn2;
 	float Speed2;
 	float Tightness2;
-	float matrix[16];
+	struct Matrix4F matrix;
 	struct Container * resData_98;
 	struct FlockSubdata * subdataNext_9c;
 };
 
 struct PolyMeshData {
-	undefined4 field_0;
-	struct Container * resDataUnassigned_4;
+	struct Container * contMeshOrigin;
+	struct Container * contMeshTarget;
 	char * partName; // name of LoadObject file.lwo
 	uint index;
-	int int_10;
-	struct PolyMeshData * previous;
-};
-
-struct TextWindow { // Probably a text rendering area (official: TextWindow)
-	struct ImageFont * font;
-	struct Rect2F windowSize;
-	void * windowBuffer;
-	char secondBuffer[1024];
-	uint bufferSize;
-	uint bufferEnd;
-	uint lines[256]; // list of line numbers by char offset?
-	uint linesCount;
-	int linesCapacity;
-	float displayDelay;
-	uint flags;
-};
-
-typedef struct FileStream FileStream, *PFileStream;
-
-typedef enum FileSystemType { // Location of a lego File stream (WAD or REAL)
-	FILESYSTEM_ERR=2,
-	FILESYSTEM_STD=1,
-	FILESYSTEM_WAD=0
-} FileSystemType;
-
-typedef union FileStreamData FileStreamData, *PFileStreamData;
-
-typedef struct _iobuf _iobuf, *P_iobuf;
-
-typedef struct _iobuf FILE;
-
-typedef struct FileWADStream FileWADStream, *PFileWADStream;
-
-union FileStreamData {
-	FILE * std; // Standard file stream
-	struct FileWADStream * wad; // WAD file stream
-};
-
-struct FileStream {
-	enum FileSystemType location;
-	union FileStreamData stream;
-};
-
-struct _iobuf {
-	char * _ptr;
-	int _cnt;
-	char * _base;
-	int _flag;
-	int _file;
-	int _charbuf;
-	int _bufsiz;
-	char * _tmpfname;
-};
-
-struct FileWADStream {
-	int hFile; // Handle to file in the wad
-	int streamPos; // Position in stream of the file.  Indexes are from 0-length-1 inclusive.
-	BOOL eof; // Has the file hit EOF.
-};
-
-typedef struct WADStream WADStream, *PWADStream;
-
-struct WADStream {
-	void * data; // Pointer to the file data
-	BOOL active; // Is this handle active already
-	int wadFile; // Wad file this handle uses
-	int indexOfFileInWad; // Index of the file in the wad structure
-};
-
-typedef struct LoaderProfileItem LoaderProfileItem, *PLoaderProfileItem;
-
-struct LoaderProfileItem {
-	char * name;
-	undefined4 field_4;
-	undefined4 field_8;
+	uint flags; // (1 = dont free partName/cont_0,  2 = unk dtor behavior)
+	struct PolyMeshData * next;
 };
 
 typedef struct HelpWindowInfoLevels HelpWindowInfoLevels, *PHelpWindowInfoLevels;
@@ -16720,170 +3234,129 @@ struct HelpWindowInfoLevels {
 	char * levels[16];
 };
 
-typedef struct SubMenu SubMenu, *PSubMenu;
+typedef struct LevelStruct_3c LevelStruct_3c, *PLevelStruct_3c;
 
-typedef struct SubMenuItem SubMenuItem, *PSubMenuItem;
+typedef struct SurfaceMap SurfaceMap, *PSurfaceMap;
 
-typedef struct SubMenuOverlay SubMenuOverlay, *PSubMenuOverlay;
+typedef struct Rect2F Rect2F, *PRect2F;
 
-typedef enum MenuItemType {
-	MENUITEM_CYCLE=0,
-	MENUITEM_NEXT=5,
-	MENUITEM_REALSLIDER=4,
-	MENUITEM_SLIDER=3,
-	MENUITEM_TEXTINPUT=2,
-	MENUITEM_TRIGGER=1,
-	MENUITEM__COUNT=6,
-	MENUITEM__INVALID=4294967295
-} MenuItemType;
+typedef struct SurfaceMapStruct_28 SurfaceMapStruct_28, *PSurfaceMapStruct_28;
 
-typedef enum SFXType { // SFXType is different from actual Sample indexes, these are hardcoded values that can easily be looked up by ID
-	SFX_AMBIENT=6,
-	SFX_AMBIENTLOOP=7,
-	SFX_AMBIENTMUSICLOOP=44,
-	SFX_BOULDERHIT=34,
-	SFX_BUILD=18,
-	SFX_BUTTONPRESSED=13,
-	SFX_CAPTAINSLIDE=42,
-	SFX_CRYSTALRECHARGE=26,
-	SFX_DRILL=2,
-	SFX_DRILLFADE=3,
-	SFX_DRIP=5,
-	SFX_DYNAMITE=43,
-	SFX_FALLIN=40,
-	SFX_FLOOR=33,
-	SFX_IMMOVABLEROCK=31,
-	SFX_INTERFACESLIDEOFFSCREEN=22,
-	SFX_INTERFACESLIDEONSCREEN=21,
-	SFX_LASER=27,
-	SFX_LASERHIT=28,
-	SFX_LAVA=38,
-	SFX_LAZERRECHARGE=29,
-	SFX_MFDEPOSIT=12,
-	SFX_MFLIFT=14,
-	SFX_MFTHROW=15,
-	SFX_MUSICLOOP=41,
-	SFX_NOTOKAY=20,
-	SFX_NULL=0,
-	SFX_OKAY=19,
-	SFX_PANELSLIDEOFFSCREEN=24,
-	SFX_PANELSLIDEONSCREEN=23,
-	SFX_PLACE=35,
-	SFX_PLACECRYSTAL=37,
-	SFX_PLACEORE=36,
-	SFX_ROCKBREAK=4,
-	SFX_ROCKMONSTER=9,
-	SFX_ROCKMONSTER2=10,
-	SFX_ROCKMONSTERSTEP=11,
-	SFX_ROCKWIPE=39,
-	SFX_SIREN=25,
-	SFX_STAMP=1,
-	SFX_STEP=8,
-	SFX_TOPPRIORITY=30,
-	SFX_WALKER=16,
-	SFX_WALL=32,
-	SFX_YESSIR=17,
-	SFX__INVALID=4294967295
-} SFXType;
+typedef struct IDirect3DRMMaterial2 IDirect3DRMMaterial2, *PIDirect3DRMMaterial2;
 
-struct SubMenuItem {
-	char * banner;
-	uint length;
-	struct ImageFont * HiFont;
-	struct ImageFont * LoFont;
-	void * itemData;
-	enum MenuItemType itemType;
-	struct Point2I point1;
-	undefined4 field_20;
+typedef struct SurfaceMapStruct38 SurfaceMapStruct38, *PSurfaceMapStruct38;
+
+typedef enum SurfaceMapFlags {
+	SURFMAP_NONE=0,
+	SURFMAP_UNK_2=2
+} SurfaceMapFlags;
+
+typedef enum SurfaceMapStruct28Flags { // Flags for SurfaceMapStruct_28->byte_19
+	SURFMAP_STRUCT28_NONE=0,
+	SURFMAP_STRUCT28_UNK_1=1,
+	SURFMAP_STRUCT28_UNK_10=16,
+	SURFMAP_STRUCT28_UNK_20=32,
+	SURFMAP_STRUCT28_UNK_4=4,
+	SURFMAP_STRUCT28_UNK_40=64
+} SurfaceMapStruct28Flags;
+
+typedef struct IDirect3DRMMaterial2Vtbl IDirect3DRMMaterial2Vtbl, *PIDirect3DRMMaterial2Vtbl;
+
+struct Rect2F {
+	float x;
+	float y;
+	float width;
+	float height;
+};
+
+struct LevelStruct_3c { // [lego,0x3c]
+	struct SurfaceMap * surfMap;
+	struct Rect2F rectf_4;
+	float float_14;
+	float float_18;
+	float float_1c;
+	float float_20;
 	undefined4 field_24;
-	undefined field_0x28;
-	undefined field_0x29;
-	undefined field_0x2a;
-	undefined field_0x2b;
-	undefined field_0x2c;
-	undefined field_0x2d;
-	undefined field_0x2e;
-	undefined field_0x2f;
+	undefined4 field_28;
+	undefined4 field_2c;
+	undefined4 field_30;
+	undefined4 field_34;
+	undefined4 field_38;
+};
+
+struct SurfaceMapStruct38 { // [lego,0x38]
+	enum D3DRMGroupIndex groupID;
+	float timer; // countdown timer
+	struct Point2I blockPos;
+	struct Point2F pointfsTable_10[4];
 	undefined field_0x30;
 	undefined field_0x31;
 	undefined field_0x32;
 	undefined field_0x33;
-	undefined field_0x34;
-	undefined field_0x35;
-	undefined field_0x36;
-	undefined field_0x37;
-	undefined4 field_38;
+	uint flags; // (0x1 = visible?)
 };
 
-struct SubMenuOverlay {
-	char * filename;
-	int overlayType; // (bmp, avi, lws, flh?)
-	undefined4 field_8;
-	struct Point2I position;
-	enum SFXType sfxType;
-	struct SubMenuOverlay * previous;
-	undefined4 field_1c;
+struct SurfaceMapStruct_28 { // [lego,0x28]
+	struct Vector3F vector_0;
+	struct Vector3F vector_c;
+	enum SurfaceTexture texture;
+	byte byteflags_19;
+	enum SurfaceMapStruct28Flags byte_1a;
+	undefined field_0x1b;
+	struct Point2F textuv_1c;
+	byte highlight; // (WallHighlightType)
+	undefined field_0x25;
+	undefined field_0x26;
+	undefined field_0x27;
 };
 
-struct SubMenu {
-	void * ptr_0;
-	void * ptr_4;
-	uint length_8; // (init: strlen(param_1))
-	struct ImageFont * MenuFont; // (init: param_3)
-	struct ImageBMP * MenuImage;
-	struct ImageBMP * MenuImageDark;
-	struct SubMenuItem * Items;
-	int ItemCount;
-	int int_20; // (init: 15)
-	undefined4 field_24;
-	undefined4 field_28;
-	struct Point2I Position;
-	uint uint_34;
-	undefined field_0x38;
-	undefined field_0x39;
-	undefined field_0x3a;
-	undefined field_0x3b;
-	undefined field_0x3c;
-	undefined field_0x3d;
-	undefined field_0x3e;
-	undefined field_0x3f;
-	struct SubMenuOverlay * Overlays;
-	BOOL AutoCenter;
-	BOOL DisplayTitle;
-	BOOL isAnchored;
-	struct Point2I AnchoredPosition;
-	int flags_58; // (0x2 = CanScroll)
-	char CfgName[64];
-	enum BOOL3 PlayRandom;
+struct IDirect3DRMMaterial2Vtbl {
+	HRESULT (* QueryInterface)(struct IUnknown *, IID *, LPVOID *);
+	ULONG (* AddRef)(struct IUnknown *);
+	ULONG (* Release)(struct IUnknown *);
+	HRESULT (* Clone)(struct IUnknown *, struct IUnknown *, IID *, LPVOID *);
+	HRESULT (* AddDestroyCallback)(struct IUnknown *, void *, LPVOID);
+	HRESULT (* DeleteDestroyCallback)(struct IUnknown *, void *, LPVOID);
+	HRESULT (* SetAppData)(struct IUnknown *, DWORD);
+	DWORD (* GetAppData)(struct IUnknown *);
+	HRESULT (* SetName)(struct IUnknown *, LPCSTR);
+	HRESULT (* GetName)(struct IUnknown *, LPDWORD, LPSTR);
+	HRESULT (* GetClassName)(struct IUnknown *, LPDWORD, LPSTR);
+	HRESULT (* SetPower)(struct IDirect3DRMMaterial2 *, float);
+	HRESULT (* SetSpecular)(struct IDirect3DRMMaterial2 *, float, float, float);
+	HRESULT (* SetEmissive)(struct IDirect3DRMMaterial2 *, float, float, float);
+	float (* GetPower)(struct IDirect3DRMMaterial2 *);
+	HRESULT (* GetSpecular)(struct IDirect3DRMMaterial2 *, float *, float *, float *);
+	HRESULT (* GetEmissive)(struct IDirect3DRMMaterial2 *, float *, float *, float *);
+	HRESULT (* GetAmbient)(struct IDirect3DRMMaterial2 *, float *, float *, float *);
+	HRESULT (* SetAmbient)(struct IDirect3DRMMaterial2 *, float, float, float);
 };
 
-typedef struct D3DStateItem D3DStateItem, *PD3DStateItem;
-
-struct D3DStateItem { // The item's render state type is determined by the index in its table
-	DWORD value;
-	BOOL isUsed;
+struct SurfaceMap { // [lego,0x73d4] size 0x73d4... dear god.... no...
+	struct Size2I smallDimensions; // full map dimensions - 1
+	struct Size2I dimensions; // full map dimensions
+	float BlockSize;
+	float RoughLevel;
+	struct Size2F blockDimensions_neg; // smallDimensions * BlockSize * 0.5 (width is negative??)
+	float float_20;
+	struct Container * resMesh_24;
+	struct SurfaceMapStruct_28 * grid28_28; // malloc(dimensions * 0x28)
+	undefined4 field_2c;
+	struct IDirect3DRMMaterial2 * rmMaterial2; // Material related
+	byte texsGrid[128][128];
+	byte texsNum[128];
+	undefined4 flat_40b4[128];
+	struct Coord2I smallCoordsTable[500];
+	uint smallCoordsNum;
+	struct Coord2I largeCoordsTable[2500];
+	uint largeCoordsNum;
+	struct SurfaceMapStruct38 table38_719c[10];
+	struct Container * resMesh_73cc; // (used for table38_719c)
+	enum SurfaceMapFlags flags_73d0;
 };
 
-typedef struct DriverMode DriverMode, *PDriverMode;
-
-typedef enum DriverModeFlags {
-	DRIVERMODE_NONE=0,
-	DRIVERMODE_PRIMARY=16,
-	DRIVERMODE_VALID=1,
-	DRIVERMODE_WINDOWOK=32
-} DriverModeFlags;
-
-struct DriverMode {
-	GUID guid;
-	char desc[256]; // "name (description)"
-	enum DriverModeFlags flags;
-};
-
-typedef struct MenuCollection MenuCollection, *PMenuCollection;
-
-struct MenuCollection {
-	struct SubMenu * * menus;
-	uint count;
+struct IDirect3DRMMaterial2 {
+	struct IDirect3DRMMaterial2Vtbl * lpVtbl;
 };
 
 typedef struct PTLProperty PTLProperty, *PPTLProperty;
@@ -16895,233 +3368,267 @@ struct PTLProperty { // Property loaded from a level's PTL config file (contains
 
 typedef struct InterfaceMenuItem InterfaceMenuItem, *PInterfaceMenuItem;
 
+typedef enum MenuIcon {
+	INTERFACE_MENUITEM_ATTACK=43,
+	INTERFACE_MENUITEM_BACKTODEFAULT=0,
+	INTERFACE_MENUITEM_BUILD=73,
+	INTERFACE_MENUITEM_BUILDBUILDING=2,
+	INTERFACE_MENUITEM_BUILDLARGEVEHICLE=4,
+	INTERFACE_MENUITEM_BUILDSMALLVEHICLE=3,
+	INTERFACE_MENUITEM_CANCELCONSTRUCTION=16,
+	INTERFACE_MENUITEM_CLEARRUBBLE=9,
+	INTERFACE_MENUITEM_CLEARSELECTION=72,
+	INTERFACE_MENUITEM_DAM=10,
+	INTERFACE_MENUITEM_DELETEBUILDING=40,
+	INTERFACE_MENUITEM_DELETEELECTRICFENCE=42,
+	INTERFACE_MENUITEM_DELETEMAN=32,
+	INTERFACE_MENUITEM_DELETEVEHICLE=41,
+	INTERFACE_MENUITEM_DESELECTDIG=15,
+	INTERFACE_MENUITEM_DIG=11,
+	INTERFACE_MENUITEM_DROPBIRDSCARER=33,
+	INTERFACE_MENUITEM_DYNAMITE=13,
+	INTERFACE_MENUITEM_EJECTCRYSTAL=38,
+	INTERFACE_MENUITEM_EJECTORE=39,
+	INTERFACE_MENUITEM_ENCYCLOPEDIA=71,
+	INTERFACE_MENUITEM_GEOLOGISTTEST=8,
+	INTERFACE_MENUITEM_GETBIRDSCARER=56,
+	INTERFACE_MENUITEM_GETDRILL=49,
+	INTERFACE_MENUITEM_GETFREEZERGUN=55,
+	INTERFACE_MENUITEM_GETHAMMER=51,
+	INTERFACE_MENUITEM_GETIN=24,
+	INTERFACE_MENUITEM_GETLASER=53,
+	INTERFACE_MENUITEM_GETOUT=25,
+	INTERFACE_MENUITEM_GETPUSHERGUN=54,
+	INTERFACE_MENUITEM_GETSPADE=50,
+	INTERFACE_MENUITEM_GETSPANNER=52,
+	INTERFACE_MENUITEM_GETTOOL=48,
+	INTERFACE_MENUITEM_GOFEED=31,
+	INTERFACE_MENUITEM_GOTODOCK=26,
+	INTERFACE_MENUITEM_GOTOFIRSTPERSON=45,
+	INTERFACE_MENUITEM_GOTOSECONDPERSON=46,
+	INTERFACE_MENUITEM_GOTOTOPVIEW=44,
+	INTERFACE_MENUITEM_LAYPATH=5,
+	INTERFACE_MENUITEM_LEGOMANDIG=30,
+	INTERFACE_MENUITEM_LEGOMANGOTO=27,
+	INTERFACE_MENUITEM_MAKETELEPORTERPRIMARY=37,
+	INTERFACE_MENUITEM_MINIFIGUREPICKUP=21,
+	INTERFACE_MENUITEM_PLACEFENCE=14,
+	INTERFACE_MENUITEM_POWEROFF=35,
+	INTERFACE_MENUITEM_POWERON=34,
+	INTERFACE_MENUITEM_REINFORCE=12,
+	INTERFACE_MENUITEM_REMOVEPATH=6,
+	INTERFACE_MENUITEM_REPAIR=36,
+	INTERFACE_MENUITEM_REPAIRLAVA=7,
+	INTERFACE_MENUITEM_SELECTBUILDING=19,
+	INTERFACE_MENUITEM_SELECTMAN=17,
+	INTERFACE_MENUITEM_SELECTVEHICLE=18,
+	INTERFACE_MENUITEM_TEKEPORTMAN=1,
+	INTERFACE_MENUITEM_TRACKOBJECT=47,
+	INTERFACE_MENUITEM_TRAINDRIVER=58,
+	INTERFACE_MENUITEM_TRAINDYNAMITE=63,
+	INTERFACE_MENUITEM_TRAINENGINEER=59,
+	INTERFACE_MENUITEM_TRAINGEOLOGIST=60,
+	INTERFACE_MENUITEM_TRAINPILOT=61,
+	INTERFACE_MENUITEM_TRAINSAILOR=62,
+	INTERFACE_MENUITEM_TRAINSKILL=57,
+	INTERFACE_MENUITEM_UNLOADMINIFIGURE=23,
+	INTERFACE_MENUITEM_UNLOADVEHICLE=22,
+	INTERFACE_MENUITEM_UPGRADEBUILDING=65,
+	INTERFACE_MENUITEM_UPGRADECARRY=70,
+	INTERFACE_MENUITEM_UPGRADEDRILL=68,
+	INTERFACE_MENUITEM_UPGRADEENGINE=67,
+	INTERFACE_MENUITEM_UPGRADEMAN=64,
+	INTERFACE_MENUITEM_UPGRADESCAN=69,
+	INTERFACE_MENUITEM_UPGRADEVEHICLE=66,
+	INTERFACE_MENUITEM_VEHICLEDIG=29,
+	INTERFACE_MENUITEM_VEHICLEGOTO=28,
+	INTERFACE_MENUITEM_VEHICLEPICKUP=20,
+	INTERFACE_MENUITEM__COUNT=74
+} MenuIcon;
+
 struct InterfaceMenuItem {
-	int * parameters;
-	uint numParams;
+	enum MenuIcon * iconList;
+	uint numIcons;
 };
 
-typedef struct MiscObjectDependencies MiscObjectDependencies, *PMiscObjectDependencies;
+typedef struct ObjectDependencies ObjectDependencies, *PObjectDependencies;
 
-struct MiscObjectDependencies {
+struct ObjectDependencies {
 	undefined4 field_0;
 	uint levels_flags[16];
 	undefined4 levels_field_44[16];
 	undefined4 levels_field_84[16];
 };
 
-typedef struct GameFunctions GameFunctions, *PGameFunctions;
+typedef struct LevelData LevelData, *PLevelData;
 
-struct GameFunctions {
-	BOOL (* Initialise)(void);
-	BOOL (* MainLoop)(float);
-	void (* Shutdown)(void);
+typedef struct ProMeshData ProMeshData, *PProMeshData;
+
+typedef struct ObjectiveData ObjectiveData, *PObjectiveData;
+
+typedef struct BlockPointer BlockPointer, *PBlockPointer;
+
+typedef enum TextureType {
+	TEXTURES_ICE=2,
+	TEXTURES_LAVA=1,
+	TEXTURES_ROCK=0,
+	TEXTURES__INVALID=4294967295
+} TextureType;
+
+typedef enum LevelCompleteStatus {
+	LEVELSTATUS_COMPLETE=1,
+	LEVELSTATUS_FAILED=2,
+	LEVELSTATUS_FAILED_CRYSTALS=3,
+	LEVELSTATUS_FAILED_OTHER=4,
+	LEVELSTATUS_NONE=0
+} LevelCompleteStatus;
+
+struct ProMeshData {
+	struct Container * promesh_ab[2];
+	undefined4 table_ab[2][100];
+	float BlockSize;
+	undefined4 field_32c;
+	undefined field_0x330;
+	undefined field_0x331;
+	undefined field_0x332;
+	undefined field_0x333;
+	undefined field_0x334;
+	undefined field_0x335;
+	undefined field_0x336;
+	undefined field_0x337;
+	undefined field_0x338;
+	undefined field_0x339;
+	undefined field_0x33a;
+	undefined field_0x33b;
+	struct SurfaceTextureGrid * surfTextGrid;
 };
 
-typedef struct WADFile WADFile, *PWADFile;
-
-typedef struct WADEntry WADEntry, *PWADEntry;
-
-typedef enum WADEntryFlags {
-	WAD_FILE_IS_IN_WAD=4,
-	WAD_FILE_NONE=0,
-	WAD_FILE_RNCOMPRESSED=2,
-	WAD_FILE_UNCOMPRESSED=1
-} WADEntryFlags;
-
-struct WADEntry { // WAD file entry metadata contained within LegoWADFile structure
-	enum WADEntryFlags compression; // usually 1, 2 for RNC compression
-	int fileLength; // Compressed packed size
-	int decompressedLength; // Original unpacked size (same as packedSize when uncompressed)
-	int addr; // absolute file offset
+struct ObjectiveData {
+	struct ImageBMP * ObjectiveImage; // bmp
+	struct Point2F ObjectiveImagePosition;
+	struct ImageBMP * ObjectiveAcheivedImage; // bmp
+	struct Point2F ObjectiveAcheivedImagePosition;
+	struct ImageBMP * ObjectiveFailedImage; // bmp
+	struct Point2F ObjectiveFailedImagePosition;
+	char * ObjectiveAcheivedAVIFilename; // filename
+	struct Point2F ObjectiveAcheivedAVIPosition;
+	undefined4 field_30;
+	undefined4 field_34;
+	int CrystalObjective; // number of crystals needed if non-zero
+	int OreObjective; // number of ore needed if non-zero
+	struct Point2I BlockObjective;
+	float TimerObjective; // (mult: 25.0, flags, format: "time:HitTimeFailObjective")
+	enum ObjectType ConstructionObjectiveObjType;
+	int ConstructionObjectiveObjIndex;
 };
 
-struct WADFile { // LegoRR WAD File information
-	char * fName; // (unused)
-	BOOL active; // 1 if WAD is in-use
-	HANDLE hFile;
-	HANDLE hFileMapping;
-	FILE * fWad; // File handle of the wad
-	char * * fileNames; // Names of actual files
-	char * * wadNames; // Names within wad
-	struct WADEntry * wadEntries;
-	int numFiles; // number of file entries
+struct LevelData { // [lego,0x284]
+	char * levelName; // (format: "Levels::level")
+	struct SurfaceMap * surfaceMap;
+	void * ptrtable_8;
+	uint count_c;
+	undefined4 field_10;
+	struct Size2I dimensions;
+	float BlockSize;
+	float DigDepth;
+	float RoofHeight;
+	float RoughLevel;
+	enum BOOL3 UseRoof;
+	enum BOOL3 SafeCaverns;
+	float SelBoxHeight;
+	undefined4 field_0x38;
+	undefined4 field_0x3c;
+	undefined4 field_0x40;
+	undefined4 field_0x44;
+	undefined4 field_0x48;
+	undefined4 field_0x4c;
+	undefined4 field_0x50;
+	undefined4 field_0x54;
+	undefined4 field_0x58;
+	undefined4 field_0x5c;
+	undefined4 field_0x60;
+	undefined4 field_0x64;
+	undefined4 field_0x68;
+	undefined4 field_0x6c;
+	undefined4 field_0x70;
+	struct Size2I surfTextSize; // surface texture width and height
+	struct SurfaceTextureGrid * surfTextGrid;
+	struct ProMeshData * * promeshGrid;
+	struct LevelStruct_3c * struct3c_84;
+	struct LevelStruct_1c * terrain1c_88;
+	int numCrystals; // (init: 0)
+	undefined4 field_90; // (init: 0)
+	undefined4 field_94; // (init: 0)
+	int numDrainedCrystals; // assumption
+	undefined4 field_9c;
+	int numOre; // (init: 0)
+	undefined4 field_a4; // (init: 0)
+	undefined4 field_a8; // (init: 0)
+	int numProcessedOre;
+	int EmergeCreature; // (searches for object index by name, expects RockMonsterType)
+	char * NextLevel;
+	struct LevelBlock * blocks; // grid of blocks [y][x]
+	struct ObjectiveData objective;
+	BOOL hasBlockPointers;
+	struct BlockPointer * blockPointers[56];
+	BOOL StartFP;
+	BOOL NoDrain;
+	float oxygenLevel; // (init: 100.0, Oxygen level?)
+	float OxygenRate;
+	float float_204; // (init: 100.0, Oxygen level?)
+	float BuildingTolerance; // (default: 4.0)
+	float BuildingMaxVariation; // (default: 6.0)
+	float UpgradeTimes[20]; // [objType] (mult: 25.0, 1:Vehicle, 2:MiniFigure, 3:Building)
+	float TrainTime; // (mult: 25.0)
+	float EmergeTimeOut; // (default: 1500.0)
+	float SlugTime; // (default: 60.0, mult: 25.0 (applies to default))
+	int Slug; // (default: 20 (invalid), searches for object index by name, expects RockMonsterType)
+	char * FullName; // (replace '_' with ' ')
+	enum TextureType BoulderAnimation; // (texture index, hardcoded: Rock, Lava, Ice)
+	float MaxStolen;
+	enum LevelCompleteStatus status; // (init: 0) 2 is used for Crystal failure as well
+	BOOL IsStartTeleportEnabled; // (! DisableStartTeleport)
 };
 
-typedef struct Draw_Rect Draw_Rect, *PDraw_Rect;
-
-struct Draw_Rect {
-	struct Rect2F rect;
-	float r;
-	float g;
-	float b;
-};
-
-typedef struct DeviceMode DeviceMode, *PDeviceMode;
-
-typedef enum DeviceModeFlags {
-	DEVICEMODE_COLOUR=4096,
-	DEVICEMODE_DEPTH16=32,
-	DEVICEMODE_DEPTH24=64,
-	DEVICEMODE_DEPTH32=128,
-	DEVICEMODE_DEPTH8=16,
-	DEVICEMODE_HARDWARE=8192,
-	DEVICEMODE_ISUSED=1,
-	DEVICEMODE_NONE=0,
-	DEVICEMODE_SYSTEMTEXTURE=32768,
-	DEVICEMODE_VIDEOTEXTURE=16384,
-	DEVICEMODE_ZBUFF16=512,
-	DEVICEMODE_ZBUFF24=1024,
-	DEVICEMODE_ZBUFF32=2048,
-	DEVICEMODE_ZBUFF8=256
-} DeviceModeFlags;
-
-struct DeviceMode {
-	GUID guid;
-	char desc[256]; // "name (description)"
-	enum DeviceModeFlags flags;
-};
-
-typedef struct ScreenMode ScreenMode, *PScreenMode;
-
-typedef enum ScreenModeFlags {
-	SCREENMODE_ISUSED=1,
-	SCREENMODE_NONE=0
-} ScreenModeFlags;
-
-struct ScreenMode {
-	uint width;
-	uint height;
-	uint bitDepth;
-	char desc[256]; // "WxH (BPP bit)", "WxH" (windowed)
-	enum ScreenModeFlags flags;
-};
-
-typedef struct Container_TextureRef Container_TextureRef, *PContainer_TextureRef;
-
-struct Container_TextureRef {
-	char * filename;
-	struct IDirect3DRMTexture3 * texture;
-};
-
-typedef struct LTRBRect2F LTRBRect2F, *PLTRBRect2F;
-
-struct LTRBRect2F {
-	float left;
-	float top;
-	float right;
-	float bottom;
-};
-
-typedef struct LTRBRect2I LTRBRect2I, *PLTRBRect2I;
-
-struct LTRBRect2I {
-	int left;
-	int top;
-	int right;
-	int bottom;
+struct BlockPointer {
+	struct Point2I position;
+	uint id;
 };
 
 typedef struct ToolTipData ToolTipData, *PToolTipData;
 
+typedef enum ToolTipFlags {
+	TOOLTIP_FLAG_NONE=0,
+	TOOLTIP_FLAG_UNK_1=1,
+	TOOLTIP_FLAG_UNK_10=16,
+	TOOLTIP_FLAG_UNK_2=2,
+	TOOLTIP_FLAG_UNK_4=4,
+	TOOLTIP_FLAG_UNK_8=8
+} ToolTipFlags;
+
 struct ToolTipData {
-	float float_0;
-	char tooltipText[512];
-	undefined field_0x204;
-	undefined field_0x205;
-	undefined field_0x206;
-	undefined field_0x207;
-	undefined field_0x208;
-	undefined field_0x209;
-	undefined field_0x20a;
-	undefined field_0x20b;
-	undefined field_0x20c;
-	undefined field_0x20d;
-	undefined field_0x20e;
-	undefined field_0x20f;
-	undefined field_0x210;
-	undefined field_0x211;
-	undefined field_0x212;
-	undefined field_0x213;
-	undefined field_0x214;
-	undefined field_0x215;
-	undefined field_0x216;
-	undefined field_0x217;
-	undefined field_0x218;
-	undefined field_0x219;
-	undefined field_0x21a;
-	undefined field_0x21b;
-	undefined field_0x21c;
-	undefined field_0x21d;
-	undefined field_0x21e;
-	undefined field_0x21f;
-	undefined field_0x220;
-	undefined field_0x221;
-	undefined field_0x222;
-	undefined field_0x223;
-	undefined field_0x224;
-	undefined field_0x225;
-	undefined field_0x226;
-	undefined field_0x227;
-	undefined field_0x228;
-	undefined field_0x229;
-	undefined field_0x22a;
-	undefined field_0x22b;
-	undefined field_0x22c;
-	undefined field_0x22d;
-	undefined field_0x22e;
-	undefined field_0x22f;
-	undefined field_0x230;
-	undefined field_0x231;
-	undefined field_0x232;
-	undefined field_0x233;
-	undefined field_0x234;
-	undefined field_0x235;
-	undefined field_0x236;
-	undefined field_0x237;
-	undefined field_0x238;
-	undefined field_0x239;
-	undefined field_0x23a;
-	undefined field_0x23b;
-	undefined field_0x23c;
-	undefined field_0x23d;
-	undefined field_0x23e;
-	undefined field_0x23f;
-	undefined field_0x240;
-	undefined field_0x241;
-	undefined field_0x242;
-	undefined field_0x243;
-	undefined field_0x244;
-	undefined field_0x245;
-	undefined field_0x246;
-	undefined field_0x247;
-	undefined field_0x248;
-	undefined field_0x249;
-	undefined field_0x24a;
-	undefined field_0x24b;
-	undefined field_0x24c;
-	undefined field_0x24d;
-	undefined field_0x24e;
-	undefined field_0x24f;
-	undefined field_0x250;
-	undefined field_0x251;
-	undefined field_0x252;
-	undefined field_0x253;
-	undefined field_0x254;
-	undefined field_0x255;
-	undefined field_0x256;
-	undefined field_0x257;
-	undefined field_0x258;
-	undefined field_0x259;
-	undefined field_0x25a;
-	undefined field_0x25b;
-	undefined4 field_25c;
-	undefined4 field_260;
+	float timer;
+	char textBuffer[512];
+	uint textWidth;
+	uint textLineCount;
+	struct ImageBMP * iconList[20];
+	uint iconCount;
+	int field_260;
 	undefined4 field_264;
 	undefined4 field_268;
-	undefined4 field_26c;
+	int field_26c; // box width?
 	struct ImageBMP * tooltipImage;
-	undefined4 field_274;
-	uint flags;
+	enum SFXType sfxType;
+	enum ToolTipFlags flags; // (flag 0x8 IMAGE is not for "iconList")
+};
+
+typedef struct ColourRGBAPacked ColourRGBAPacked, *PColourRGBAPacked;
+
+struct ColourRGBAPacked {
+	byte red;
+	byte green;
+	byte blue;
+	byte alpha;
 };
 
 typedef struct ColourRGBAI ColourRGBAI, *PColourRGBAI;
@@ -17141,139 +3648,6 @@ struct ColourRGBPacked {
 	byte blue;
 };
 
-typedef struct ImageFlic ImageFlic, *PImageFlic;
-
-typedef enum FlicUserFlags {
-	FLICCATCHUPON=4,
-	FLICDISK=0,
-	FLICLOOPINGON=2,
-	FLICMEMORY=1,
-	FLICSOUNDOFF=8
-} FlicUserFlags;
-
-typedef struct FLICHEADERSTRUCT FLICHEADERSTRUCT, *PFLICHEADERSTRUCT;
-
-typedef enum FlicDisplayMode {
-	FLICMODE_BYTEPERPIXEL=0,
-	FLICMODE_HICOLOR=4,
-	FLICMODE_MODEX=1,
-	FLICMODE_PLANAR=2,
-	FLICMODE_TRUECOLOR=3
-} FlicDisplayMode;
-
-struct FLICHEADERSTRUCT {
-	int size; // Size of FLIC including this header
-	ushort magic; // File type [0x1234, 0x9119, 0xaf11, 0xaf12, 0xaf43]
-	ushort frames; // Number of frames in first segment
-	ushort width; // FLIC width in pixels
-	ushort height; // FLIC height in pixels
-	ushort depth; // Bits per pixel (usually 8)
-	ushort flags; // Set to zero or to three
-	ushort speed; // Delay between frames
-	ushort padding1;
-	int next;
-	int frit;
-	char expand[82];
-	ushort padding2;
-	int NewPack;
-	int SoundID;
-	int SoundRate;
-	char SoundChannels;
-	char SoundBPS;
-	ushort padding3;
-	int SoundChunkSize;
-	short SoundNumPreRead;
-	ushort padding4;
-};
-
-struct ImageFlic { // (official: FLICSTRUCT)
-	enum FlicUserFlags userflags;
-	int fsXc; // (init: 0)
-	int fsYc; // (init: 0)
-	int fsXsize;
-	int fsYsize;
-	byte * rambufferhandle;
-	byte * destportalhandle;
-	char filename[256];
-	struct ColourRGBPacked fsPalette256[256];
-	ushort fsPalette64k[256];
-	int framerate; // (init: 0x190000)
-	int lastticks;
-	int currentframe; // (init: 0)
-	int overallframe; // (init: 0)
-	int mode;
-	int ringframe;
-	int pointerposition; // (init: 0 if flags1, else 0x80)
-	uint fsPitch;
-	struct IDirectDrawSurface4 * fsSurface;
-	struct FLICHEADERSTRUCT fsHeader;
-	struct FileStream * filehandle;
-	void * fsSPtr;
-	void * fsSource;
-	enum FlicDisplayMode fsDisplayMode;
-	int fsBitPlanes;
-	int fsLoadBufferSize;
-	void * fsLoadBuffer;
-	BOOL is15bit; // true if green mask == 0x3e0
-};
-
-typedef struct ErodeState ErodeState, *PErodeState;
-
-struct ErodeState {
-	undefined4 field_0;
-	undefined4 field_4;
-};
-
-typedef struct LightEffectsManager LightEffectsManager, *PLightEffectsManager;
-
-typedef enum LightEffectsFlags { // Flags for LightEffectsManager global variable @004ebec8
-	LIGHTEFFECTS_DIMIN_DONE=1024,
-	LIGHTEFFECTS_DIMOUT=512,
-	LIGHTEFFECTS_DIMOUT_DONE=4096,
-	LIGHTEFFECTS_DISABLED=256,
-	LIGHTEFFECTS_FADE_FORWARD=16,
-	LIGHTEFFECTS_FADE_REVERSE=32,
-	LIGHTEFFECTS_FADING=8,
-	LIGHTEFFECTS_HASBLINK=1,
-	LIGHTEFFECTS_HASFADE=4,
-	LIGHTEFFECTS_HASMOVE=64,
-	LIGHTEFFECTS_MOVING=128,
-	LIGHTEFFECTS_NONE=0
-} LightEffectsFlags;
-
-struct LightEffectsManager { // LightEffects module globals @004ebdd8
-	struct Container * resSpotlight; // [Res+Move] init
-	struct Container * resRootLight; // [Move] init
-	struct ColourRGBF initialRGB; // [Color] init
-	struct ColourRGBF currentRGB; // [Color+Blink+Fade] init+update
-	struct ColourRGBF BlinkRGBMax; // [Blink] init
-	float blinkTime; // [Blink] update
-	struct Range2F RandomRangeForTimeBetweenBlinks; // [Blink] init
-	float blinkChange; // [Blink] update
-	float MaxChangeAllowed; // [Blink] init
-	struct ColourRGBF fadeDestRGB; // [Fade] update
-	struct ColourRGBF FadeRGBMin; // [Fade] init
-	struct ColourRGBF FadeRGBMax; // [Fade] init
-	float fadeTime; // [Fade] update
-	struct Range2F RandomRangeForTimeBetweenFades; // [Fade] init
-	struct ColourRGBF fadeSpeedRGB; // [Fade] update
-	struct Range2F RandomRangeForFadeTimeFade; // [Fade] init
-	float fadeHoldTime; // [Fade] update
-	struct Range2F RandomRangeForHoldTimeOfFade; // [Fade] init
-	struct ColourRGBF fadePosRGB; // [Fade] update
-	struct Vector3F resPosition; // [Move] init+update
-	struct Vector3F MoveLimit; // [Move] init
-	float moveTime; // [Move] update
-	struct Range2F RandomRangeForTimeBetweenMoves; // [Move] init
-	float moveSpeed; // [Move] update
-	struct Range2F RandomRangeForSpeedOfMove; // [Move] init
-	struct Vector3F vectorMove; // [Move] update
-	float moveDist; // [Move] update
-	struct Range2F RandomRangeForDistOfMove; // [Move] init
-	undefined1 reserved1[12]; // possibly an unused Vector3F/ColourRGBF
-	enum LightEffectsFlags flags; // [all] init+update
-};
-
 typedef struct ColourRGBI ColourRGBI, *PColourRGBI;
 
 struct ColourRGBI {
@@ -17281,139 +3655,6 @@ struct ColourRGBI {
 	uint green;
 	uint blue;
 };
-
-typedef struct Rect2I Rect2I, *PRect2I;
-
-struct Rect2I {
-	int x;
-	int y;
-	int width;
-	int height;
-};
-
-typedef struct AdvisorPositionData AdvisorPositionData, *PAdvisorPositionData;
-
-typedef enum AdvisorAnimType {
-	ADVISORANIM_POINTTOMAP=0,
-	ADVISORANIM_POINT_E=3,
-	ADVISORANIM_POINT_N=1,
-	ADVISORANIM_POINT_NE=2,
-	ADVISORANIM_POINT_NW=8,
-	ADVISORANIM_POINT_S=5,
-	ADVISORANIM_POINT_SE=4,
-	ADVISORANIM_POINT_SW=6,
-	ADVISORANIM_POINT_UP=9,
-	ADVISORANIM_POINT_W=7,
-	ADVISORANIM_TALK_TOP=10,
-	ADVISORANIM__COUNT=11,
-	ADVISORANIM__INVALID=4294967295
-} AdvisorAnimType;
-
-typedef enum TextType {
-	TEXT_AIRSUPPLYLOW=20,
-	TEXT_AIRSUPPLYRUNNINGOUT=21,
-	TEXT_BUILDHELP=10,
-	TEXT_CANNOTPLACEBUILDING=15,
-	TEXT_CANTDRILL=3,
-	TEXT_CANTDRIVE=13,
-	TEXT_CANTREINFORCE=6,
-	TEXT_CAVERNDISCOVERED=18,
-	TEXT_CRYSTALFOUND=17,
-	TEXT_CRYSTALOREDISABLED=16,
-	TEXT_DRILL=1,
-	TEXT_DRIVE=12,
-	TEXT_ENCYCLOPEDIA=8,
-	TEXT_GAMECOMPLETE=23,
-	TEXT_MAKETELEPORTER=14,
-	TEXT_MANTRAINED=24,
-	TEXT_NODRILL=2,
-	TEXT_NOREINFORCE=5,
-	TEXT_OREFOUND=19,
-	TEXT_PICKUPCRYSTAL=7,
-	TEXT_RADARHELP=9,
-	TEXT_REINFORCE=4,
-	TEXT_SELECTIONHELP=11,
-	TEXT_SPACETOCONTINUE=22,
-	TEXT_UNITUPGRADED=25,
-	TEXT_WALK=0,
-	TEXT__COUNT=26,
-	TEXT__INVALID=4294967295
-} TextType;
-
-typedef enum PanelType {
-	PANEL_CAMERACONTROL=9,
-	PANEL_CRYSTALSIDEBAR=5,
-	PANEL_ENCYCLOPEDIA=11,
-	PANEL_INFODOCK=10,
-	PANEL_INFORMATION=7,
-	PANEL_MESSAGES=3,
-	PANEL_MESSAGESIDE=4,
-	PANEL_PRIORITYLIST=8,
-	PANEL_RADAR=0,
-	PANEL_RADARFILL=1,
-	PANEL_RADAROVERLAY=2,
-	PANEL_TOPPANEL=6,
-	PANEL__COUNT=12,
-	PANEL__INVALID=4294967295
-} PanelType;
-
-typedef enum AdvisorPositionFlags {
-	ADVISORPOS_DEFAULT=131072,
-	ADVISORPOS_HASTEXT=262144,
-	ADVISORPOS_NONE=0,
-	ADVISORPOS_NOPANEL=65536
-} AdvisorPositionFlags;
-
-struct AdvisorPositionData {
-	enum AdvisorAnimType animType;
-	enum TextType textType;
-	int sfxIndex;
-	enum PanelType panelType;
-	struct Point2F point1;
-	struct Point2F point2; // Identical to point1
-	enum AdvisorPositionFlags flags; // (init: 0x20000), 0x10000 = NULL panel, 0x40000 = non-NULL text
-};
-
-typedef struct Mem_Handle Mem_Handle, *PMem_Handle;
-
-typedef enum MemHandleFlags { // Flags for SharedBuffer struct
-	MEMORY_HANDLE_FLAG_NONE=0,
-	MEMORY_HANDLE_FLAG_USED=1
-} MemHandleFlags;
-
-struct Mem_Handle {
-	void * addr;
-	enum MemHandleFlags flags; // 1 = isUsed
-};
-
-typedef struct ColourRGBAPacked ColourRGBAPacked, *PColourRGBAPacked;
-
-struct ColourRGBAPacked {
-	byte red;
-	byte green;
-	byte blue;
-	byte alpha;
-};
-
-typedef struct P1P2Rect2I P1P2Rect2I, *PP1P2Rect2I;
-
-struct P1P2Rect2I {
-	int x1;
-	int y1;
-	int x2;
-	int y2;
-};
-
-typedef struct P1P2Rect2F P1P2Rect2F, *PP1P2Rect2F;
-
-struct P1P2Rect2F {
-	float x1;
-	float y1;
-	float x2;
-	float y2;
-};
-
-typedef int WADStreamHandle;
 
 typedef struct MsvcDOSErrnoInfo MsvcDOSErrnoInfo, *PMsvcDOSErrnoInfo;
 
@@ -17503,76 +3744,6 @@ struct FLIC_HEADER {
 	BYTE reserved3[40]; // Set to zero
 };
 
-typedef struct Sound3D_SoundData Sound3D_SoundData, *PSound3D_SoundData;
-
-typedef struct tWAVEFORMATEX tWAVEFORMATEX, *PtWAVEFORMATEX;
-
-typedef struct tWAVEFORMATEX WAVEFORMATEX;
-
-typedef struct IDirectSoundBuffer IDirectSoundBuffer, *PIDirectSoundBuffer;
-
-typedef enum SampleFlags {
-	SAMPLE_ISUSED=1,
-	SAMPLE_MULTIPLE=4,
-	SAMPLE_NONE=0,
-	SAMPLE_STREAMED=8,
-	SAMPLE_VOLUME=2
-} SampleFlags;
-
-typedef struct IDirectSoundBufferVtbl IDirectSoundBufferVtbl, *PIDirectSoundBufferVtbl;
-
-struct Sound3D_SoundData { // (official: Sound3D_SoundData)
-	char filename[260];
-	uint size;
-	uint avgBytesPerSec; // Only set for streaming buffers
-	int frequency;
-	int volume;
-	int offset;
-	byte * data;
-	WAVEFORMATEX * waveFormat;
-	struct IDirectSoundBuffer * dSoundBuffers[3]; // ([] = max simultaneous 3D sounds)
-	uint bufferIndex; // (official: voice)
-	enum SampleFlags flags;
-};
-
-struct tWAVEFORMATEX {
-	WORD wFormatTag;
-	WORD nChannels;
-	DWORD nSamplesPerSec;
-	DWORD nAvgBytesPerSec;
-	WORD nBlockAlign;
-	WORD wBitsPerSample;
-	WORD cbSize;
-};
-
-struct IDirectSoundBuffer {
-	struct IDirectSoundBufferVtbl * lpVtbl;
-};
-
-struct IDirectSoundBufferVtbl {
-	HRESULT (* QueryInterface)(struct IUnknown *, IID *, LPVOID *);
-	ULONG (* AddRef)(struct IUnknown *);
-	ULONG (* Release)(struct IUnknown *);
-	pointer GetCaps;
-	pointer GetCurrentPosition;
-	pointer GetFormat;
-	pointer GetVolume;
-	pointer GetPan;
-	pointer GetFrequency;
-	pointer GetStatus;
-	pointer Initialize;
-	pointer Lock;
-	pointer Play;
-	pointer SetCurrentPosition;
-	pointer SetFormat;
-	pointer SetVolume;
-	pointer SetPan;
-	pointer SetFrequency;
-	pointer Stop;
-	pointer Unlock;
-	pointer Restore;
-};
-
 typedef struct SampleProperty SampleProperty, *PSampleProperty;
 
 struct SampleProperty {
@@ -17587,64 +3758,36 @@ struct NERPMessageSound {
 	int sampleIndex;
 };
 
-typedef struct Sound3D_WaveData Sound3D_WaveData, *PSound3D_WaveData;
+typedef struct SpiderWeb_Globs SpiderWeb_Globs, *PSpiderWeb_Globs;
 
-typedef struct HMMIO__ HMMIO__, *PHMMIO__;
+typedef struct BlockSpiderWeb BlockSpiderWeb, *PBlockSpiderWeb;
 
-typedef struct HMMIO__ * HMMIO;
+typedef enum BlockSpiderWebFlags {
+	BLOCKWEB_ACTIVE=256,
+	BLOCKWEB_NONE=0
+} BlockSpiderWebFlags;
 
-typedef struct _MMCKINFO _MMCKINFO, *P_MMCKINFO;
-
-typedef struct _MMCKINFO MMCKINFO;
-
-typedef DWORD FOURCC;
-
-struct _MMCKINFO {
-	FOURCC ckid;
-	DWORD cksize;
-	FOURCC fccType;
-	DWORD dwDataOffset;
-	DWORD dwFlags;
+struct SpiderWeb_Globs {
+	struct BlockSpiderWeb * webBlocks;
+	struct LevelData * level;
 };
 
-struct Sound3D_WaveData {
-	WAVEFORMATEX * waveFormat; // Wave Format data structure (hGlobal)
-	HMMIO hmmio; // MM I/O handle for the WAVE
-	MMCKINFO mmck; // Multimedia RIFF chunk
-	MMCKINFO mmckInRIFF; // Use in opening a WAVE file
-	DWORD dwBufferSize; // Size of the entire buffer
-	DWORD dwNotifySize; // size of each notification period.
-	DWORD dwNextWriteOffset; // Offset to next buffer segment
-	DWORD dwProgress; // Used with above to show prog.
-	DWORD dwNextProgressCheck;
-	DWORD dwLastPos; // the last play position returned by GetCurrentPos().
-	BOOL bDonePlaying; // Signals early abort to timer
-	BOOL bLoopFile; // Should we loop playback?
-	BOOL bFoundEnd; // Timer found file end
-};
-
-struct HMMIO__ {
-	int unused;
-};
-
-typedef struct Sound3D_StreamData Sound3D_StreamData, *PSound3D_StreamData;
-
-struct Sound3D_StreamData {
-	BOOL fileOpen; // paused/playing/used?
-	struct Sound3D_WaveData wiWave;
-	BOOL playing; // paused/playing/used?
-};
-
-typedef struct Image_Globs Image_Globs, *PImage_Globs;
-
-struct Image_Globs {
-	struct ImageBMP * listSet[32]; // Images list
-	struct ImageBMP * freeList;
-	uint listCount; // number of lists.
-	uint flags;
+struct BlockSpiderWeb {
+	struct LiveObject * object; // "SpiderWeb" LiveObject
+	float health; // Assumed as health, init: 100.0f
+	enum BlockSpiderWebFlags flags;
 };
 
 typedef struct Font_Globs Font_Globs, *PFont_Globs;
+
+typedef struct ImageFont ImageFont, *PImageFont;
+
+typedef enum FontFlags {
+	FONT_FLAG_INITIALISED=1,
+	FONT_FLAG_NONE=0,
+	FONT_FLAG_WINDOWSET=2,
+	FONT_FLAG_WINDOWWRAPPED=4
+} FontFlags;
 
 struct Font_Globs {
 	struct ImageFont * listSet[32]; // Fonts list
@@ -17653,44 +3796,18 @@ struct Font_Globs {
 	uint flags;
 };
 
-typedef struct File_Globs File_Globs, *PFile_Globs;
-
-struct File_Globs {
-	char wadBasePath[1024];
-	char s_GetWadName_wadedName[1024];
-	char s_VerifyFilename_full[260];
-	FILE * s_ErrorFile_f; // (address not known)
-	char dataDir[260];
-	void (* loadCallback)(char *, uint, void *);
-	void * loadCallbackData;
-	char cdLetter;
-	undefined1 padding1[3];
-	BOOL basePathSet;
-	BOOL fileLogFileAccess; // (address not known)
-};
-
-typedef struct Draw_Globs Draw_Globs, *PDraw_Globs;
-
-typedef struct tagRECT RECT;
-
-struct Draw_Globs {
-	void (* drawPixelFunc)(int, int, uint);
-	struct Point2F clipStart;
-	struct Point2F clipEnd;
-	RECT lockRect;
-	void * buffer;
-	uint pitch;
-	uint bpp;
-	uint redMask;
-	uint greenMask;
-	uint blueMask;
-	uint redBits;
-	uint greenBits;
-	uint blueBits;
-	uint flags;
+struct ImageFont { // (official: Font)
+	struct ImageBMP * image;
+	struct Rect2F posSet[10][19];
+	uint fontHeight;
+	uint tabWidth;
+	enum FontFlags flags;
+	struct ImageFont * nextFree;
 };
 
 typedef struct Config_Globs Config_Globs, *PConfig_Globs;
+
+typedef struct CFGProperty CFGProperty, *PCFGProperty;
 
 struct Config_Globs {
 	char s_JoinPath_string[1024]; // (not part of Manager, static array in JoinPath func)
@@ -17700,61 +3817,15 @@ struct Config_Globs {
 	uint flags;
 };
 
-typedef struct Mesh_Globs Mesh_Globs, *PMesh_Globs;
-
-typedef struct Mesh_PostRenderInfo Mesh_PostRenderInfo, *PMesh_PostRenderInfo;
-
-typedef struct Mesh_TextureReference Mesh_TextureReference, *PMesh_TextureReference;
-
-typedef struct IDirect3DMaterial3 IDirect3DMaterial3, *PIDirect3DMaterial3;
-
-typedef struct IDirect3DMaterial3Vtbl IDirect3DMaterial3Vtbl, *PIDirect3DMaterial3Vtbl;
-
-struct IDirect3DMaterial3 {
-	struct IDirect3DMaterial3Vtbl * lpVtbl;
-};
-
-struct Mesh_TextureReference {
-	struct IDirectDrawSurface4 * surface;
-	char * path;
-	BOOL trans;
-};
-
-struct Mesh_Globs {
-	struct Mesh * postRenderList;
-	struct Mesh_PostRenderInfo * postRenderMeshList;
-	struct D3DStateItem stateData[50];
-	char * sharedTextureDir;
-	struct Mesh_TextureReference textureList[2048];
-	struct Mesh_TextureReference textureListShared[2048];
-	uint textureCount;
-	uint textureCountShared;
-	DWORD oldTextureRM;
-	DWORD oldMatIM;
-	struct IDirect3DTexture2 * oldTextureIM;
-	DWORD currTextureRM;
-	DWORD currMatIM;
-	struct IDirect3DTexture2 * currTextureIM;
-	DWORD matHandle;
-	struct IDirect3DMaterial3 * imMat;
-	struct Mesh * listSet[20];
-	struct Mesh * freeList;
-	uint listCount; // (yeah, no uint flags)
-};
-
-struct Mesh_PostRenderInfo {
-	struct Mesh * mesh;
-	struct Matrix4F matWorld;
-	struct Mesh_PostRenderInfo * next;
-};
-
-struct IDirect3DMaterial3Vtbl {
-	HRESULT (* QueryInterface)(struct IUnknown *, IID *, LPVOID *);
-	ULONG (* AddRef)(struct IUnknown *);
-	ULONG (* Release)(struct IUnknown *);
-	pointer SetMaterial;
-	pointer GetMaterial;
-	pointer GetHandle;
+struct CFGProperty { // CFG file property node
+	char * fileData; // Entire file text data for root CFGProperty only
+	char * key; // Property or block key name
+	char * value; // Property value or block open brace
+	uint depth; // Block-depth of property
+	uint itemHashCode; // Hash of item (unused)
+	struct CFGProperty * linkNext; // Next property in linked list
+	struct CFGProperty * linkPrev; // Previous property in linked list
+	struct CFGProperty * nextFree; // (internal) used for allocation while reading(?)
 };
 
 typedef struct DirectDraw_Globs DirectDraw_Globs, *PDirectDraw_Globs;
@@ -17767,9 +3838,50 @@ typedef struct IDirectDraw4 IDirectDraw4, *PIDirectDraw4;
 
 typedef struct IDirectDrawClipper IDirectDrawClipper, *PIDirectDrawClipper;
 
+typedef struct DirectDraw_Driver DirectDraw_Driver, *PDirectDraw_Driver;
+
+typedef struct DirectDraw_Device DirectDraw_Device, *PDirectDraw_Device;
+
+typedef struct DirectDraw_Mode DirectDraw_Mode, *PDirectDraw_Mode;
+
 typedef struct IDirectDraw4Vtbl IDirectDraw4Vtbl, *PIDirectDraw4Vtbl;
 
 typedef struct IDirectDrawClipperVtbl IDirectDrawClipperVtbl, *PIDirectDrawClipperVtbl;
+
+typedef enum DirectDraw_DriverFlags { // Valid flag is actually shared: DIRECTDRAW_FLAG_VALID
+	DIRECTDRAW_FLAG_DRIVER_NONE=0,
+	DIRECTDRAW_FLAG_DRIVER_PRIMARY=16,
+	DIRECTDRAW_FLAG_DRIVER_VALID=1,
+	DIRECTDRAW_FLAG_DRIVER_WINDOWOK=32
+} DirectDraw_DriverFlags;
+
+typedef enum DirectDraw_DeviceFlags { // Valid flag is actually shared: DIRECTDRAW_FLAG_VALID
+	DIRECTDRAW_FLAG_DEVICE_COLOUR=4096,
+	DIRECTDRAW_FLAG_DEVICE_DEPTH16=32,
+	DIRECTDRAW_FLAG_DEVICE_DEPTH24=64,
+	DIRECTDRAW_FLAG_DEVICE_DEPTH32=128,
+	DIRECTDRAW_FLAG_DEVICE_DEPTH8=16,
+	DIRECTDRAW_FLAG_DEVICE_HARDWARE=8192,
+	DIRECTDRAW_FLAG_DEVICE_NONE=0,
+	DIRECTDRAW_FLAG_DEVICE_SYSTEMTEXTURE=32768,
+	DIRECTDRAW_FLAG_DEVICE_VALID=1,
+	DIRECTDRAW_FLAG_DEVICE_VIDEOTEXTURE=16384,
+	DIRECTDRAW_FLAG_DEVICE_ZBUFF16=512,
+	DIRECTDRAW_FLAG_DEVICE_ZBUFF24=1024,
+	DIRECTDRAW_FLAG_DEVICE_ZBUFF32=2048,
+	DIRECTDRAW_FLAG_DEVICE_ZBUFF8=256
+} DirectDraw_DeviceFlags;
+
+typedef enum DirectDraw_ModeFlags { // Valid flag is actually shared: DIRECTDRAW_FLAG_VALID
+	DIRECTDRAW_FLAG_MODE_NONE=0,
+	DIRECTDRAW_FLAG_MODE_VALID=1
+} DirectDraw_ModeFlags;
+
+struct DirectDraw_Driver {
+	GUID guid;
+	char desc[256]; // "name (description)"
+	enum DirectDraw_DriverFlags flags;
+};
 
 struct IDirectDrawClipperVtbl {
 	HRESULT (* QueryInterface)(struct IUnknown *, IID *, LPVOID *);
@@ -17791,11 +3903,11 @@ struct DirectDraw_Globs {
 	struct IDirectDrawSurface4 * zSurf; // (unused)
 	struct IDirectDrawClipper * lpFrontClipper; // "RenderTarget" clipper
 	struct IDirectDrawClipper * lpBackClipper; // "DrawTarget" clipper
-	struct DriverMode * driverList;
-	struct DriverMode * selectedDriver; // (unused)
-	struct DeviceMode * deviceList;
-	struct DeviceMode * selectedDevice; // (unused)
-	struct ScreenMode * modeList; // "ScreenModes"
+	struct DirectDraw_Driver * driverList;
+	struct DirectDraw_Driver * selectedDriver; // (unused)
+	struct DirectDraw_Device * deviceList;
+	struct DirectDraw_Device * selectedDevice; // (unused)
+	struct DirectDraw_Mode * modeList; // "ScreenModes"
 	uint driverCount;
 	uint deviceCount;
 	uint modeCount; // "ScreenModes"
@@ -17804,8 +3916,22 @@ struct DirectDraw_Globs {
 	uint height;
 };
 
+struct DirectDraw_Device {
+	GUID guid;
+	char desc[256]; // "name (description)"
+	enum DirectDraw_DeviceFlags flags;
+};
+
 struct IDirectDraw4 {
 	struct IDirectDraw4Vtbl * lpVtbl;
+};
+
+struct DirectDraw_Mode {
+	uint width;
+	uint height;
+	uint bitDepth;
+	char desc[256]; // "WxH (BPP bit)", "WxH" (windowed)
+	enum DirectDraw_ModeFlags flags;
 };
 
 struct IDirectDraw4Vtbl {
@@ -17847,41 +3973,130 @@ struct IDirectDrawClipper {
 	struct IDirectDrawClipperVtbl * lpVtbl;
 };
 
-typedef struct Container_Globs Container_Globs, *PContainer_Globs;
+typedef struct LiveObject_Globs LiveObject_Globs, *PLiveObject_Globs;
 
-typedef enum ResourceManagerFlags { // All flags used by the ResourceManager struct.
-	RESMANAGER_ISINIT=1,
-	RESMANAGER_NONE=0,
-	RESMANAGER_SOUNDCALLBACK=64
-} ResourceManagerFlags;
+typedef enum LiveManagerFlags { // ReservedPool LiveObject INITFLAGS
+	LIVEMANAGER_ISUSED=1,
+	LIVEMANAGER_NONE=0,
+	LIVEMANAGER_UNK_20=32
+} LiveManagerFlags;
 
-struct Container_Globs {
-	struct Container * listSet[20];
-	struct Container * freeList;
-	struct Container * rootContainer;
-	char * typeName[9];
-	char * extensionName[9];
-	char * gameName;
-	struct IDirect3DRMVisual * visualArray[4];
-	struct Container_TextureRef textureSet[1000];
-	uint textureCount;
-	void (* soundTriggerCallback)(char *, struct Container *, void *);
-	void * soundTriggerData;
-	void (* triggerFrameCallback)(struct Container *, void *);
-	void * triggerFrameData;
-	char * sharedDir;
-	uint fogColour;
-	uint listCount;
-	enum ResourceManagerFlags flags;
+typedef struct HiddenStruct_2c HiddenStruct_2c, *PHiddenStruct_2c;
+
+typedef struct SaveStruct_18 SaveStruct_18, *PSaveStruct_18;
+
+struct SaveStruct_18 {
+	undefined field_0x0;
+	undefined field_0x1;
+	undefined field_0x2;
+	undefined field_0x3;
+	undefined field_0x4;
+	undefined field_0x5;
+	undefined field_0x6;
+	undefined field_0x7;
+	undefined field_0x8;
+	undefined field_0x9;
+	undefined field_0xa;
+	undefined field_0xb;
+	undefined field_0xc;
+	undefined field_0xd;
+	undefined field_0xe;
+	undefined field_0xf;
+	undefined field_0x10;
+	undefined field_0x11;
+	undefined field_0x12;
+	undefined field_0x13;
+	undefined field_0x14;
+	undefined field_0x15;
+	undefined field_0x16;
+	undefined field_0x17;
 };
 
-typedef struct Viewport_Globs Viewport_Globs, *PViewport_Globs;
+struct HiddenStruct_2c { // Name is only guessed
+	undefined field_0x0;
+	undefined field_0x1;
+	undefined field_0x2;
+	undefined field_0x3;
+	undefined field_0x4;
+	undefined field_0x5;
+	undefined field_0x6;
+	undefined field_0x7;
+	undefined field_0x8;
+	undefined field_0x9;
+	undefined field_0xa;
+	undefined field_0xb;
+	undefined field_0xc;
+	undefined field_0xd;
+	undefined field_0xe;
+	undefined field_0xf;
+	undefined field_0x10;
+	undefined field_0x11;
+	undefined field_0x12;
+	undefined field_0x13;
+	undefined field_0x14;
+	undefined field_0x15;
+	undefined field_0x16;
+	undefined field_0x17;
+	undefined field_0x18;
+	undefined field_0x19;
+	undefined field_0x1a;
+	undefined field_0x1b;
+	undefined field_0x1c;
+	undefined field_0x1d;
+	undefined field_0x1e;
+	undefined field_0x1f;
+	undefined field_0x20;
+	undefined field_0x21;
+	undefined field_0x22;
+	undefined field_0x23;
+	undefined field_0x24;
+	undefined field_0x25;
+	undefined field_0x26;
+	undefined field_0x27;
+	undefined field_0x28;
+	undefined field_0x29;
+	undefined field_0x2a;
+	undefined field_0x2b;
+};
 
-struct Viewport_Globs {
-	struct Viewport * listSet[32];
-	struct Viewport * freeList;
+struct LiveObject_Globs {
+	struct LiveObject * listSet[32];
+	struct LiveObject * freeList;
+	int ObjTtSFX_TABLE[20][15]; // [objType:20][objIndex:15]
+	char * Activities_TABLE[79]; // [activityType:79]
+	void * UnkSurfaceGrid_1_TABLE;
+	void * UnkSurfaceGrid_2_TABLE;
+	uint UnkSurfaceGrid_COUNT;
+	float float_67c; // FLOAT_004dfe0c
 	uint listCount;
-	uint flags;
+	enum LiveManagerFlags flags;
+	int ToolNullIndexes_TABLE[11]; // [toolType:11] (tool priorities, behavior types?)
+	uint ObjectLevels_Current_TABLE[20][15][16]; // [objType:20][objIndex:15][objLevel:16] 
+	uint ObjectLevels_Previous_TABLE[20][15][16]; // [objType:20][objIndex:15][objLevel:16] 
+	uint NERPs_TrainFlags;
+	struct LiveObject * minifigureObj_9cb8; // MINIFIGOBJ_004e9448
+	struct Point2I SlugHoles_TABLE[20];
+	struct Point2I RechargeSeams_TABLE[10];
+	uint SlugHoles_COUNT;
+	uint RechargeSeams_COUNT;
+	struct HiddenStruct_2c HiddenStruct2C_TABLE[200];
+	uint HiddenStruct2C_COUNT;
+	float float_c018; // FLOAT_004eb7a8
+	struct SaveStruct_18 savestruct18_c01c; // SaveStruct_18_004eb7ac
+	struct LiveObject * liveObjArray256_c034[256]; // PTRLiveObject_ARRAY_004eb7c4
+	uint count_c434; // COUNT_004ebbc4
+	uint countBuildingsOnly_c438; // COUNTBuildingsOnly_004ebbc8
+	struct LiveObject * liveObjArray100_c43c[100];
+	uint uintCount_c5cc;
+	char * AbilityTypes_TABLE[6]; // [abilityType:6]
+	struct ImageBMP * ToolTipIcons_Abilities[6]; // [abilityType:6]
+	struct ImageBMP * ToolTipIcons_Tools_TABLE[11]; // [toolType:11]
+	struct ImageBMP * ToolTipIcon_Blank;
+	struct ImageBMP * ToolTipIcon_Ore;
+	uint BuildingsTeleported;
+	float LiveManager_TimerUnk;
+	undefined4 s_stepCounter_c63c; // (static, counter %4 for step SFX) DAT_004ebdcc
+	void * * s_FlocksDestroy_c640; // (static, Struct 0x10, used in Flocks activities (QUICK_DESTROY??)) PTR_004ebdd0
 };
 
 typedef struct FileCheck_Globs FileCheck_Globs, *PFileCheck_Globs;
@@ -17891,9 +4106,45 @@ struct FileCheck_Globs { // Loose static variables for File_CheckRedundantFiles 
 	uint numInList;
 };
 
+typedef struct RNC_Globs RNC_Globs, *PRNC_Globs;
+
+typedef struct HuffmanLeaf HuffmanLeaf, *PHuffmanLeaf;
+
+struct HuffmanLeaf {
+	uint value_1;
+	ushort count_1;
+	undefined field_0x6;
+	undefined field_0x7;
+	uint value_2;
+	ushort count_2;
+	undefined field_0xe;
+	undefined field_0xf;
+};
+
+struct RNC_Globs {
+	byte BitCount;
+	undefined1 padding1[3];
+	undefined4 reserved1[5];
+	struct HuffmanLeaf HuffmanTable_Raw[16];
+	struct HuffmanLeaf HuffmanTable_Dst[16];
+	struct HuffmanLeaf HuffmanTable_Len[16];
+	byte * Input;
+	byte * Output;
+	byte byte_320; // Rnc_BYTE_00559088
+	undefined1 padding2[3];
+	uint BitBuffer;
+	byte * OutputEnd;
+};
+
 typedef struct Lws_Globs Lws_Globs, *PLws_Globs;
 
 typedef struct Lws_MeshPath Lws_MeshPath, *PLws_MeshPath;
+
+typedef BOOL (* LwsFindSFXIDFunc)(char *, uint *);
+
+typedef BOOL (* LwsSoundEnabledFunc)(void);
+
+typedef int (* LwsPlaySample3DFunc)(struct IDirect3DRMFrame3 *, uint, BOOL, BOOL, struct Vector3F *);
 
 struct Lws_MeshPath {
 	char * path;
@@ -17908,12 +4159,14 @@ struct Lws_Globs {
 	uint meshPathCountShared;
 	float staticDissolveLevel[100];
 	uint staticDissolveCount;
-	BOOL (* FindSFXIDFunc)(char *, uint *);
-	BOOL (* SoundEnabledFunc)(void);
-	int (* PlaySample3DFunc)(struct IDirect3DRMFrame3 *, uint, BOOL, BOOL, struct Vector3F *);
+	LwsFindSFXIDFunc FindSFXIDFunc;
+	LwsSoundEnabledFunc SoundEnabledFunc;
+	LwsPlaySample3DFunc PlaySample3DFunc;
 };
 
 typedef struct Sound_Globs Sound_Globs, *PSound_Globs;
+
+typedef void (* SoundCDStopCallback)(void);
 
 typedef DWORD MCIERROR;
 
@@ -17923,31 +4176,565 @@ struct Sound_Globs {
 	uint soundList[100];
 	int currTrack;
 	BOOL loopCDTrack;
-	void (* CDStopCallback)(void);
+	SoundCDStopCallback CDStopCallback;
 	BOOL updateCDTrack;
 	uint s_Update_lastUpdate;
-	ulonglong reserved1;
+	undefined4 reserved1[2];
 	MCIERROR mciErr;
 };
 
-typedef struct Animation_Globs Animation_Globs, *PAnimation_Globs;
+typedef struct Smoke_Globs Smoke_Globs, *PSmoke_Globs;
 
-struct Animation_Globs {
-	bool g98NoAvis;
-	byte padding1[3];
-	struct IDirectDraw4 * ddraw;
+struct Smoke_Globs {
+	struct Container_Texture * textureList[10];
+	struct SurfaceMapStruct_2a8 * firstSmoke; // A doublely-linked list, each node has next/previous as well
+	struct SurfaceMapStruct_2a8 * lastSmoke;
+	uint count;
+};
+
+typedef struct LightEffects_Globs LightEffects_Globs, *PLightEffects_Globs;
+
+typedef struct Range2F Range2F, *PRange2F;
+
+typedef enum LightEffectsFlags { // Flags for LightEffectsManager global variable @004ebec8
+	LIGHTEFFECTS_DIMIN_DONE=1024,
+	LIGHTEFFECTS_DIMOUT=512,
+	LIGHTEFFECTS_DIMOUT_DONE=4096,
+	LIGHTEFFECTS_DISABLED=256,
+	LIGHTEFFECTS_FADE_FORWARD=16,
+	LIGHTEFFECTS_FADE_REVERSE=32,
+	LIGHTEFFECTS_FADING=8,
+	LIGHTEFFECTS_HASBLINK=1,
+	LIGHTEFFECTS_HASFADE=4,
+	LIGHTEFFECTS_HASMOVE=64,
+	LIGHTEFFECTS_MOVING=128,
+	LIGHTEFFECTS_NONE=0
+} LightEffectsFlags;
+
+struct Range2F {
+	float min;
+	float max;
+};
+
+struct LightEffects_Globs { // LightEffects module globals @004ebdd8
+	struct Container * resSpotlight; // [Res+Move] init
+	struct Container * resRootLight; // [Move] init
+	struct ColourRGBF initialRGB; // [Color] init
+	struct ColourRGBF currentRGB; // [Color+Blink+Fade] init+update
+	struct ColourRGBF BlinkRGBMax; // [Blink] init
+	float blinkTime; // [Blink] update
+	struct Range2F RandomRangeForTimeBetweenBlinks; // [Blink] init
+	float blinkChange; // [Blink] update
+	float MaxChangeAllowed; // [Blink] init
+	struct ColourRGBF fadeDestRGB; // [Fade] update
+	struct ColourRGBF FadeRGBMin; // [Fade] init
+	struct ColourRGBF FadeRGBMax; // [Fade] init
+	float fadeTime; // [Fade] update
+	struct Range2F RandomRangeForTimeBetweenFades; // [Fade] init
+	struct ColourRGBF fadeSpeedRGB; // [Fade] update
+	struct Range2F RandomRangeForFadeTimeFade; // [Fade] init
+	float fadeHoldTime; // [Fade] update
+	struct Range2F RandomRangeForHoldTimeOfFade; // [Fade] init
+	struct ColourRGBF fadePosRGB; // [Fade] update
+	struct Vector3F resPosition; // [Move] init+update
+	struct Vector3F MoveLimit; // [Move] init
+	float moveTime; // [Move] update
+	struct Range2F RandomRangeForTimeBetweenMoves; // [Move] init
+	float moveSpeed; // [Move] update
+	struct Range2F RandomRangeForSpeedOfMove; // [Move] init
+	struct Vector3F vectorMove; // [Move] update
+	float moveDist; // [Move] update
+	struct Range2F RandomRangeForDistOfMove; // [Move] init
+	undefined1 reserved1[12]; // possibly an unused Vector3F/ColourRGBF
+	enum LightEffectsFlags flags; // [all] init+update
+};
+
+typedef struct Lego_Globs Lego_Globs, *PLego_Globs;
+
+typedef enum GraphicsQuality {
+	QUALITY_FLAT=2,
+	QUALITY_GOURAUD=3,
+	QUALITY_UNLITFLAT=1,
+	QUALITY_WIREFRAME=0
+} GraphicsQuality;
+
+typedef struct CameraData CameraData, *PCameraData;
+
+typedef struct TextWindow TextWindow, *PTextWindow;
+
+typedef enum Direction {
+	DIRECTION_DOWN=2,
+	DIRECTION_LEFT=3,
+	DIRECTION_RIGHT=1,
+	DIRECTION_UP=0,
+	DIRECTION__COUNT=4
+} Direction;
+
+typedef enum ViewMode {
+	VIEW_FIRSTPERSON=0,
+	VIEW_TOPDOWN=1
+} ViewMode;
+
+typedef enum GameFlags1 {
+	GAME1_ALWAYSROCKFALL=8388608,
+	GAME1_CAMERADISABLED=1048576,
+	GAME1_CLEAR=1024,
+	GAME1_DEBUG_NOCLIP_FPS=1073741824,
+	GAME1_DEBUG_NONERPS=16777216,
+	GAME1_DRAGGINGBOX_UNK=256,
+	GAME1_DYNAMICPM=524288,
+	GAME1_FOGCOLOURRGB=32768,
+	GAME1_FRAMERATEMONITOR=64,
+	GAME1_HIGHFOGCOLOURRGB=65536,
+	GAME1_LASERTRACKER=268435456,
+	GAME1_LEVELSTART=4,
+	GAME1_MEMORYMONITOR=128,
+	GAME1_MUSICON=8,
+	GAME1_NONE=0,
+	GAME1_ONLYBUILDONPATHS=4194304,
+	GAME1_PANELS=2048,
+	GAME1_PAUSED=33554432,
+	GAME1_RADARON=2,
+	GAME1_RADAR_MAPVIEW=4096,
+	GAME1_RADAR_TRACKOBJECTVIEW=8192,
+	GAME1_SOUNDON=16,
+	GAME1_STREAMNERPSSPEACH=67108864,
+	GAME1_UNK_200=512,
+	GAME1_UNK_20000=131072,
+	GAME1_UNK_200000=2097152,
+	GAME1_UNK_20000000=536870912,
+	GAME1_UNK_4000=16384,
+	GAME1_UNK_40000=262144,
+	GAME1_UNK_8000000=134217728,
+	GAME1_UNK_80000000=2147483648,
+	GAME1_WALLPROMESHES=32
+} GameFlags1;
+
+typedef enum GameFlags2 {
+	GAME2_ALLOWDEBUGKEYS=16,
+	GAME2_ALLOWEDITMODE=32,
+	GAME2_ALLOWRENAME=131072,
+	GAME2_ATTACKDEFER=4,
+	GAME2_CALLTOARMS=1,
+	GAME2_CAMERAMOVING=512,
+	GAME2_DISABLETOOLTIPSOUND=1048576,
+	GAME2_GENERATESPIDERS=524288,
+	GAME2_INMENU=4096,
+	GAME2_INOPTIONSMENU=256,
+	GAME2_MENU_HASNEXT=16384,
+	GAME2_MENU_HASPREVIOUS=32768,
+	GAME2_MOUSE_INSIDEGAMEVIEW=1024,
+	GAME2_MUSICON=2048,
+	GAME2_NOAUTOEAT=2097152,
+	GAME2_NOMULTISELECT=8192,
+	GAME2_NONE=0,
+	GAME2_RECALLOLOBJECTS=262144,
+	GAME2_SHOWDEBUGTOOLTIPS=8,
+	GAME2_UNK_2=2,
+	GAME2_UNK_40=64,
+	GAME2_UNK_80=128
+} GameFlags2;
+
+typedef enum GameFlags3 {
+	GAME3_LOADVEHICLE=16,
+	GAME3_NONE=0,
+	GAME3_PICKUPOBJECT=8,
+	GAME3_PLACEBUILDING=128,
+	GAME3_UNK_1=1,
+	GAME3_UNK_2=2,
+	GAME3_UNK_20=32,
+	GAME3_UNK_4=4,
+	GAME3_UNK_40=64
+} GameFlags3;
+
+typedef enum CameraType {
+	CAMERATYPE_FIRSTPERSON=3,
+	CAMERATYPE_NONE=0,
+	CAMERATYPE_RADAR=2,
+	CAMERATYPE_TOPDOWN=1
+} CameraType;
+
+typedef enum CameraFlags {
+	CAMERA_DISTRANGE=4,
+	CAMERA_EDITMODE_UNK=8,
+	CAMERA_NONE=0,
+	CAMERA_TILTRANGE=1,
+	CAMERA_YAWRANGE=2
+} CameraFlags;
+
+struct Lego_Globs {
+	struct CFGProperty * LegoCfgRoot; // g_LegoCfgRoot
+	char * CfgRootName; // g_CFG_ROOTPATH
+	undefined4 field_8;
+	undefined4 field_c;
+	enum GraphicsQuality Quality; // g_GraphicsQuality
+	struct LevelData * level; // g_LEVEL_STRUCTPTR_SIZE_284__005570d4
+	struct Container * resRoot; // DAT_005570d8
+	struct Viewport * viewMain; // Viewport area: (0.0,0.0 - 1.0x1.0)
+	struct Viewport * viewRadar; // Viewport area: (16,14 - 151x151)
+	struct CameraData * cameraMain; // PTR_005570e4
+	struct CameraData * cameraRadar; // DAT_005570e8
+	struct CameraData * cameraFP; // DAT_005570ec
+	struct Container * resTopSpotlight; // PTR_005570f0
+	struct Container * resTrackSpotlight; // DAT_005570f4
+	struct Container * resFPLight; // PTR_005570f8
+	struct Container * resFPRotLight; // PTR_005570fc
+	struct Container * resAmbientLight; // PTR_00557100
+	struct Container * resRootSpotlight; // PTR_00557104
+	struct Container * resRootLight; // PTR_00557108
+	struct Container * resFPRotLightDefault; // PTR_0055710c
+	float FPClipBlocks; // FLOAT_00557110
+	float TVClipDist; // g_tvclipdist
+	undefined4 field_58;
+	undefined4 field_5c;
+	undefined4 field_60;
+	struct ImageFont * bmpFONT5_HI; // g_FONT_FONT5_HI
+	struct ImageFont * bmpToolTipFont; // g_FONT_ToolTipFont
+	struct ImageFont * bmpDeskTopFont; // g_FONT_DeskTopFont
+	struct ImageFont * bmpfont5_HI; // g_FONT_font5_HI
+	struct ImageFont * bmpMbriefFONT; // g_FONT_MbriefFONT
+	struct ImageFont * bmpMbriefFONT2; // g_FONT_MbriefFONT2
+	struct ImageFont * bmpRSFont; // g_FONT_RSFont
+	struct TextWindow * textWnd_80; // PTR_00557140
+	struct TextWindow * textWnd_84; // PTR_00557144
+	struct Point2F pointf_88; // FLOAT_00557148
+	struct Point2F pointf_90; // FLOAT_00557150
+	BOOL bool_98; // BOOL_00557158
+	float gameSpeed; // FLOAT_0055715c
+	struct LiveObject * objectFP; // DAT_00557160
+	struct Vector3F vectorDragStartUnk_a4; // FLOAT_00557164
+	float float_b0; // FLOAT_00557170
+	float float_b4; // FLOAT_00557174
+	float float_b8; // FLOAT_00557178
+	float float_bc; // FLOAT_0055717c
+	struct Point2I pointi_c0; // DAT_00557180
+	BOOL bool_c8; // DAT_00557188
+	char * ObjectNames_PowerCrystal; // g_ObjectNames_PowerCrystal
+	char * ObjectNames_Ore; // g_ObjectNames_Ore
+	char * ObjectNames_ProcessedOre; // g_ObjectNames_ProcessedOre
+	char * ObjectNames_Dynamite; // g_ObjectNames_Dynamite
+	char * ObjectNames_Barrier; // g_ObjectNames_Barrier
+	char * ObjectNames_ElectricFence; // g_ObjectNames_ElectricFence
+	char * ObjectNames_SpiderWeb; // g_ObjectNames_SpiderWeb
+	char * ObjectNames_OohScary; // g_ObjectNames_OohScary
+	char * ObjectNames_Path; // g_ObjectNames_Path
+	char * ObjectTheNames_PowerCrystal; // g_ObjectTheNames_PowerCrystal
+	char * ObjectTheNames_Ore; // g_ObjectTheNames_Ore
+	char * ObjectTheNames_ProcessedOre; // g_ObjectTheNames_ProcessedOre
+	char * ObjectTheNames_Dynamite; // g_ObjectTheNames_Dynamite
+	char * ObjectTheNames_Barrier; // g_ObjectTheNames_Barrier
+	char * ObjectTheNames_ElectricFence; // g_ObjectTheNames_ElectricFence
+	char * ObjectTheNames_SpiderWeb; // g_ObjectTheNames_SpiderWeb
+	char * ObjectTheNames_OohScary; // g_ObjectTheNames_OohScary
+	char * ObjectTheNames_Path; // g_ObjectTheNames_Path
+	struct VehicleData * VehicleData_TABLE; // g_VehicleData_TABLE
+	struct CreatureData * MiniFigureData_TABLE; // g_MiniFigureData_TABLE
+	struct CreatureData * RockMonsterData_TABLE; // g_RockMonsterData_TABLE
+	struct BuildingData * BuildingData_TABLE; // g_BuildingData_TABLE
+	struct UpgradeData * UpgradeData_TABLE; // g_UpgradeData_TABLE
+	char * * VehicleTypes_TABLE; // g_VehicleTypes_TABLE
+	char * * MiniFigureTypes_TABLE; // g_MiniFigureTypes_TABLE
+	char * * RockMonsterTypes_TABLE; // g_RockMonsterTypes_TABLE
+	char * * BuildingTypes_TABLE; // g_BuildingTypes_TABLE
+	char * * UpgradeTypes_TABLE; // g_UpgradeTypes_TABLE
+	char * ToolTypes_TABLE[11]; // g_ToolTypes_TABLE
+	char * ToolNames_TABLE[11]; // g_ToolNames_TABLE
+	char * * ObjectNames_VehicleTypes_TABLE; // g_ObjectNames_VehicleTypes_TABLE
+	char * * ObjectNames_MiniFigureTypes_TABLE; // g_ObjectNames_MiniFigureTypes_TABLE
+	char * * ObjectNames_RockMonsterTypes_TABLE; // g_ObjectNames_RockMonsterTypes_TABLE
+	char * * ObjectNames_BuildingTypes_TABLE; // g_ObjectNames_BuildingTypes_TABLE
+	char * * ObjectNames_UpgradeTypes_TABLE; // g_ObjectNames_UpgradeTypes_TABLE
+	char * * ObjectTheNames_VehicleTypes_TABLE; // g_ObjectTheNames_VehicleTypes_TABLE
+	char * * ObjectTheNames_MiniFigureTypes_TABLE; // g_ObjectTheNames_MiniFigureTypes_TABLE
+	char * * ObjectTheNames_RockMonsterTypes_TABLE; // g_ObjectTheNames_RockMonsterTypes_TABLE
+	char * * ObjectTheNames_BuildingTypes_TABLE; // g_ObjectTheNames_BuildingTypes_TABLE
+	char * * ObjectTheNames_UpgradeTypes_TABLE; // g_ObjectTheNames_UpgradeTypes_TABLE
+	uint VehicleTypes_COUNT; // g_VehicleTypes_COUNT
+	uint MiniFigureTypes_COUNT; // g_MiniFigureTypes_COUNT
+	uint RockMonsterTypes_COUNT; // g_RockMonsterTypes_COUNT
+	uint BuildingTypes_COUNT; // g_BuildingTypes_COUNT
+	uint UpgradeTypes_COUNT; // g_UpgradeTypes_COUNT
+	char * SurfaceTypes_TABLE[18]; // g_SurfaceTypes_TABLE
+	char * SurfaceTypeDescriptions_name_TABLE[18]; // g_SurfaceTypeDescriptions_name_TABLE
+	void * SurfaceTypeDescriptions_sound_TABLE[18]; // g_SurfaceTypeDescriptions_sound_TABLE
+	struct Container * RES_Boulder; // g_RES_BOULDER
+	struct Container * RES_BoulderExplode; // DAT_0055736c
+	struct Container * RES_BoulderExplodeIce; // DAT_00557370
+	struct Container * RES_Crystal; // g_RES_POWERCRYSTAL
+	struct Container * RES_Dynamite; // g_RES_DYNAMITE
+	struct Container * RES_Ores_TABLE[2]; // g_RES_ORES_TABLE
+	struct Container * RES_OohScary; // g_RES_OOHSCARY
+	struct Container * RES_Barrier; // g_RES_BARRIER
+	struct Container * RES_ElectricFence; // g_RES_ELECTRICFENCE
+	struct Container * RES_SpiderWeb; // g_RES_SPIDERWEB
+	struct Container * RES_RechargeSparkle; // DAT_00557394
+	struct Container * RES_MiniTeleportUp; // DAT_00557398
+	struct Container * RES_ElectricFenceStud; // DAT_0055739c
+	struct Container * RES_Pusher; // g_RES_PUSHER
+	struct Container * RES_Freezer; // g_RES_FREEZER
+	struct Container * RES_IceCube; // DAT_005573a8
+	struct Container * RES_SmashPath; // DAT_005573ac
+	struct Container * RES_LaserShot; // g_RES_LASERSHOT
+	struct Container * * RES_2f4_TABLEUNK; // DAT_005573b4
+	struct LiveObject * recordObjs[10]; // g_UNK_TABLE__005573b8
+	uint recordObjsCount; // UINT_005573e0
+	float float_324; // FLOAT_005573e4
+	float float_328; // FLOAT_005573e8
+	float float_32c; // FLOAT_005573ec
+	float float_330; // FLOAT_005573f0
+	float tvTiltOrZoom_334;
+	struct Point2F tvFaceDirection_338;
+	float MedPolyRange; // g_MedPolyRange
+	float HighPolyRange; // g_HighPolyRange
+	int HPBlocks; // g_HPBlocks
+	struct ColourRGBF FogColourRGB; // g_FogColourRGB
+	struct ColourRGBF HighFogColourRGB; // g_HighFogColourRGB
+	float float_364; // g_LEVEL_UNK_FLOAT_00557424
+	struct ColourRGBF PowerCrystalRGB; // g_PowerCrystalRGB
+	struct ColourRGBF UnpoweredCrystalRGB; // g_UnpoweredCrystalRGB
+	enum ObjectType placeObjType; // INT_00557440
+	int placeObjIndex; // INT_00557444
+	enum Direction placeObjDirection; // INT_00557448
+	struct LiveObject * placeDestSmallTeleporter; // PTR_0055744c
+	struct LiveObject * placeDestBigTeleporter; // PTR_00557450
+	struct LiveObject * placeDestWaterTeleporter; // PTR_00557454
+	float MinEnergyForEat; // g_MinEnergyForEat
+	struct ImageBMP * TutorialIcon; // bmp? PTR_0055745c
+	undefined4 field_3a0;
+	float DynamiteDamageRadius; // g_DynamiteDamageRadius
+	float DynamiteMaxDamage; // g_DynamiteMaxDamage
+	float DynamiteWakeRadius; // g_DynamiteWakeRadius
+	float BirdScarerRadius; // g_BirdScarerRadius
+	enum ObjectType objTeleportQueueTypes_TABLE[20]; // UNK_ARRAY_00557474
+	int objTeleportQueueIndexes_TABLE[20]; // UNK_ARRAY_005574c4
+	uint objTeleportQueue_COUNT; // count for above 2 arrays, UINT_00557514
+	float MiniFigureRunAway; // g_MiniFigureRunAway
+	struct Vector3F vector_45c; // FLOAT_0055751c
+	struct Point2I blockPts_468[100]; // UNK_ARRAY_00557528
+	uint blockPtsCount_788; // UINT_00557848
+	struct Point2I points2x100_78c[2][100]; // UNK_ARRAY_0055784c
+	uint pointsCount2_dcc[2]; // UINT_00557e8c
+	uint MaxReturnedCrystals; // g_MaxReturnedCrystals
+	uint MouseScrollBorder; // g_MouseScrollBorder
+	char * HealthText; // g_HealthText
+	char * EnergyText; // g_EnergyText
+	char * CrystalsText; // g_CrystalsText
+	char * OreText; // g_OreText
+	char * StudsText; // g_StudsText
+	char * ToolsText; // g_ToolsText
+	char * CarryObjectText; // g_CarryObjectText
+	char * DrivenByText; // g_DrivenByText
+	char * OreRequiredText; // g_OreRequiredText
+	BOOL IsFallinsEnabled; // (! "NoFallins"), g_YesFallins
+	float MinDistFor3DSoundsOnTopView; // g_MinDistFor3DSoundsOnTopView
+	enum ViewMode viewMode; // (may not be bool, compared with 0, and 1) g_GAME_UNK_BOOL_00557ec8
+	enum GameFlags1 flags1; // g_GAME_GameFlags1
+	enum GameFlags2 flags2; // g_GAME_GameFlags2
+	enum GameFlags3 flags3; // only first byte is used(?), g_GAME_GameFlags3
+	float InitialSlugTime; // g_InitialSlugTime
+	struct Point2F NextButtonPos; // g_NextButton
+	struct Point2F BackButtonPos; // g_BackButtonPos
+	struct ImageBMP * NextButton; // bmp? PTR_00557eec
+	struct ImageBMP * BackButton; // bmp? PTR_00557ef0
+	struct ImageBMP * BackArrow; // bmp? PTR_00557ef4
+	float FogRate; // g_LEVEL_FogRate
+	float timerGame_e3c; // FLOAT_00557efc
+	float elapsedAbs; // assigned to Game_Update param_1 float fpsSync, FLOAT_00557f00
+	float DrainTime; // g_DrainTime
+	uint ReinforceHits; // g_ReinforceHits
+	uint CDStartTrack; // g_CDStartTrack
+	uint CDTracks; // g_CDTracks
+	uint FallinMultiplier; // g_LEVEL_FallinMultiplier
+	BOOL hasFallins; // BOOL_00557f18
+	struct Point2F menuNextPoint; // DAT_00557f1c
+	struct Point2F menuPrevPoint; // DAT_00557f24
+	struct ColourRGBF DragBoxRGB; // g_DragBoxRGB
+	struct ImageBMP * DialogImage; // PTR_00557f38
+	struct ImageBMP * DialogContrastOverlay; // PTR_00557f3c
+	struct TextWindow * DialogTextWndTitle; // PTR_00557f40
+	struct TextWindow * DialogTextWndMessage; // PTR_00557f44
+	struct TextWindow * DialogTextWndOK; // PTR_00557f48
+	struct TextWindow * DialogTextWndCancel; // PTR_00557f4c
+	char * CreditsTextFile; // g_CreditsTextFile
+	char * CreditsBackAVI; // g_CreditsBackAVI
+	char * UpgradeNames_TABLE[16]; // g_UpgradeNames_TABLE
+	int BuildingUpgradeCostOre; // g_BuildingUpgradeCostOre
+	int BuildingUpgradeCostStuds; // g_BuildingUpgradeCostStuds
+	char * renameInput;
+	struct Point2F renamePosition;
+	char * RenameReplace; // g_RenameReplace
+	char * EndGameAVI1; // g_EndGameAVI1
+	char * EndGameAVI2; // g_EndGameAVI2
+	struct Point2I s_mouseBlockPos_ef8; // (static, Game_unkGameLoop_FUN_00426450)
+};
+
+struct CameraData { // May be camera data (which is related to- but not the same as viewports)
+	enum CameraType camType;
+	struct LiveObject * trackObj;
+	float trackFloat_8;
+	float trackDist;
+	float trackFloat_10;
+	undefined4 field_14;
+	struct Vector3F vector_18;
+	struct Container * resData1; // only resData created for FP type (null attachment)
+	struct Container * resData2; // attached to resRoot
+	struct Container * resData3; // attached to resRoot
+	struct Container * resData4; // attached to resData2
+	struct Container * resTableunk_34; // attached to resData4 (topdown type only)
+	undefined field_0x38;
+	undefined field_0x39;
+	undefined field_0x3a;
+	undefined field_0x3b;
+	undefined field_0x3c;
+	undefined field_0x3d;
+	undefined field_0x3e;
+	undefined field_0x3f;
+	undefined field_0x40;
+	undefined field_0x41;
+	undefined field_0x42;
+	undefined field_0x43;
+	undefined field_0x44;
+	undefined field_0x45;
+	undefined field_0x46;
+	undefined field_0x47;
+	undefined field_0x48;
+	undefined field_0x49;
+	undefined field_0x4a;
+	undefined field_0x4b;
+	undefined field_0x4c;
+	undefined field_0x4d;
+	undefined field_0x4e;
+	undefined field_0x4f;
+	undefined field_0x50;
+	undefined field_0x51;
+	undefined field_0x52;
+	undefined field_0x53;
+	undefined field_0x54;
+	undefined field_0x55;
+	undefined field_0x56;
+	undefined field_0x57;
+	undefined field_0x58;
+	undefined field_0x59;
+	undefined field_0x5a;
+	undefined field_0x5b;
+	undefined field_0x5c;
+	undefined field_0x5d;
+	undefined field_0x5e;
+	undefined field_0x5f;
+	undefined field_0x60;
+	undefined field_0x61;
+	undefined field_0x62;
+	undefined field_0x63;
+	undefined field_0x64;
+	undefined field_0x65;
+	undefined field_0x66;
+	undefined field_0x67;
+	undefined field_0x68;
+	undefined field_0x69;
+	undefined field_0x6a;
+	undefined field_0x6b;
+	undefined field_0x6c;
+	undefined field_0x6d;
+	undefined field_0x6e;
+	undefined field_0x6f;
+	undefined field_0x70;
+	undefined field_0x71;
+	undefined field_0x72;
+	undefined field_0x73;
+	undefined field_0x74;
+	undefined field_0x75;
+	undefined field_0x76;
+	undefined field_0x77;
+	float tilt;
+	struct Range2F TiltRange;
+	float yaw;
+	struct Range2F YawRange;
+	float dist;
+	struct Range2F DistRange;
+	float speedAccel_9c;
+	struct Vector3F vector_a0;
+	struct Vector3F vector_ac;
+	enum CameraFlags flags;
+};
+
+struct TextWindow { // Probably a text rendering area (official: TextWindow)
+	struct ImageFont * font;
+	struct Rect2F windowSize;
+	void * windowBuffer;
+	char secondBuffer[1024];
+	uint bufferSize;
+	uint bufferEnd;
+	uint lines[256]; // list of line numbers by char offset?
+	uint linesCount;
+	int linesCapacity;
+	float displayDelay;
+	uint flags;
 };
 
 typedef struct Wad_Globs Wad_Globs, *PWad_Globs;
+
+typedef struct _iobuf _iobuf, *P_iobuf;
+
+typedef struct _iobuf FILE;
+
+typedef struct Wad Wad, *PWad;
+
+typedef struct Wad_Handle Wad_Handle, *PWad_Handle;
+
+typedef struct WadEntry WadEntry, *PWadEntry;
+
+typedef enum WadEntryFlags {
+	WAD_FILE_IS_IN_WAD=4,
+	WAD_FILE_NONE=0,
+	WAD_FILE_RNCOMPRESSED=2,
+	WAD_FILE_UNCOMPRESSED=1
+} WadEntryFlags;
+
+struct _iobuf {
+	char * _ptr;
+	int _cnt;
+	char * _base;
+	int _flag;
+	int _file;
+	int _charbuf;
+	int _bufsiz;
+	char * _tmpfname;
+};
+
+struct Wad_Handle {
+	void * data; // Pointer to the file data
+	BOOL active; // Is this handle active already
+	int wadFile; // Wad file this handle uses
+	int indexOfFileInWad; // Index of the file in the wad structure
+};
+
+struct Wad { // LegoRR WAD File information
+	char * fName; // (unused)
+	BOOL active; // 1 if WAD is in-use
+	HANDLE hFile;
+	HANDLE hFileMapping;
+	FILE * fWad; // File handle of the wad
+	char * * fileNames; // Names of actual files
+	char * * wadNames; // Names within wad
+	struct WadEntry * wadEntries;
+	int numFiles; // number of file entries
+};
 
 struct Wad_Globs {
 	DWORD computerNameLength; // (address not known)
 	BOOL wadLogFileAccess; // (address not known)
 	FILE * s_ErrorFile_f; // (address not known)
-	struct WADFile wads[10]; // Wad structures
+	struct Wad wads[10]; // Wad structures
 	int references[10]; // Current count of references to the wad file
 	char computerName[16]; // (address not known)
-	struct WADStream fileHandles[100];
+	struct Wad_Handle fileHandles[100];
+};
+
+struct WadEntry { // WAD file entry metadata contained within LegoWADFile structure
+	enum WadEntryFlags compression; // usually 1, 2 for RNC compression
+	int fileLength; // Compressed packed size
+	int decompressedLength; // Original unpacked size (same as packedSize when uncompressed)
+	int addr; // absolute file offset
 };
 
 typedef struct Input_Globs Input_Globs, *PInput_Globs;
@@ -17955,6 +4742,8 @@ typedef struct Input_Globs Input_Globs, *PInput_Globs;
 typedef struct IDirectInputA IDirectInputA, *PIDirectInputA;
 
 typedef struct IDirectInputDeviceA IDirectInputDeviceA, *PIDirectInputDeviceA;
+
+typedef struct tagRECT RECT;
 
 typedef struct DIMOUSESTATE DIMOUSESTATE, *PDIMOUSESTATE;
 
@@ -18148,21 +4937,498 @@ struct HINSTANCE__ {
 	int unused;
 };
 
+typedef struct Init_Globs Init_Globs, *PInit_Globs;
+
+struct Init_Globs {
+	uint driverCount;
+	uint deviceCount;
+	uint modeCount;
+	struct DirectDraw_Driver drivers[20];
+	struct DirectDraw_Device devices[20];
+	struct DirectDraw_Mode modes[200];
+	struct DirectDraw_Driver * selDriver;
+	struct DirectDraw_Device * selDevice;
+	struct DirectDraw_Mode * selMode;
+	BOOL selFullScreen;
+	BOOL wasFullScreen; // Previous fullscreen state when Windowed button is disabled due to lack of support
+	struct DirectDraw_Mode validModes[200];
+	uint validModeCount;
+};
+
+typedef struct ToolTip_Globs ToolTip_Globs, *PToolTip_Globs;
+
+struct ToolTip_Globs {
+	struct ImageFont * font; // (init only)
+	uint fontHeight; // (init only)
+	uint int2_8; // (init only)
+	int int1_c; // (init only)
+	uint width; // (init only)
+	uint height; // (init only)
+	int int32_18; // (init only)
+	float hoverTime; // Duration before showing tooltip  (init only)
+	float rgbFloats[9]; // [r:g:b(3)][norm:hi:lo(3)]  (init only)
+	char * toolTipTexts[39]; // (init only)
+	struct ToolTipData toolTipDatas[39];
+};
+
+typedef struct Key_Globs Key_Globs, *PKey_Globs;
+
+struct Key_Globs {
+	char * keyName[256];
+};
+
+typedef struct Dxbug_Globs Dxbug_Globs, *PDxbug_Globs;
+
+struct Dxbug_Globs { // DirectX (dxbug.c) debugging loose static variables
+	HRESULT errnum;
+	int line;
+	int DXModuleNameNumber;
+	int DXNumErrorsSet;
+	char * file;
+	uint reserved1;
+	char DXErrorString[2048]; // Last error that was set (actually [1024], but the space is unused)
+};
+
+typedef struct Camera_Globs Camera_Globs, *PCamera_Globs;
+
+struct Camera_Globs {
+	float CameraSpeed;
+	float CameraDropOff;
+	float CameraAcceleration;
+	int MouseScrollIndent;
+};
+
+typedef struct Loader_Globs Loader_Globs, *PLoader_Globs;
+
+typedef enum LoaderFlags {
+	LOADER_FLAG_ENABLED=1,
+	LOADER_FLAG_NONE=0
+} LoaderFlags;
+
+struct Loader_Globs {
+	struct ImageBMP * LoadScreen;
+	struct ImageFont * font;
+	struct LoaderSection sectionList[50];
+	struct LoaderSection * current; // current section being loaded
+	struct ImageBMP * ShutdownScreen;
+	struct ImageBMP * ProgressBar;
+	struct Rect2F ProgressWindow;
+	enum Direction ProgressDirection; // expand direction of progress bar: U, R, D, L
+	char * LoadingText;
+	uint LoadingWidth; // measured width of font with LoadingText
+	float progressLast; // percentage of filesize for section (stores percent of last render)
+	enum LoaderFlags flags; // (1 = show loading bar)
+};
+
+typedef struct Image_Globs Image_Globs, *PImage_Globs;
+
+struct Image_Globs {
+	struct ImageBMP * listSet[32]; // Images list
+	struct ImageBMP * freeList;
+	uint listCount; // number of lists.
+	uint flags;
+};
+
+typedef struct Teleporter_Globs Teleporter_Globs, *PTeleporter_Globs;
+
+struct Teleporter_Globs {
+	uint count;
+	int intValue_40; // (const: 40)
+	struct TeleporterService * current;
+	float floatValue_3_0; // (const: 3.0)
+};
+
+typedef struct File_Globs File_Globs, *PFile_Globs;
+
+typedef void (* FileLoadCallback)(char *, uint, void *);
+
+struct File_Globs {
+	char wadBasePath[1024];
+	char s_GetWadName_wadedName[1024];
+	char s_VerifyFilename_full[260];
+	FILE * s_ErrorFile_f; // (address not known)
+	char dataDir[260];
+	FileLoadCallback loadCallback;
+	void * loadCallbackData;
+	char cdLetter;
+	undefined1 padding1[3];
+	BOOL basePathSet;
+	BOOL fileLogFileAccess; // (address not known)
+};
+
+typedef struct Draw_Globs Draw_Globs, *PDraw_Globs;
+
+typedef void (* DrawPixelFunc)(int, int, uint);
+
+struct Draw_Globs {
+	DrawPixelFunc drawPixelFunc;
+	struct Point2F clipStart;
+	struct Point2F clipEnd;
+	RECT lockRect;
+	void * buffer;
+	uint pitch;
+	uint bpp;
+	uint redMask;
+	uint greenMask;
+	uint blueMask;
+	uint redBits;
+	uint greenBits;
+	uint blueBits;
+	uint flags;
+};
+
+typedef struct Fallin_Globs Fallin_Globs, *PFallin_Globs;
+
+struct Fallin_Globs { // Just a single field for Fallins (most other settings are found in Lego_Globs)
+	uint NumberOfLandSlidesTillCaveIn;
+};
+
+typedef struct Message_Globs Message_Globs, *PMessage_Globs;
+
+typedef struct MessageAction MessageAction, *PMessageAction;
+
+typedef enum KeysByte {
+	KEYPAD_0=82,
+	KEYPAD_1=79,
+	KEYPAD_2=80,
+	KEYPAD_3=81,
+	KEYPAD_4=75,
+	KEYPAD_5=76,
+	KEYPAD_6=77,
+	KEYPAD_7=71,
+	KEYPAD_8=72,
+	KEYPAD_9=73,
+	KEYPAD_ASTERISK=55,
+	KEYPAD_DELETE=83,
+	KEYPAD_ENTER=156,
+	KEYPAD_FORWARDFLASH=181,
+	KEYPAD_MINUS=74,
+	KEYPAD_NUMLOCK=69,
+	KEYPAD_PLUS=78,
+	KEY_A=30,
+	KEY_ALT=56,
+	KEY_ALTGR=184,
+	KEY_AT=40,
+	KEY_B=48,
+	KEY_BACKSLASH=86,
+	KEY_BACKSPACE=14,
+	KEY_C=46,
+	KEY_CAPLOCK=58,
+	KEY_CURSORDOWN=208,
+	KEY_CURSORLEFT=203,
+	KEY_CURSORUP=200,
+	KEY_D=32,
+	KEY_DELETE=211,
+	KEY_E=18,
+	KEY_EIGHT=9,
+	KEY_END=207,
+	KEY_EQUALS=13,
+	KEY_ESCAPE=1,
+	KEY_F=33,
+	KEY_F1=59,
+	KEY_F10=68,
+	KEY_F11=87,
+	KEY_F12=88,
+	KEY_F2=60,
+	KEY_F3=61,
+	KEY_F4=62,
+	KEY_F5=63,
+	KEY_F6=64,
+	KEY_F7=65,
+	KEY_F8=66,
+	KEY_F9=67,
+	KEY_FIVE=6,
+	KEY_FOUR=5,
+	KEY_G=34,
+	KEY_H=35,
+	KEY_HASH=43,
+	KEY_HOME=199,
+	KEY_I=23,
+	KEY_INSERT=210,
+	KEY_J=36,
+	KEY_K=37,
+	KEY_L=38,
+	KEY_LEFTARROW=51,
+	KEY_LEFTBRACE=26,
+	KEY_LEFTCTRL=29,
+	KEY_LEFTSHIFT=42,
+	KEY_M=50,
+	KEY_MINUS=12,
+	KEY_N=49,
+	KEY_NINE=10,
+	KEY_O=24,
+	KEY_ONE=2,
+	KEY_P=25,
+	KEY_PGDN=209,
+	KEY_PGUP=201,
+	KEY_PRINTSCREEN=183,
+	KEY_Q=16,
+	KEY_QUESTIONMARK=53,
+	KEY_R=19,
+	KEY_RETURN=28,
+	KEY_RIGHTARROW=52,
+	KEY_RIGHTBRACE=27,
+	KEY_RIGHTCTRL=157,
+	KEY_RIGHTSHIFT=54,
+	KEY_RSINGLEQUOTE=41,
+	KEY_S=31,
+	KEY_SCROLLLOCK=70,
+	KEY_SEMICOLON=39,
+	KEY_SEVEN=8,
+	KEY_SIX=7,
+	KEY_SPACE=57,
+	KEY_T=20,
+	KEY_TAB=15,
+	KEY_THREE=4,
+	KEY_TWO=3,
+	KEY_U=22,
+	KEY_V=47,
+	KEY_W=17,
+	KEY_X=45,
+	KEY_Y=21,
+	KEY_Z=44,
+	KEY_ZERO=11,
+	KEY__NONE=0
+} KeysByte;
+
+struct MessageAction {
+	enum MessageType event;
+	struct LiveObject * argumentObj;
+	undefined4 argument2;
+	struct Point2I position;
+};
+
+struct Message_Globs {
+	struct MessageAction messageTableX2[2][2048];
+	uint messageCountX2[2];
+	BOOL messageX2Bool;
+	struct LiveObject * selectedUnitList[100];
+	enum KeysByte hotkeyList[10];
+	undefined2 padding1;
+	struct MessageAction hotkeyMessages[10];
+	char * messageName[65];
+	undefined4 reserved1;
+	uint selectedUnitCount;
+	uint hotkeyCount;
+};
+
+typedef struct Mesh_Globs Mesh_Globs, *PMesh_Globs;
+
+typedef struct Mesh_PostRenderInfo Mesh_PostRenderInfo, *PMesh_PostRenderInfo;
+
+typedef struct Main_StateChangeData Main_StateChangeData, *PMain_StateChangeData;
+
+typedef struct Mesh_TextureReference Mesh_TextureReference, *PMesh_TextureReference;
+
+typedef struct IDirect3DMaterial3 IDirect3DMaterial3, *PIDirect3DMaterial3;
+
+typedef struct IDirect3DMaterial3Vtbl IDirect3DMaterial3Vtbl, *PIDirect3DMaterial3Vtbl;
+
+struct Main_StateChangeData { // The item's render state type is determined by the index in its table
+	uint origValue; // not restricted to just uint value types, pointers, floats, signed ints, etc.
+	BOOL changed;
+};
+
+struct IDirect3DMaterial3 {
+	struct IDirect3DMaterial3Vtbl * lpVtbl;
+};
+
+struct Mesh_TextureReference {
+	struct IDirectDrawSurface4 * surface;
+	char * path;
+	BOOL trans;
+};
+
+struct Mesh_Globs {
+	struct Mesh * postRenderList;
+	struct Mesh_PostRenderInfo * postRenderMeshList;
+	struct Main_StateChangeData stateData[50];
+	char * sharedTextureDir;
+	struct Mesh_TextureReference textureList[2048];
+	struct Mesh_TextureReference textureListShared[2048];
+	uint textureCount;
+	uint textureCountShared;
+	DWORD oldTextureRM;
+	DWORD oldMatIM;
+	struct IDirect3DTexture2 * oldTextureIM;
+	DWORD currTextureRM;
+	DWORD currMatIM;
+	struct IDirect3DTexture2 * currTextureIM;
+	DWORD matHandle;
+	struct IDirect3DMaterial3 * imMat;
+	struct Mesh * listSet[20];
+	struct Mesh * freeList;
+	uint listCount; // (yeah, no uint flags)
+};
+
+struct Mesh_PostRenderInfo {
+	struct Mesh * mesh;
+	struct Matrix4F matWorld;
+	struct Mesh_PostRenderInfo * next;
+};
+
+struct IDirect3DMaterial3Vtbl {
+	HRESULT (* QueryInterface)(struct IUnknown *, IID *, LPVOID *);
+	ULONG (* AddRef)(struct IUnknown *);
+	ULONG (* Release)(struct IUnknown *);
+	pointer SetMaterial;
+	pointer GetMaterial;
+	pointer GetHandle;
+};
+
+typedef struct Erode_Globs Erode_Globs, *PErode_Globs;
+
+struct Erode_Globs {
+	struct Point2I UnkBlocksList[2000];
+	uint UnkBlocksCount;
+	struct Point2I activeBlocks[2000];
+	BOOL activeStates[2000];
+	float activeTimers[2000]; // (countdown timers)
+	struct Point2I lockedBlocks[1000];
+	float lockedTimers[1000]; // (countdown timers)
+	BOOL lockedStates[1000];
+	float elapsedTimer; // (count-up elapsed timer)
+	float ErodeTriggerTime; // (init: Lego.cfg)
+	float ErodeErodeTime; // (init: Lego.cfg)
+	float ErodeLockTime; // (init: Lego.cfg)
+};
+
+typedef struct Container_Globs Container_Globs, *PContainer_Globs;
+
+typedef struct Container_TextureRef Container_TextureRef, *PContainer_TextureRef;
+
+typedef void (* ContainerSoundTriggerCallback)(char *, struct Container *, void *);
+
+typedef void (* ContainerTriggerFrameCallback)(struct Container *, void *);
+
+typedef enum ResourceManagerFlags { // All flags used by the ResourceManager struct.
+	RESMANAGER_ISINIT=1,
+	RESMANAGER_NONE=0,
+	RESMANAGER_SOUNDCALLBACK=64
+} ResourceManagerFlags;
+
+struct Container_TextureRef {
+	char * filename;
+	struct IDirect3DRMTexture3 * texture;
+};
+
+struct Container_Globs {
+	struct Container * listSet[20];
+	struct Container * freeList;
+	struct Container * rootContainer;
+	char * typeName[9];
+	char * extensionName[9];
+	char * gameName;
+	struct IDirect3DRMVisual * visualArray[4];
+	struct Container_TextureRef textureSet[1000];
+	uint textureCount;
+	ContainerSoundTriggerCallback soundTriggerCallback;
+	void * soundTriggerData;
+	ContainerTriggerFrameCallback triggerFrameCallback;
+	void * triggerFrameData;
+	char * sharedDir;
+	uint fogColour;
+	uint listCount;
+	enum ResourceManagerFlags flags;
+};
+
+typedef struct Viewport_Globs Viewport_Globs, *PViewport_Globs;
+
+struct Viewport_Globs {
+	struct Viewport * listSet[32];
+	struct Viewport * freeList;
+	uint listCount;
+	uint flags;
+};
+
+typedef struct BatFlocks_Globs BatFlocks_Globs, *PBatFlocks_Globs;
+
+struct BatFlocks_Globs { // (struct name changed to "BatFlocks" instead of "Flocks" to avoid annoying autocorrect when setting type in Ghidra)
+	float Turn;
+	float Speed;
+	float Tightness;
+	float GoalUpdate;
+};
+
+typedef struct Animation_Globs Animation_Globs, *PAnimation_Globs;
+
+struct Animation_Globs {
+	bool g98NoAvis;
+	byte padding1[3];
+	struct IDirectDraw4 * ddraw;
+};
+
 typedef struct Sound3D_Globs Sound3D_Globs, *PSound3D_Globs;
 
 typedef struct IDirectSound IDirectSound, *PIDirectSound;
 
+typedef struct IDirectSoundBuffer IDirectSoundBuffer, *PIDirectSoundBuffer;
+
 typedef struct IDirectSound3DListener IDirectSound3DListener, *PIDirectSound3DListener;
+
+typedef struct Sound3D_StreamData Sound3D_StreamData, *PSound3D_StreamData;
 
 typedef struct Sound3D_SoundRecord Sound3D_SoundRecord, *PSound3D_SoundRecord;
 
+typedef struct Sound3D_SoundData Sound3D_SoundData, *PSound3D_SoundData;
+
 typedef struct IDirectSoundVtbl IDirectSoundVtbl, *PIDirectSoundVtbl;
+
+typedef struct IDirectSoundBufferVtbl IDirectSoundBufferVtbl, *PIDirectSoundBufferVtbl;
 
 typedef struct IDirectSound3DListenerVtbl IDirectSound3DListenerVtbl, *PIDirectSound3DListenerVtbl;
 
+typedef struct Sound3D_WaveData Sound3D_WaveData, *PSound3D_WaveData;
+
 typedef struct IDirectSound3DBuffer IDirectSound3DBuffer, *PIDirectSound3DBuffer;
 
+typedef struct tWAVEFORMATEX tWAVEFORMATEX, *PtWAVEFORMATEX;
+
+typedef struct tWAVEFORMATEX WAVEFORMATEX;
+
+typedef enum SampleFlags {
+	SAMPLE_ISUSED=1,
+	SAMPLE_MULTIPLE=4,
+	SAMPLE_NONE=0,
+	SAMPLE_STREAMED=8,
+	SAMPLE_VOLUME=2
+} SampleFlags;
+
+typedef struct HMMIO__ HMMIO__, *PHMMIO__;
+
+typedef struct HMMIO__ * HMMIO;
+
+typedef struct _MMCKINFO _MMCKINFO, *P_MMCKINFO;
+
+typedef struct _MMCKINFO MMCKINFO;
+
 typedef struct IDirectSound3DBufferVtbl IDirectSound3DBufferVtbl, *PIDirectSound3DBufferVtbl;
+
+typedef DWORD FOURCC;
+
+struct Sound3D_SoundData { // (official: Sound3D_SoundData)
+	char filename[260];
+	uint size;
+	uint avgBytesPerSec; // Only set for streaming buffers
+	int frequency;
+	int volume;
+	int offset;
+	byte * data;
+	WAVEFORMATEX * waveFormat;
+	struct IDirectSoundBuffer * dSoundBuffers[3]; // ([] = max simultaneous 3D sounds)
+	uint bufferIndex; // (official: voice)
+	enum SampleFlags flags;
+};
+
+struct tWAVEFORMATEX {
+	WORD wFormatTag;
+	WORD nChannels;
+	DWORD nSamplesPerSec;
+	DWORD nAvgBytesPerSec;
+	WORD nBlockAlign;
+	WORD wBitsPerSample;
+	WORD cbSize;
+};
 
 struct IDirectSound {
 	struct IDirectSoundVtbl * lpVtbl;
@@ -18194,6 +5460,40 @@ struct IDirectSound3DListenerVtbl {
 	pointer SetRolloffFactor;
 	pointer SetVelocity;
 	pointer CommitDeferredSettings;
+};
+
+struct IDirectSoundBuffer {
+	struct IDirectSoundBufferVtbl * lpVtbl;
+};
+
+struct _MMCKINFO {
+	FOURCC ckid;
+	DWORD cksize;
+	FOURCC fccType;
+	DWORD dwDataOffset;
+	DWORD dwFlags;
+};
+
+struct Sound3D_WaveData {
+	WAVEFORMATEX * waveFormat; // Wave Format data structure (hGlobal)
+	HMMIO hmmio; // MM I/O handle for the WAVE
+	MMCKINFO mmck; // Multimedia RIFF chunk
+	MMCKINFO mmckInRIFF; // Use in opening a WAVE file
+	DWORD dwBufferSize; // Size of the entire buffer
+	DWORD dwNotifySize; // size of each notification period.
+	DWORD dwNextWriteOffset; // Offset to next buffer segment
+	DWORD dwProgress; // Used with above to show prog.
+	DWORD dwNextProgressCheck;
+	DWORD dwLastPos; // the last play position returned by GetCurrentPos().
+	BOOL bDonePlaying; // Signals early abort to timer
+	BOOL bLoopFile; // Should we loop playback?
+	BOOL bFoundEnd; // Timer found file end
+};
+
+struct Sound3D_StreamData {
+	BOOL fileOpen; // paused/playing/used?
+	struct Sound3D_WaveData wiWave;
+	BOOL playing; // paused/playing/used?
 };
 
 struct IDirectSoundVtbl {
@@ -18238,6 +5538,34 @@ struct IDirectSound3DBufferVtbl {
 	pointer SetVelocity;
 };
 
+struct IDirectSoundBufferVtbl {
+	HRESULT (* QueryInterface)(struct IUnknown *, IID *, LPVOID *);
+	ULONG (* AddRef)(struct IUnknown *);
+	ULONG (* Release)(struct IUnknown *);
+	pointer GetCaps;
+	pointer GetCurrentPosition;
+	pointer GetFormat;
+	pointer GetVolume;
+	pointer GetPan;
+	pointer GetFrequency;
+	pointer GetStatus;
+	pointer Initialize;
+	pointer Lock;
+	pointer Play;
+	pointer SetCurrentPosition;
+	pointer SetFormat;
+	pointer SetVolume;
+	pointer SetPan;
+	pointer SetFrequency;
+	pointer Stop;
+	pointer Unlock;
+	pointer Restore;
+};
+
+struct HMMIO__ {
+	int unused;
+};
+
 struct Sound3D_Globs {
 	struct IDirectSound * lpDSnd;
 	struct IDirectSoundBuffer * lpDSBuff;
@@ -18270,17 +5598,11 @@ struct IDirectSound3DBuffer {
 
 typedef struct Main_Globs Main_Globs, *PMain_Globs;
 
-typedef uint UINT;
-
-typedef UINT_PTR WPARAM;
-
-typedef long LONG_PTR;
-
-typedef LONG_PTR LPARAM;
-
 typedef struct IDirect3DRM3 IDirect3DRM3, *PIDirect3DRM3;
 
 typedef struct IDirect3DDevice3 IDirect3DDevice3, *PIDirect3DDevice3;
+
+typedef struct Main_State Main_State, *PMain_State;
 
 typedef enum CmdlineFlags { // Command line argument flags set when starting the game
 	CMD_BEST=64,
@@ -18328,6 +5650,16 @@ typedef struct HACCEL__ HACCEL__, *PHACCEL__;
 
 typedef struct HACCEL__ * HACCEL;
 
+typedef uint UINT;
+
+typedef UINT_PTR WPARAM;
+
+typedef long LONG_PTR;
+
+typedef LONG_PTR LPARAM;
+
+typedef void (* MainWindowCallback)(HWND, UINT, WPARAM, LPARAM);
+
 typedef struct IDirect3DRM3Vtbl IDirect3DRM3Vtbl, *PIDirect3DRM3Vtbl;
 
 typedef struct IDirect3DRMMeshBuilder3 IDirect3DRMMeshBuilder3, *PIDirect3DRMMeshBuilder3;
@@ -18335,6 +5667,12 @@ typedef struct IDirect3DRMMeshBuilder3 IDirect3DRMMeshBuilder3, *PIDirect3DRMMes
 typedef struct IDirect3DRMAnimationSet2 IDirect3DRMAnimationSet2, *PIDirect3DRMAnimationSet2;
 
 typedef struct IDirect3DDevice3Vtbl IDirect3DDevice3Vtbl, *PIDirect3DDevice3Vtbl;
+
+typedef BOOL (* MainStateInitialise)(void);
+
+typedef BOOL (* MainStateMainLoop)(float);
+
+typedef void (* MainStateShutdown)(void);
 
 typedef struct IDirect3DRMMeshBuilder3Vtbl IDirect3DRMMeshBuilder3Vtbl, *PIDirect3DRMMeshBuilder3Vtbl;
 
@@ -18358,7 +5696,7 @@ struct IDirect3DRM3Vtbl {
 	HRESULT (* CreateTexture)(struct IDirect3DRM3 *, struct D3DRMImage *, struct IDirect3DRMTexture3 * *);
 	HRESULT (* CreateLight)(struct IDirect3DRM3 *, enum D3DRMLightType, DWORD, struct IDirect3DRMLight * *);
 	HRESULT (* CreateLightRGB)(struct IDirect3DRM3 *, enum D3DRMLightType, float, float, float, struct IDirect3DRMLight * *);
-	pointer CreateMaterial;
+	HRESULT (* CreateMaterial)(struct IDirect3DRM3 *, float, struct IDirect3DRMMaterial2 * *);
 	HRESULT (* CreateDevice)(struct IDirect3DRM3 *, DWORD, DWORD, struct IDirect3DRMDevice3 * *);
 	pointer CreateDeviceFromSurface;
 	pointer CreateDeviceFromD3D;
@@ -18394,6 +5732,12 @@ struct IDirect3DRM3 {
 
 struct IDirect3DDevice3 {
 	struct IDirect3DDevice3Vtbl * lpVtbl;
+};
+
+struct Main_State { // (unrelated to Main_StateChangeData)
+	MainStateInitialise Initialise;
+	MainStateMainLoop MainLoop;
+	MainStateShutdown Shutdown;
 };
 
 struct IDirect3DRMMeshBuilder3 {
@@ -18554,10 +5898,10 @@ struct Main_Globs {
 	enum D3DRMSceneFogMethod fogMethod;
 	uint appWidth;
 	uint appHeight;
-	struct GameFunctions currState;
+	struct Main_State currState;
 	BOOL stateSet;
 	float fixedFrameTiming;
-	struct D3DStateItem renderStateData[200];
+	struct Main_StateChangeData renderStateData[200];
 	uint style;
 	enum CmdlineFlags flags;
 	enum ProgrammerMode programmerLevel;
@@ -18565,63 +5909,67 @@ struct Main_Globs {
 	char languageName[128];
 	enum FeatureFlags clFlags;
 	HACCEL accels;
-	void (* windowCallback)(HWND, UINT, WPARAM, LPARAM);
-};
-
-typedef struct Init_Globs Init_Globs, *PInit_Globs;
-
-struct Init_Globs {
-	uint driverCount;
-	uint deviceCount;
-	uint modeCount;
-	struct DriverMode drivers[20];
-	struct DeviceMode devices[20];
-	struct ScreenMode modes[200];
-	struct DriverMode * selDriver;
-	struct DeviceMode * selDevice;
-	struct ScreenMode * selMode;
-	BOOL selFullScreen;
-	BOOL wasFullScreen; // Previous fullscreen state when Windowed button is disabled due to lack of support
-	struct ScreenMode validModes[200];
-	uint validModeCount;
+	MainWindowCallback windowCallback;
 };
 
 typedef struct Error_Globs Error_Globs, *PError_Globs;
 
+typedef struct File File, *PFile;
+
+typedef enum FileSystemType { // Location of a lego File stream (WAD or REAL)
+	FILESYSTEM_ERR=2,
+	FILESYSTEM_STD=1,
+	FILESYSTEM_WAD=0
+} FileSystemType;
+
+typedef union File_union File_union, *PFile_union;
+
+typedef struct WADFILE WADFILE, *PWADFILE;
+
+union File_union {
+	FILE * std; // Standard file stream
+	struct WADFILE * wad; // WAD file stream
+};
+
+struct File {
+	enum FileSystemType type;
+	union File_union stream;
+};
+
+struct WADFILE { // Used as one of the stream types for the File struct (as opposed to the C API FILE* struct)
+	int hFile; // Handle to file in the wad
+	int streamPos; // Position in stream of the file.  Indexes are from 0-length-1 inclusive.
+	BOOL eof; // Has the file hit EOF.
+};
+
 struct Error_Globs {
-	struct FileStream * dumpFile;
-	struct FileStream * loadLogFile;
-	struct FileStream * loadErrorLogFile;
-	struct FileStream * redundantLogFile;
+	struct File * dumpFile;
+	struct File * loadLogFile;
+	struct File * loadErrorLogFile;
+	struct File * redundantLogFile;
 	char loadLogName[1024];
 	char redundantLogName[1024];
 	BOOL warnCalled;
 	BOOL fullScreen;
 };
 
-typedef struct Key_Globs Key_Globs, *PKey_Globs;
-
-struct Key_Globs {
-	char * keyName[256];
-};
-
 typedef struct Mem_Globs Mem_Globs, *PMem_Globs;
+
+typedef struct Mem_Handle Mem_Handle, *PMem_Handle;
+
+typedef enum Mem_HandleFlags { // Flags for SharedBuffer struct
+	MEMORY_HANDLE_FLAG_NONE=0,
+	MEMORY_HANDLE_FLAG_USED=1
+} Mem_HandleFlags;
+
+struct Mem_Handle {
+	void * addr;
+	enum Mem_HandleFlags flags; // 1 = isUsed
+};
 
 struct Mem_Globs {
 	struct Mem_Handle handleList[2000];
 	uint flags; // (unused)
-};
-
-typedef struct Dxbug_Globs Dxbug_Globs, *PDxbug_Globs;
-
-struct Dxbug_Globs { // DirectX (dxbug.c) debugging loose static variables
-	HRESULT errnum;
-	int line;
-	int DXModuleNameNumber;
-	int DXNumErrorsSet;
-	char * file;
-	uint reserved1;
-	char DXErrorString[2048]; // Last error that was set (actually [1024], but the space is unused)
 };
 
 typedef enum TrainedFlags {
@@ -18635,8 +5983,8 @@ typedef enum TrainedFlags {
 } TrainedFlags;
 
 typedef enum AudioFlags {
+	AUDIO_POPULATEMODE=2,
 	AUDIO_SOUNDON=1,
-	AUDIO_UNK_2=2,
 	AUDIO_UNK_8=8
 } AudioFlags;
 
@@ -18655,6 +6003,23 @@ typedef enum TutorialFlags {
 	TUTORIAL_UNK_80=128
 } TutorialFlags;
 
+typedef enum TeleportObjectType {
+	TELEPORT_SERVIVE_BARRIER=256,
+	TELEPORT_SERVIVE_BOULDER=16,
+	TELEPORT_SERVIVE_BUILDING=8,
+	TELEPORT_SERVIVE_DYNAMITE=128,
+	TELEPORT_SERVIVE_ELECTRICFENCE=1024,
+	TELEPORT_SERVIVE_MINIFIGURE=2,
+	TELEPORT_SERVIVE_NONE=0,
+	TELEPORT_SERVIVE_OOHSCARY=4096,
+	TELEPORT_SERVIVE_ORE=64,
+	TELEPORT_SERVIVE_POWERCRYSTAL=32,
+	TELEPORT_SERVIVE_ROCKMONSTER=4,
+	TELEPORT_SERVIVE_SPIDERWEB=2048,
+	TELEPORT_SERVIVE_UPGRADEPART=512,
+	TELEPORT_SERVIVE_VEHICLE=1
+} TeleportObjectType;
+
 typedef enum ObjectiveFlags {
 	OBJECTIVE_BLOCK=1024,
 	OBJECTIVE_COMPLETE=2,
@@ -18671,12 +6036,6 @@ typedef enum ObjectiveFlags {
 	OBJECTIVE_UNK_1=1,
 	OBJECTIVE_UNK_8=8
 } ObjectiveFlags;
-
-typedef enum LiveManagerFlags { // ReservedPool LiveObject INITFLAGS
-	LIVEMANAGER_ISUSED=1,
-	LIVEMANAGER_NONE=0,
-	LIVEMANAGER_UNK_20=32
-} LiveManagerFlags;
 
 typedef enum RewardItemFlags {
 	REWARDITEM_BOXIMAGES=64,
@@ -18711,834 +6070,6 @@ typedef enum AdvisorStateFlags {
 	ADVISORSTATE_UNK_2=2
 } AdvisorStateFlags;
 
-typedef struct LWSURFACE LWSURFACE, *PLWSURFACE;
-
-typedef struct LWRGB LWRGB, *PLWRGB;
-
-typedef enum LWTEXFLAGS {
-	TFM_ANTIALIASING=64,
-	TFM_AXIS_X=1,
-	TFM_AXIS_Y=2,
-	TFM_AXIS_Z=4,
-	TFM_NEGATIVE_IMAGE=16,
-	TFM_PIXEL_BLENDING=32,
-	TFM_SEQUENCE=128,
-	TFM_WORLD_COORD=8
-} LWTEXFLAGS;
-
-typedef enum LWSRFFLAGS {
-	SFM_ADDITIVE=512,
-	SFM_COLORFILTER=16,
-	SFM_COLORHIGHLIGHTS=8,
-	SFM_DOUBLESIDED=256,
-	SFM_LUMINOUS=1,
-	SFM_OPAQUEEDGE=32,
-	SFM_OUTLINE=2,
-	SFM_SHARPTERMINATOR=128,
-	SFM_SMOOTHING=4,
-	SFM_TRANSPARENTEDGE=64
-} LWSRFFLAGS;
-
-typedef enum LWTEXMAPTYPE {
-	MT_CYLINDRICAL=1,
-	MT_MAX=3,
-	MT_PLANAR=0,
-	MT_SPHERICAL=2
-} LWTEXMAPTYPE;
-
-typedef struct TEXDATA TEXDATA, *PTEXDATA;
-
-struct TEXDATA { // (an alias for Vector3F)
-	float tdX;
-	float tdY;
-	float tdZ;
-};
-
-struct LWRGB { // (an alias for ColourRGBAPacked)
-	byte colRed;
-	byte colGreen;
-	byte colBlue;
-	byte colAlpha;
-};
-
-struct LWSURFACE {
-	char * srfName;
-	struct LWSURFACE * srfNextSurf;
-	char * srfPath;
-	struct LWRGB srfCol;
-	char srfTCLR[4];
-	enum LWTEXFLAGS srfTexFlags;
-	enum LWSRFFLAGS srfFlags;
-	enum LWTEXMAPTYPE srfTexType;
-	uint srfTexWrap;
-	struct TEXDATA srfTexSize;
-	struct TEXDATA srfTexCentre;
-	float srfLuminous;
-	float srfTransparent;
-	float srfDiffuse;
-	float srfReflect;
-	float srfSpecular;
-	float srfSpecPower;
-};
-
-typedef struct Lws_KeyInfo Lws_KeyInfo, *PLws_KeyInfo;
-
-struct Lws_KeyInfo {
-	struct Vector3F position;
-	struct Vector3F hpb;
-	struct Vector3F scale;
-	ushort frame;
-	ushort padding1;
-};
-
-typedef struct Lws_Node Lws_Node, *PLws_Node;
-
-struct Lws_Node {
-	char * name;
-	ushort reference;
-	ushort frameIndex;
-	byte triggerIndex;
-	byte padding1[3];
-	struct Vector3F pivotVector;
-	struct Lws_KeyInfo * keyList;
-	float * dissolveLevel;
-	ushort * dissolveFrame;
-	ushort keyCount;
-	ushort dissolveCount;
-	byte flags;
-	byte padding2[3];
-	struct Lws_Node * childList;
-	struct Lws_Node * next;
-};
-
-typedef struct LWSURFLIST LWSURFLIST, *PLWSURFLIST;
-
-struct LWSURFLIST {
-	uint srflCount;
-	char * * srflName;
-};
-
-typedef struct LWSIZE LWSIZE, *PLWSIZE;
-
-struct LWSIZE {
-	uint lwVertCount;
-	uint lwPolyCount;
-	uint lwSurfaceCount;
-};
-
-typedef struct LWPOLY LWPOLY, *PLWPOLY;
-
-struct LWPOLY {
-	uint plyCount;
-	uint plySurface;
-	ushort * plyData;
-};
-
-typedef struct APPOBJ APPOBJ, *PAPPOBJ;
-
-struct APPOBJ { // LightWave lwt APPOBJ
-	char * aoPath;
-	struct LWSIZE aoSize;
-	float * aoVerts;
-	struct LWPOLY * aoPoly;
-	struct LWSURFACE * aoSurface;
-	struct FileStream * aoFileUV;
-};
-
-typedef struct Lws_SoundTrigger Lws_SoundTrigger, *PLws_SoundTrigger;
-
-struct Lws_SoundTrigger {
-	uint sfxID;
-	ushort frameStartList[25];
-	ushort frameEndList[25];
-	uint loopUID[25];
-	ushort count;
-	ushort padding1;
-};
-
-typedef struct Lws_Info Lws_Info, *PLws_Info;
-
-struct Lws_Info {
-	ushort firstFrame;
-	ushort lastFrame;
-	float fps;
-	char * filePath;
-	float lastTime;
-	float time;
-	struct IDirect3DRMFrame3 * frameList;
-	struct Lws_SoundTrigger * triggerList;
-	struct Lws_Node * masterNode;
-	struct Lws_Node * nodeList;
-	ushort nodeCount;
-	ushort nodeListSize;
-	ushort triggerCount;
-	ushort padding1;
-	struct Lws_Info * clonedFrom;
-	uint referenceCount;
-	byte flags;
-	byte padding2[3];
-};
-
-typedef struct VideoPlayer VideoPlayer, *PVideoPlayer;
-
-typedef struct VideoPlayer VideoPlayer_t;
-
-typedef struct IAMMultiMediaStream IAMMultiMediaStream, *PIAMMultiMediaStream;
-
-typedef struct IMediaStream IMediaStream, *PIMediaStream;
-
-typedef struct IDirectDrawMediaStream IDirectDrawMediaStream, *PIDirectDrawMediaStream;
-
-typedef struct IDirectDrawSurface3 IDirectDrawSurface3, *PIDirectDrawSurface3;
-
-typedef struct IDirectDrawStreamSample IDirectDrawStreamSample, *PIDirectDrawStreamSample;
-
-typedef struct IDirectDraw2 IDirectDraw2, *PIDirectDraw2;
-
-typedef struct IAMMultiMediaStreamVtbl IAMMultiMediaStreamVtbl, *PIAMMultiMediaStreamVtbl;
-
-typedef enum MMStreamType {
-	STREAMTYPE_READ=0,
-	STREAMTYPE_TRANSFORM=2,
-	STREAMTYPE_WRITE=1
-} MMStreamType;
-
-typedef enum MMStreamState {
-	STREAMSTATE_RUN=1,
-	STREAMSTATE_STOP=0
-} MMStreamState;
-
-typedef struct IGraphBuilder IGraphBuilder, *PIGraphBuilder;
-
-typedef struct IMediaStreamFilter IMediaStreamFilter, *PIMediaStreamFilter;
-
-typedef WCHAR * LPWSTR;
-
-typedef struct IBindCtx IBindCtx, *PIBindCtx;
-
-typedef struct IMoniker IMoniker, *PIMoniker;
-
-typedef struct IMediaStreamVtbl IMediaStreamVtbl, *PIMediaStreamVtbl;
-
-typedef struct IDirectDrawMediaStreamVtbl IDirectDrawMediaStreamVtbl, *PIDirectDrawMediaStreamVtbl;
-
-typedef struct IDirectDrawSurface3Vtbl IDirectDrawSurface3Vtbl, *PIDirectDrawSurface3Vtbl;
-
-typedef struct IDirectDrawStreamSampleVtbl IDirectDrawStreamSampleVtbl, *PIDirectDrawStreamSampleVtbl;
-
-typedef struct IDirectDraw2Vtbl IDirectDraw2Vtbl, *PIDirectDraw2Vtbl;
-
-typedef struct IGraphBuilderVtbl IGraphBuilderVtbl, *PIGraphBuilderVtbl;
-
-typedef struct IMediaStreamFilterVtbl IMediaStreamFilterVtbl, *PIMediaStreamFilterVtbl;
-
-typedef struct IPersist IPersist, *PIPersist;
-
-typedef struct IBindCtxVtbl IBindCtxVtbl, *PIBindCtxVtbl;
-
-typedef struct tagBIND_OPTS tagBIND_OPTS, *PtagBIND_OPTS;
-
-typedef struct tagBIND_OPTS BIND_OPTS;
-
-typedef struct IRunningObjectTable IRunningObjectTable, *PIRunningObjectTable;
-
-typedef struct IEnumString IEnumString, *PIEnumString;
-
-typedef struct IMonikerVtbl IMonikerVtbl, *PIMonikerVtbl;
-
-typedef GUID CLSID;
-
-typedef struct IStream IStream, *PIStream;
-
-typedef union _ULARGE_INTEGER _ULARGE_INTEGER, *P_ULARGE_INTEGER;
-
-typedef union _ULARGE_INTEGER ULARGE_INTEGER;
-
-typedef struct IEnumMoniker IEnumMoniker, *PIEnumMoniker;
-
-typedef struct IPersistVtbl IPersistVtbl, *PIPersistVtbl;
-
-typedef struct IRunningObjectTableVtbl IRunningObjectTableVtbl, *PIRunningObjectTableVtbl;
-
-typedef struct IEnumStringVtbl IEnumStringVtbl, *PIEnumStringVtbl;
-
-typedef struct IStreamVtbl IStreamVtbl, *PIStreamVtbl;
-
-typedef union _LARGE_INTEGER _LARGE_INTEGER, *P_LARGE_INTEGER;
-
-typedef union _LARGE_INTEGER LARGE_INTEGER;
-
-typedef struct tagSTATSTG tagSTATSTG, *PtagSTATSTG;
-
-typedef struct tagSTATSTG STATSTG;
-
-typedef struct _struct_22 _struct_22, *P_struct_22;
-
-typedef struct _struct_23 _struct_23, *P_struct_23;
-
-typedef double ULONGLONG;
-
-typedef struct IEnumMonikerVtbl IEnumMonikerVtbl, *PIEnumMonikerVtbl;
-
-typedef struct _struct_19 _struct_19, *P_struct_19;
-
-typedef struct _struct_20 _struct_20, *P_struct_20;
-
-typedef double LONGLONG;
-
-struct IMediaStream {
-	struct IMediaStreamVtbl * lpVtbl;
-};
-
-struct IPersistVtbl {
-	HRESULT (* QueryInterface)(struct IPersist *, IID *, void * *);
-	ULONG (* AddRef)(struct IPersist *);
-	ULONG (* Release)(struct IPersist *);
-	HRESULT (* GetClassID)(struct IPersist *, CLSID *);
-};
-
-struct IStreamVtbl {
-	HRESULT (* QueryInterface)(struct IStream *, IID *, void * *);
-	ULONG (* AddRef)(struct IStream *);
-	ULONG (* Release)(struct IStream *);
-	HRESULT (* Read)(struct IStream *, void *, ULONG, ULONG *);
-	HRESULT (* Write)(struct IStream *, void *, ULONG, ULONG *);
-	HRESULT (* Seek)(struct IStream *, LARGE_INTEGER, DWORD, ULARGE_INTEGER *);
-	HRESULT (* SetSize)(struct IStream *, ULARGE_INTEGER);
-	HRESULT (* CopyTo)(struct IStream *, struct IStream *, ULARGE_INTEGER, ULARGE_INTEGER *, ULARGE_INTEGER *);
-	HRESULT (* Commit)(struct IStream *, DWORD);
-	HRESULT (* Revert)(struct IStream *);
-	HRESULT (* LockRegion)(struct IStream *, ULARGE_INTEGER, ULARGE_INTEGER, DWORD);
-	HRESULT (* UnlockRegion)(struct IStream *, ULARGE_INTEGER, ULARGE_INTEGER, DWORD);
-	HRESULT (* Stat)(struct IStream *, STATSTG *, DWORD);
-	HRESULT (* Clone)(struct IStream *, struct IStream * *);
-};
-
-struct IEnumStringVtbl {
-	HRESULT (* QueryInterface)(struct IEnumString *, IID *, void * *);
-	ULONG (* AddRef)(struct IEnumString *);
-	ULONG (* Release)(struct IEnumString *);
-	HRESULT (* Next)(struct IEnumString *, ULONG, LPOLESTR *, ULONG *);
-	HRESULT (* Skip)(struct IEnumString *, ULONG);
-	HRESULT (* Reset)(struct IEnumString *);
-	HRESULT (* Clone)(struct IEnumString *, struct IEnumString * *);
-};
-
-struct _struct_20 {
-	DWORD LowPart;
-	LONG HighPart;
-};
-
-struct _struct_19 {
-	DWORD LowPart;
-	LONG HighPart;
-};
-
-union _LARGE_INTEGER {
-	struct _struct_19 s;
-	struct _struct_20 u;
-	LONGLONG QuadPart;
-};
-
-struct IDirectDrawStreamSample {
-	struct IDirectDrawStreamSampleVtbl * lpVtbl;
-};
-
-struct IDirectDraw2Vtbl {
-	HRESULT (* QueryInterface)(struct IUnknown *, IID *, LPVOID *);
-	ULONG (* AddRef)(struct IUnknown *);
-	ULONG (* Release)(struct IUnknown *);
-	pointer Compact; // (start of IDirectDraw)
-	pointer CreateClipper;
-	HRESULT (* CreatePalette)(struct IDirectDraw4 *, DWORD, struct D3DRMPaletteEntry *, struct IDirectDrawPalette * *, struct IUnknown *);
-	HRESULT (* CreateSurface)(struct IDirectDraw4 *, struct DDSURFACEDESC2 *, struct IDirectDrawSurface4 * *, struct IUnknown *);
-	pointer DuplicateSurface;
-	HRESULT (* EnumDisplayModes)(struct IDirectDraw4 *, DWORD, struct DDSURFACEDESC2 *, LPVOID, HRESULT (* )(struct DDSURFACEDESC2 *, LPVOID));
-	HRESULT (* EnumSurfaces)(struct IDirectDraw4 *, DWORD, struct DDSURFACEDESC2 *, LPVOID, HRESULT (* )(struct IDirectDrawSurface4 *, struct DDSURFACEDESC2 *, LPVOID));
-	pointer FlipToGDISurface;
-	pointer GetCaps;
-	pointer GetDisplayMode;
-	pointer GetFourCCCodes;
-	pointer GetGDISurface;
-	pointer GetMonitorFrequency;
-	pointer GetScanLine;
-	pointer GetVerticalBlankStatus;
-	pointer Initialize;
-	pointer RestoreDisplayMode;
-	HRESULT (* SetCooperativeLevel)(struct IDirectDraw4 *, HWND, DWORD);
-	HRESULT (* SetDisplayMode)(struct IDirectDraw4 *, DWORD, DWORD, DWORD, DWORD, DWORD);
-	pointer WaitForVerticalBlank;
-	pointer GetAvailableVidMem; // (start of IDirectDraw2)
-};
-
-struct IGraphBuilderVtbl {
-	HRESULT (* QueryInterface)(struct IUnknown *, IID *, LPVOID *);
-	ULONG (* AddRef)(struct IUnknown *);
-	ULONG (* Release)(struct IUnknown *);
-	pointer AddFilter;
-	pointer RemoveFilter;
-	pointer EnumFilters;
-	pointer FindFilterByName;
-	pointer ConnectDirect;
-	pointer Reconnect;
-	pointer Disconnect;
-	pointer SetDefaultSyncSource;
-	pointer Connect;
-	pointer Render;
-	pointer RenderFile;
-	pointer AddSourceFilter;
-	pointer SetLogFile;
-	pointer Abort;
-	pointer ShouldOperationContinue;
-};
-
-struct IEnumString {
-	struct IEnumStringVtbl * lpVtbl;
-};
-
-struct tagBIND_OPTS {
-	DWORD cbStruct;
-	DWORD grfFlags;
-	DWORD grfMode;
-	DWORD dwTickCountDeadline;
-};
-
-struct IMediaStreamFilter {
-	struct IMediaStreamFilterVtbl * lpVtbl;
-};
-
-struct IAMMultiMediaStream {
-	struct IAMMultiMediaStreamVtbl * lpVtbl;
-};
-
-struct IMediaStreamFilterVtbl { // Subclass of IDirect3DRMArrayVtbl
-	HRESULT (* QueryInterface)(struct IUnknown *, IID *, LPVOID *);
-	ULONG (* AddRef)(struct IUnknown *);
-	ULONG (* Release)(struct IUnknown *);
-	HRESULT (* GetClassID)(struct IPersist *, GUID *); // (start of IPersist)
-	pointer Stop; // (start of IMediaFilter)
-	pointer Pause;
-	pointer Run;
-	pointer GetState;
-	pointer SetSyncSource;
-	pointer GetSyncSource;
-	pointer EnumPins; // (start of IBaseFilter)
-	pointer FindPin;
-	pointer QueryFilterInfo;
-	pointer JoinFilterGraph;
-	pointer QueryVendorInfo;
-	pointer AddMediaStream; // (start of IMediaStreamFilter)
-	pointer GetMediaStream;
-	pointer EnumMediaStreams;
-	pointer SupportSeeking;
-	pointer ReferenceTimeToStreamTime;
-	pointer GetCurrentStreamTime;
-	pointer WaitUntil;
-	pointer Flush;
-	pointer EndOfStream;
-};
-
-struct IDirectDrawMediaStreamVtbl {
-	HRESULT (* QueryInterface)(struct IUnknown *, IID *, LPVOID *);
-	ULONG (* AddRef)(struct IUnknown *);
-	ULONG (* Release)(struct IUnknown *);
-	pointer GetMultiMediaStream; // (start of IMediaStream)
-	pointer GetInformation;
-	pointer SetSameFormat;
-	pointer AllocateSample;
-	pointer CreateSharedSample;
-	pointer SendEndOfStream;
-	pointer GetFormat; // (start of IDirectDrawMediaStream)
-	pointer SetFormat;
-	pointer GetDirectDraw;
-	pointer SetDirectDraw;
-	pointer CreateSample;
-	pointer GetTimePerFrame;
-};
-
-struct _struct_23 {
-	DWORD LowPart;
-	DWORD HighPart;
-};
-
-struct IPersist {
-	struct IPersistVtbl * lpVtbl;
-};
-
-struct _struct_22 {
-	DWORD LowPart;
-	DWORD HighPart;
-};
-
-struct IDirectDraw2 {
-	struct IDirectDraw2Vtbl * lpVtbl;
-};
-
-struct IMediaStreamVtbl {
-	HRESULT (* QueryInterface)(struct IUnknown *, IID *, LPVOID *);
-	ULONG (* AddRef)(struct IUnknown *);
-	ULONG (* Release)(struct IUnknown *);
-	pointer GetMultiMediaStream;
-	pointer GetInformation;
-	pointer SetSameFormat;
-	pointer AllocateSample;
-	pointer CreateSharedSample;
-	pointer SendEndOfStream;
-};
-
-struct IAMMultiMediaStreamVtbl {
-	HRESULT (* QueryInterface)(struct IUnknown *, IID *, LPVOID *);
-	ULONG (* AddRef)(struct IUnknown *);
-	ULONG (* Release)(struct IUnknown *);
-	HRESULT (* GetInformation)(struct IAMMultiMediaStream *, DWORD *, enum MMStreamType *);
-	HRESULT (* GetMediaStream)(struct IAMMultiMediaStream *, GUID *, struct IMediaStream * *);
-	HRESULT (* EnumMediaStreams)(struct IAMMultiMediaStream *, int, struct IMediaStream * *);
-	HRESULT (* GetState)(struct IAMMultiMediaStream *, enum MMStreamState *);
-	HRESULT (* SetState)(struct IAMMultiMediaStream *, enum MMStreamState);
-	HRESULT (* GetTime)(struct IAMMultiMediaStream *, longlong *);
-	HRESULT (* GetDuration)(struct IAMMultiMediaStream *, longlong *);
-	HRESULT (* Seek)(struct IAMMultiMediaStream *, longlong);
-	HRESULT (* GetEndOfStreamEventHandle)(struct IAMMultiMediaStream *, HANDLE *);
-	HRESULT (* Initialize)(struct IAMMultiMediaStream *, enum MMStreamType, DWORD, struct IGraphBuilder *);
-	HRESULT (* GetFilterGraph)(struct IAMMultiMediaStream *, struct IGraphBuilder * *);
-	HRESULT (* GetFilter)(struct IAMMultiMediaStream *, struct IMediaStreamFilter * *);
-	HRESULT (* AddMediaStream)(struct IAMMultiMediaStream *, struct IUnknown *, GUID *, DWORD, struct IMediaStream * *);
-	HRESULT (* OpenFile)(struct IAMMultiMediaStream *, LPWSTR, DWORD);
-	HRESULT (* OpenMoniker)(struct IAMMultiMediaStream *, struct IBindCtx *, struct IMoniker *, DWORD);
-	HRESULT (* Render)(struct IAMMultiMediaStream *, DWORD);
-};
-
-struct IStream {
-	struct IStreamVtbl * lpVtbl;
-};
-
-struct IDirectDrawStreamSampleVtbl {
-	HRESULT (* QueryInterface)(struct IUnknown *, IID *, LPVOID *);
-	ULONG (* AddRef)(struct IUnknown *);
-	ULONG (* Release)(struct IUnknown *);
-	pointer GetMediaStream; // (start of IStreamSample)
-	pointer GetSampleTimes;
-	pointer SetSampleTimes;
-	pointer Update;
-	pointer CompletionStatus;
-	pointer GetSurface; // (start of IDirectDrawStreamSample)
-	pointer SetRect;
-};
-
-struct IMoniker {
-	struct IMonikerVtbl * lpVtbl;
-};
-
-struct IEnumMonikerVtbl {
-	HRESULT (* QueryInterface)(struct IEnumMoniker *, IID *, void * *);
-	ULONG (* AddRef)(struct IEnumMoniker *);
-	ULONG (* Release)(struct IEnumMoniker *);
-	HRESULT (* Next)(struct IEnumMoniker *, ULONG, struct IMoniker * *, ULONG *);
-	HRESULT (* Skip)(struct IEnumMoniker *, ULONG);
-	HRESULT (* Reset)(struct IEnumMoniker *);
-	HRESULT (* Clone)(struct IEnumMoniker *, struct IEnumMoniker * *);
-};
-
-union _ULARGE_INTEGER {
-	struct _struct_22 s;
-	struct _struct_23 u;
-	ULONGLONG QuadPart;
-};
-
-struct IDirectDrawSurface3 {
-	struct IDirectDrawSurface3Vtbl * lpVtbl;
-};
-
-struct IDirectDrawSurface3Vtbl {
-	HRESULT (* QueryInterface)(struct IUnknown *, IID *, LPVOID *);
-	ULONG (* AddRef)(struct IUnknown *);
-	ULONG (* Release)(struct IUnknown *);
-	pointer AddAttachedSurface; // (start of IDirectDrawSurface)
-	pointer AddOverlayDirtyRect;
-	pointer Blt;
-	pointer BltBatch;
-	pointer BltFast;
-	pointer DeleteAttachedSurface;
-	pointer EnumAttachedSurfaces;
-	pointer EnumOverlayZOrders;
-	pointer Flip;
-	pointer GetAttachedSurface;
-	pointer GetBltStatus;
-	pointer GetCaps;
-	pointer GetClipper;
-	pointer GetColorKey;
-	pointer GetDC;
-	pointer GetFlipStatus;
-	pointer GetOverlayPosition;
-	pointer GetPalette;
-	pointer GetPixelFormat;
-	pointer GetSurfaceDesc;
-	pointer Initialize;
-	pointer IsLost;
-	pointer Lock;
-	pointer ReleaseDC;
-	pointer Restore;
-	pointer SetClipper;
-	pointer SetColorKey;
-	pointer SetOverlayPosition;
-	pointer SetPalette;
-	pointer Unlock;
-	pointer UpdateOverlay;
-	pointer UpdateOverlayDisplay;
-	pointer UpdateOverlayZOrder;
-	pointer GetDDInterface; // (start of IDirectDrawSurface2)
-	pointer PageLock;
-	pointer PageUnlock;
-	pointer SetSurfaceDesc; // (start of IDirectDrawSurface3)
-};
-
-struct IBindCtx {
-	struct IBindCtxVtbl * lpVtbl;
-};
-
-struct IBindCtxVtbl {
-	HRESULT (* QueryInterface)(struct IBindCtx *, IID *, void * *);
-	ULONG (* AddRef)(struct IBindCtx *);
-	ULONG (* Release)(struct IBindCtx *);
-	HRESULT (* RegisterObjectBound)(struct IBindCtx *, struct IUnknown *);
-	HRESULT (* RevokeObjectBound)(struct IBindCtx *, struct IUnknown *);
-	HRESULT (* ReleaseBoundObjects)(struct IBindCtx *);
-	HRESULT (* SetBindOptions)(struct IBindCtx *, BIND_OPTS *);
-	HRESULT (* GetBindOptions)(struct IBindCtx *, BIND_OPTS *);
-	HRESULT (* GetRunningObjectTable)(struct IBindCtx *, struct IRunningObjectTable * *);
-	HRESULT (* RegisterObjectParam)(struct IBindCtx *, LPOLESTR, struct IUnknown *);
-	HRESULT (* GetObjectParam)(struct IBindCtx *, LPOLESTR, struct IUnknown * *);
-	HRESULT (* EnumObjectParam)(struct IBindCtx *, struct IEnumString * *);
-	HRESULT (* RevokeObjectParam)(struct IBindCtx *, LPOLESTR);
-};
-
-struct IRunningObjectTableVtbl {
-	HRESULT (* QueryInterface)(struct IRunningObjectTable *, IID *, void * *);
-	ULONG (* AddRef)(struct IRunningObjectTable *);
-	ULONG (* Release)(struct IRunningObjectTable *);
-	HRESULT (* Register)(struct IRunningObjectTable *, DWORD, struct IUnknown *, struct IMoniker *, DWORD *);
-	HRESULT (* Revoke)(struct IRunningObjectTable *, DWORD);
-	HRESULT (* IsRunning)(struct IRunningObjectTable *, struct IMoniker *);
-	HRESULT (* GetObjectA)(struct IRunningObjectTable *, struct IMoniker *, struct IUnknown * *);
-	HRESULT (* NoteChangeTime)(struct IRunningObjectTable *, DWORD, FILETIME *);
-	HRESULT (* GetTimeOfLastChange)(struct IRunningObjectTable *, struct IMoniker *, FILETIME *);
-	HRESULT (* EnumRunning)(struct IRunningObjectTable *, struct IEnumMoniker * *);
-};
-
-struct tagSTATSTG {
-	LPOLESTR pwcsName;
-	DWORD type;
-	ULARGE_INTEGER cbSize;
-	FILETIME mtime;
-	FILETIME ctime;
-	FILETIME atime;
-	DWORD grfMode;
-	DWORD grfLocksSupported;
-	CLSID clsid;
-	DWORD grfStateBits;
-	DWORD reserved;
-};
-
-struct IDirectDrawMediaStream {
-	struct IDirectDrawMediaStreamVtbl * lpVtbl;
-};
-
-struct VideoPlayer {
-	struct IAMMultiMediaStream * amMediaStream;
-	HRESULT errorCode;
-	struct IMediaStream * mediaStream;
-	struct IDirectDrawMediaStream * ddMediaStream;
-	struct IDirectDrawSurface * ddSampleSurface;
-	struct IDirectDrawSurface3 * ddDrawSurface;
-	struct IDirectDrawStreamSample * ddStreamSample;
-	struct IDirectDrawSurface3 * ddRenderSurface;
-	RECT rect;
-	char * filename;
-	struct IDirectDraw2 * ddraw2;
-};
-
-struct IGraphBuilder {
-	struct IGraphBuilderVtbl * lpVtbl;
-};
-
-struct IMonikerVtbl {
-	HRESULT (* QueryInterface)(struct IMoniker *, IID *, void * *);
-	ULONG (* AddRef)(struct IMoniker *);
-	ULONG (* Release)(struct IMoniker *);
-	HRESULT (* GetClassID)(struct IMoniker *, CLSID *);
-	HRESULT (* IsDirty)(struct IMoniker *);
-	HRESULT (* Load)(struct IMoniker *, struct IStream *);
-	HRESULT (* Save)(struct IMoniker *, struct IStream *, BOOL);
-	HRESULT (* GetSizeMax)(struct IMoniker *, ULARGE_INTEGER *);
-	HRESULT (* BindToObject)(struct IMoniker *, struct IBindCtx *, struct IMoniker *, IID *, void * *);
-	HRESULT (* BindToStorage)(struct IMoniker *, struct IBindCtx *, struct IMoniker *, IID *, void * *);
-	HRESULT (* Reduce)(struct IMoniker *, struct IBindCtx *, DWORD, struct IMoniker * *, struct IMoniker * *);
-	HRESULT (* ComposeWith)(struct IMoniker *, struct IMoniker *, BOOL, struct IMoniker * *);
-	HRESULT (* Enum)(struct IMoniker *, BOOL, struct IEnumMoniker * *);
-	HRESULT (* IsEqual)(struct IMoniker *, struct IMoniker *);
-	HRESULT (* Hash)(struct IMoniker *, DWORD *);
-	HRESULT (* IsRunning)(struct IMoniker *, struct IBindCtx *, struct IMoniker *, struct IMoniker *);
-	HRESULT (* GetTimeOfLastChange)(struct IMoniker *, struct IBindCtx *, struct IMoniker *, FILETIME *);
-	HRESULT (* Inverse)(struct IMoniker *, struct IMoniker * *);
-	HRESULT (* CommonPrefixWith)(struct IMoniker *, struct IMoniker *, struct IMoniker * *);
-	HRESULT (* RelativePathTo)(struct IMoniker *, struct IMoniker *, struct IMoniker * *);
-	HRESULT (* GetDisplayName)(struct IMoniker *, struct IBindCtx *, struct IMoniker *, LPOLESTR *);
-	HRESULT (* ParseDisplayName)(struct IMoniker *, struct IBindCtx *, struct IMoniker *, LPOLESTR, ULONG *, struct IMoniker * *);
-	HRESULT (* IsSystemMoniker)(struct IMoniker *, DWORD *);
-};
-
-struct IRunningObjectTable {
-	struct IRunningObjectTableVtbl * lpVtbl;
-};
-
-struct IEnumMoniker {
-	struct IEnumMonikerVtbl * lpVtbl;
-};
-
-typedef struct AVIPlayerVtbl AVIPlayerVtbl, *PAVIPlayerVtbl;
-
-typedef struct AVIPlayer AVIPlayer, *PAVIPlayer;
-
-typedef struct IAVIStream IAVIStream, *PIAVIStream;
-
-typedef struct IGetFrame IGetFrame, *PIGetFrame;
-
-typedef struct AVISTREAMINFOA AVISTREAMINFOA, *PAVISTREAMINFOA;
-
-typedef struct AVIRenderer AVIRenderer, *PAVIRenderer;
-
-typedef struct IAVIStreamVtbl IAVIStreamVtbl, *PIAVIStreamVtbl;
-
-typedef struct IGetFrameVtbl IGetFrameVtbl, *PIGetFrameVtbl;
-
-typedef struct HDC__ HDC__, *PHDC__;
-
-typedef struct HDC__ * HDC;
-
-typedef enum AVIStreamInfoFlags { // Flags for dwFlags in AVISTREAMINFO_ struct
-	AVIIF_COMPUSE=268369920,
-	AVIIF_FIRSTPART=32,
-	AVIIF_KEYFRAME=16,
-	AVIIF_LASTPART=64,
-	AVIIF_LIST=1,
-	AVIIF_MIDPART=96,
-	AVIIF_NOTIME=256
-} AVIStreamInfoFlags;
-
-typedef enum AVIStreamInfoCaps { // Flags for unknown field in AVISTREAMINFO_ struct
-	AVISTREAMINFO_DISABLED=1,
-	AVISTREAMINFO_FORMATCHANGES=65536
-} AVIStreamInfoCaps;
-
-typedef struct AVIRendererVtbl AVIRendererVtbl, *PAVIRendererVtbl;
-
-struct AVIRenderer {
-	struct AVIRendererVtbl * vftable;
-	uint field_unused_4; // (init: 0)
-	bool isLocked; // true if ddSurface4 is locked
-	byte reserved1[3];
-	int depth; // bit depth
-	struct IDirectDrawPalette * ddPalette;
-	bool bool_unused_14; // (init: 0 on InitSurfaceDesc)
-	bool bool_unused_15; // (init: 0)
-	bool isBPP15; // true if 16-bpp with actual bit-count at 15
-	bool isOpen; // (init: 0, 1 on InitSurface success)
-	struct IDirectDrawSurface4 * ddSurface4; // (init: 0)
-	struct DDSURFACEDESC2 surfDesc;
-};
-
-struct AVIRendererVtbl {
-	AVIRenderer * (* deletor)(struct AVIRenderer *, byte);
-	uint (* GetWidth)(struct AVIRenderer *);
-	uint (* GetHeight)(struct AVIRenderer *);
-};
-
-struct AVIPlayerVtbl {
-	AVIPlayer * (* deletor)(struct AVIPlayer *, byte);
-};
-
-struct AVISTREAMINFOA {
-	DWORD fccType;
-	DWORD fccHandler;
-	enum AVIStreamInfoFlags dwFlags; // Contains AVITF_* flags
-	enum AVIStreamInfoCaps dwCaps;
-	WORD wPriority;
-	WORD wLanguage;
-	DWORD dwScale;
-	DWORD dwRate; // dwRate / dwScale == samples/second
-	DWORD dwStart;
-	DWORD dwLength; // In units above...
-	DWORD dwInitialFrames;
-	DWORD dwSuggestedBufferSize;
-	DWORD dwQuality;
-	DWORD dwSampleSize;
-	RECT rcFrame;
-	DWORD dwEditCount;
-	DWORD dwFormatChangeCount;
-	char szName[64];
-};
-
-struct IAVIStreamVtbl {
-	HRESULT (* QueryInterface)(struct IUnknown *, IID *, LPVOID *);
-	ULONG (* AddRef)(struct IUnknown *);
-	ULONG (* Release)(struct IUnknown *);
-	HRESULT (* Create)(struct IAVIStream *, LPARAM, LPARAM);
-	HRESULT (* Info)(struct IAVIStream *, struct AVISTREAMINFOA *, int);
-	int (* FindSample)(struct IAVIStream *, int, int);
-	HRESULT (* ReadFormat)(struct IAVIStream *, int, void *, int *);
-	HRESULT (* SetFormat)(struct IAVIStream *, int, void *, int);
-	HRESULT (* Read)(struct IAVIStream *, int, int, void *, int, int *, int *);
-	HRESULT (* Write)(struct IAVIStream *, int, int, void *, int, DWORD, int *, int *);
-	HRESULT (* Delete)(struct IAVIStream *, int, int);
-	HRESULT (* ReadData)(struct IAVIStream *, DWORD, void *, int *);
-	HRESULT (* WriteData)(struct IAVIStream *, DWORD, void *, int);
-	HRESULT (* SetInfo)(struct IAVIStream *, struct AVISTREAMINFOA *, int);
-};
-
-struct IGetFrameVtbl {
-	HRESULT (* QueryInterface)(struct IUnknown *, IID *, LPVOID *);
-	ULONG (* AddRef)(struct IUnknown *);
-	ULONG (* Release)(struct IUnknown *);
-	void * (* GetFrame)(struct IGetFrame *, int); // (after this is commented out: GetFrameData)
-	HRESULT (* Begin)(struct IGetFrame *, int, int, int);
-	HRESULT (* End)(struct IGetFrame *);
-	HRESULT (* SetFormat)(struct IGetFrame *, BITMAPINFOHEADER *, void *, int, int, int, int);
-	HRESULT (* DrawFrameStart)(struct IGetFrame *); // (commented out)
-	HRESULT (* DrawFrame)(struct IGetFrame *, int, HDC, int, int, int, int); // (commented out)
-	HRESULT (* DrawFrameEnd)(struct IGetFrame *); // (commented out)
-};
-
-struct IGetFrame {
-	struct IGetFrameVtbl * lpVtbl;
-};
-
-struct HDC__ {
-	int unused;
-};
-
-struct AVIPlayer {
-	struct AVIPlayerVtbl * vftable;
-	struct IAVIStream * aviStream;
-	struct IGetFrame * aviFrame;
-	struct AVISTREAMINFOA streamInfo;
-	bool bool_unused_98; // (init: 0)
-	bool isOpen; // (init: 0, 1 on open / has renderer)
-	ushort reserved1;
-	RECT rect; // (copied from streamInfo.rcFrame)
-	float startTime; // (init: timeGetTime() * 0.001)
-	float currentTime; // (milliseconds, just like startTime)
-	float rate;
-	uint position; // (init: 0)
-	uint reserved2;
-	struct AVIRenderer * renderer;
-};
-
-struct IAVIStream {
-	struct IAVIStreamVtbl * lpVtbl;
-};
-
-typedef struct AVIPlayer AVIPlayer_t;
-
 typedef struct AdvisorAnimData AdvisorAnimData, *PAdvisorAnimData;
 
 struct AdvisorAnimData {
@@ -19557,16 +6088,6 @@ struct InfoMessageData {
 	uint flags;
 };
 
-typedef struct SelectedUnitHotkey SelectedUnitHotkey, *PSelectedUnitHotkey;
-
-struct SelectedUnitHotkey {
-	int field_0;
-	int field_4;
-	BOOL bool_8;
-	int field_c;
-	int field_10;
-};
-
 typedef struct ToolData ToolData, *PToolData;
 
 struct ToolData {
@@ -19576,23 +6097,13 @@ struct ToolData {
 	int count;
 };
 
-typedef struct LevelIdentifier LevelIdentifier, *PLevelIdentifier;
-
-struct LevelIdentifier {
-	int field_0;
-	char * * field_4;
-	undefined4 field_8;
-	void * * field_c;
-	undefined4 field_10;
-};
-
 typedef struct PairStruct_428 PairStruct_428, *PPairStruct_428;
 
 typedef struct Struct_428 Struct_428, *PStruct_428;
 
 typedef struct ItemStruct_428 ItemStruct_428, *PItemStruct_428;
 
-struct ItemStruct_428 {
+struct ItemStruct_428 { // [lego,0x18]
 	uint index;
 	enum Direction direction;
 	undefined4 field_8;
@@ -19601,20 +6112,36 @@ struct ItemStruct_428 {
 	undefined4 field_14;
 };
 
-struct PairStruct_428 {
+struct PairStruct_428 { // [lego,0x8]
 	struct Struct_428 * first;
 	struct Struct_428 * second;
 };
 
-struct Struct_428 {
+struct Struct_428 { // [lego,0x428]
 	struct Point2F points[100];
 	uint pointsCount;
 	struct ItemStruct_428 items[10];
 	uint itemsCount;
-	undefined4 field_418;
-	undefined4 field_41c;
-	undefined4 field_420;
-	undefined4 field_424;
+	struct Point2F pointf_418;
+	struct Container * resMeshTrans;
+	uint flags; // (0x1 = visible/active?)
+};
+
+typedef struct MiscEffectData MiscEffectData, *PMiscEffectData;
+
+struct MiscEffectData {
+	struct Container * table[10];
+	uint count; // (max of 10)
+	undefined4 field_2c;
+	struct Container * resData; // LWS,true | LWO,true
+	undefined4 field_34;
+};
+
+typedef struct WorldMeshStruct_8 WorldMeshStruct_8, *PWorldMeshStruct_8;
+
+struct WorldMeshStruct_8 { // [lego,0x8]
+	enum D3DRMGroupIndex groupID;
+	uint flags;
 };
 
 typedef struct Struct_8__00558bc4 Struct_8__00558bc4, *PStruct_8__00558bc4;
@@ -27086,42 +13613,6 @@ struct RewardFrontEnd {
 	struct RewardFrontEndItem items_TABLE[10];
 };
 
-typedef struct Container_AppData Container_AppData, *PContainer_AppData;
-
-typedef struct AnimClone AnimClone, *PAnimClone;
-
-typedef struct Sound3D_SoundFrameRecord Sound3D_SoundFrameRecord, *PSound3D_SoundFrameRecord;
-
-struct Sound3D_SoundFrameRecord {
-	struct IDirectSound3DBuffer * sound3DBuff;
-	struct Vector3F pos;
-	struct Sound3D_SoundFrameRecord * next;
-};
-
-struct Container_AppData {
-	struct Container * ownerContainer;
-	char * animSetFileName; // For the dodgy Animation Set clone stuff...
-	char * frameName; // For freeing the allocation for SetName...
-	uint frameCount;
-	float currTime;
-	float transCo; // Standard translation during amimset loop.
-	char * activitySample; // Sample to play when activity is called...
-	struct AnimClone * animClone;
-	uint trigger;
-	struct Sound3D_SoundFrameRecord * soundList; // For 'Sound3D'
-};
-
-struct AnimClone {
-	struct AnimClone * clonedFrom;
-	struct Lws_Info * scene; // LWS struct
-	struct IDirect3DRMAnimationSet2 * animSet; // (not LWS)
-	BOOL lws;
-	struct IDirect3DRMFrame3 * root; // (not LWS)
-	struct IDirect3DRMFrame3 * * partArray; // (not LWS) table of COM objects, length is count_18
-	uint partCount; // (not LWS)
-	uint frameCount;
-};
-
 typedef struct BlockObject BlockObject, *PBlockObject;
 
 struct BlockObject {
@@ -27138,39 +13629,6 @@ struct ItemStruct_34 {
 	struct Mesh * struct34_2;
 	struct Container * resData;
 	float time;
-};
-
-typedef struct MessageAction MessageAction, *PMessageAction;
-
-struct MessageAction {
-	enum MessageType event;
-	struct LiveObject * object_4;
-	BOOL field_8;
-	struct Point2I position;
-};
-
-typedef struct ProMeshData ProMeshData, *PProMeshData;
-
-struct ProMeshData {
-	struct Container * promesh_a;
-	struct Container * promesh_b;
-	undefined4 table_a[100];
-	undefined4 table_b[100];
-	float BlockSize;
-	undefined4 field_32c;
-	undefined field_0x330;
-	undefined field_0x331;
-	undefined field_0x332;
-	undefined field_0x333;
-	undefined field_0x334;
-	undefined field_0x335;
-	undefined field_0x336;
-	undefined field_0x337;
-	undefined field_0x338;
-	undefined field_0x339;
-	undefined field_0x33a;
-	undefined field_0x33b;
-	struct SurfaceTextureGrid * surfTextGrid;
 };
 
 typedef struct InfoMessageInstance InfoMessageInstance, *PInfoMessageInstance;
@@ -27236,70 +13694,13 @@ struct InfoMessageInstance {
 	undefined field_0x13;
 };
 
-typedef struct Container_SearchData Container_SearchData, *PContainer_SearchData;
+typedef struct BlockStruct_d4 BlockStruct_d4, *PBlockStruct_d4;
 
-typedef enum ContainerSearchMode {
-	CONTAINER_SEARCHMODE_FIRSTMATCH=0,
-	CONTAINER_SEARCHMODE_MATCHCOUNT=1,
-	CONTAINER_SEARCHMODE_NTHMATCH=2
-} ContainerSearchMode;
-
-struct Container_SearchData {
-	char * string;
-	uint stringLen;
-	BOOL caseSensitive;
-	struct IDirect3DRMFrame3 * resultFrame;
-	uint count;
-	enum ContainerSearchMode mode;
-	uint matchNumber;
-};
-
-typedef struct MapFileInfo MapFileInfo, *PMapFileInfo;
-
-struct MapFileInfo {
-	char Signature[4]; // "MAP "
-	uint fileSize;
-	struct Size2I dimensions;
-	ushort blocks[1];
-};
-
-typedef struct PanelData PanelData, *PPanelData;
-
-struct PanelData {
-	struct ImageBMP * imageOrFlic;
-	BOOL isFlic;
-	struct Point2F xyOut;
-	struct Point2F xyIn;
-	struct Point2F xyOutIn;
-	undefined4 field_20;
-	undefined4 field_24;
-	undefined4 field_28;
-	uint flags;
-};
-
-typedef struct Struct_2b0 Struct_2b0, *PStruct_2b0;
-
-struct Struct_2b0 { // Seen in a table of [10]
-	undefined field_0x0;
-	undefined field_0x1;
-	undefined field_0x2;
-	undefined field_0x3;
-	undefined field_0x4;
-	undefined field_0x5;
-	undefined field_0x6;
-	undefined field_0x7;
-	undefined field_0x8;
-	undefined field_0x9;
-	undefined field_0xa;
-	undefined field_0xb;
-	undefined field_0xc;
-	undefined field_0xd;
-	undefined field_0xe;
-	undefined field_0xf;
-	undefined field_0x10;
-	undefined field_0x11;
-	undefined field_0x12;
-	undefined field_0x13;
+struct BlockStruct_d4 { // [lego,0xd4]
+	undefined4 field_0;
+	undefined4 field_4;
+	int int_8;
+	struct Point2I pointi_c;
 	undefined field_0x14;
 	undefined field_0x15;
 	undefined field_0x16;
@@ -27316,18 +13717,12 @@ struct Struct_2b0 { // Seen in a table of [10]
 	undefined field_0x21;
 	undefined field_0x22;
 	undefined field_0x23;
-	undefined field_0x24;
-	undefined field_0x25;
-	undefined field_0x26;
-	undefined field_0x27;
+	struct BlockStruct_d4 * next_24;
 	undefined field_0x28;
 	undefined field_0x29;
 	undefined field_0x2a;
 	undefined field_0x2b;
-	undefined field_0x2c;
-	undefined field_0x2d;
-	undefined field_0x2e;
-	undefined field_0x2f;
+	struct LiveObject * liveObjs_2c[1];
 	undefined field_0x30;
 	undefined field_0x31;
 	undefined field_0x32;
@@ -27484,498 +13879,44 @@ struct Struct_2b0 { // Seen in a table of [10]
 	undefined field_0xc9;
 	undefined field_0xca;
 	undefined field_0xcb;
-	undefined field_0xcc;
-	undefined field_0xcd;
-	undefined field_0xce;
-	undefined field_0xcf;
-	undefined field_0xd0;
-	undefined field_0xd1;
-	undefined field_0xd2;
-	undefined field_0xd3;
-	undefined field_0xd4;
-	undefined field_0xd5;
-	undefined field_0xd6;
-	undefined field_0xd7;
-	undefined field_0xd8;
-	undefined field_0xd9;
-	undefined field_0xda;
-	undefined field_0xdb;
-	undefined field_0xdc;
-	undefined field_0xdd;
-	undefined field_0xde;
-	undefined field_0xdf;
-	undefined field_0xe0;
-	undefined field_0xe1;
-	undefined field_0xe2;
-	undefined field_0xe3;
-	undefined field_0xe4;
-	undefined field_0xe5;
-	undefined field_0xe6;
-	undefined field_0xe7;
-	undefined field_0xe8;
-	undefined field_0xe9;
-	undefined field_0xea;
-	undefined field_0xeb;
-	undefined field_0xec;
-	undefined field_0xed;
-	undefined field_0xee;
-	undefined field_0xef;
-	undefined field_0xf0;
-	undefined field_0xf1;
-	undefined field_0xf2;
-	undefined field_0xf3;
-	undefined field_0xf4;
-	undefined field_0xf5;
-	undefined field_0xf6;
-	undefined field_0xf7;
-	undefined field_0xf8;
-	undefined field_0xf9;
-	undefined field_0xfa;
-	undefined field_0xfb;
-	undefined field_0xfc;
-	undefined field_0xfd;
-	undefined field_0xfe;
-	undefined field_0xff;
-	undefined field_0x100;
-	undefined field_0x101;
-	undefined field_0x102;
-	undefined field_0x103;
-	undefined field_0x104;
-	undefined field_0x105;
-	undefined field_0x106;
-	undefined field_0x107;
-	undefined field_0x108;
-	undefined field_0x109;
-	undefined field_0x10a;
-	undefined field_0x10b;
-	undefined field_0x10c;
-	undefined field_0x10d;
-	undefined field_0x10e;
-	undefined field_0x10f;
-	undefined field_0x110;
-	undefined field_0x111;
-	undefined field_0x112;
-	undefined field_0x113;
-	undefined field_0x114;
-	undefined field_0x115;
-	undefined field_0x116;
-	undefined field_0x117;
-	undefined field_0x118;
-	undefined field_0x119;
-	undefined field_0x11a;
-	undefined field_0x11b;
-	undefined field_0x11c;
-	undefined field_0x11d;
-	undefined field_0x11e;
-	undefined field_0x11f;
-	undefined field_0x120;
-	undefined field_0x121;
-	undefined field_0x122;
-	undefined field_0x123;
-	undefined field_0x124;
-	undefined field_0x125;
-	undefined field_0x126;
-	undefined field_0x127;
-	undefined field_0x128;
-	undefined field_0x129;
-	undefined field_0x12a;
-	undefined field_0x12b;
-	undefined field_0x12c;
-	undefined field_0x12d;
-	undefined field_0x12e;
-	undefined field_0x12f;
-	undefined field_0x130;
-	undefined field_0x131;
-	undefined field_0x132;
-	undefined field_0x133;
-	undefined field_0x134;
-	undefined field_0x135;
-	undefined field_0x136;
-	undefined field_0x137;
-	undefined field_0x138;
-	undefined field_0x139;
-	undefined field_0x13a;
-	undefined field_0x13b;
-	undefined field_0x13c;
-	undefined field_0x13d;
-	undefined field_0x13e;
-	undefined field_0x13f;
-	undefined field_0x140;
-	undefined field_0x141;
-	undefined field_0x142;
-	undefined field_0x143;
-	undefined field_0x144;
-	undefined field_0x145;
-	undefined field_0x146;
-	undefined field_0x147;
-	undefined field_0x148;
-	undefined field_0x149;
-	undefined field_0x14a;
-	undefined field_0x14b;
-	undefined field_0x14c;
-	undefined field_0x14d;
-	undefined field_0x14e;
-	undefined field_0x14f;
-	undefined field_0x150;
-	undefined field_0x151;
-	undefined field_0x152;
-	undefined field_0x153;
-	undefined field_0x154;
-	undefined field_0x155;
-	undefined field_0x156;
-	undefined field_0x157;
-	undefined field_0x158;
-	undefined field_0x159;
-	undefined field_0x15a;
-	undefined field_0x15b;
-	undefined field_0x15c;
-	undefined field_0x15d;
-	undefined field_0x15e;
-	undefined field_0x15f;
-	undefined field_0x160;
-	undefined field_0x161;
-	undefined field_0x162;
-	undefined field_0x163;
-	undefined field_0x164;
-	undefined field_0x165;
-	undefined field_0x166;
-	undefined field_0x167;
-	undefined field_0x168;
-	undefined field_0x169;
-	undefined field_0x16a;
-	undefined field_0x16b;
-	undefined field_0x16c;
-	undefined field_0x16d;
-	undefined field_0x16e;
-	undefined field_0x16f;
-	undefined field_0x170;
-	undefined field_0x171;
-	undefined field_0x172;
-	undefined field_0x173;
-	undefined field_0x174;
-	undefined field_0x175;
-	undefined field_0x176;
-	undefined field_0x177;
-	undefined field_0x178;
-	undefined field_0x179;
-	undefined field_0x17a;
-	undefined field_0x17b;
-	undefined field_0x17c;
-	undefined field_0x17d;
-	undefined field_0x17e;
-	undefined field_0x17f;
-	undefined field_0x180;
-	undefined field_0x181;
-	undefined field_0x182;
-	undefined field_0x183;
-	undefined field_0x184;
-	undefined field_0x185;
-	undefined field_0x186;
-	undefined field_0x187;
-	undefined field_0x188;
-	undefined field_0x189;
-	undefined field_0x18a;
-	undefined field_0x18b;
-	undefined field_0x18c;
-	undefined field_0x18d;
-	undefined field_0x18e;
-	undefined field_0x18f;
-	undefined field_0x190;
-	undefined field_0x191;
-	undefined field_0x192;
-	undefined field_0x193;
-	undefined field_0x194;
-	undefined field_0x195;
-	undefined field_0x196;
-	undefined field_0x197;
-	undefined field_0x198;
-	undefined field_0x199;
-	undefined field_0x19a;
-	undefined field_0x19b;
-	undefined field_0x19c;
-	undefined field_0x19d;
-	undefined field_0x19e;
-	undefined field_0x19f;
-	undefined field_0x1a0;
-	undefined field_0x1a1;
-	undefined field_0x1a2;
-	undefined field_0x1a3;
-	undefined field_0x1a4;
-	undefined field_0x1a5;
-	undefined field_0x1a6;
-	undefined field_0x1a7;
-	undefined field_0x1a8;
-	undefined field_0x1a9;
-	undefined field_0x1aa;
-	undefined field_0x1ab;
-	undefined field_0x1ac;
-	undefined field_0x1ad;
-	undefined field_0x1ae;
-	undefined field_0x1af;
-	undefined field_0x1b0;
-	undefined field_0x1b1;
-	undefined field_0x1b2;
-	undefined field_0x1b3;
-	undefined field_0x1b4;
-	undefined field_0x1b5;
-	undefined field_0x1b6;
-	undefined field_0x1b7;
-	undefined field_0x1b8;
-	undefined field_0x1b9;
-	undefined field_0x1ba;
-	undefined field_0x1bb;
-	undefined field_0x1bc;
-	undefined field_0x1bd;
-	undefined field_0x1be;
-	undefined field_0x1bf;
-	undefined field_0x1c0;
-	undefined field_0x1c1;
-	undefined field_0x1c2;
-	undefined field_0x1c3;
-	undefined field_0x1c4;
-	undefined field_0x1c5;
-	undefined field_0x1c6;
-	undefined field_0x1c7;
-	undefined field_0x1c8;
-	undefined field_0x1c9;
-	undefined field_0x1ca;
-	undefined field_0x1cb;
-	undefined field_0x1cc;
-	undefined field_0x1cd;
-	undefined field_0x1ce;
-	undefined field_0x1cf;
-	undefined field_0x1d0;
-	undefined field_0x1d1;
-	undefined field_0x1d2;
-	undefined field_0x1d3;
-	undefined field_0x1d4;
-	undefined field_0x1d5;
-	undefined field_0x1d6;
-	undefined field_0x1d7;
-	undefined field_0x1d8;
-	undefined field_0x1d9;
-	undefined field_0x1da;
-	undefined field_0x1db;
-	undefined field_0x1dc;
-	undefined field_0x1dd;
-	undefined field_0x1de;
-	undefined field_0x1df;
-	undefined field_0x1e0;
-	undefined field_0x1e1;
-	undefined field_0x1e2;
-	undefined field_0x1e3;
-	undefined field_0x1e4;
-	undefined field_0x1e5;
-	undefined field_0x1e6;
-	undefined field_0x1e7;
-	undefined field_0x1e8;
-	undefined field_0x1e9;
-	undefined field_0x1ea;
-	undefined field_0x1eb;
-	undefined field_0x1ec;
-	undefined field_0x1ed;
-	undefined field_0x1ee;
-	undefined field_0x1ef;
-	undefined field_0x1f0;
-	undefined field_0x1f1;
-	undefined field_0x1f2;
-	undefined field_0x1f3;
-	undefined field_0x1f4;
-	undefined field_0x1f5;
-	undefined field_0x1f6;
-	undefined field_0x1f7;
-	undefined field_0x1f8;
-	undefined field_0x1f9;
-	undefined field_0x1fa;
-	undefined field_0x1fb;
-	undefined field_0x1fc;
-	undefined field_0x1fd;
-	undefined field_0x1fe;
-	undefined field_0x1ff;
-	undefined field_0x200;
-	undefined field_0x201;
-	undefined field_0x202;
-	undefined field_0x203;
-	undefined field_0x204;
-	undefined field_0x205;
-	undefined field_0x206;
-	undefined field_0x207;
-	undefined field_0x208;
-	undefined field_0x209;
-	undefined field_0x20a;
-	undefined field_0x20b;
-	undefined field_0x20c;
-	undefined field_0x20d;
-	undefined field_0x20e;
-	undefined field_0x20f;
-	undefined field_0x210;
-	undefined field_0x211;
-	undefined field_0x212;
-	undefined field_0x213;
-	undefined field_0x214;
-	undefined field_0x215;
-	undefined field_0x216;
-	undefined field_0x217;
-	undefined field_0x218;
-	undefined field_0x219;
-	undefined field_0x21a;
-	undefined field_0x21b;
-	undefined field_0x21c;
-	undefined field_0x21d;
-	undefined field_0x21e;
-	undefined field_0x21f;
-	undefined field_0x220;
-	undefined field_0x221;
-	undefined field_0x222;
-	undefined field_0x223;
-	undefined field_0x224;
-	undefined field_0x225;
-	undefined field_0x226;
-	undefined field_0x227;
-	undefined field_0x228;
-	undefined field_0x229;
-	undefined field_0x22a;
-	undefined field_0x22b;
-	undefined field_0x22c;
-	undefined field_0x22d;
-	undefined field_0x22e;
-	undefined field_0x22f;
-	undefined field_0x230;
-	undefined field_0x231;
-	undefined field_0x232;
-	undefined field_0x233;
-	undefined field_0x234;
-	undefined field_0x235;
-	undefined field_0x236;
-	undefined field_0x237;
-	undefined field_0x238;
-	undefined field_0x239;
-	undefined field_0x23a;
-	undefined field_0x23b;
-	undefined field_0x23c;
-	undefined field_0x23d;
-	undefined field_0x23e;
-	undefined field_0x23f;
-	undefined field_0x240;
-	undefined field_0x241;
-	undefined field_0x242;
-	undefined field_0x243;
-	undefined field_0x244;
-	undefined field_0x245;
-	undefined field_0x246;
-	undefined field_0x247;
-	undefined field_0x248;
-	undefined field_0x249;
-	undefined field_0x24a;
-	undefined field_0x24b;
-	undefined field_0x24c;
-	undefined field_0x24d;
-	undefined field_0x24e;
-	undefined field_0x24f;
-	undefined field_0x250;
-	undefined field_0x251;
-	undefined field_0x252;
-	undefined field_0x253;
-	undefined field_0x254;
-	undefined field_0x255;
-	undefined field_0x256;
-	undefined field_0x257;
-	undefined field_0x258;
-	undefined field_0x259;
-	undefined field_0x25a;
-	undefined field_0x25b;
-	undefined field_0x25c;
-	undefined field_0x25d;
-	undefined field_0x25e;
-	undefined field_0x25f;
-	undefined field_0x260;
-	undefined field_0x261;
-	undefined field_0x262;
-	undefined field_0x263;
+	uint liveObjsCount_cc;
+	uint flags;
+};
+
+typedef struct MapFileInfo MapFileInfo, *PMapFileInfo;
+
+struct MapFileInfo {
+	char Signature[4]; // "MAP "
+	uint fileSize;
+	struct Size2I dimensions;
+	ushort blocks[1];
+};
+
+typedef struct Struct_2b0 Struct_2b0, *PStruct_2b0;
+
+typedef struct RoutingData RoutingData, *PRoutingData;
+
+struct RoutingData {
+	uint count;
+	struct Point2F points[50];
+	float distances[50];
+};
+
+struct Struct_2b0 { // Seen in a table of [10]
+	undefined4 unseen_0;
+	struct RoutingData routing;
+	undefined4 unseen_260;
 	float float_264;
 	struct Vector3F vector_268;
 	struct Vector3F vector_274;
 	struct Vector3F position_280;
 	float float_28c;
 	struct Vector3F vector_290;
-	undefined field_0x29c;
-	undefined field_0x29d;
-	undefined field_0x29e;
-	undefined field_0x29f;
-	undefined field_0x2a0;
-	undefined field_0x2a1;
-	undefined field_0x2a2;
-	undefined field_0x2a3;
+	undefined4 field_29c;
+	undefined4 field_2a0;
 	struct LiveObject * object_2a4;
 	int weaponType;
 	undefined4 field_2ac;
-};
-
-typedef struct MiscObjectData MiscObjectData, *PMiscObjectData;
-
-struct MiscObjectData {
-	undefined field_0x0;
-	undefined field_0x1;
-	undefined field_0x2;
-	undefined field_0x3;
-	undefined field_0x4;
-	undefined field_0x5;
-	undefined field_0x6;
-	undefined field_0x7;
-	undefined field_0x8;
-	undefined field_0x9;
-	undefined field_0xa;
-	undefined field_0xb;
-	undefined field_0xc;
-	undefined field_0xd;
-	undefined field_0xe;
-	undefined field_0xf;
-	undefined field_0x10;
-	undefined field_0x11;
-	undefined field_0x12;
-	undefined field_0x13;
-	undefined field_0x14;
-	undefined field_0x15;
-	undefined field_0x16;
-	undefined field_0x17;
-	undefined field_0x18;
-	undefined field_0x19;
-	undefined field_0x1a;
-	undefined field_0x1b;
-	undefined field_0x1c;
-	undefined field_0x1d;
-	undefined field_0x1e;
-	undefined field_0x1f;
-	undefined field_0x20;
-	undefined field_0x21;
-	undefined field_0x22;
-	undefined field_0x23;
-	undefined field_0x24;
-	undefined field_0x25;
-	undefined field_0x26;
-	undefined field_0x27;
-	undefined field_0x28;
-	undefined field_0x29;
-	undefined field_0x2a;
-	undefined field_0x2b;
-	undefined field_0x2c;
-	undefined field_0x2d;
-	undefined field_0x2e;
-	undefined field_0x2f;
-	struct Container * resData; // LWS,true | LWO,true
-	undefined field_0x34;
-	undefined field_0x35;
-	undefined field_0x36;
-	undefined field_0x37;
-};
-
-typedef struct ImageStruct_10 ImageStruct_10, *PImageStruct_10;
-
-struct ImageStruct_10 {
-	char * name;
-	struct ImageBMP * image;
-	struct ImageFont * font;
-	struct ImageStruct_10 * next;
 };
 
 typedef struct LiveObjectInfo LiveObjectInfo, *PLiveObjectInfo;
@@ -28002,10 +13943,16 @@ struct WeaponStats {
 	float WallDestroyTimes[18]; // (defaults: 5.0f)
 };
 
-typedef struct Container_TextureData Container_TextureData, *PContainer_TextureData;
+typedef struct HealthFontData HealthFontData, *PHealthFontData;
 
-struct Container_TextureData {
-	char * xFileName;
+struct HealthFontData {
+	struct Container * ownerCont;
+	struct Mesh * mesh;
+	uint groupCount;
+	float float_c;
+	float float_10;
+	float timerDown;
+	float timerUp;
 	uint flags;
 };
 
@@ -28053,57 +14000,6 @@ struct BasicObjectData {
 	struct Container * aeResData; // ACT, true
 };
 
-typedef struct Struct_b8__00558080 Struct_b8__00558080, *PStruct_b8__00558080;
-
-struct Struct_b8__00558080 {
-	undefined4 field_0x0;
-	undefined4 field_0x4;
-	undefined4 field_0x8;
-	undefined4 field_0xc;
-	undefined4 field_0x10;
-	undefined4 field_0x14;
-	undefined4 field_0x18;
-	undefined4 field_0x1c;
-	undefined4 field_0x20;
-	undefined4 field_0x24;
-	undefined4 field_0x28;
-	undefined4 field_0x2c;
-	undefined4 field_0x30;
-	undefined4 field_0x34;
-	undefined4 field_0x38;
-	undefined4 field_0x3c;
-	undefined4 field_0x40;
-	undefined4 field_0x44;
-	undefined4 field_0x48;
-	undefined4 field_0x4c;
-	undefined4 field_0x50;
-	undefined4 field_0x54;
-	undefined4 field_0x58;
-	undefined4 field_0x5c;
-	undefined4 field_0x60;
-	undefined4 field_0x64;
-	undefined4 field_0x68;
-	undefined4 field_0x6c;
-	undefined4 field_0x70;
-	undefined4 field_0x74;
-	undefined4 field_0x78;
-	undefined4 field_0x7c;
-	undefined4 field_0x80;
-	undefined4 field_0x84;
-	undefined4 field_0x88;
-	undefined4 field_0x8c;
-	undefined4 field_0x90;
-	undefined4 field_0x94;
-	undefined4 field_0x98;
-	undefined4 field_0x9c;
-	undefined4 field_0xa0;
-	undefined4 field_0xa4;
-	undefined4 field_0xa8;
-	undefined4 field_0xac;
-	undefined4 field_0xb0;
-	undefined4 field_0xb4;
-};
-
 typedef struct StructF_10 StructF_10, *PStructF_10;
 
 struct StructF_10 {
@@ -28119,124 +14015,53 @@ typedef enum CLGenResources {
 	CLGEN_SELECTOR_DIALOG=101
 } CLGenResources;
 
-typedef enum KeysByte {
-	KEYPAD_0=82,
-	KEYPAD_1=79,
-	KEYPAD_2=80,
-	KEYPAD_3=81,
-	KEYPAD_4=75,
-	KEYPAD_5=76,
-	KEYPAD_6=77,
-	KEYPAD_7=71,
-	KEYPAD_8=72,
-	KEYPAD_9=73,
-	KEYPAD_ASTERISK=55,
-	KEYPAD_DELETE=83,
-	KEYPAD_ENTER=156,
-	KEYPAD_FORWARDFLASH=181,
-	KEYPAD_MINUS=74,
-	KEYPAD_NUMLOCK=69,
-	KEYPAD_PLUS=78,
-	KEY_A=30,
-	KEY_ALT=56,
-	KEY_ALTGR=184,
-	KEY_AT=40,
-	KEY_B=48,
-	KEY_BACKSLASH=86,
-	KEY_BACKSPACE=14,
-	KEY_C=46,
-	KEY_CAPLOCK=58,
-	KEY_CURSORDOWN=208,
-	KEY_CURSORLEFT=203,
-	KEY_CURSORUP=200,
-	KEY_D=32,
-	KEY_DELETE=211,
-	KEY_E=18,
-	KEY_EIGHT=9,
-	KEY_END=207,
-	KEY_EQUALS=13,
-	KEY_ESCAPE=1,
-	KEY_F=33,
-	KEY_F1=59,
-	KEY_F10=68,
-	KEY_F11=87,
-	KEY_F12=88,
-	KEY_F2=60,
-	KEY_F3=61,
-	KEY_F4=62,
-	KEY_F5=63,
-	KEY_F6=64,
-	KEY_F7=65,
-	KEY_F8=66,
-	KEY_F9=67,
-	KEY_FIVE=6,
-	KEY_FOUR=5,
-	KEY_G=34,
-	KEY_H=35,
-	KEY_HASH=43,
-	KEY_HOME=199,
-	KEY_I=23,
-	KEY_INSERT=210,
-	KEY_J=36,
-	KEY_K=37,
-	KEY_L=38,
-	KEY_LEFTARROW=51,
-	KEY_LEFTBRACE=26,
-	KEY_LEFTCTRL=29,
-	KEY_LEFTSHIFT=42,
-	KEY_M=50,
-	KEY_MINUS=12,
-	KEY_N=49,
-	KEY_NINE=10,
-	KEY_O=24,
-	KEY_ONE=2,
-	KEY_P=25,
-	KEY_PGDN=209,
-	KEY_PGUP=201,
-	KEY_PRINTSCREEN=183,
-	KEY_Q=16,
-	KEY_QUESTIONMARK=53,
-	KEY_R=19,
-	KEY_RETURN=28,
-	KEY_RIGHTARROW=52,
-	KEY_RIGHTBRACE=27,
-	KEY_RIGHTCTRL=157,
-	KEY_RIGHTSHIFT=54,
-	KEY_RSINGLEQUOTE=41,
-	KEY_S=31,
-	KEY_SCROLLLOCK=70,
-	KEY_SEMICOLON=39,
-	KEY_SEVEN=8,
-	KEY_SIX=7,
-	KEY_SPACE=57,
-	KEY_T=20,
-	KEY_TAB=15,
-	KEY_THREE=4,
-	KEY_TWO=3,
-	KEY_U=22,
-	KEY_V=47,
-	KEY_W=17,
-	KEY_X=45,
-	KEY_Y=21,
-	KEY_Z=44,
-	KEY_ZERO=11,
-	KEY__NONE=0
-} KeysByte;
+typedef enum ToolTipType {
+	TOOLTIP_BACK=34,
+	TOOLTIP_CAMCONTROLCYCLE=26,
+	TOOLTIP_CAMCONTROLCYCLEMINIFIGURES=35,
+	TOOLTIP_CAMCONTROLROTATE=27,
+	TOOLTIP_CAMCONTROLZOOMIN=24,
+	TOOLTIP_CAMCONTROLZOOMOUT=25,
+	TOOLTIP_CLOSE=30,
+	TOOLTIP_CONSTRUCTION=3,
+	TOOLTIP_FRONTEND_BACK=38,
+	TOOLTIP_INFODOCKCLOSE=16,
+	TOOLTIP_INFODOCKGOTO=15,
+	TOOLTIP_INFOMENUCONTINUE=8,
+	TOOLTIP_INFOMENUDISABLEFUTURE=9,
+	TOOLTIP_INTERFACEMENU=4,
+	TOOLTIP_INTERFACEMENUBACKBUTTON=5,
+	TOOLTIP_MAPBLOCK=6,
+	TOOLTIP_MORE=33,
+	TOOLTIP_NEXTMESSAGE=32,
+	TOOLTIP_NULL=0,
+	TOOLTIP_PREVIOUSMESSAGE=31,
+	TOOLTIP_PRIORITY=7,
+	TOOLTIP_PRIORITYDISABLE=21,
+	TOOLTIP_PRIORITYRESET=23,
+	TOOLTIP_PRIORITYUPONE=22,
+	TOOLTIP_RADARBLOCK=1,
+	TOOLTIP_RADARMAPVIEW=14,
+	TOOLTIP_RADAROBJECTVIEW=11,
+	TOOLTIP_RADARTOGGLE=10,
+	TOOLTIP_RADARZOOMIN=12,
+	TOOLTIP_RADARZOOMOUT=13,
+	TOOLTIP_REWARD_ADVANCE=37,
+	TOOLTIP_REWARD_SAVE=36,
+	TOOLTIP_SIDEBAR_CRYSTAL=29,
+	TOOLTIP_SIDEBAR_ORE=28,
+	TOOLTIP_TOPPANELCALLTOARMS=17,
+	TOOLTIP_TOPPANELINFO=18,
+	TOOLTIP_TOPPANELOPTIONS=19,
+	TOOLTIP_TOPPANELPRIORITIES=20,
+	TOOLTIP_UNITSELECTED=2
+} ToolTipType;
 
 typedef enum LegoRRResources {
 	LEGORR_MAIN_ICON=1,
 	LEGORR_MAIN_ICONGROUP=113,
 	LEGORR_MODESELECTION_DIALOG=101
 } LegoRRResources;
-
-typedef enum MaterialType {
-	MATERIAL_ALPHA=4,
-	MATERIAL_AMBIENT=1,
-	MATERIAL_DIFFUSE=0,
-	MATERIAL_EMISSIVE=3,
-	MATERIAL_POWER=5,
-	MATERIAL_SPECULAR=2
-} MaterialType;
 
 typedef enum AdvisorType {
 	ADVISOR_ICONPOINT_BACKBUTTON=4,
@@ -28264,17 +14089,21 @@ typedef enum AdvisorType {
 	ADVISOR__INVALID=4294967295
 } AdvisorType;
 
+typedef enum WallHighlightByte { // Byte-sized WallHighlightType (white, gray, red, green, blue, dark-yellow)
+	WALLHIGHLIGHTBYTE_DIG=1,
+	WALLHIGHLIGHTBYTE_DYNAMITE=2,
+	WALLHIGHLIGHTBYTE_NONE=0,
+	WALLHIGHLIGHTBYTE_REINFORCE=3,
+	WALLHIGHLIGHTBYTE_SELECTED=4,
+	WALLHIGHLIGHTBYTE_TUTORIAL=5
+} WallHighlightByte;
+
 typedef enum CLGenDialogControls {
 	CLGEN_ID_CANCEL=2,
 	CLGEN_ID_OK=1,
 	CLGEN_ID_SELECT_DROPDOWNLIST=1001,
 	CLGEN_ID_SELECT_LABEL=1006
 } CLGenDialogControls;
-
-typedef enum RegistryType { // Supported registry information types
-	REGISTRY_DWORD_VALUE=1,
-	REGISTRY_STRING_VALUE=0
-} RegistryType;
 
 typedef enum PanelButtonRadarType {
 	PANELBUTTON_RADAR_MAPVIEW=4,
@@ -28497,17 +14326,21 @@ typedef enum LegoRRDialogControls {
 	LEGORR_ID_WINDOW_RADIOBUTTON=1005
 } LegoRRDialogControls;
 
-typedef enum DrawEffect {
-	DrawEffect_HalfTrans=2,
-	DrawEffect_None=0,
-	DrawEffect_XOR=1
-} DrawEffect;
+typedef enum ScreenMenuType { // Types of menus only shown out-of-game
+	MENU_SCREEN_LOAD_unused=3,
+	MENU_SCREEN_MISSIONS=1,
+	MENU_SCREEN_SAVE=4,
+	MENU_SCREEN_TITLE=0,
+	MENU_SCREEN_TRAINING=2
+} ScreenMenuType;
 
-typedef enum Sound3DPlayMode {
-	SOUND3D_PLAY_NORMAL=2,
-	SOUND3D_PLAY_ONFRAME=0,
-	SOUND3D_PLAY_ONPOS=1
-} Sound3DPlayMode;
+typedef enum WeaponKnownType { // This is not the same as WeponTypes defined in Lego.cfg, these are fixed ID's that are then looked up by value
+	WEAPONKNOWN_FREEZER=3,
+	WEAPONKNOWN_LAZER_1=1,
+	WEAPONKNOWN_LAZER_4=4,
+	WEAPONKNOWN_PUSHER=2,
+	WEAPONKNOWN_UNK_0=0
+} WeaponKnownType;
 
 typedef enum PanelButtonInformationType {
 	PANELBUTTON_INFORMATION_FUNCTION=1,
@@ -28515,6 +14348,15 @@ typedef enum PanelButtonInformationType {
 	PANELBUTTON_INFORMATION__COUNT=2,
 	PANELBUTTON_INFORMATION__INVALID=4294967295
 } PanelButtonInformationType;
+
+typedef enum WallHighlightType { // (white, gray, red, green, blue, dark-yellow)
+	WALLHIGHLIGHT_DIG=1,
+	WALLHIGHLIGHT_DYNAMITE=2,
+	WALLHIGHLIGHT_NONE=0,
+	WALLHIGHLIGHT_REINFORCE=3,
+	WALLHIGHLIGHT_SELECTED=4,
+	WALLHIGHLIGHT_TUTORIAL=5
+} WallHighlightType;
 
 typedef enum PanelButtonTopPanelType {
 	PANELBUTTON_TOPPANEL_CALLTOARMS=2,
@@ -28531,29 +14373,47 @@ typedef enum PanelButtonCrystalSideBarType {
 	PANELBUTTON_CRYSTALSIDEBAR__INVALID=4294967295
 } PanelButtonCrystalSideBarType;
 
-typedef enum PolyMode {
-	POLY_FP=3,
-	POLY_HIGH=2,
-	POLY_LOW=0,
-	POLY_MEDIUM=1
-} PolyMode;
+typedef enum MiscEffectType {
+	MISCOBJECT_BIRDSCARER=8,
+	MISCOBJECT_FREEZERHIT=2,
+	MISCOBJECT_LAVAEROSIONSMOKE1=4,
+	MISCOBJECT_LAVAEROSIONSMOKE2=5,
+	MISCOBJECT_LAVAEROSIONSMOKE3=6,
+	MISCOBJECT_LAVAEROSIONSMOKE4=7,
+	MISCOBJECT_LAZERHIT=0,
+	MISCOBJECT_PATHDUST=3,
+	MISCOBJECT_PUSHERHIT=1,
+	MISCOBJECT_UPGRADEEFFECT=9
+} MiscEffectType;
 
-typedef enum FlicError {
-	FLICERROR=4294967295,
-	FLICFILEERROR=3005,
-	FLICFILENOTFOUND=3004,
-	FLICFINISHED=1,
-	FLICFRAMEDOESNOTEXIST=3007,
-	FLICINVALIDFILE=3003,
-	FLICINVALIDHANDLE=3000,
-	FLICNOERROR=0,
-	FLICNOMOREFRAMES=3009,
-	FLICNOMOREHANDLES=3001,
-	FLICNOTENOUGHMEMORY=3002,
-	FLICOFFPORTAL=3006,
-	FLICREPLAYNOTSUPPORTED=3008,
-	FLICSOUNDHEADERERROR=3010
-} FlicError;
+typedef enum InterfaceMenuType {
+	INTERFACE_MENU_BUILDBUILDING=19,
+	INTERFACE_MENU_BUILDING=13,
+	INTERFACE_MENU_BUILDLARGEVEHICLE=21,
+	INTERFACE_MENU_BUILDSMALLVEHICLE=20,
+	INTERFACE_MENU_CONSTRUCTION=4,
+	INTERFACE_MENU_ELECTRICFENCE=14,
+	INTERFACE_MENU_ERODE=2,
+	INTERFACE_MENU_FIRSTPERSON=15,
+	INTERFACE_MENU_GETTOOL=16,
+	INTERFACE_MENU_GROUND=1,
+	INTERFACE_MENU_LEGOMAN=9,
+	INTERFACE_MENU_MAIN=0,
+	INTERFACE_MENU_PLACEFENCE=3,
+	INTERFACE_MENU_RUBBLE=5,
+	INTERFACE_MENU_TRACKER=8,
+	INTERFACE_MENU_TRAINSKILL=17,
+	INTERFACE_MENU_UNMANNEDVEHICLE=12,
+	INTERFACE_MENU_UPGRADEVEHICLE=18,
+	INTERFACE_MENU_VEHICLE=10,
+	INTERFACE_MENU_WALL=7,
+	INTERFACE_MENU_WATERVEHICLE=11
+} InterfaceMenuType;
+
+typedef enum BlockOrientation {
+	BLOCKORIENTATION_CORNER=2,
+	BLOCKORIENTATION_OBTUSE=3
+} BlockOrientation;
 
 typedef enum PathType {
 	PATH_NONE=0,
@@ -28714,6 +14574,325 @@ typedef enum ActivityType {
 	ACTIVITY__INVALID=4294967295
 } ActivityType;
 
+typedef struct SearchCollision_14 SearchCollision_14, *PSearchCollision_14;
+
+struct SearchCollision_14 { // LiveObject_DoCollisionCallbacks_FUN_00446030
+	struct LiveObject * targetObj;
+	struct Point2F * pointf_4;
+	float float_8;
+	struct LiveObject * result;
+	BOOL bool_10;
+};
+
+typedef struct SearchDynamiteRadius SearchDynamiteRadius, *PSearchDynamiteRadius;
+
+struct SearchDynamiteRadius {
+	struct LiveObject * liveObj;
+	struct Point2F position;
+	float damageRadius;
+	float maxDamage;
+	float wakeRadius;
+};
+
+typedef struct SearchData18_2 SearchData18_2, *PSearchData18_2;
+
+struct SearchData18_2 {
+	undefined4 field_0;
+	float ref_float_4;
+	struct Vector3F * vectorp_8;
+	struct Vector3F * vectorp_c;
+	BOOL field_10;
+	undefined4 field_14;
+};
+
+typedef struct SearchTeleporter_10 SearchTeleporter_10, *PSearchTeleporter_10;
+
+struct SearchTeleporter_10 { // Teleporter_Creat_FUN_0046a7d0
+	enum ObjectType objType;
+	uint modeFlags;
+	uint teleportFlags;
+	struct TeleporterService * teleporter;
+};
+
+typedef struct LevelCollection LevelCollection, *PLevelCollection;
+
+typedef struct LevelIdentifier LevelIdentifier, *PLevelIdentifier;
+
+struct LevelCollection {
+	int count;
+	char * * LevelNames;
+	char * * FullNames;
+	struct LevelIdentifier * * LevelList;
+	BOOL * IsLinked; // True if this level has been loaded from level links (probably makes them require unlock)
+};
+
+struct LevelIdentifier {
+	int index; // Index in LevelCollection
+	struct LevelIdentifier * * LevelLinks;
+	uint NumLinks;
+	undefined4 field_c;
+	undefined4 field_10; // (is locked/unlocked?)
+};
+
+typedef struct MenuItem MenuItem, *PMenuItem;
+
+typedef union MenuItemData_union MenuItemData_union, *PMenuItemData_union;
+
+typedef enum MenuItemType {
+	MENUITEM_CYCLE=0,
+	MENUITEM_MISSIONS=6,
+	MENUITEM_NEXT=5,
+	MENUITEM_REALSLIDER=4,
+	MENUITEM_SLIDER=3,
+	MENUITEM_TEXTINPUT=2,
+	MENUITEM_TRIGGER=1,
+	MENUITEM__COUNT=7,
+	MENUITEM__INVALID=4294967295
+} MenuItemType;
+
+typedef struct MenuItemCycle MenuItemCycle, *PMenuItemCycle;
+
+typedef struct MenuItemTrigger MenuItemTrigger, *PMenuItemTrigger;
+
+typedef struct MenuItemSlider MenuItemSlider, *PMenuItemSlider;
+
+typedef struct MenuItemRealSlider MenuItemRealSlider, *PMenuItemRealSlider;
+
+typedef struct SubMenu SubMenu, *PSubMenu;
+
+typedef void (* MenuItemCycleCallback)(int);
+
+typedef void (* MenuItemTriggerCallback)(void);
+
+typedef void (* MenuItemSliderCallback)(int);
+
+typedef void (* MenuItemRealSliderCallback)(float);
+
+typedef struct MenuOverlay MenuOverlay, *PMenuOverlay;
+
+struct MenuOverlay {
+	char * filename;
+	int overlayType; // (bmp, avi, lws, flh?)
+	undefined4 field_8;
+	struct Point2I position;
+	enum SFXType sfxType;
+	struct MenuOverlay * previous;
+	undefined4 field_1c;
+};
+
+union MenuItemData_union {
+	struct MenuItemCycle * cycle;
+	struct MenuItemTrigger * trigger;
+	struct MenuItemSlider * slider;
+	struct MenuItemRealSlider * realSlider;
+	struct SubMenu * next;
+};
+
+struct MenuItemTrigger {
+	int * value;
+	BOOL end;
+	MenuItemTriggerCallback callback;
+};
+
+struct MenuItemCycle {
+	char * * nameList;
+	uint cycleCount;
+	int nameCount;
+	int * value;
+	int x2;
+	int y2;
+	MenuItemCycleCallback callback;
+};
+
+struct SubMenu {
+	void * ptr_0;
+	void * ptr_4;
+	uint length_8; // (init: strlen(param_1))
+	struct ImageFont * MenuFont; // (init: param_3)
+	struct ImageBMP * MenuImage;
+	struct ImageBMP * MenuImageDark;
+	struct MenuItem * Items;
+	int ItemCount;
+	int int_20; // (init: 15)
+	undefined4 field_24;
+	undefined4 field_28;
+	struct Point2I Position;
+	uint uint_34;
+	undefined field_0x38;
+	undefined field_0x39;
+	undefined field_0x3a;
+	undefined field_0x3b;
+	undefined field_0x3c;
+	undefined field_0x3d;
+	undefined field_0x3e;
+	undefined field_0x3f;
+	struct MenuOverlay * Overlays;
+	BOOL AutoCenter;
+	BOOL DisplayTitle;
+	BOOL isAnchored;
+	struct Point2I AnchoredPosition;
+	int flags_58; // (0x2 = CanScroll)
+	char CfgName[64];
+	enum BOOL3 PlayRandom;
+};
+
+struct MenuItemRealSlider {
+	float * value;
+	float LowLimit;
+	float HighLimit;
+	float Step;
+	int x2;
+	int y2;
+	MenuItemRealSliderCallback callback;
+};
+
+struct MenuItem {
+	char * banner;
+	uint length;
+	struct ImageFont * HiFont;
+	struct ImageFont * LoFont;
+	union MenuItemData_union itemData;
+	enum MenuItemType itemType;
+	int x1;
+	int y1;
+	int LoCenterOff;
+	int HiCenterOff;
+	BOOL isImageItem; // (1 = hasImages?)
+	struct ImageBMP * LoImage;
+	struct ImageBMP * HiImage;
+	enum ToolTipType toolTipType;
+	BOOL NotInTuto; // (string value is unchecked, but "NotInTuto" is only seen usage)
+};
+
+struct MenuItemSlider {
+	int * value;
+	int LowLimit;
+	int HighLimit;
+	int x2;
+	int y2;
+	MenuItemSliderCallback callback;
+	struct ImageBMP * OffBarImage;
+	struct ImageBMP * OnBarImage;
+	struct ImageBMP * LeftCapImage;
+	struct ImageBMP * RightCapImage;
+	struct ImageBMP * LoPlusImage;
+	struct ImageBMP * LoMinusImage;
+	struct ImageBMP * HiPlusImage;
+	struct ImageBMP * HiMinusImage;
+};
+
+typedef struct PanelData PanelData, *PPanelData;
+
+struct PanelData {
+	struct ImageBMP * imageOrFlic;
+	BOOL isFlic;
+	struct Point2F xyOut;
+	struct Point2F xyIn;
+	struct Point2F xyOutIn;
+	undefined4 field_20;
+	undefined4 field_24;
+	undefined4 field_28;
+	uint flags;
+};
+
+typedef struct MenuTextWindow MenuTextWindow, *PMenuTextWindow;
+
+struct MenuTextWindow { // Menu/FrontEnd text structure, see CFG blocks: SaveText, LevelText
+	struct TextWindow * textWindow;
+	struct ImageBMP * PanelImage;
+	struct Rect2F WindowArea;
+	struct Rect2F PanelArea;
+	char LoadText[256];
+	char SaveText[256];
+	char SlotText[256]; // format: %d (save number)
+	char LoadSelText[256]; // format: %d (save number)
+	char SaveSelText[256]; // format: %d (save number)
+	char LevelText[256];
+	char TutorialText[256];
+};
+
+typedef struct MenuItemLevelIdentifier MenuItemLevelIdentifier, *PMenuItemLevelIdentifier;
+
+struct MenuItemLevelIdentifier {
+	uint flags; // [0x1, 0x2, 0x4]
+	char * MenuBMPName;
+	struct ImageBMP * HiImage;
+	struct ImageBMP * LoImage;
+	struct ImageBMP * LockedOverlayImage;
+	int FrontEndX;
+	int FrontEndY;
+	BOOL FrontEndOpen;
+};
+
+typedef struct MenuItemMissions MenuItemMissions, *PMenuItemMissions;
+
+typedef struct Rect2I Rect2I, *PRect2I;
+
+struct Rect2I {
+	int x;
+	int y;
+	int width;
+	int height;
+};
+
+struct MenuItemMissions {
+	struct MenuItemLevelIdentifier * levelsList;
+	int * widths[3];
+	int * heights[3];
+	int levelsCount;
+	char * string1;
+	char * string2;
+	int * value;
+	struct Rect2I rect1;
+	struct Rect2I rect2;
+	undefined4 field_4c;
+	undefined4 field_50;
+	pointer callback;
+	undefined4 field_58;
+};
+
+typedef struct MenuCollection MenuCollection, *PMenuCollection;
+
+struct MenuCollection {
+	struct SubMenu * * menus;
+	uint count;
+};
+
+typedef struct PanelTextWindow PanelTextWindow, *PPanelTextWindow;
+
+struct PanelTextWindow { // A Panel-based wrapper around the TextWindow class
+	struct TextWindow * textWindow;
+	struct Point2F position;
+	struct PanelData * panel;
+};
+
+typedef struct ImageCacheItem ImageCacheItem, *PImageCacheItem;
+
+struct ImageCacheItem { // Cache for image/fonts loaded from menus
+	char * filename;
+	struct ImageBMP * image;
+	struct ImageFont * font;
+	struct ImageCacheItem * next;
+};
+
+typedef struct SearchLevelIdentifier_10 SearchLevelIdentifier_10, *PSearchLevelIdentifier_10;
+
+struct SearchLevelIdentifier_10 {
+	struct LevelIdentifier * result; // output level identifier (not modified on failure)
+	int searchIndex; // (target index to search for)
+	int currentIndex; // (counter index of individual linked levels)
+	int resultIndex; // (equal to searchIndex on success)
+};
+
+typedef struct MenuItemCallbackPair MenuItemCallbackPair, *PMenuItemCallbackPair;
+
+struct MenuItemCallbackPair {
+	void * value;
+	void * callback;
+};
+
+typedef BOOL (* LevelIdentifierCallback)(struct LevelIdentifier *, void *);
+
 typedef enum NERPSFunctionArgs {
 	NERPS_ARGS_0=0,
 	NERPS_ARGS_0_NORETURN=3,
@@ -28733,17 +14912,30 @@ struct NERPSFunctionSignature {
 	enum NERPSFunctionArgs arguments;
 };
 
-typedef struct HuffmanLeaf HuffmanLeaf, *PHuffmanLeaf;
+typedef struct IDirectDrawMediaStream IDirectDrawMediaStream, *PIDirectDrawMediaStream;
 
-struct HuffmanLeaf {
-	uint value_1;
-	ushort count_1;
-	undefined field_0x6;
-	undefined field_0x7;
-	uint value_2;
-	ushort count_2;
-	undefined field_0xe;
-	undefined field_0xf;
+typedef struct IDirectDrawMediaStreamVtbl IDirectDrawMediaStreamVtbl, *PIDirectDrawMediaStreamVtbl;
+
+struct IDirectDrawMediaStreamVtbl {
+	HRESULT (* QueryInterface)(struct IUnknown *, IID *, LPVOID *);
+	ULONG (* AddRef)(struct IUnknown *);
+	ULONG (* Release)(struct IUnknown *);
+	pointer GetMultiMediaStream; // (start of IMediaStream)
+	pointer GetInformation;
+	pointer SetSameFormat;
+	pointer AllocateSample;
+	pointer CreateSharedSample;
+	pointer SendEndOfStream;
+	pointer GetFormat; // (start of IDirectDrawMediaStream)
+	pointer SetFormat;
+	pointer GetDirectDraw;
+	pointer SetDirectDraw;
+	pointer CreateSample;
+	pointer GetTimePerFrame;
+};
+
+struct IDirectDrawMediaStream {
+	struct IDirectDrawMediaStreamVtbl * lpVtbl;
 };
 
 typedef struct IDirect3D3 IDirect3D3, *PIDirect3D3;
@@ -28753,6 +14945,371 @@ struct IDirect3D3 {
 	undefined field_0x1;
 	undefined field_0x2;
 	undefined field_0x3;
+};
+
+typedef struct IAMMultiMediaStream IAMMultiMediaStream, *PIAMMultiMediaStream;
+
+typedef struct IAMMultiMediaStreamVtbl IAMMultiMediaStreamVtbl, *PIAMMultiMediaStreamVtbl;
+
+typedef enum MMStreamType {
+	STREAMTYPE_READ=0,
+	STREAMTYPE_TRANSFORM=2,
+	STREAMTYPE_WRITE=1
+} MMStreamType;
+
+typedef struct IMediaStream IMediaStream, *PIMediaStream;
+
+typedef enum MMStreamState {
+	STREAMSTATE_RUN=1,
+	STREAMSTATE_STOP=0
+} MMStreamState;
+
+typedef struct IGraphBuilder IGraphBuilder, *PIGraphBuilder;
+
+typedef struct IMediaStreamFilter IMediaStreamFilter, *PIMediaStreamFilter;
+
+typedef WCHAR * LPWSTR;
+
+typedef struct IBindCtx IBindCtx, *PIBindCtx;
+
+typedef struct IMoniker IMoniker, *PIMoniker;
+
+typedef struct IMediaStreamVtbl IMediaStreamVtbl, *PIMediaStreamVtbl;
+
+typedef struct IGraphBuilderVtbl IGraphBuilderVtbl, *PIGraphBuilderVtbl;
+
+typedef struct IMediaStreamFilterVtbl IMediaStreamFilterVtbl, *PIMediaStreamFilterVtbl;
+
+typedef struct IPersist IPersist, *PIPersist;
+
+typedef struct IBindCtxVtbl IBindCtxVtbl, *PIBindCtxVtbl;
+
+typedef struct tagBIND_OPTS tagBIND_OPTS, *PtagBIND_OPTS;
+
+typedef struct tagBIND_OPTS BIND_OPTS;
+
+typedef struct IRunningObjectTable IRunningObjectTable, *PIRunningObjectTable;
+
+typedef struct IEnumString IEnumString, *PIEnumString;
+
+typedef struct IMonikerVtbl IMonikerVtbl, *PIMonikerVtbl;
+
+typedef GUID CLSID;
+
+typedef struct IStream IStream, *PIStream;
+
+typedef union _ULARGE_INTEGER _ULARGE_INTEGER, *P_ULARGE_INTEGER;
+
+typedef union _ULARGE_INTEGER ULARGE_INTEGER;
+
+typedef struct IEnumMoniker IEnumMoniker, *PIEnumMoniker;
+
+typedef struct IPersistVtbl IPersistVtbl, *PIPersistVtbl;
+
+typedef struct IRunningObjectTableVtbl IRunningObjectTableVtbl, *PIRunningObjectTableVtbl;
+
+typedef struct IEnumStringVtbl IEnumStringVtbl, *PIEnumStringVtbl;
+
+typedef struct IStreamVtbl IStreamVtbl, *PIStreamVtbl;
+
+typedef union _LARGE_INTEGER _LARGE_INTEGER, *P_LARGE_INTEGER;
+
+typedef union _LARGE_INTEGER LARGE_INTEGER;
+
+typedef struct tagSTATSTG tagSTATSTG, *PtagSTATSTG;
+
+typedef struct tagSTATSTG STATSTG;
+
+typedef struct _struct_22 _struct_22, *P_struct_22;
+
+typedef struct _struct_23 _struct_23, *P_struct_23;
+
+typedef double ULONGLONG;
+
+typedef struct IEnumMonikerVtbl IEnumMonikerVtbl, *PIEnumMonikerVtbl;
+
+typedef struct _struct_19 _struct_19, *P_struct_19;
+
+typedef struct _struct_20 _struct_20, *P_struct_20;
+
+typedef double LONGLONG;
+
+struct IMediaStream {
+	struct IMediaStreamVtbl * lpVtbl;
+};
+
+struct IPersistVtbl {
+	HRESULT (* QueryInterface)(struct IPersist *, IID *, void * *);
+	ULONG (* AddRef)(struct IPersist *);
+	ULONG (* Release)(struct IPersist *);
+	HRESULT (* GetClassID)(struct IPersist *, CLSID *);
+};
+
+struct IStreamVtbl {
+	HRESULT (* QueryInterface)(struct IStream *, IID *, void * *);
+	ULONG (* AddRef)(struct IStream *);
+	ULONG (* Release)(struct IStream *);
+	HRESULT (* Read)(struct IStream *, void *, ULONG, ULONG *);
+	HRESULT (* Write)(struct IStream *, void *, ULONG, ULONG *);
+	HRESULT (* Seek)(struct IStream *, LARGE_INTEGER, DWORD, ULARGE_INTEGER *);
+	HRESULT (* SetSize)(struct IStream *, ULARGE_INTEGER);
+	HRESULT (* CopyTo)(struct IStream *, struct IStream *, ULARGE_INTEGER, ULARGE_INTEGER *, ULARGE_INTEGER *);
+	HRESULT (* Commit)(struct IStream *, DWORD);
+	HRESULT (* Revert)(struct IStream *);
+	HRESULT (* LockRegion)(struct IStream *, ULARGE_INTEGER, ULARGE_INTEGER, DWORD);
+	HRESULT (* UnlockRegion)(struct IStream *, ULARGE_INTEGER, ULARGE_INTEGER, DWORD);
+	HRESULT (* Stat)(struct IStream *, STATSTG *, DWORD);
+	HRESULT (* Clone)(struct IStream *, struct IStream * *);
+};
+
+struct IEnumStringVtbl {
+	HRESULT (* QueryInterface)(struct IEnumString *, IID *, void * *);
+	ULONG (* AddRef)(struct IEnumString *);
+	ULONG (* Release)(struct IEnumString *);
+	HRESULT (* Next)(struct IEnumString *, ULONG, LPOLESTR *, ULONG *);
+	HRESULT (* Skip)(struct IEnumString *, ULONG);
+	HRESULT (* Reset)(struct IEnumString *);
+	HRESULT (* Clone)(struct IEnumString *, struct IEnumString * *);
+};
+
+struct _struct_20 {
+	DWORD LowPart;
+	LONG HighPart;
+};
+
+struct _struct_19 {
+	DWORD LowPart;
+	LONG HighPart;
+};
+
+union _LARGE_INTEGER {
+	struct _struct_19 s;
+	struct _struct_20 u;
+	LONGLONG QuadPart;
+};
+
+struct IGraphBuilderVtbl {
+	HRESULT (* QueryInterface)(struct IUnknown *, IID *, LPVOID *);
+	ULONG (* AddRef)(struct IUnknown *);
+	ULONG (* Release)(struct IUnknown *);
+	pointer AddFilter;
+	pointer RemoveFilter;
+	pointer EnumFilters;
+	pointer FindFilterByName;
+	pointer ConnectDirect;
+	pointer Reconnect;
+	pointer Disconnect;
+	pointer SetDefaultSyncSource;
+	pointer Connect;
+	pointer Render;
+	pointer RenderFile;
+	pointer AddSourceFilter;
+	pointer SetLogFile;
+	pointer Abort;
+	pointer ShouldOperationContinue;
+};
+
+struct IEnumString {
+	struct IEnumStringVtbl * lpVtbl;
+};
+
+struct tagBIND_OPTS {
+	DWORD cbStruct;
+	DWORD grfFlags;
+	DWORD grfMode;
+	DWORD dwTickCountDeadline;
+};
+
+struct IMediaStreamFilter {
+	struct IMediaStreamFilterVtbl * lpVtbl;
+};
+
+struct IAMMultiMediaStream {
+	struct IAMMultiMediaStreamVtbl * lpVtbl;
+};
+
+struct IMediaStreamFilterVtbl { // Subclass of IDirect3DRMArrayVtbl
+	HRESULT (* QueryInterface)(struct IUnknown *, IID *, LPVOID *);
+	ULONG (* AddRef)(struct IUnknown *);
+	ULONG (* Release)(struct IUnknown *);
+	HRESULT (* GetClassID)(struct IPersist *, GUID *); // (start of IPersist)
+	pointer Stop; // (start of IMediaFilter)
+	pointer Pause;
+	pointer Run;
+	pointer GetState;
+	pointer SetSyncSource;
+	pointer GetSyncSource;
+	pointer EnumPins; // (start of IBaseFilter)
+	pointer FindPin;
+	pointer QueryFilterInfo;
+	pointer JoinFilterGraph;
+	pointer QueryVendorInfo;
+	pointer AddMediaStream; // (start of IMediaStreamFilter)
+	pointer GetMediaStream;
+	pointer EnumMediaStreams;
+	pointer SupportSeeking;
+	pointer ReferenceTimeToStreamTime;
+	pointer GetCurrentStreamTime;
+	pointer WaitUntil;
+	pointer Flush;
+	pointer EndOfStream;
+};
+
+struct _struct_23 {
+	DWORD LowPart;
+	DWORD HighPart;
+};
+
+struct IPersist {
+	struct IPersistVtbl * lpVtbl;
+};
+
+struct _struct_22 {
+	DWORD LowPart;
+	DWORD HighPart;
+};
+
+struct IMediaStreamVtbl {
+	HRESULT (* QueryInterface)(struct IUnknown *, IID *, LPVOID *);
+	ULONG (* AddRef)(struct IUnknown *);
+	ULONG (* Release)(struct IUnknown *);
+	pointer GetMultiMediaStream;
+	pointer GetInformation;
+	pointer SetSameFormat;
+	pointer AllocateSample;
+	pointer CreateSharedSample;
+	pointer SendEndOfStream;
+};
+
+struct IAMMultiMediaStreamVtbl {
+	HRESULT (* QueryInterface)(struct IUnknown *, IID *, LPVOID *);
+	ULONG (* AddRef)(struct IUnknown *);
+	ULONG (* Release)(struct IUnknown *);
+	HRESULT (* GetInformation)(struct IAMMultiMediaStream *, DWORD *, enum MMStreamType *);
+	HRESULT (* GetMediaStream)(struct IAMMultiMediaStream *, GUID *, struct IMediaStream * *);
+	HRESULT (* EnumMediaStreams)(struct IAMMultiMediaStream *, int, struct IMediaStream * *);
+	HRESULT (* GetState)(struct IAMMultiMediaStream *, enum MMStreamState *);
+	HRESULT (* SetState)(struct IAMMultiMediaStream *, enum MMStreamState);
+	HRESULT (* GetTime)(struct IAMMultiMediaStream *, longlong *);
+	HRESULT (* GetDuration)(struct IAMMultiMediaStream *, longlong *);
+	HRESULT (* Seek)(struct IAMMultiMediaStream *, longlong);
+	HRESULT (* GetEndOfStreamEventHandle)(struct IAMMultiMediaStream *, HANDLE *);
+	HRESULT (* Initialize)(struct IAMMultiMediaStream *, enum MMStreamType, DWORD, struct IGraphBuilder *);
+	HRESULT (* GetFilterGraph)(struct IAMMultiMediaStream *, struct IGraphBuilder * *);
+	HRESULT (* GetFilter)(struct IAMMultiMediaStream *, struct IMediaStreamFilter * *);
+	HRESULT (* AddMediaStream)(struct IAMMultiMediaStream *, struct IUnknown *, GUID *, DWORD, struct IMediaStream * *);
+	HRESULT (* OpenFile)(struct IAMMultiMediaStream *, LPWSTR, DWORD);
+	HRESULT (* OpenMoniker)(struct IAMMultiMediaStream *, struct IBindCtx *, struct IMoniker *, DWORD);
+	HRESULT (* Render)(struct IAMMultiMediaStream *, DWORD);
+};
+
+struct IStream {
+	struct IStreamVtbl * lpVtbl;
+};
+
+struct IMoniker {
+	struct IMonikerVtbl * lpVtbl;
+};
+
+struct IEnumMonikerVtbl {
+	HRESULT (* QueryInterface)(struct IEnumMoniker *, IID *, void * *);
+	ULONG (* AddRef)(struct IEnumMoniker *);
+	ULONG (* Release)(struct IEnumMoniker *);
+	HRESULT (* Next)(struct IEnumMoniker *, ULONG, struct IMoniker * *, ULONG *);
+	HRESULT (* Skip)(struct IEnumMoniker *, ULONG);
+	HRESULT (* Reset)(struct IEnumMoniker *);
+	HRESULT (* Clone)(struct IEnumMoniker *, struct IEnumMoniker * *);
+};
+
+union _ULARGE_INTEGER {
+	struct _struct_22 s;
+	struct _struct_23 u;
+	ULONGLONG QuadPart;
+};
+
+struct IBindCtx {
+	struct IBindCtxVtbl * lpVtbl;
+};
+
+struct IBindCtxVtbl {
+	HRESULT (* QueryInterface)(struct IBindCtx *, IID *, void * *);
+	ULONG (* AddRef)(struct IBindCtx *);
+	ULONG (* Release)(struct IBindCtx *);
+	HRESULT (* RegisterObjectBound)(struct IBindCtx *, struct IUnknown *);
+	HRESULT (* RevokeObjectBound)(struct IBindCtx *, struct IUnknown *);
+	HRESULT (* ReleaseBoundObjects)(struct IBindCtx *);
+	HRESULT (* SetBindOptions)(struct IBindCtx *, BIND_OPTS *);
+	HRESULT (* GetBindOptions)(struct IBindCtx *, BIND_OPTS *);
+	HRESULT (* GetRunningObjectTable)(struct IBindCtx *, struct IRunningObjectTable * *);
+	HRESULT (* RegisterObjectParam)(struct IBindCtx *, LPOLESTR, struct IUnknown *);
+	HRESULT (* GetObjectParam)(struct IBindCtx *, LPOLESTR, struct IUnknown * *);
+	HRESULT (* EnumObjectParam)(struct IBindCtx *, struct IEnumString * *);
+	HRESULT (* RevokeObjectParam)(struct IBindCtx *, LPOLESTR);
+};
+
+struct IRunningObjectTableVtbl {
+	HRESULT (* QueryInterface)(struct IRunningObjectTable *, IID *, void * *);
+	ULONG (* AddRef)(struct IRunningObjectTable *);
+	ULONG (* Release)(struct IRunningObjectTable *);
+	HRESULT (* Register)(struct IRunningObjectTable *, DWORD, struct IUnknown *, struct IMoniker *, DWORD *);
+	HRESULT (* Revoke)(struct IRunningObjectTable *, DWORD);
+	HRESULT (* IsRunning)(struct IRunningObjectTable *, struct IMoniker *);
+	HRESULT (* GetObjectA)(struct IRunningObjectTable *, struct IMoniker *, struct IUnknown * *);
+	HRESULT (* NoteChangeTime)(struct IRunningObjectTable *, DWORD, FILETIME *);
+	HRESULT (* GetTimeOfLastChange)(struct IRunningObjectTable *, struct IMoniker *, FILETIME *);
+	HRESULT (* EnumRunning)(struct IRunningObjectTable *, struct IEnumMoniker * *);
+};
+
+struct tagSTATSTG {
+	LPOLESTR pwcsName;
+	DWORD type;
+	ULARGE_INTEGER cbSize;
+	FILETIME mtime;
+	FILETIME ctime;
+	FILETIME atime;
+	DWORD grfMode;
+	DWORD grfLocksSupported;
+	CLSID clsid;
+	DWORD grfStateBits;
+	DWORD reserved;
+};
+
+struct IGraphBuilder {
+	struct IGraphBuilderVtbl * lpVtbl;
+};
+
+struct IMonikerVtbl {
+	HRESULT (* QueryInterface)(struct IMoniker *, IID *, void * *);
+	ULONG (* AddRef)(struct IMoniker *);
+	ULONG (* Release)(struct IMoniker *);
+	HRESULT (* GetClassID)(struct IMoniker *, CLSID *);
+	HRESULT (* IsDirty)(struct IMoniker *);
+	HRESULT (* Load)(struct IMoniker *, struct IStream *);
+	HRESULT (* Save)(struct IMoniker *, struct IStream *, BOOL);
+	HRESULT (* GetSizeMax)(struct IMoniker *, ULARGE_INTEGER *);
+	HRESULT (* BindToObject)(struct IMoniker *, struct IBindCtx *, struct IMoniker *, IID *, void * *);
+	HRESULT (* BindToStorage)(struct IMoniker *, struct IBindCtx *, struct IMoniker *, IID *, void * *);
+	HRESULT (* Reduce)(struct IMoniker *, struct IBindCtx *, DWORD, struct IMoniker * *, struct IMoniker * *);
+	HRESULT (* ComposeWith)(struct IMoniker *, struct IMoniker *, BOOL, struct IMoniker * *);
+	HRESULT (* Enum)(struct IMoniker *, BOOL, struct IEnumMoniker * *);
+	HRESULT (* IsEqual)(struct IMoniker *, struct IMoniker *);
+	HRESULT (* Hash)(struct IMoniker *, DWORD *);
+	HRESULT (* IsRunning)(struct IMoniker *, struct IBindCtx *, struct IMoniker *, struct IMoniker *);
+	HRESULT (* GetTimeOfLastChange)(struct IMoniker *, struct IBindCtx *, struct IMoniker *, FILETIME *);
+	HRESULT (* Inverse)(struct IMoniker *, struct IMoniker * *);
+	HRESULT (* CommonPrefixWith)(struct IMoniker *, struct IMoniker *, struct IMoniker * *);
+	HRESULT (* RelativePathTo)(struct IMoniker *, struct IMoniker *, struct IMoniker * *);
+	HRESULT (* GetDisplayName)(struct IMoniker *, struct IBindCtx *, struct IMoniker *, LPOLESTR *);
+	HRESULT (* ParseDisplayName)(struct IMoniker *, struct IBindCtx *, struct IMoniker *, LPOLESTR, ULONG *, struct IMoniker * *);
+	HRESULT (* IsSystemMoniker)(struct IMoniker *, DWORD *);
+};
+
+struct IRunningObjectTable {
+	struct IRunningObjectTableVtbl * lpVtbl;
+};
+
+struct IEnumMoniker {
+	struct IEnumMonikerVtbl * lpVtbl;
 };
 
 typedef struct IFilterGraph IFilterGraph, *PIFilterGraph;
@@ -28775,6 +15332,57 @@ struct IFilterGraphVtbl {
 
 struct IFilterGraph {
 	struct IFilterGraphVtbl * lpVtbl;
+};
+
+typedef struct IDirectDrawSurface3 IDirectDrawSurface3, *PIDirectDrawSurface3;
+
+typedef struct IDirectDrawSurface3Vtbl IDirectDrawSurface3Vtbl, *PIDirectDrawSurface3Vtbl;
+
+struct IDirectDrawSurface3 {
+	struct IDirectDrawSurface3Vtbl * lpVtbl;
+};
+
+struct IDirectDrawSurface3Vtbl {
+	HRESULT (* QueryInterface)(struct IUnknown *, IID *, LPVOID *);
+	ULONG (* AddRef)(struct IUnknown *);
+	ULONG (* Release)(struct IUnknown *);
+	pointer AddAttachedSurface; // (start of IDirectDrawSurface)
+	pointer AddOverlayDirtyRect;
+	pointer Blt;
+	pointer BltBatch;
+	pointer BltFast;
+	pointer DeleteAttachedSurface;
+	pointer EnumAttachedSurfaces;
+	pointer EnumOverlayZOrders;
+	pointer Flip;
+	pointer GetAttachedSurface;
+	pointer GetBltStatus;
+	pointer GetCaps;
+	pointer GetClipper;
+	pointer GetColorKey;
+	pointer GetDC;
+	pointer GetFlipStatus;
+	pointer GetOverlayPosition;
+	pointer GetPalette;
+	pointer GetPixelFormat;
+	pointer GetSurfaceDesc;
+	pointer Initialize;
+	pointer IsLost;
+	pointer Lock;
+	pointer ReleaseDC;
+	pointer Restore;
+	pointer SetClipper;
+	pointer SetColorKey;
+	pointer SetOverlayPosition;
+	pointer SetPalette;
+	pointer Unlock;
+	pointer UpdateOverlay;
+	pointer UpdateOverlayDisplay;
+	pointer UpdateOverlayZOrder;
+	pointer GetDDInterface; // (start of IDirectDrawSurface2)
+	pointer PageLock;
+	pointer PageUnlock;
+	pointer SetSurfaceDesc; // (start of IDirectDrawSurface3)
 };
 
 typedef struct IDirect3DTexture IDirect3DTexture, *PIDirect3DTexture;
@@ -28823,6 +15431,34 @@ struct IDirect3DRMPicked2Array {
 	struct IDirect3DRMPicked2ArrayVtbl * lpVtbl;
 };
 
+typedef struct IDirect3DRMMaterial IDirect3DRMMaterial, *PIDirect3DRMMaterial;
+
+typedef struct IDirect3DRMMaterialVtbl IDirect3DRMMaterialVtbl, *PIDirect3DRMMaterialVtbl;
+
+struct IDirect3DRMMaterial {
+	struct IDirect3DRMMaterialVtbl * lpVtbl;
+};
+
+struct IDirect3DRMMaterialVtbl {
+	HRESULT (* QueryInterface)(struct IUnknown *, IID *, LPVOID *);
+	ULONG (* AddRef)(struct IUnknown *);
+	ULONG (* Release)(struct IUnknown *);
+	HRESULT (* Clone)(struct IUnknown *, struct IUnknown *, IID *, LPVOID *);
+	HRESULT (* AddDestroyCallback)(struct IUnknown *, void *, LPVOID);
+	HRESULT (* DeleteDestroyCallback)(struct IUnknown *, void *, LPVOID);
+	HRESULT (* SetAppData)(struct IUnknown *, DWORD);
+	DWORD (* GetAppData)(struct IUnknown *);
+	HRESULT (* SetName)(struct IUnknown *, LPCSTR);
+	HRESULT (* GetName)(struct IUnknown *, LPDWORD, LPSTR);
+	HRESULT (* GetClassName)(struct IUnknown *, LPDWORD, LPSTR);
+	HRESULT (* SetPower)(struct IDirect3DRMMaterial *, float);
+	HRESULT (* SetSpecular)(struct IDirect3DRMMaterial *, float, float, float);
+	HRESULT (* SetEmissive)(struct IDirect3DRMMaterial *, float, float, float);
+	float (* GetPower)(struct IDirect3DRMMaterial *);
+	HRESULT (* GetSpecular)(struct IDirect3DRMMaterial *, float *, float *, float *);
+	HRESULT (* GetEmissive)(struct IDirect3DRMMaterial *, float *, float *, float *);
+};
+
 typedef struct IDirectDraw IDirectDraw, *PIDirectDraw;
 
 typedef struct IDirectDrawVtbl IDirectDrawVtbl, *PIDirectDrawVtbl;
@@ -28855,6 +15491,35 @@ struct IDirectDrawVtbl {
 
 struct IDirectDraw {
 	struct IDirectDrawVtbl * lpVtbl;
+};
+
+typedef struct IGetFrame IGetFrame, *PIGetFrame;
+
+typedef struct IGetFrameVtbl IGetFrameVtbl, *PIGetFrameVtbl;
+
+typedef struct HDC__ HDC__, *PHDC__;
+
+typedef struct HDC__ * HDC;
+
+struct IGetFrameVtbl {
+	HRESULT (* QueryInterface)(struct IUnknown *, IID *, LPVOID *);
+	ULONG (* AddRef)(struct IUnknown *);
+	ULONG (* Release)(struct IUnknown *);
+	void * (* GetFrame)(struct IGetFrame *, int); // (after this is commented out: GetFrameData)
+	HRESULT (* Begin)(struct IGetFrame *, int, int, int);
+	HRESULT (* End)(struct IGetFrame *);
+	HRESULT (* SetFormat)(struct IGetFrame *, BITMAPINFOHEADER *, void *, int, int, int, int);
+	HRESULT (* DrawFrameStart)(struct IGetFrame *); // (commented out)
+	HRESULT (* DrawFrame)(struct IGetFrame *, int, HDC, int, int, int, int); // (commented out)
+	HRESULT (* DrawFrameEnd)(struct IGetFrame *); // (commented out)
+};
+
+struct IGetFrame {
+	struct IGetFrameVtbl * lpVtbl;
+};
+
+struct HDC__ {
+	int unused;
 };
 
 typedef struct IDirect3DViewport3 IDirect3DViewport3, *PIDirect3DViewport3;
@@ -28919,6 +15584,90 @@ struct IDirect3DRMVisualArrayVtbl { // Subclass of IDirect3DRMArrayVtbl
 	ULONG (* Release)(struct IUnknown *);
 	DWORD (* GetSize)(struct IDirect3DRMVisualArray *);
 	HRESULT (* GetElement)(struct IDirect3DRMVisualArray *, DWORD, struct IDirect3DRMVisual * *);
+};
+
+typedef struct IAVIStream IAVIStream, *PIAVIStream;
+
+typedef struct IAVIStreamVtbl IAVIStreamVtbl, *PIAVIStreamVtbl;
+
+typedef struct AVISTREAMINFOA AVISTREAMINFOA, *PAVISTREAMINFOA;
+
+typedef enum AVIStreamInfoFlags { // Flags for dwFlags in AVISTREAMINFO_ struct
+	AVIIF_COMPUSE=268369920,
+	AVIIF_FIRSTPART=32,
+	AVIIF_KEYFRAME=16,
+	AVIIF_LASTPART=64,
+	AVIIF_LIST=1,
+	AVIIF_MIDPART=96,
+	AVIIF_NOTIME=256
+} AVIStreamInfoFlags;
+
+typedef enum AVIStreamInfoCaps { // Flags for unknown field in AVISTREAMINFO_ struct
+	AVISTREAMINFO_DISABLED=1,
+	AVISTREAMINFO_FORMATCHANGES=65536
+} AVIStreamInfoCaps;
+
+struct AVISTREAMINFOA {
+	DWORD fccType;
+	DWORD fccHandler;
+	enum AVIStreamInfoFlags dwFlags; // Contains AVITF_* flags
+	enum AVIStreamInfoCaps dwCaps;
+	WORD wPriority;
+	WORD wLanguage;
+	DWORD dwScale;
+	DWORD dwRate; // dwRate / dwScale == samples/second
+	DWORD dwStart;
+	DWORD dwLength; // In units above...
+	DWORD dwInitialFrames;
+	DWORD dwSuggestedBufferSize;
+	DWORD dwQuality;
+	DWORD dwSampleSize;
+	RECT rcFrame;
+	DWORD dwEditCount;
+	DWORD dwFormatChangeCount;
+	char szName[64];
+};
+
+struct IAVIStreamVtbl {
+	HRESULT (* QueryInterface)(struct IUnknown *, IID *, LPVOID *);
+	ULONG (* AddRef)(struct IUnknown *);
+	ULONG (* Release)(struct IUnknown *);
+	HRESULT (* Create)(struct IAVIStream *, LPARAM, LPARAM);
+	HRESULT (* Info)(struct IAVIStream *, struct AVISTREAMINFOA *, int);
+	int (* FindSample)(struct IAVIStream *, int, int);
+	HRESULT (* ReadFormat)(struct IAVIStream *, int, void *, int *);
+	HRESULT (* SetFormat)(struct IAVIStream *, int, void *, int);
+	HRESULT (* Read)(struct IAVIStream *, int, int, void *, int, int *, int *);
+	HRESULT (* Write)(struct IAVIStream *, int, int, void *, int, DWORD, int *, int *);
+	HRESULT (* Delete)(struct IAVIStream *, int, int);
+	HRESULT (* ReadData)(struct IAVIStream *, DWORD, void *, int *);
+	HRESULT (* WriteData)(struct IAVIStream *, DWORD, void *, int);
+	HRESULT (* SetInfo)(struct IAVIStream *, struct AVISTREAMINFOA *, int);
+};
+
+struct IAVIStream {
+	struct IAVIStreamVtbl * lpVtbl;
+};
+
+typedef struct IDirectDrawStreamSample IDirectDrawStreamSample, *PIDirectDrawStreamSample;
+
+typedef struct IDirectDrawStreamSampleVtbl IDirectDrawStreamSampleVtbl, *PIDirectDrawStreamSampleVtbl;
+
+struct IDirectDrawStreamSample {
+	struct IDirectDrawStreamSampleVtbl * lpVtbl;
+};
+
+struct IDirectDrawStreamSampleVtbl {
+	HRESULT (* QueryInterface)(struct IUnknown *, IID *, LPVOID *);
+	ULONG (* AddRef)(struct IUnknown *);
+	ULONG (* Release)(struct IUnknown *);
+	pointer GetMediaStream; // (start of IStreamSample)
+	pointer GetSampleTimes;
+	pointer SetSampleTimes;
+	pointer Update;
+	pointer CompletionStatus;
+	pointer GetSurface; // (start of IDirectDrawStreamSample)
+	pointer SetRect;
 };
 
 typedef struct IDirect3DRMViewport IDirect3DRMViewport, *PIDirect3DRMViewport;
@@ -29083,6 +15832,41 @@ struct IDirect3DRMFrame2Vtbl { // Extension of IDirect3DRMFrameVtbl
 	pointer SetQuaternion;
 	pointer RayPick;
 	pointer Save; // (last of IDirect3DRMFrame2)
+};
+
+typedef struct IDirectDraw2 IDirectDraw2, *PIDirectDraw2;
+
+typedef struct IDirectDraw2Vtbl IDirectDraw2Vtbl, *PIDirectDraw2Vtbl;
+
+struct IDirectDraw2Vtbl {
+	HRESULT (* QueryInterface)(struct IUnknown *, IID *, LPVOID *);
+	ULONG (* AddRef)(struct IUnknown *);
+	ULONG (* Release)(struct IUnknown *);
+	pointer Compact; // (start of IDirectDraw)
+	pointer CreateClipper;
+	HRESULT (* CreatePalette)(struct IDirectDraw4 *, DWORD, struct D3DRMPaletteEntry *, struct IDirectDrawPalette * *, struct IUnknown *);
+	HRESULT (* CreateSurface)(struct IDirectDraw4 *, struct DDSURFACEDESC2 *, struct IDirectDrawSurface4 * *, struct IUnknown *);
+	pointer DuplicateSurface;
+	HRESULT (* EnumDisplayModes)(struct IDirectDraw4 *, DWORD, struct DDSURFACEDESC2 *, LPVOID, HRESULT (* )(struct DDSURFACEDESC2 *, LPVOID));
+	HRESULT (* EnumSurfaces)(struct IDirectDraw4 *, DWORD, struct DDSURFACEDESC2 *, LPVOID, HRESULT (* )(struct IDirectDrawSurface4 *, struct DDSURFACEDESC2 *, LPVOID));
+	pointer FlipToGDISurface;
+	pointer GetCaps;
+	pointer GetDisplayMode;
+	pointer GetFourCCCodes;
+	pointer GetGDISurface;
+	pointer GetMonitorFrequency;
+	pointer GetScanLine;
+	pointer GetVerticalBlankStatus;
+	pointer Initialize;
+	pointer RestoreDisplayMode;
+	HRESULT (* SetCooperativeLevel)(struct IDirectDraw4 *, HWND, DWORD);
+	HRESULT (* SetDisplayMode)(struct IDirectDraw4 *, DWORD, DWORD, DWORD, DWORD, DWORD);
+	pointer WaitForVerticalBlank;
+	pointer GetAvailableVidMem; // (start of IDirectDraw2)
+};
+
+struct IDirectDraw2 {
+	struct IDirectDraw2Vtbl * lpVtbl;
 };
 
 typedef struct IAVIFile IAVIFile, *PIAVIFile;
@@ -30008,6 +16792,561 @@ typedef enum D3DTextureStageStateType {
 	D3DTSS_TEXTURETRANSFORMFLAGS=24
 } D3DTextureStageStateType;
 
+typedef enum RegistryType { // Supported registry information types
+	REGISTRY_DWORD_VALUE=1,
+	REGISTRY_STRING_VALUE=0
+} RegistryType;
+
+typedef struct LTRBRect2F LTRBRect2F, *PLTRBRect2F;
+
+struct LTRBRect2F {
+	float left;
+	float top;
+	float right;
+	float bottom;
+};
+
+typedef struct LTRBRect2I LTRBRect2I, *PLTRBRect2I;
+
+struct LTRBRect2I {
+	int left;
+	int top;
+	int right;
+	int bottom;
+};
+
+typedef struct P1P2Rect2I P1P2Rect2I, *PP1P2Rect2I;
+
+struct P1P2Rect2I {
+	int x1;
+	int y1;
+	int x2;
+	int y2;
+};
+
+typedef struct P1P2Rect2F P1P2Rect2F, *PP1P2Rect2F;
+
+struct P1P2Rect2F {
+	float x1;
+	float y1;
+	float x2;
+	float y2;
+};
+
+typedef struct Draw_Rect Draw_Rect, *PDraw_Rect;
+
+struct Draw_Rect {
+	struct Rect2F rect;
+	float r;
+	float g;
+	float b;
+};
+
+typedef enum DrawEffect {
+	DRAWEFFECT_HALFTRANS=2,
+	DRAWEFFECT_NONE=0,
+	DRAWEFFECT_XOR=1
+} DrawEffect;
+
+typedef struct Main_StateChangeData Mesh_TextureStateChangeData;
+
+typedef enum MaterialType {
+	MATERIAL_ALPHA=4,
+	MATERIAL_AMBIENT=1,
+	MATERIAL_DIFFUSE=0,
+	MATERIAL_EMISSIVE=3,
+	MATERIAL_POWER=5,
+	MATERIAL_SPECULAR=2
+} MaterialType;
+
+typedef enum MeshType {
+	MESH_TYPE_LIGHTWAVEOBJECT=2,
+	MESH_TYPE_NORM=0,
+	MESH_TYPE_POSTEFFECT=1
+} MeshType;
+
+typedef struct Sound3D_SoundFrameRecord Sound3D_SoundFrameRecord, *PSound3D_SoundFrameRecord;
+
+struct Sound3D_SoundFrameRecord {
+	struct IDirectSound3DBuffer * sound3DBuff;
+	struct Vector3F pos;
+	struct Sound3D_SoundFrameRecord * next;
+};
+
+typedef enum Sound3DPlayMode {
+	SOUND3D_PLAY_NORMAL=2,
+	SOUND3D_PLAY_ONFRAME=0,
+	SOUND3D_PLAY_ONPOS=1
+} Sound3DPlayMode;
+
+typedef enum SoundMode {
+	SOUND_LOOP=1,
+	SOUND_MULTI=2,
+	SOUND_ONCE=0
+} SoundMode;
+
+typedef struct FLICHEADERSTRUCT FLICHEADERSTRUCT, *PFLICHEADERSTRUCT;
+
+struct FLICHEADERSTRUCT {
+	int size; // Size of FLIC including this header
+	ushort magic; // File type [0x1234, 0x9119, 0xaf11, 0xaf12, 0xaf43]
+	ushort frames; // Number of frames in first segment
+	ushort width; // FLIC width in pixels
+	ushort height; // FLIC height in pixels
+	ushort depth; // Bits per pixel (usually 8)
+	ushort flags; // Set to zero or to three
+	ushort speed; // Delay between frames
+	ushort padding1;
+	int next;
+	int frit;
+	char expand[82];
+	ushort padding2;
+	int NewPack;
+	int SoundID;
+	int SoundRate;
+	char SoundChannels;
+	char SoundBPS;
+	ushort padding3;
+	int SoundChunkSize;
+	short SoundNumPreRead;
+	ushort padding4;
+};
+
+typedef struct ImageFlic ImageFlic, *PImageFlic;
+
+typedef enum FlicUserFlags {
+	FLICCATCHUPON=4,
+	FLICDISK=0,
+	FLICLOOPINGON=2,
+	FLICMEMORY=1,
+	FLICSOUNDOFF=8
+} FlicUserFlags;
+
+typedef enum FlicDisplayMode {
+	FLICMODE_BYTEPERPIXEL=0,
+	FLICMODE_HICOLOR=4,
+	FLICMODE_MODEX=1,
+	FLICMODE_PLANAR=2,
+	FLICMODE_TRUECOLOR=3
+} FlicDisplayMode;
+
+struct ImageFlic { // (official: FLICSTRUCT)
+	enum FlicUserFlags userflags;
+	int fsXc; // (init: 0)
+	int fsYc; // (init: 0)
+	int fsXsize;
+	int fsYsize;
+	byte * rambufferhandle;
+	byte * destportalhandle;
+	char filename[256];
+	struct ColourRGBPacked fsPalette256[256];
+	ushort fsPalette64k[256];
+	int framerate; // (init: 0x190000)
+	int lastticks;
+	int currentframe; // (init: 0)
+	int overallframe; // (init: 0)
+	int mode;
+	int ringframe;
+	int pointerposition; // (init: 0 if flags1, else 0x80)
+	uint fsPitch;
+	struct IDirectDrawSurface4 * fsSurface;
+	struct FLICHEADERSTRUCT fsHeader;
+	struct File * filehandle;
+	void * fsSPtr;
+	void * fsSource;
+	enum FlicDisplayMode fsDisplayMode;
+	int fsBitPlanes;
+	int fsLoadBufferSize;
+	void * fsLoadBuffer;
+	BOOL is15bit; // true if green mask == 0x3e0
+};
+
+typedef enum Image_TextureMode {
+	IMAGE_TEXTUREMODE_ADDITIVE=2,
+	IMAGE_TEXTUREMODE_COUNT=7,
+	IMAGE_TEXTUREMODE_FIXED_ADDITIVE=5,
+	IMAGE_TEXTUREMODE_FIXED_SUBTRACTIVE=4,
+	IMAGE_TEXTUREMODE_FIXED_TRANSPARENT=6,
+	IMAGE_TEXTUREMODE_NORMAL=0,
+	IMAGE_TEXTUREMODE_SUBTRACTIVE=1,
+	IMAGE_TEXTUREMODE_TRANSPARENT=3
+} Image_TextureMode;
+
+typedef enum FlicError {
+	FLICERROR=4294967295,
+	FLICFILEERROR=3005,
+	FLICFILENOTFOUND=3004,
+	FLICFINISHED=1,
+	FLICFRAMEDOESNOTEXIST=3007,
+	FLICINVALIDFILE=3003,
+	FLICINVALIDHANDLE=3000,
+	FLICNOERROR=0,
+	FLICNOMOREFRAMES=3009,
+	FLICNOMOREHANDLES=3001,
+	FLICNOTENOUGHMEMORY=3002,
+	FLICOFFPORTAL=3006,
+	FLICREPLAYNOTSUPPORTED=3008,
+	FLICSOUNDHEADERERROR=3010
+} FlicError;
+
+typedef struct Container_AppData Container_AppData, *PContainer_AppData;
+
+typedef struct AnimClone AnimClone, *PAnimClone;
+
+typedef struct Lws_Info Lws_Info, *PLws_Info;
+
+typedef struct Lws_SoundTrigger Lws_SoundTrigger, *PLws_SoundTrigger;
+
+typedef struct Lws_Node Lws_Node, *PLws_Node;
+
+typedef struct Lws_KeyInfo Lws_KeyInfo, *PLws_KeyInfo;
+
+struct Lws_KeyInfo {
+	struct Vector3F position;
+	struct Vector3F hpb;
+	struct Vector3F scale;
+	ushort frame;
+	ushort padding1;
+};
+
+struct Lws_Node {
+	char * name;
+	ushort reference;
+	ushort frameIndex;
+	byte triggerIndex;
+	byte padding1[3];
+	struct Vector3F pivotVector;
+	struct Lws_KeyInfo * keyList;
+	float * dissolveLevel;
+	ushort * dissolveFrame;
+	ushort keyCount;
+	ushort dissolveCount;
+	byte flags;
+	byte padding2[3];
+	struct Lws_Node * childList;
+	struct Lws_Node * next;
+};
+
+struct Lws_SoundTrigger {
+	uint sfxID;
+	ushort frameStartList[25];
+	ushort frameEndList[25];
+	uint loopUID[25];
+	ushort count;
+	ushort padding1;
+};
+
+struct Container_AppData {
+	struct Container * ownerContainer;
+	char * animSetFileName; // For the dodgy Animation Set clone stuff...
+	char * frameName; // For freeing the allocation for SetName...
+	uint frameCount;
+	float currTime;
+	float transCo; // Standard translation during amimset loop.
+	char * activitySample; // Sample to play when activity is called...
+	struct AnimClone * animClone;
+	uint trigger;
+	struct Sound3D_SoundFrameRecord * soundList; // For 'Sound3D'
+};
+
+struct AnimClone {
+	struct AnimClone * clonedFrom;
+	struct Lws_Info * scene; // LWS struct
+	struct IDirect3DRMAnimationSet2 * animSet; // (not LWS)
+	BOOL lws;
+	struct IDirect3DRMFrame3 * root; // (not LWS)
+	struct IDirect3DRMFrame3 * * partArray; // (not LWS) table of COM objects, length is count_18
+	uint partCount; // (not LWS)
+	uint frameCount;
+};
+
+struct Lws_Info {
+	ushort firstFrame;
+	ushort lastFrame;
+	float fps;
+	char * filePath;
+	float lastTime;
+	float time;
+	struct IDirect3DRMFrame3 * frameList;
+	struct Lws_SoundTrigger * triggerList;
+	struct Lws_Node * masterNode;
+	struct Lws_Node * nodeList;
+	ushort nodeCount;
+	ushort nodeListSize;
+	ushort triggerCount;
+	ushort padding1;
+	struct Lws_Info * clonedFrom;
+	uint referenceCount;
+	byte flags;
+	byte padding2[3];
+};
+
+typedef struct Container_SearchData Container_SearchData, *PContainer_SearchData;
+
+typedef enum ContainerSearchMode {
+	CONTAINER_SEARCHMODE_FIRSTMATCH=0,
+	CONTAINER_SEARCHMODE_MATCHCOUNT=1,
+	CONTAINER_SEARCHMODE_NTHMATCH=2
+} ContainerSearchMode;
+
+struct Container_SearchData {
+	char * string;
+	uint stringLen;
+	BOOL caseSensitive;
+	struct IDirect3DRMFrame3 * resultFrame;
+	uint count;
+	enum ContainerSearchMode mode;
+	uint matchNumber;
+};
+
+typedef struct Container_TextureData Container_TextureData, *PContainer_TextureData;
+
+struct Container_TextureData {
+	char * xFileName;
+	uint flags;
+};
+
+typedef enum ContainerMeshType {
+	CONTAINER_MESHTYPE_ADDITIVE=4,
+	CONTAINER_MESHTYPE_IMMEDIATE=2,
+	CONTAINER_MESHTYPE_NORMAL=0,
+	CONTAINER_MESHTYPE_SEPARATEMESHES=1,
+	CONTAINER_MESHTYPE_SUBTRACTIVE=5,
+	CONTAINER_MESHTYPE_TRANSPARENT=3
+} ContainerMeshType;
+
+typedef BOOL (* ContainerWalkTreeCallback)(struct IDirect3DRMFrame3 *, void *);
+
+typedef struct VideoPlayer VideoPlayer, *PVideoPlayer;
+
+struct VideoPlayer {
+	struct IAMMultiMediaStream * amMediaStream;
+	HRESULT errorCode;
+	struct IMediaStream * mediaStream;
+	struct IDirectDrawMediaStream * ddMediaStream;
+	struct IDirectDrawSurface * ddSampleSurface;
+	struct IDirectDrawSurface3 * ddDrawSurface;
+	struct IDirectDrawStreamSample * ddStreamSample;
+	struct IDirectDrawSurface3 * ddRenderSurface;
+	RECT rect;
+	char * filename;
+	struct IDirectDraw2 * ddraw2;
+};
+
+typedef struct G98CSurface G98CSurface, *PG98CSurface;
+
+typedef struct G98CSurfaceVtbl G98CSurfaceVtbl, *PG98CSurfaceVtbl;
+
+struct G98CSurfaceVtbl {
+	G98CSurface * (* deletor)(struct G98CSurface *, byte);
+	int (* Width)(struct G98CSurface *);
+	int (* Height)(struct G98CSurface *);
+};
+
+struct G98CSurface {
+	struct G98CSurfaceVtbl * vftable;
+	struct IDirectDrawClipper * m_clipper; // Clipper (init: 0, unused)
+	bool m_surfaceLocked; // Is the surface currently locked
+	byte padding1[3];
+	int m_bpp; // Bits per pixel of the surface.
+	struct IDirectDrawPalette * m_palette; // The Direct Draw palette
+	bool m_colourKeyed; // Set to true if the surface has a transparent colour key.
+	bool m_squashToEdge; // Squah the image up at the edge of the screen
+	bool m_15bit; // The 16 bit mode is really fifteen bit
+	bool m_surfaceInited; // Is the surface initialised
+	struct IDirectDrawSurface4 * m_surf; // Direct Draw surface.
+	struct DDSURFACEDESC2 m_desc; // Description of the surface
+};
+
+typedef struct G98CAnimation G98CAnimation, *PG98CAnimation;
+
+typedef struct G98CAnimation Animation_t;
+
+typedef struct G98CAnimationVtbl G98CAnimationVtbl, *PG98CAnimationVtbl;
+
+struct G98CAnimationVtbl {
+	G98CAnimation * (* deletor)(struct G98CAnimation *, byte);
+};
+
+struct G98CAnimation {
+	struct G98CAnimationVtbl * vftable;
+	struct IAVIStream * m_aviStream;
+	struct IGetFrame * m_decompressFn;
+	struct AVISTREAMINFOA m_aviStreamInfo;
+	bool m_colourKeySet; // (init: 0)
+	bool m_init; // (init: 0, 1 on open / has renderer)
+	ushort padding1;
+	RECT m_movieRect; // (copied from streamInfo.rcFrame)
+	float m_startTime; // (init: timeGetTime() * 0.001)
+	float m_currTime; // (milliseconds, just like startTime)
+	float m_aviTimeScale;
+	uint m_currFrame; // (init: 0)
+	uint m_length; // (unused)
+	struct G98CSurface * m_movieSurf;
+};
+
+typedef struct VideoPlayer VideoPlayer_t;
+
+typedef struct LWSURFACE LWSURFACE, *PLWSURFACE;
+
+typedef struct LWRGB LWRGB, *PLWRGB;
+
+typedef enum LWTEXFLAGS {
+	TFM_ANTIALIASING=64,
+	TFM_AXIS_X=1,
+	TFM_AXIS_Y=2,
+	TFM_AXIS_Z=4,
+	TFM_NEGATIVE_IMAGE=16,
+	TFM_PIXEL_BLENDING=32,
+	TFM_SEQUENCE=128,
+	TFM_WORLD_COORD=8
+} LWTEXFLAGS;
+
+typedef enum LWSRFFLAGS {
+	SFM_ADDITIVE=512,
+	SFM_COLORFILTER=16,
+	SFM_COLORHIGHLIGHTS=8,
+	SFM_DOUBLESIDED=256,
+	SFM_LUMINOUS=1,
+	SFM_OPAQUEEDGE=32,
+	SFM_OUTLINE=2,
+	SFM_SHARPTERMINATOR=128,
+	SFM_SMOOTHING=4,
+	SFM_TRANSPARENTEDGE=64
+} LWSRFFLAGS;
+
+typedef enum LWTEXMAPTYPE {
+	MT_CYLINDRICAL=1,
+	MT_MAX=3,
+	MT_PLANAR=0,
+	MT_SPHERICAL=2
+} LWTEXMAPTYPE;
+
+typedef struct TEXDATA TEXDATA, *PTEXDATA;
+
+struct TEXDATA { // (an alias for Vector3F)
+	float tdX;
+	float tdY;
+	float tdZ;
+};
+
+struct LWRGB { // (an alias for ColourRGBAPacked)
+	byte colRed;
+	byte colGreen;
+	byte colBlue;
+	byte colAlpha;
+};
+
+struct LWSURFACE {
+	char * srfName;
+	struct LWSURFACE * srfNextSurf;
+	char * srfPath;
+	struct LWRGB srfCol;
+	char srfTCLR[4];
+	enum LWTEXFLAGS srfTexFlags;
+	enum LWSRFFLAGS srfFlags;
+	enum LWTEXMAPTYPE srfTexType;
+	uint srfTexWrap;
+	struct TEXDATA srfTexSize;
+	struct TEXDATA srfTexCentre;
+	float srfLuminous;
+	float srfTransparent;
+	float srfDiffuse;
+	float srfReflect;
+	float srfSpecular;
+	float srfSpecPower;
+};
+
+typedef struct LWSURFLIST LWSURFLIST, *PLWSURFLIST;
+
+struct LWSURFLIST {
+	uint srflCount;
+	char * * srflName;
+};
+
+typedef struct LWSIZE LWSIZE, *PLWSIZE;
+
+struct LWSIZE {
+	uint lwVertCount;
+	uint lwPolyCount;
+	uint lwSurfaceCount;
+};
+
+typedef struct LWPOLY LWPOLY, *PLWPOLY;
+
+struct LWPOLY {
+	uint plyCount;
+	uint plySurface;
+	ushort * plyData;
+};
+
+typedef struct APPOBJ APPOBJ, *PAPPOBJ;
+
+struct APPOBJ { // LightWave lwt APPOBJ
+	char * aoPath;
+	struct LWSIZE aoSize;
+	float * aoVerts;
+	struct LWPOLY * aoPoly;
+	struct LWSURFACE * aoSurface;
+	struct File * aoFileUV;
+};
+
+typedef BOOL (* AnimCloneWalkTreeCallback)(struct IDirect3DRMFrame3 *, void *);
+
+typedef struct SaveData SaveData, *PSaveData;
+
+struct SaveData {
+	undefined4 field_0x0;
+	undefined4 field_0x4;
+	int SliderSoundVolume;
+	int SliderGameSpeed;
+	int SliderBrightness;
+	undefined4 field_0x14;
+	uint count_18;
+	struct SaveStruct_18 saveStruct18_1c;
+	void * table3190_34; // std::malloc(count_18 * 0x3190)
+	undefined4 field_0x38;
+	undefined4 field_0x3c;
+	undefined4 field_0x40;
+	undefined4 field_0x44;
+	undefined4 field_0x48;
+	undefined4 field_0x4c;
+	undefined4 field_0x50;
+	undefined4 field_0x54;
+	undefined4 field_0x58;
+	undefined4 field_0x5c;
+	undefined4 field_0x60;
+	undefined4 field_0x64;
+	undefined4 field_0x68;
+	undefined4 field_0x6c;
+	undefined4 field_0x70;
+	undefined4 field_0x74;
+	undefined4 field_0x78;
+	undefined4 field_0x7c;
+	undefined4 field_0x80;
+	undefined4 field_0x84;
+	undefined4 field_0x88;
+	undefined4 field_0x8c;
+	undefined4 field_0x90;
+	undefined4 field_0x94;
+	undefined4 field_0x98;
+	undefined4 field_0x9c;
+	undefined4 field_0xa0;
+	undefined4 field_0xa4;
+	undefined4 field_0xa8;
+	undefined4 field_0xac;
+	undefined4 field_0xb0;
+	undefined4 field_0xb4;
+};
+
+typedef struct SaveObjectRecall SaveObjectRecall, *PSaveObjectRecall;
+
+struct SaveObjectRecall { // Object recall structure (for .osf file)
+	enum LiveFlags5 Flags5;
+	uint Level;
+	char CustomName[12];
+};
+
 typedef char * va_list;
 
 typedef struct astruct astruct, *Pastruct;
@@ -30456,6 +17795,15 @@ struct _RGNDATA {
 	RGNDATAHEADER rdh;
 	char Buffer[1];
 };
+
+typedef struct tagBITMAPINFO tagBITMAPINFO, *PtagBITMAPINFO;
+
+struct tagBITMAPINFO {
+	BITMAPINFOHEADER bmiHeader;
+	RGBQUAD bmiColors[1];
+};
+
+typedef struct tagBITMAPINFO BITMAPINFO;
 
 typedef struct _RGNDATA * LPRGNDATA;
 
