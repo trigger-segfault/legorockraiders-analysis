@@ -1,55 +1,23 @@
-// Common.h : Declares common utility (and personal helper) functions used by LegoRR / CLGen.
-//
-
 #pragma once
 
-#include "../framework.h"
-//#include "Model/BasicEnums.h"
-//#include "Model/BasicTypes.h"
-#include "Model/Model.h"
-//#include "../resource.h"
+#include "../../framework.h"
+#include "GhidraTypes.h"
+#include "EnumTypes.h"
+#include "BasicTypes.h"
 
-#define makeFunc(addr, ret, name, ...) static ret (__cdecl* name )( __VA_ARGS__ ) = (( ret (__cdecl*)( __VA_ARGS__ )) 0x ##addr )
 
-#define makeGlob(addr, type, name) static type name = (( type ) 0x ##addr )
-
-#define defineGlob(addr, type) (( type *) 0x ## addr)
-
-#define defineGlobPtr(addr, type) *(( type *) 0x ## addr)
-
+#pragma pack(push, 1)
 
 namespace lego {
+#pragma region Predeclarations
 
-#pragma region Defines
-
-	// When checking this memory address with OllyDbg, the value was 00000000h, meaning this **may** be a reference to an empty string!
-	// Ghidra's identifier for this location has been changed to: ""/*EMPTYSTR*/
-	//   allowing to inline the string value, while also commenting its usage everywhere.
-	// Original name assigned by Ghidra: "lpWindowName_ 004b9a14"  (space kept to prevent from replace-all)
-	// 
-	// Displayed as: ""/*EMPTYSTR*/, Runtime value: {'\0','\0','\0','\0'}
-	// <LegoRR.exe @004b9a14>  XREF[292]:
-#define c_EMPTYSTR  ""/*EMPTYSTR*/
-//static char c_EMPTYSTR[4] = {'\0','\0','\0','\0'};
-
-// Time unit (25 frames per second) as a double-precision floating point
-#define TIME_UNIT   25.0
-// Time unit (25 frames per second) as a single-precision floating point
-#define TIME_UNITF  25.0f
-
-// Size of block (in 3D-space units) as an integer
-#define BLOCK_UNIT  40
-// Size of block (in 3D-space units) as a single-precision floating point
-#define BLOCK_UNITF 40.0f
-
-#define s_RegistryKey "SOFTWARE\\LEGO Media\\Games\\Rock Raiders"
 
 #pragma endregion
 
 
-#pragma region Types
+#pragma region D3D Enum Types
 
-#if 0
+
 #undef D3DCOLOR_MONO
 #undef D3DCOLOR_RGB
 //TD3DColorModel
@@ -62,6 +30,7 @@ enum D3DColorModel : unsigned int
 };
 //TD3DRMColorModel
 typedef D3DColorModel D3DRMColorModel;
+static_assert(sizeof(D3DColorModel) == 0x4, "");
 
 //TD3DRMCombineType
 enum D3DRMCombineType : unsigned int
@@ -70,6 +39,7 @@ enum D3DRMCombineType : unsigned int
     D3DRMCOMBINE_BEFORE  = 1,
     D3DRMCOMBINE_AFTER   = 2,
 };
+static_assert(sizeof(D3DRMCombineType) == 0x4, "");
 
 //TD3DRMFrameConstraint
 enum D3DRMFrameConstraint : unsigned int
@@ -78,6 +48,7 @@ enum D3DRMFrameConstraint : unsigned int
     D3DRMCONSTRAIN_Y = 1, // use only X and Z rotations
     D3DRMCONSTRAIN_X = 2, // use only Y and Z rotations
 };
+static_assert(sizeof(D3DRMFrameConstraint) == 0x4, "");
 
 //TD3DRMLightType
 enum D3DRMLightType : unsigned int
@@ -88,6 +59,7 @@ enum D3DRMLightType : unsigned int
     D3DRMLIGHT_DIRECTIONAL   = 3,
     D3DRMLIGHT_PARALLELPOINT = 4,
 };
+static_assert(sizeof(D3DRMLightType) == 0x4, "");
 
 #undef D3DRMLOAD_FROMFILE
 #undef D3DRMLOAD_FROMRESOURCE
@@ -121,6 +93,7 @@ enum D3DRMLoadOptions : unsigned int
     D3DRMLOAD_ASYNCHRONOUS        = 0x00000400,
 };
 DEFINE_ENUM_FLAG_OPERATORS(D3DRMLoadOptions)
+static_assert(sizeof(D3DRMLoadOptions) == 0x4, "");
 
 #undef D3DRMFOGMETHOD_VERTEX
 #undef D3DRMFOGMETHOD_TABLE
@@ -135,6 +108,7 @@ enum D3DRMSceneFogMethod : unsigned int
 	D3DRMFOGMETHOD_ANY    = 0x00000004,
 };
 DEFINE_ENUM_FLAG_OPERATORS(D3DRMSceneFogMethod)
+static_assert(sizeof(D3DRMSceneFogMethod) == 0x4, "");
 
 //TD3DRMSortMode
 enum D3DRMSortMode : unsigned int
@@ -144,6 +118,7 @@ enum D3DRMSortMode : unsigned int
 	D3DRMSORT_FRONTTOBACK = 2, // sort child frames front-to-back
 	D3DRMSORT_BACKTOFRONT = 3, // sort child frames back-to-front
 };
+static_assert(sizeof(D3DRMSortMode) == 0x4, "");
 
 //TD3DRMUserVisualReason
 enum D3DRMUserVisualReason : unsigned int
@@ -151,6 +126,7 @@ enum D3DRMUserVisualReason : unsigned int
 	D3DRMUSERVISUAL_CANSEE = 0,
 	D3DRMUSERVISUAL_RENDER = 1,
 };
+static_assert(sizeof(D3DRMUserVisualReason) == 0x4, "");
 
 
 //TD3DRMShadeMode
@@ -164,6 +140,7 @@ enum D3DRMShadeMode : unsigned int
 	D3DRMSHADE_MAX     = 0x8,
 };
 DEFINE_ENUM_FLAG_OPERATORS(D3DRMShadeMode)
+static_assert(sizeof(D3DRMShadeMode) == 0x4, "");
 
 //TD3DRMLightMode
 enum D3DRMLightMode : unsigned int
@@ -175,6 +152,7 @@ enum D3DRMLightMode : unsigned int
 	D3DRMLIGHT_MAX  = (0x8 * D3DRMSHADE_MAX) /*0x40*/,
 };
 DEFINE_ENUM_FLAG_OPERATORS(D3DRMLightMode)
+static_assert(sizeof(D3DRMLightMode) == 0x4, "");
 
 //TD3DRMFillMode
 enum D3DRMFillMode : unsigned int
@@ -187,6 +165,7 @@ enum D3DRMFillMode : unsigned int
 	D3DRMFILL_MAX       = (0x8 * D3DRMLIGHT_MAX) /*0x200*/, // (unused)
 };
 DEFINE_ENUM_FLAG_OPERATORS(D3DRMFillMode)
+static_assert(sizeof(D3DRMFillMode) == 0x4, "");
 
 #undef D3DRMRENDER_WIREFRAME
 #undef D3DRMRENDER_UNLITFLAT
@@ -205,6 +184,7 @@ enum D3DRMRenderQuality : unsigned int
 	D3DRMRENDER_PHONG     = (D3DRMSHADE_PHONG   + D3DRMLIGHT_ON  + D3DRMFILL_SOLID)     /*0x8a*/,
 };
 DEFINE_ENUM_FLAG_OPERATORS(D3DRMRenderQuality)
+static_assert(sizeof(D3DRMRenderQuality) == 0x4, "");
 
 #undef D3DRMRENDERMODE_BLENDEDTRANSPARENCY
 #undef D3DRMRENDERMODE_SORTEDTRANSPARENCY
@@ -220,6 +200,7 @@ enum D3DRMRenderMode : unsigned int
 	D3DRMRENDERMODE_VIEWDEPENDENTSPECULAR = 0x16,
 };
 DEFINE_ENUM_FLAG_OPERATORS(D3DRMRenderMode)
+static_assert(sizeof(D3DRMRenderMode) == 0x4, "");
 
 enum D3DRMTextureQuality : unsigned int
 {
@@ -230,6 +211,7 @@ enum D3DRMTextureQuality : unsigned int
 	D3DRMTEXTURE_LINEARMIPNEAREST = 4, // interpolate 4 texels in nearest mipmap
 	D3DRMTEXTURE_LINEARMIPLINEAR  = 5, // interpolate 8 texels from 2 mipmaps
 };
+static_assert(sizeof(D3DRMTextureQuality) == 0x4, "");
 
 #undef D3DRMTEXTURE_FORCERESIDENT
 #undef D3DRMTEXTURE_STATIC
@@ -256,6 +238,7 @@ enum D3DRMTextureFlags : unsigned int
 	D3DRMTEXTURE_INVALIDATEONLY         = 0x00000100, // dirty regions are invalid
 };
 DEFINE_ENUM_FLAG_OPERATORS(D3DRMTextureFlags)
+static_assert(sizeof(D3DRMTextureFlags) == 0x4, "");
 
 #undef D3DRMSHADOW_TRUEALPHA
 // (unnamed)
@@ -266,6 +249,7 @@ enum D3DRMShadowOptions : unsigned int
 	D3DRMSHADOW_TRUEALPHA = 0x00000001, // shadow should render without artifacts when true alpha is on
 };
 DEFINE_ENUM_FLAG_OPERATORS(D3DRMShadowOptions)
+static_assert(sizeof(D3DRMShadowOptions) == 0x4, "");
 
 //TD3DRMPaletteFlags
 enum D3DRMPaletteFlags : unsigned int
@@ -275,6 +259,7 @@ enum D3DRMPaletteFlags : unsigned int
     D3DRMPALETTE_RESERVED = 0x2, // may not be used by renderer
 };
 DEFINE_ENUM_FLAG_OPERATORS(D3DRMPaletteFlags)
+static_assert(sizeof(D3DRMPaletteFlags) == 0x4, "");
 
 //TD3DRMWrapType
 enum D3DRMWrapType : unsigned int
@@ -286,6 +271,7 @@ enum D3DRMWrapType : unsigned int
 	D3DRMWRAP_SHEET    = 4,
 	D3DRMWRAP_BOX      = 5,
 };
+static_assert(sizeof(D3DRMWrapType) == 0x4, "");
 
 #undef D3DRMWIREFRAME_CULL
 #undef D3DRMWIREFRAME_HIDDENLINE
@@ -298,6 +284,7 @@ enum D3DRMWireframeOptions : unsigned int
 	D3DRMWIREFRAME_HIDDENLINE = 0x2, // lines are obscured by closer objects
 };
 DEFINE_ENUM_FLAG_OPERATORS(D3DRMWireframeOptions)
+static_assert(sizeof(D3DRMWireframeOptions) == 0x4, "");
 
 //TD3DRMProjectionType
 enum D3DRMProjectionType : unsigned int
@@ -307,6 +294,7 @@ enum D3DRMProjectionType : unsigned int
 	D3DRMPROJECT_RIGHTHANDPERSPECTIVE  = 2, // Only valid pre-DX6
 	D3DRMPROJECT_RIGHTHANDORTHOGRAPHIC = 3, // Only valid pre-DX6
 };
+static_assert(sizeof(D3DRMProjectionType) == 0x4, "");
 
 #undef D3DRMOPTIONS_LEFTHANDED
 #undef D3DRMOPTIONS_RIGHTHANDED
@@ -319,6 +307,7 @@ enum D3DRMOptions : unsigned int
 	D3DRMOPTIONS_RIGHTHANDED = 0x00000002,
 };
 DEFINE_ENUM_FLAG_OPERATORS(D3DRMOptions)
+static_assert(sizeof(D3DRMOptions) == 0x4, "");
 
 //TD3DRMXOFFormat
 enum D3DRMXOFFormat : unsigned int
@@ -327,6 +316,7 @@ enum D3DRMXOFFormat : unsigned int
     D3DRMXOF_COMPRESSED = 1,
     D3DRMXOF_TEXT       = 2,
 };
+static_assert(sizeof(D3DRMXOFFormat) == 0x4, "");
 
 
 #undef D3DRMXOFSAVE_NORMALS
@@ -350,6 +340,7 @@ enum D3DRMSaveOptions : unsigned int
 	D3DRMXOFSAVE_TEXTURETOPOLOGY    = 0x20,
 };
 DEFINE_ENUM_FLAG_OPERATORS(D3DRMSaveOptions)
+static_assert(sizeof(D3DRMSaveOptions) == 0x4, "");
 
 //TD3DRMColorSource
 enum D3DRMColorSource : unsigned int
@@ -357,6 +348,7 @@ enum D3DRMColorSource : unsigned int
     D3DRMCOLOR_FROMFACE   = 0,
     D3DRMCOLOR_FROMVERTEX = 1,
 };
+static_assert(sizeof(D3DRMColorSource) == 0x4, "");
 
 //TD3DRMMaterialMode
 enum D3DRMMaterialMode : unsigned int
@@ -365,6 +357,7 @@ enum D3DRMMaterialMode : unsigned int
 	D3DRMMATERIAL_FROMPARENT = 1,
 	D3DRMMATERIAL_FROMFRAME  = 2,
 };
+static_assert(sizeof(D3DRMMaterialMode) == 0x4, "");
 
 //TD3DRMFogMode
 enum D3DRMFogMode : unsigned int
@@ -373,6 +366,7 @@ enum D3DRMFogMode : unsigned int
     D3DRMFOG_EXPONENTIAL        = 1, // density * exp(-distance)
     D3DRMFOG_EXPONENTIALSQUARED = 2, // density * exp(-distance*distance)
 };
+static_assert(sizeof(D3DRMFogMode) == 0x4, "");
 
 //TD3DRMZBufferMode
 enum D3DRMZBufferMode : unsigned int
@@ -381,6 +375,7 @@ enum D3DRMZBufferMode : unsigned int
     D3DRMZBUFFER_ENABLE     = 1, // enable zbuffering
     D3DRMZBUFFER_DISABLE    = 2, // disable zbuffering
 };
+static_assert(sizeof(D3DRMZBufferMode) == 0x4, "");
 
 #undef D3DRMMATERIALOVERRIDE_DIFFUSE_ALPHAONLY
 #undef D3DRMMATERIALOVERRIDE_DIFFUSE_RGBONLY
@@ -409,6 +404,7 @@ enum D3DRMMaterialOverrideFlags : unsigned int
 	D3DRMMATERIALOVERRIDE_ALL                   = 0x000000ff,
 };
 DEFINE_ENUM_FLAG_OPERATORS(D3DRMMaterialOverrideFlags)
+static_assert(sizeof(D3DRMMaterialOverrideFlags) == 0x4, "");
 
 #undef D3DRMDEVICE_NOZBUFFER
 // (unnamed)
@@ -419,6 +415,7 @@ enum D3DRMCreateDeviceFromSurfaceFlags : unsigned int
 	D3DRMDEVICE_NOZBUFFER = 0x00000001,
 };
 DEFINE_ENUM_FLAG_OPERATORS(D3DRMCreateDeviceFromSurfaceFlags)
+static_assert(sizeof(D3DRMCreateDeviceFromSurfaceFlags) == 0x4, "");
 
 
 //TD3DRMMapping
@@ -431,7 +428,7 @@ enum D3DRMMapping : unsigned int
 	D3DRMMAP_PERSPCORRECT = 0x4,
 };
 DEFINE_ENUM_FLAG_OPERATORS(D3DRMMapping)
-
+static_assert(sizeof(D3DRMMapping) == 0x4, "");
 
 
 #undef DS3DMODE_NORMAL
@@ -443,132 +440,73 @@ enum DS3DMode : unsigned int
 	DS3DMODE_HEADRELATIVE = 0x1,
 	DS3DMODE_DISABLE = 0x2,
 };
-#endif
+static_assert(sizeof(DS3DMode) == 0x4, "");
 
-	//struct RenderStateItem
-	//{
-	//	/*0,4*/ unsigned int value; // not guaranteed to be uint, sometimes signed int, sometimes BOOL, etc...
-	//	/*4,4*/ BOOL isUsed;
-	//	/*8*/
-	//};
-#if 0
-	struct Point2I
-	{
-		/*0,4*/ int x;
-		/*4,4*/ int y;
-		/*8*/
-	};
-	struct Point2F
-	{
-		/*0,4*/ float x;
-		/*4,4*/ float y;
-		/*8*/
-	};
-	struct Vector3F
-	{
-		/*0,4*/ float x;
-		/*4,4*/ float y;
-		/*8,4*/ float z;
-		/*c*/
-	};
-	struct Vector4F
-	{
-		/*00,4*/ float x;
-		/*04,4*/ float y;
-		/*08,4*/ float z;
-		/*0c,4*/ float w;
-		/*10*/
-	};
-	//TD3DRMQuaternion
-	struct Quaternion3F
-	{
-		/*00,4*/ float s;
-		/*04,4*/ Vector3F v;
-		/*10*/
-	};
-
-	//TD3DRMRay
-	struct Ray3F
-	{
-		/*00,c*/ Vector3F dir;
-		/*0c,c*/ Vector3F pos;
-		/*18*/
-	};
-
-	//TD3DRMBox
-	struct Box3F
-	{
-		/*00,c*/ Vector3F min;
-		/*0c,c*/ Vector3F max;
-		/*18*/
-	};
-
-	//TD3DRMMatrix4D
-	struct Matrix4F
-	{
-		/*00,40*/ float values[4][4];
-		/*40*/
-	};
-	struct Size2I
-	{
-		/*0,4*/ int width;
-		/*4,4*/ int height;
-		/*8*/
-	};
-	struct Size2F
-	{
-		/*0,4*/ float width;
-		/*4,4*/ float height;
-		/*8*/
-	};
-	struct Rect2I
-	{
-		/*00,4*/ int x;
-		/*04,4*/ int y;
-		/*08,4*/ int width;
-		/*0c,4*/ int height;
-		/*10*/
-	};
-	struct Rect2F
-	{
-		/*00,4*/ float x;
-		/*04,4*/ float y;
-		/*08,4*/ float width;
-		/*0c,4*/ float height;
-		/*10*/
-	};
-struct P1P2Rect2I
+//TD3DTransformStateType
+enum D3DTransformStateType : unsigned int
 {
-	/*00,4*/ int x1;
-	/*04,4*/ int y1;
-	/*08,4*/ int x2;
-	/*0c,4*/ int y2;
+	D3DTRANSFORMSTATE__NONE      = 0, // (custom)
+
+	D3DTRANSFORMSTATE_WORLD      = 0x1,
+	D3DTRANSFORMSTATE_VIEW       = 0x2,
+	D3DTRANSFORMSTATE_PROJECTION = 0x3,
+	D3DTRANSFORMSTATE_WORLD1     = 0x4,  // 2nd matrix to blend
+	D3DTRANSFORMSTATE_WORLD2     = 0x5,  // 3rd matrix to blend
+	D3DTRANSFORMSTATE_WORLD3     = 0x6,  // 4th matrix to blend
+	D3DTRANSFORMSTATE_TEXTURE0   = 0x10,
+	D3DTRANSFORMSTATE_TEXTURE1   = 0x11,
+	D3DTRANSFORMSTATE_TEXTURE2   = 0x12,
+	D3DTRANSFORMSTATE_TEXTURE3   = 0x13,
+	D3DTRANSFORMSTATE_TEXTURE4   = 0x14,
+	D3DTRANSFORMSTATE_TEXTURE5   = 0x15,
+	D3DTRANSFORMSTATE_TEXTURE6   = 0x16,
+	D3DTRANSFORMSTATE_TEXTURE7   = 0x17,
+};
+static_assert(sizeof(D3DTransformStateType) == 0x4, "");
+
+
+#pragma endregion
+
+
+#pragma region D3D Structure Types
+
+//TD3DRMMatrix4D
+//struct Matrix4F
+//{
+//	/*00,40*/ float values[4][4];
+//	/*40*/
+//};
+//TD3DRMMatrix4D
+typedef float Matrix4F[4][4];
+static_assert(sizeof(Matrix4F) == 0x40, "");
+
+//TD3DRMQuaternion
+struct Quaternion3F
+{
+	/*00,4*/ float s;
+	/*04,c*/ Vector3F v;
 	/*10*/
 };
-struct P1P2Rect2F
+static_assert(sizeof(Quaternion3F) == 0x10, "");
+
+//TD3DRMRay
+struct Ray3F
 {
-	/*00,4*/ float x1;
-	/*04,4*/ float y1;
-	/*08,4*/ float x2;
-	/*0c,4*/ float y2;
-	/*10*/
+	/*00,c*/ Vector3F dir;
+	/*0c,c*/ Vector3F pos;
+	/*18*/
 };
-struct LTRBRect2I
+static_assert(sizeof(Ray3F) == 0x18, "");
+
+//TD3DRMBox
+struct Box3F
 {
-	/*00,4*/ int left;
-	/*04,4*/ int top;
-	/*08,4*/ int right;
-	/*0c,4*/ int bottom;
-	/*10*/
+	/*00,c*/ Vector3F min;
+	/*0c,c*/ Vector3F max;
+	/*18*/
 };
-struct LTRBRect2F
-{
-	/*00,4*/ float left;
-	/*04,4*/ float top;
-	/*08,4*/ float right;
-	/*0c,4*/ float bottom;
-	/*10*/
-};
+static_assert(sizeof(Box3F) == 0x18, "");
+
 //TD3DHVertex
 struct D3DHVertex
 {
@@ -578,6 +516,8 @@ struct D3DHVertex
 	/*0c,4*/ float hz;
 	/*10*/
 };
+static_assert(sizeof(D3DHVertex) == 0x10, "");
+
 //TD3DTLVertex
 struct D3DTLVertex
 {
@@ -587,195 +527,9 @@ struct D3DTLVertex
 	/*0c,4*/ float rhw; // Reciprocal of homogeneous w
 	/*10*/
 };
-	struct ColourRGBI
-	{
-		/*0,4*/ unsigned int red;
-		/*4,4*/ unsigned int green;
-		/*8,4*/ unsigned int blue;
-		/*c*/
-	};
-	struct ColourRGBF
-	{
-		/*0,4*/ float red;
-		/*4,4*/ float green;
-		/*8,4*/ float blue;
-		/*c*/
-	};
-	// (used as short hand for D3DRMIMAGE mask channels)
-	struct ColourRGBAI
-	{
-		/*00,4*/ unsigned int red;
-		/*04,4*/ unsigned int green;
-		/*08,4*/ unsigned int blue;
-		/*0c,4*/ unsigned int alpha;
-		/*10*/
-	};
-	// never observed
-	struct ColourRGBAF
-	{
-		/*00,4*/ float red;
-		/*04,4*/ float green;
-		/*08,4*/ float blue;
-		/*0c,4*/ float alpha;
-		/*10*/
-	};
-#endif
+static_assert(sizeof(D3DTLVertex) == 0x10, "");
 
 #pragma endregion
-
-#pragma region Globals
-
-	namespace globals {
-
-		/*// <LegoRR.exe @0054155c>
-		extern unsigned int COUNT_0054155c;
-		// <LegoRR.exe @00541560>
-		extern unsigned int COUNT_00541560;
-		// <LegoRR.exe @00541564>
-		extern DWORD g_Direct3D_TextureHandle_New;
-		// <LegoRR.exe @00541568>
-		extern DWORD g_Direct3D_LightState_New;
-		// <LegoRR.exe @0054156c>
-		extern IDirect3DTexture2* g_IDirect3DTexture2_New;
-		// <LegoRR.exe @00541570>
-		extern DWORD g_Direct3D_TextureHandle_Old;
-		// <LegoRR.exe @00541574>
-		extern DWORD g_Direct3D_LightState_Old;
-		// <LegoRR.exe @00541578>
-		extern IDirect3DTexture2* g_IDirect3DTexture2_Old;
-		// <LegoRR.exe @0054157c>
-		extern DWORD g_Direct3D_MaterialHandle;
-		// <LegoRR.exe @00541580>
-		extern IDirect3DMaterial3* g_IDirect3DMaterial3;
-		// <LegoRR.exe @00541584>
-		//ReservedPool<Struct_34> start
-
-		// [INCLUSIVE]: WinMain functions, Input.c function, GetDeviceBitsPerPixel
-		// <LegoRR.exe @00506800>
-		extern HWND g_hWnd;
-		// [INCLUSIVE]: WinMain, ChooseScreenMode, Input.c function
-		// <LegoRR.exe @00506804>
-		extern HINSTANCE g_hInstance;
-		// [INCLUSIVE]: WinMain functions, Input.c function
-		// <LegoRR.exe @00506808>
-		extern BOOL g_IsFocused;
-		// [EXCLUSIVE]: WinMain, GameWindowProc functions
-		// <LegoRR.exe @0050680c>
-		extern BOOL g_IsClosing;
-		// [EXCLUSIVE]: WinMain, CreateMainWindow
-		// <LegoRR.exe @00506810>
-		extern const char* g_WindowClassName;
-		// [EXCLUSIVE]: WinMain
-		// <LegoRR.exe @00506814>
-		extern char g_ExeName[256];
-
-		// [UNKNOWN]:
-		// <LegoRR.exe @00506914>
-		extern IDirect3DRM3* g_IDirect3DRM3;
-		// [UNKNOWN]:
-		// <LegoRR.exe @00506918>
-		extern IDirect3DRMDevice3* g_IDirect3DRMDevice3;
-		// [UNKNOWN]:
-		// <LegoRR.exe @0050691c>
-		extern IDirect3DDevice3* g_IDirect3DDevice3;
-		// D3DRMFOGMETHOD_VERTEX = 0x1,
-		// D3DRMFOGMETHOD_TABLE  = 0x2,
-		// D3DRMFOGMETHOD_ANY    = 0x4,
-		// [EXCLUSIVE]: Direct3DRMCreate, SetRootSceneFodMode
-		// <LegoRR.exe @00506920>  XREF[3]
-		extern unsigned int g_SceneFogMethod;
-		// [INCLUSIVE]:
-		// <LegoRR.exe @00506924>  XREF[15,12=27]
-		extern Size2I g_RESOLUTION;
-		// [EXCLUSIVE]: WinMain, SetGameFunctions
-		// <LegoRR.exe @0050692c>  XREF[3,7]
-		extern GameFunctions g_GameFunctions;
-		// [EXCLUSIVE]: WinMain, SetGameFunctions
-		// <LegoRR.exe @00506938>  XREF[3]
-		extern BOOL g_GameFunctions_ISINIT;
-		// [INCLUSIVE]:
-		// <LegoRR.exe @0050693c>  XREF[5]
-		extern float g_FPSLOCK_VSYNC;
-		// [EXCLUSIVE]: SetRenderState, Cleanup(Update?)RenderStates
-		// <LegoRR.exe @00506940>  XREF[3,7]
-		extern RenderStateItem g_RenderStates_TABLE[200];
-		// <LegoRR.exe @00506f80>  XREF[3]
-		// [EXCLUSIVE]: AdjustGameWindowedRect, ShowGameWindow
-		extern DWORD g_WindowStyle;
-		// [INCLUSIVE]:
-		// <LegoRR.exe @00506f84>  XREF[82]
-		extern CmdlineFlags g_CMDLINE_FLAGS;
-		// [INCLUSIVE/ACCESSOR]: ParseCmdFlags, WinMain functions, game functions, GetProgrammerMode (accessor)
-		// <LegoRR.exe @00506f88>  XREF[17]
-		extern ProgrammerMode g_PROGRAMMER_MODE;
-		// [EXCLUSIVE/ACCESSOR]: ParseCmdFlags, GetStartLevel (accessor)
-		// <LegoRR.exe @00506f8c>  XREF[3,1]
-		extern char g_STARTLEVEL[256];
-		// [EXCLUSIVE/ACCESSOR]: ParseCmdFlags, GetDebugFlags (accessor)
-		// <LegoRR.exe @0050708c>  XREF[2]
-		extern DebugFlags g_DEBUG_FLAGS; // 0x8000 (block fade)
-		*/
-
-		// [INCLUSIVE]:
-		// <LegoRR.exe @00506f84>  XREF[82]
-		/*extern CmdlineFlags g_CMDLINE_FLAGS;
-		// [INCLUSIVE/ACCESSOR]: ParseCmdFlags, WinMain functions, game functions, GetProgrammerMode (accessor)
-		// <LegoRR.exe @00506f88>  XREF[17]
-		extern ProgrammerMode g_PROGRAMMER_MODE;
-		// [EXCLUSIVE/ACCESSOR]: ParseCmdFlags, GetStartLevel (accessor)
-		// <LegoRR.exe @00506f8c>  XREF[3,1]
-		extern char g_STARTLEVEL[256];
-		// [EXCLUSIVE/ACCESSOR]: ParseCmdFlags, GetDebugFlags (accessor)
-		// <LegoRR.exe @0050708c>  XREF[2]
-		extern FeatureFlags g_DEBUG_FLAGS; // 0x8000 (block fade)*/
-
-		/*// <LegoRR.exe @0076bb3c>
-		extern BOOL g_LeftButtonState;
-		// <LegoRR.exe @0076bb40>
-		extern BOOL g_RightButtonState;
-
-		// <LegoRR.exe @0076bb4c>
-		extern BOOL BOOL_0076bb4c;
-		// <LegoRR.exe @0076bb50>
-		extern BOOL BOOL_0076bb50;
-		// <LegoRR.exe @0076bb54>
-		extern BOOL BOOL_0076bb54;
-		// <LegoRR.exe @0076bb58>
-		extern BOOL g_RightButtonDoubleClicked;*/
-
-		// <LegoRR.exe @005774f4>
-		//static BOOL g_IsFullScreen;
-	} /* namespace globals */
-
-#pragma endregion
-
-
-#pragma region Custom Helper Functions
-
-int __cdecl debugoutf(const char* format, ...);
-#define printf lego::debugoutf
-#define debugf lego::debugoutf
-
-#pragma endregion
-
-
-#pragma region Functions
-
-	/*// <LegoRR.exe @00401b30>
-	ProgrammerMode __cdecl GetProgrammerMode(void);
-
-	// <LegoRR.exe @00401b40>
-	const char* __cdecl GetStartLevel(void);
-
-	// <LegoRR.exe @00401b70>
-	int __cdecl GetResolutionWidth(void);
-
-	// <LegoRR.exe @00401b80>
-	int __cdecl GetResolutionHeight(void);
-
-	// <LegoRR.exe @00478230>
-	FeatureFlags __cdecl GetFeatureFlags(void);*/
-
-#pragma endregion
-
 } /* namespace lego */
+
+#pragma pack(pop)

@@ -67,6 +67,69 @@ void __cdecl Res_SetOwnerObject(ResourceData* resData, LiveObject* liveObj);
 // <LegoRR.exe @0044b400>
 void __cdecl Level_GenerateSmallSpiders(unsigned int x, unsigned int y, unsigned int randSeed);
 
+enum ObjectType2
+{
+    OBJECT_TVCAMERA = -1,
+    OBJECT_NONE = 0,
+
+    OBJECT_VEHICLE = 1,
+    OBJECT_MINIFIGURE = 2,
+    OBJECT_ROCKMONSTER = 3,
+    OBJECT_BUILDING = 4,
+    OBJECT_BOULDER = 5,
+    OBJECT_POWERCRYSTAL = 6,
+    OBJECT_ORE = 7,
+    OBJECT_DYNAMITE = 8,
+    OBJECT_BARRIER = 9,
+    OBJECT_UPGRADEPART = 10,
+    OBJECT_ELECTRICFENCE = 11,
+    OBJECT_SPIDERWEB = 12,
+    OBJECT_OOHSCARY = 13,
+    OBJECT_ELECTRICFENCESTUD = 14,
+    OBJECT_PATH = 15,
+    OBJECT_PUSHER = 16,
+    OBJECT_FREEZER = 17,
+    OBJECT_ICECUBE = 18,
+    OBJECT_LASERSHOT = 19,
+};
+static_assert(sizeof(ObjectType2) == 0x4, "");
+
+#define TELEPORT_TYPE(t) TELEPORT_SERVIVE_## t = (1<<(((int)OBJECT_## t)-1))
+enum TeleportServiceFlags
+{
+    TELEPORT_SERVIVE_NONE = 0,
+    //TELEPORT_TYPE(NONE),
+    TELEPORT_TYPE(VEHICLE),
+    TELEPORT_TYPE(MINIFIGURE),
+    TELEPORT_TYPE(ROCKMONSTER),
+    TELEPORT_TYPE(BUILDING),
+    TELEPORT_TYPE(BOULDER),
+    TELEPORT_TYPE(POWERCRYSTAL),
+    TELEPORT_TYPE(ORE),
+    TELEPORT_TYPE(DYNAMITE),
+    TELEPORT_TYPE(BARRIER),
+    TELEPORT_TYPE(UPGRADEPART),
+    TELEPORT_TYPE(ELECTRICFENCE),
+    TELEPORT_TYPE(SPIDERWEB),
+    TELEPORT_TYPE(OOHSCARY),
+    TELEPORT_TYPE(ELECTRICFENCESTUD),
+    TELEPORT_TYPE(PATH),
+    TELEPORT_TYPE(PUSHER),
+    TELEPORT_TYPE(FREEZER),
+    TELEPORT_TYPE(ICECUBE),
+    TELEPORT_TYPE(LASERSHOT),
+};
+static_assert(sizeof(TeleportServiceFlags) == 0x4, "");
+
+// <LegoRR.exe @0046aa20>
+ObjectType2 __cdecl Teleporter_GetServiceObjectType(TeleportServiceFlags serviceType);
+
+// <LegoRR.exe @00477a60>
+int APIENTRY MyWinMain(_In_ HINSTANCE hInstance,
+    _In_opt_ HINSTANCE hPrevInstance,
+    _In_ LPSTR     lpCmdLine,
+    _In_ int       nCmdShow);
+
 #pragma endregion
 
 

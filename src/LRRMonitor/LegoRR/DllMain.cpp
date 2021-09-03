@@ -436,10 +436,15 @@ DEFINE_AUTOINJECT(00478290,  SetGameFunctions);
 
 DEFINE_AUTOINJECT(004786b0,  CreateMainWindow);
 
-DEFINE_AUTOINJECT(00438670,  LiveObject_SetIsCrystalPowered);
-DEFINE_AUTOINJECT(00469ed0,  LiveObject_SetLevel);
+//DEFINE_AUTOINJECT(00438670,  LiveObject_SetIsCrystalPowered);
+//DEFINE_AUTOINJECT(00469ed0,  LiveObject_SetLevel);
 //DEFINE_AUTOINJECT(00474060,  Res_SetOwnerObject);
 DEFINE_AUTOINJECT(0044b400, Level_GenerateSmallSpiders);
+// <LegoRR.exe @>
+//int APIENTRY MyWinMain
+DEFINE_AUTOINJECT(00477a60, MyWinMain);
+
+//DEFINE_AUTOINJECT(0046aa20, Teleporter_GetServiceObjectType);
 
 
 // <LegoRR.exe @0044b400>

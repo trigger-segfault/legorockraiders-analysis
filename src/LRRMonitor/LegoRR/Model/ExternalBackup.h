@@ -358,7 +358,7 @@ defVar(0x005764e0, int,				g_RegisteredScreenModes_COUNT);
 
 defVar(0x00576500, WADFile,			g_WADFiles_TABLE, [10]);
 
-defVar(0x005766a0, SharedWADEntry,   g_WADStreams_TABLE, [100]);
+defVar(0x005766a0, WADStream,   g_WADStreams_TABLE, [100]);
 defVar(0x00576ce0, FileStream*,		g_ScanFileStream_1);
 defVar(0x00576ce4, FileStream*,		g_ScanFileStream_2);
 defVar(0x00576ce8, FileStream*,		g_ScanFileStream_3);

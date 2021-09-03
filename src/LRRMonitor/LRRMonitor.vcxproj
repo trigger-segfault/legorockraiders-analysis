@@ -59,7 +59,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;LRRCE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;LRRCE_EXPORTS;_WINDOWS;_USRDLL;_GODS98COMPILE;_GODS98_USEWAD_;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -76,7 +76,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;LRRCE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;LRRCE_EXPORTS;_WINDOWS;_USRDLL;_GODS98COMPILE;_GODS98_USEWAD_;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -94,6 +94,143 @@
     <ClInclude Include="DirectX\D3DRM\d3drmdef.h" />
     <ClInclude Include="DirectX\D3DRM\d3drmobj.h" />
     <ClInclude Include="DirectX\D3DRM\d3drmwin.h" />
+    <ClInclude Include="Gods98My\3DSound.h" />
+    <ClInclude Include="Gods98My\Animation.h" />
+    <ClInclude Include="Gods98My\AnimClone.h" />
+    <ClInclude Include="Gods98My\Bmp.h" />
+    <ClInclude Include="Gods98My\Compress.h" />
+    <ClInclude Include="Gods98My\Config.h" />
+    <ClInclude Include="Gods98My\Containers.h" />
+    <ClInclude Include="Gods98My\DirectDraw.h" />
+    <ClInclude Include="Gods98My\Draw.h" />
+    <ClInclude Include="Gods98My\Dxbug.h" />
+    <ClInclude Include="Gods98My\Errors.h" />
+    <ClInclude Include="Gods98My\Files.h" />
+    <ClInclude Include="Gods98My\Flic.h" />
+    <ClInclude Include="Gods98My\Fonts.h" />
+    <ClInclude Include="Gods98My\Image.h" />
+    <ClInclude Include="Gods98My\Init.h" />
+    <ClInclude Include="Gods98My\Input.h" />
+    <ClInclude Include="Gods98My\Keys.h" />
+    <ClInclude Include="Gods98My\Lws.h" />
+    <ClInclude Include="Gods98My\Lwt.h" />
+    <ClInclude Include="Gods98My\Main.h" />
+    <ClInclude Include="Gods98My\Materials.h" />
+    <ClInclude Include="Gods98My\Maths.h" />
+    <ClInclude Include="Gods98My\Memory.h" />
+    <ClInclude Include="Gods98My\Mesh.h" />
+    <ClInclude Include="Gods98My\Movie.h" />
+    <ClInclude Include="Gods98My\Registry.h" />
+    <ClInclude Include="Gods98My\Sound.h" />
+    <ClInclude Include="Gods98My\TextWindow.h" />
+    <ClInclude Include="Gods98My\Utils.h" />
+    <ClInclude Include="Gods98My\Viewports.h" />
+    <ClInclude Include="Gods98My\Wad.h" />
+    <ClInclude Include="Gods98\3DSound.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\Activities.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\Animation.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\AnimClone.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\Bmp.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\Compress.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\Config.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\Containers.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\DirectDraw.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\Draw.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\dxbug.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\Errors.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\Files.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\Flic.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\Fonts.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\Gods98.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\Images.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\Init.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\Input.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\Keys.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\Lws.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\lwt.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\Main.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\Materials.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\Maths.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\Memory.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\Mesh.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\Net.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\Registry.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\Sound.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\Standard.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\TextWindow.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\Utils.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\Viewports.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Gods98\wad.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="LegoRR\Common.h" />
     <ClInclude Include="LegoRR\Controls\Input.h" />
     <ClInclude Include="LegoRR\DllInject.h" />
@@ -102,41 +239,143 @@
     <ClInclude Include="LegoRR\Helpers\Logging.h" />
     <ClInclude Include="LegoRR\Helpers\Pool.h" />
     <ClInclude Include="LegoRR\IO\CFG.h" />
+    <ClInclude Include="LegoRR\IO\CFG2.h" />
     <ClInclude Include="LegoRR\Main\GameHook.h" />
     <ClInclude Include="LegoRR\Model\BasicEnums.h" />
     <ClInclude Include="LegoRR\Model\BasicTypes.h" />
-    <ClInclude Include="LegoRR\Model\Enums.h" />
+    <ClInclude Include="LegoRR\Model\D3DTypes.h" />
+    <ClInclude Include="LegoRR\Model\EnumTypes.h" />
     <ClInclude Include="LegoRR\Model\External.h" />
     <ClInclude Include="LegoRR\Model\ExternalBackup.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="LegoRR\Model\FileIOTypes.h" />
+    <ClInclude Include="LegoRR\Model\FunctionTypes.h" />
     <ClInclude Include="LegoRR\Model\Import.h" />
     <ClInclude Include="LegoRR\Model\MapFileTypes.h" />
+    <ClInclude Include="LegoRR\Model\Model.h" />
     <ClInclude Include="LegoRR\Model\ModelNewBackup.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="LegoRR\Model\ModelNewBackup2.h" />
     <ClInclude Include="LegoRR\Model\ModelNewOld.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="LegoRR\Model\ModelOld.h" />
     <ClInclude Include="LegoRR\Model\GhidraTypes.h" />
-    <ClInclude Include="LegoRR\Model\Model.h" />
+    <ClInclude Include="LegoRR\Model\ModelNewBackup3.h" />
     <ClInclude Include="LegoRR\Model\ResourceTypes.h" />
+    <ClInclude Include="LegoRR\Model\StructureTypes.h" />
     <ClInclude Include="pch.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Gods98\3DSound.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Gods98\Activities.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Gods98\AnimClone.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Gods98\Bmp.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Gods98\Config.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Gods98\Containers.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Gods98\DirectDraw.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Gods98\Draw.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Gods98\dxbug.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Gods98\Errors.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Gods98\Files.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Gods98\Flic.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Gods98\Fonts.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Gods98\Images.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Gods98\Init.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Gods98\Input.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Gods98\Keys.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Gods98\Lws.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Gods98\lwt.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Gods98\Main.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Gods98\Materials.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Gods98\Maths.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Gods98\Memory.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Gods98\Mesh.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Gods98\net.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Gods98\Registry.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Gods98\Sound.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Gods98\TextWindow.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Gods98\Utils.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Gods98\Viewports.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Gods98\Wad.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="LegoRR\Common.cpp" />
     <ClCompile Include="LegoRR\DllInject.cpp" />
     <ClCompile Include="LegoRR\DllMain.cpp" />
     <ClCompile Include="LegoRR\Helpers\Logging.cpp" />
-    <ClCompile Include="LegoRR\IO\CFG.cpp" />
+    <ClCompile Include="LegoRR\IO\CFG.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="LegoRR\IO\CFG2.cpp" />
     <ClCompile Include="LegoRR\Main\GameHook.cpp" />
     <ClCompile Include="LegoRR\Model\External.cpp" />
     <ClCompile Include="pch.cpp">
@@ -149,6 +388,76 @@
     <ResourceCompile Include="Resource.rc" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="cpp.hint" />
+    <None Include="Gods98\3DSound.prot">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Gods98\AnimClone.prot">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Gods98\Bmp.prot">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Gods98\Config.prot">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Gods98\Containers.prot">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Gods98\DirectDraw.prot">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Gods98\Draw.prot">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Gods98\Errors.prot">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Gods98\Files.prot">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Gods98\Flic.prot">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Gods98\Fonts.prot">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Gods98\Images.prot">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Gods98\Init.prot">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Gods98\Keys.prot">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Gods98\Lws.prot">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Gods98\Main.prot">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Gods98\Materials.prot">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Gods98\Maths.prot">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Gods98\Mesh.prot">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Gods98\Sound.prot">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Gods98\TextWindow.prot">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Gods98\Utils.prot">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Gods98\Viewports.prot">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </None>
     <None Include="README.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

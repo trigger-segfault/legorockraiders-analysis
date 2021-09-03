@@ -12,11 +12,16 @@
 //'#include "../Testing/Testing.h"
 
 
+using namespace lego;
 using namespace lego::game;
 using namespace external;
 
+#define RadarTrackObj (*(LiveObject***)(void***)0x005570e8)[1]
+
 
 static int spawnLevel = 0;
+static int FPTopMode = 0;
+static const char* FPModeNames[] = { "Off", "Selected", "Radar" };
 
 static const char* ObjectSpawnList[20 * 15];
 static int ObjectSpawnCount = 0;
@@ -777,6 +782,18 @@ public:
             std::sprintf(buffer, "WallSpawn: %s (LV%i)", ObjectSpawnList[spawnObjID], spawnLevel);
             SendMessageA(hCtrlListbox, LB_ADDSTRING, (WPARAM)0, (LPARAM)buffer);
 
+            std::sprintf(buffer, "FPTopMode: %s (num selected = %i)", FPModeNames[FPTopMode], (int)external::Message_GetNumSelectedUnits());
+            SendMessageA(hCtrlListbox, LB_ADDSTRING, (WPARAM)0, (LPARAM)buffer);
+            
+            if (RadarTrackObj) {
+                std::sprintf(buffer, "RadarTrackObj: %s %i", ObjectNames[(int)RadarTrackObj->objType+1], (int)RadarTrackObj->objIndex);
+            }
+            else {
+                std::sprintf(buffer, "RadarTrackObj: NULL");
+
+            }
+            SendMessageA(hCtrlListbox, LB_ADDSTRING, (WPARAM)0, (LPARAM)buffer);
+
             //SendMessageA(this->m_hDlg, WM_SETREDRAW, (WPARAM)TRUE, (LPARAM)nullptr);
         }
         return true;
@@ -1049,6 +1066,8 @@ BOOL __cdecl lego::game::LiveObject_SetLevel(LiveObject* liveObj, unsigned int l
         //  So we have to hijack this function just to handle recoloring.
         if (liveObj->objType == ObjectType::PowerCrystal && level >= 1)
             LiveObject_SetIsCrystalPowered(liveObj, !(liveObj->flags3_3e8 & 0x80000000) /* unpowered flag*/);
+        else if (liveObj->objType == ObjectType::RockMonster)
+            liveObj->flags3_3e8 |= (LiveFlags3)0x100; // selectable
 
         return TRUE;
     }
@@ -1089,11 +1108,37 @@ std::memcpy(&color, &colorf, sizeof(color));*/
 // <LegoRR.exe @004752b0>
 //void __cdecl Res_SetMeshColorUnk(ResourceData* resData, int index, float r, float g, float b);
 
+void mprint(Matrix4F m) {
+    logmsg("{ { %.1f, %.1f, %.1f, %.1f },\n  { %.1f, %.1f, %.1f, %.1f },\n  { %.1f, %.1f, %.1f, %.1f },\n  { %.1f, %.1f, %.1f, %.1f } }\n",
+        m[0][0], m[0][1], m[0][2], m[0][3],
+        m[1][0], m[1][1], m[1][2], m[1][3],
+        m[2][0], m[2][1], m[2][2], m[2][3],
+        m[3][0], m[3][1], m[3][2], m[3][3]
+        );
+}
+
 //static ObjectType spawnObj = ObjectType::RockMonster;
 //static int spawnIndex;
 //g_ObjectLevels_TABLE[]
 BOOL __cdecl MyGameInit(void)
 {
+    Matrix4F a, b, m;
+    std::memset(a, 0, sizeof(Matrix4F));
+    std::memset(b, 0, sizeof(Matrix4F));
+    std::memset(m, 0, sizeof(Matrix4F));
+    a[0][1] = 1.0f;
+    b[1][0] = 3.0f;
+    logmsg("a = \n");
+    mprint(a);
+    logmsg("b = \n");
+    mprint(b);
+    Matrix4_Multiply(m, a, b);
+    logmsg("a * b = \n");
+    mprint(m);
+    Matrix4_Multiply(m, b, a);
+    logmsg("b * a = \n");
+    mprint(m);
+
     ShowCursor(TRUE);
     logmsg("MyGameInit\n");
     if (g_origGameFunctions.Init != nullptr) {
@@ -1164,6 +1209,10 @@ BOOL __cdecl MyGameInit(void)
     return TRUE;
 }
 
+
+static bool keysCurrentBackup[256];
+static bool keysPreviousBackup[256];
+
 BOOL __cdecl MyGameUpdate(float elapsed)
 {
 
@@ -1203,6 +1252,69 @@ BOOL __cdecl MyGameUpdate(float elapsed)
         Game_GetObjectByName(ObjectSpawnList[spawnObjID], &spawnObjType, &spawnObjIndex, &dummyResData);
         spawnLevel = max(maxLevel, spawnLevel);
     }
+
+    if (IsKeyDown(Keys::KEY_RIGHTCTRL) && IsKeyPressed(Keys::KEY_HASH)) {
+        FPTopMode = (FPTopMode + 1) % 3;
+    }
+
+    float elapsedGame = elapsed * Game_GetGameSpeed();
+
+    LiveObject* myUnit = (FPTopMode != 2 ? external::Message_GetPrimarySelectedUnit() : RadarTrackObj);
+    unsigned int numUnits = (FPTopMode != 2 ? external::Message_GetNumSelectedUnits() : (RadarTrackObj ? 1 : 0));
+    bool fpControls = (myUnit != nullptr && numUnits == 1 && FPTopMode);
+    if (fpControls) {
+        if (myUnit->drivenObject != nullptr && myUnit->drivenObject->objType == ObjectType::Vehicle) {
+            myUnit = myUnit->drivenObject;
+        }
+        /* First person view controls */
+    /* IsKeyDown(KEY_CURSORUP) (200)
+        "First person view: Move forward." */
+        if (IsKeyDown(Keys::KEY_CURSORUP)) {
+            LiveObject_FPMove(myUnit, 1, 0, 0.0);
+        }
+        /* IsKeyDown(KEY_CURSORDOWN) (208)
+            "First person view: Move back." */
+        if (IsKeyDown(Keys::KEY_CURSORDOWN)) {
+            LiveObject_FPMove(myUnit, -1, 0, 0.0);
+        }
+        /* IsKeyDown(KEY_CURSORLEFT) (203)
+            "First person view: Turn left." */
+        if (IsKeyDown(Keys::KEY_CURSORLEFT)) {
+            LiveObject_FPMove(myUnit, 0, 0, -0.05);
+        }
+        /* IsKeyDown(KEY_CURSORRIGHT) (205)
+            "First person view: Turn right." */
+        if (IsKeyDown(Keys::KEY_CURSORRIGHT)) {
+            LiveObject_FPMove(myUnit, 0, 0, 0.05);
+        }
+        /* IsKeyDown(KEY_Z) (44)
+            "First person view: Strafe left." */
+        if (IsKeyDown(Keys::KEY_Z)) {
+            LiveObject_FPMove(myUnit, 0, -1, 0.0);
+        }
+        /* IsKeyDown(KEY_X) (45)
+            "First person view: Strafe right." */
+        if (IsKeyDown(Keys::KEY_X)) {
+            LiveObject_FPMove(myUnit, 0, 1, 0.0);
+        }
+
+        std::memcpy(keysCurrentBackup, g_KeyboardState_Current_TABLE, sizeof(keysCurrentBackup));
+        std::memcpy(keysPreviousBackup, g_KeyboardState_Previous_TABLE, sizeof(keysPreviousBackup));
+        external::g_KeyboardState_Current_TABLE[Keys::KEY_CURSORUP] = false;
+        external::g_KeyboardState_Current_TABLE[Keys::KEY_CURSORDOWN] = false;
+        external::g_KeyboardState_Current_TABLE[Keys::KEY_CURSORLEFT] = false;
+        external::g_KeyboardState_Current_TABLE[Keys::KEY_CURSORRIGHT] = false;
+        external::g_KeyboardState_Current_TABLE[Keys::KEY_Z] = false;
+        external::g_KeyboardState_Current_TABLE[Keys::KEY_X] = false;
+        external::g_KeyboardState_Previous_TABLE[Keys::KEY_CURSORUP] = false;
+        external::g_KeyboardState_Previous_TABLE[Keys::KEY_CURSORDOWN] = false;
+        external::g_KeyboardState_Previous_TABLE[Keys::KEY_CURSORLEFT] = false;
+        external::g_KeyboardState_Previous_TABLE[Keys::KEY_CURSORRIGHT] = false;
+        external::g_KeyboardState_Previous_TABLE[Keys::KEY_Z] = false;
+        external::g_KeyboardState_Previous_TABLE[Keys::KEY_X] = false;
+    }
+
+
     //float elapsed = *(float*)&dwElapsed;
     /*if (!updateCount) {
         logmsg("MyGameUpdate [first]\n");
@@ -1213,6 +1325,11 @@ BOOL __cdecl MyGameUpdate(float elapsed)
             logmsg("MyGameUpdate [internal failed]\n");
             return FALSE;
         }
+    }
+
+    if (fpControls) {
+        std::memcpy(g_KeyboardState_Current_TABLE, keysCurrentBackup, sizeof(keysCurrentBackup));
+        std::memcpy(g_KeyboardState_Previous_TABLE, keysPreviousBackup, sizeof(keysPreviousBackup));
     }
 
     if (liveObjMonitor.IsOpen()) {
@@ -1363,8 +1480,8 @@ void __cdecl lego::game::Level_GenerateSmallSpiders(unsigned int x, unsigned int
             // this is the laziest rounding for radians I've ever seen XD
             float genTheta = (float)((int)external::randomInt16() % 7);
             Point2F genPos = {
-                external::Game_ChooseRandomRange(data[0].x + 1.0, data[3].x - 1.0),
-                external::Game_ChooseRandomRange(data[0].y - 1.0, data[3].y + 1.0)
+                external::Game_ChooseRandomRange(data[0].x + 1.0f, data[3].x - 1.0f),
+                external::Game_ChooseRandomRange(data[0].y - 1.0f, data[3].y + 1.0f)
             };
             //genPos.x = external::Game_ChooseRandomRange(data[0].x + 1.0, data[3].x - 1.0);
             //genPos.y = external::Game_ChooseRandomRange(data[0].y - 1.0, data[3].y + 1.0);
@@ -1377,5 +1494,416 @@ void __cdecl lego::game::Level_GenerateSmallSpiders(unsigned int x, unsigned int
     }
     return; // may return last spider, but never used
 }
+
+/*typedef enum ObjectType2
+{
+    OBJECT_TVCAMERA             = -1,
+    OBJECT_NONE                 = 0,
+
+    OBJECT_VEHICLE              = 1,
+    OBJECT_MINIFIGURE           = 2,
+    OBJECT_ROCKMONSTER          = 3,
+    OBJECT_BUILDING             = 4,
+    OBJECT_BOULDER              = 5,
+    OBJECT_POWERCRYSTAL         = 6,
+    OBJECT_ORE                  = 7,
+    OBJECT_DYNAMITE             = 8,
+    OBJECT_BARRIER              = 9,
+    OBJECT_UPGRADEPART          = 10,
+    OBJECT_ELECTRICFENCE        = 11,
+    OBJECT_SPIDERWEB            = 12,
+    OBJECT_OOHSCARY             = 13,
+    OBJECT_ELECTRICFENCESTUD    = 14,
+    OBJECT_PATH                 = 15,
+    OBJECT_PUSHER               = 16,
+    OBJECT_FREEZER              = 17,
+    OBJECT_ICECUBE              = 18,
+    OBJECT_LASERSHOT            = 19,
+};
+static_assert(sizeof(ObjectType2) == 0x4, "");
+
+#define TELEPORT_TYPE(t) TELEPORT_SERVIVE_## t = (1<<(int)OBJECT_## t)
+enum TeleportServiceFlags
+{
+    TELEPORT_TYPE(NONE),
+    TELEPORT_TYPE(VEHICLE),
+    TELEPORT_TYPE(MINIFIGURE),
+    TELEPORT_TYPE(ROCKMONSTER),
+    TELEPORT_TYPE(BUILDING),
+    TELEPORT_TYPE(BOULDER),
+    TELEPORT_TYPE(POWERCRYSTAL),
+    TELEPORT_TYPE(ORE),
+    TELEPORT_TYPE(DYNAMITE),
+    TELEPORT_TYPE(BARRIER),
+    TELEPORT_TYPE(UPGRADEPART),
+    TELEPORT_TYPE(ELECTRICFENCE),
+    TELEPORT_TYPE(SPIDERWEB),
+    TELEPORT_TYPE(OOHSCARY),
+    TELEPORT_TYPE(ELECTRICFENCESTUD),
+    TELEPORT_TYPE(PATH),
+    TELEPORT_TYPE(PUSHER),
+    TELEPORT_TYPE(FREEZER),
+    TELEPORT_TYPE(ICECUBE),
+    TELEPORT_TYPE(LASERSHOT),
+};
+static_assert(sizeof(TeleportServiceFlags) == 0x4, "");*/
+
+// <LegoRR.exe @0046aa20>
+ObjectType2 __cdecl lego::game::Teleporter_GetServiceObjectType(TeleportServiceFlags serviceType)
+{
+    if (serviceType & TELEPORT_SERVIVE_VEHICLE)
+        //return OBJECT_ORE;
+        return OBJECT_VEHICLE;
+
+    if (serviceType & TELEPORT_SERVIVE_MINIFIGURE)
+        return OBJECT_MINIFIGURE;
+
+    if (serviceType & TELEPORT_SERVIVE_ROCKMONSTER)
+        return OBJECT_ROCKMONSTER;
+        //return OBJECT_ELECTRICFENCE;
+
+    if (serviceType & TELEPORT_SERVIVE_BUILDING)
+        return OBJECT_BUILDING;
+
+    if (serviceType & TELEPORT_SERVIVE_BOULDER)
+        return OBJECT_BOULDER;
+
+    if (serviceType & TELEPORT_SERVIVE_POWERCRYSTAL)
+        return OBJECT_POWERCRYSTAL;
+
+    if (serviceType & TELEPORT_SERVIVE_ORE)
+        //return OBJECT_VEHICLE;
+        return OBJECT_ORE;
+        //return OBJECT_ELECTRICFENCE;
+
+    if (serviceType & TELEPORT_SERVIVE_DYNAMITE)
+        return OBJECT_DYNAMITE;
+
+    if (serviceType & TELEPORT_SERVIVE_BARRIER)
+        return OBJECT_BARRIER;
+
+    if (serviceType & TELEPORT_SERVIVE_UPGRADEPART)
+        return OBJECT_UPGRADEPART;
+
+    if (serviceType & TELEPORT_SERVIVE_ELECTRICFENCE)
+        return OBJECT_ELECTRICFENCE;
+        //return OBJECT_ORE;
+        //return OBJECT_ROCKMONSTER;
+
+    if (serviceType & TELEPORT_SERVIVE_SPIDERWEB)
+        return OBJECT_SPIDERWEB;
+
+    if (serviceType & TELEPORT_SERVIVE_OOHSCARY)
+        return OBJECT_OOHSCARY;
+    
+    return OBJECT_NONE;
+}
+/*
+ObjectType2 __cdecl lego::game::Teleporter_GetServiceObjectType(TeleportServiceFlags serviceType)
+{
+    if (serviceType & TELEPORT_SERVIVE_VEHICLE)
+        return OBJECT_VEHICLE;
+
+    if (serviceType & TELEPORT_SERVIVE_MINIFIGURE)
+        return OBJECT_MINIFIGURE;
+
+    if (serviceType & TELEPORT_SERVIVE_ROCKMONSTER)
+        return OBJECT_ROCKMONSTER;
+
+    if (serviceType & TELEPORT_SERVIVE_BUILDING)
+        return OBJECT_BUILDING;
+
+    if (serviceType & TELEPORT_SERVIVE_BOULDER)
+        return OBJECT_BOULDER;
+
+    if (serviceType & TELEPORT_SERVIVE_POWERCRYSTAL)
+        return OBJECT_POWERCRYSTAL;
+
+    if (serviceType & TELEPORT_SERVIVE_ORE)
+        return OBJECT_ORE;
+
+    if (serviceType & TELEPORT_SERVIVE_DYNAMITE)
+        return OBJECT_DYNAMITE;
+
+    if (serviceType & TELEPORT_SERVIVE_BARRIER)
+        return OBJECT_BARRIER;
+
+    if (serviceType & TELEPORT_SERVIVE_UPGRADEPART)
+        return OBJECT_UPGRADEPART;
+
+    if (serviceType & TELEPORT_SERVIVE_ELECTRICFENCE)
+        return OBJECT_ELECTRICFENCE;
+
+    if (serviceType & TELEPORT_SERVIVE_SPIDERWEB)
+        return OBJECT_SPIDERWEB;
+
+    if (serviceType & TELEPORT_SERVIVE_OOHSCARY)
+        return OBJECT_OOHSCARY;
+    
+    return OBJECT_NONE;
+}
+ObjectType2 __cdecl lego::game::Teleporter_GetServiceObjectType(TeleportServiceFlags serviceType)
+{
+    if (serviceType & TELEPORT_SERVIVE_VEHICLE)
+        return OBJECT_VEHICLE;
+    if (serviceType & TELEPORT_SERVIVE_MINIFIGURE)
+        return OBJECT_MINIFIGURE;
+    if (serviceType & TELEPORT_SERVIVE_ROCKMONSTER)
+        return OBJECT_ROCKMONSTER;
+    if (serviceType & TELEPORT_SERVIVE_BUILDING)
+        return OBJECT_BUILDING;
+    if (serviceType & TELEPORT_SERVIVE_BOULDER)
+        return OBJECT_BOULDER;
+    if (serviceType & TELEPORT_SERVIVE_POWERCRYSTAL)
+        return OBJECT_POWERCRYSTAL;
+    if (serviceType & TELEPORT_SERVIVE_ORE)
+        return OBJECT_ORE;
+    if (serviceType & TELEPORT_SERVIVE_DYNAMITE)
+        return OBJECT_DYNAMITE;
+    if (serviceType & TELEPORT_SERVIVE_BARRIER)
+        return OBJECT_BARRIER;
+    if (serviceType & TELEPORT_SERVIVE_UPGRADEPART)
+        return OBJECT_UPGRADEPART;
+    if (serviceType & TELEPORT_SERVIVE_ELECTRICFENCE)
+        return OBJECT_ELECTRICFENCE;
+    if (serviceType & TELEPORT_SERVIVE_SPIDERWEB)
+        return OBJECT_SPIDERWEB;
+    if (serviceType & TELEPORT_SERVIVE_OOHSCARY)
+        return OBJECT_OOHSCARY;
+
+    return OBJECT_NONE;
+}*/
+
+
+#pragma region WinMain (real)
+
+// <LegoRR.exe @00477a60>
+int APIENTRY lego::game::MyWinMain(_In_ HINSTANCE hInstance,
+                     _In_opt_ HINSTANCE hPrevInstance,
+                     _In_ LPSTR     lpCmdLine,
+                     _In_ int       nCmdShow)
+{
+    UNREFERENCED_PARAMETER(hPrevInstance);
+
+    char mutexName[1024];
+    char fullCmdLine[1024];
+    char errorMessage[1024];
+    char standardParameters[1024];
+
+    /// DEBUG:
+    logmsg("MyWinMain\n");
+    //::CoInitialize(nullptr);
+
+
+    BOOL nosound = FALSE, insistOnCD = FALSE;
+
+    if (USEMUTEX /*true*/) {
+        std::sprintf(mutexName, "%s Mutex", MUTEX_NAME /*"Lego Rock Raiders (Mode Selection)"*/);
+        ::CreateMutexA(nullptr, TRUE, mutexName);
+        if (::GetLastError() == ERROR_ALREADY_EXISTS /*0xb7*/)
+            return FALSE;
+    }
+
+
+    char* cmdLine = ::GetCommandLineA();
+    debugf("%s\n", cmdLine);
+    char* exeName = cmdLine;
+    for (char* cmdPtr = cmdLine; *cmdPtr != '\0'; cmdPtr++) {
+        if (*cmdPtr == '\\')
+            exeName = cmdPtr + 1; // name after '\\' path separator
+    }
+    std::strcpy(external::g_ExeName, exeName);
+    // zero-out double quote '\"' characters (hopefully it's impossible for it to start with a quote character)
+    for (char* exePtr = external::g_ExeName; *exePtr != '\0'; exePtr++) {
+        if (*exePtr == '\"')
+            *exePtr = '\0';
+    }
+    // find the last '.' for file extension
+    char* exeExtension = external::g_ExeName;
+    for (char* exePtr = external::g_ExeName; *exePtr != '\0'; exePtr++) {
+        if (*exePtr == '.')
+            exeExtension = exePtr + 1;
+    }
+    if (exeExtension != external::g_ExeName) {
+        ::_strupr(exeExtension); // to upper
+        exeExtension = std::strstr(external::g_ExeName, ".EXE");
+        if (exeExtension != nullptr) {
+            // separate executable name from extension,
+            // this name without extension will be the basis for many constant lookups
+            *exeExtension = '\0';
+        }
+    }
+
+
+    external::g_WindowClassName = external::g_ExeName; // "LegoRR";
+    external::g_IsFocused = FALSE;
+    external::g_IsClosing = FALSE;
+    external::g_GameFunctions_ISINIT = FALSE;
+    external::g_hInstance = hInstance;
+    external::g_FPSLOCK_VSYNC = 0.0f;
+    external::g_CMDLINE_FLAGS = CMD_NONE /*0*/;
+
+    // Add StandardParameters to command line arguments, then parse command line arguments
+    BOOL regResult = external::Registry_QueryValueOnLM("SOFTWARE\\LEGO Media\\Games\\Rock Raiders", "StandardParameters", REGISTRY_STRING /*0*/, standardParameters, sizeof(standardParameters));
+    if (regResult && !IGNORESTANDARDPARAMETERS) {
+        std::sprintf(fullCmdLine, "%s %s", lpCmdLine, standardParameters);
+    }
+    else {
+        std::sprintf(fullCmdLine, "%s", lpCmdLine);
+    }
+    external::ParseCmdlineFlags(fullCmdLine, &nosound, &insistOnCD);
+
+
+    regResult = external::Registry_QueryValueOnLM("SOFTWARE\\LEGO Media\\Games\\Rock Raiders", "NoHALMessage", REGISTRY_STRING /*0*/, errorMessage, sizeof(errorMessage));
+    if (!regResult) {
+        std::sprintf(errorMessage, "No DirectX 3D accelerator could be found.");
+    }
+
+    external::InitFileScanning();
+
+    external::InitSharedFileBuffers();
+    external::InitFileSystem(external::g_ExeName, insistOnCD, "SOFTWARE\\LEGO Media\\Games\\Rock Raiders");
+
+    external::ReservedPool_CFGProperty___Init();
+    //CFG::Pool.Init();
+
+    external::InitDirectInput();
+
+    if (!CreateMainWindow(hInstance, nCmdShow))
+        goto WinMain_Cleanup;
+
+
+    external::InitDirectDraw(external::g_hWnd);
+    external::InitSoundSystem(nosound);
+
+    if (!external::ChooseScreenMode(TRUE /*showDialog*/, // likely preprocessor-defined
+                                external::g_CMDLINE_FLAGS & CMD_DEBUG  /*isDebug*/,
+                                external::g_CMDLINE_FLAGS & CMD_BEST   /*isBest*/,
+                                external::g_CMDLINE_FLAGS & CMD_WINDOW /*isWindow*/,
+                                errorMessage))
+    {
+        debugf("FAILED: ChooseScreenMode\n");
+        goto WinMain_DestroyWindow;
+    }
+
+    external::InitAVIFile(external::g_IDirectDraw4); // DAT_0076bc84
+    external::Draw_SurfaceLockRect(nullptr);
+
+    InitGameFunctions(external::g_ExeName);
+    //external::InitGameFunctions(external::g_ExeName);
+    if (!external::g_GameFunctions_ISINIT) {
+        debugf("FAILED: SetGameFunctions\n");
+        goto WinMain_DestroyWindow;
+    }
+
+    #pragma region ////// INIT / LOOP / CLEANUP //////
+
+    if (external::g_GameFunctions.Init != nullptr) {
+        ////// GAME INIT //////
+        if (!external::g_GameFunctions.Init()) {
+            debugf("FAILED: g_GameFunctions.Init()\n");
+            external::g_GameFunctions.Init    = nullptr;
+            external::g_GameFunctions.Update  = nullptr;
+            external::g_GameFunctions.Cleanup = nullptr;
+            goto WinMain_DestroyWindow; // (optional, control flow already takes us there)
+        }
+    }
+    else {
+        debugf("FAILED: g_GameFunctions.Init == nullptr\n");
+    }
+
+    if (external::g_GameFunctions.Update != nullptr) {
+        float ellapsed = 1.0f; // ellapsed game time units since last update
+        unsigned int lastTime = external::timeGetTime();
+
+        ////// GAME LOOP //////
+        while (!external::g_IsClosing) {
+            external::BOOL_0076bb4c = 0;
+            external::BOOL_0076bb50 = 0;
+            external::BOOL_0076bb54 = 0;
+            external::g_RightButtonDoubleClicked = 0;
+            external::HandleMessageQueue();
+
+            if (external::g_CMDLINE_FLAGS & CMD_FULLSCREEN)
+                external::g_IsFocused = TRUE;
+
+            external::UpdateKeyboardState();
+            external::UpdateMousePosition();
+
+            if (!external::g_GameFunctions.Update(ellapsed)) {
+                debugf("FAILED: g_GameFunctions.Update(float)\n");
+                external::g_IsClosing = TRUE;
+            }
+            
+            external::UpdateDirect3DRM();
+            external::DDraw_Render();
+
+            external::g_CMDLINE_FLAGS &= ~CMD_D3DRMUPDATED /*~0x1*/ /*0xfffffffe*/;
+            if (external::g_CMDLINE_FLAGS & CMD_FPSLOCK30) {
+                ellapsed = (25.0f / 30.0f) /*0.8333333f*/;
+            }
+            else if (external::g_CMDLINE_FLAGS & CMD_NOFPSLOCK) {
+                ellapsed = 0.0;
+                lastTime = external::timeGetTime();
+            }
+            else if (external::g_FPSLOCK_VSYNC != 0.0f) {
+                ellapsed = external::g_FPSLOCK_VSYNC;
+                lastTime = external::timeGetTime();
+            }
+            else {
+                unsigned int currentTime = external::timeGetTime();
+
+                ellapsed = (float)(unsigned long long)(currentTime - lastTime) * 0.025f /*(25.0f / 1000.0f)*/;
+                lastTime = currentTime;
+                // // what the hell is this??
+                // if ((ushort)((ushort)(fpsSync < 3.0) << 8 | (ushort)(fpsSync == 3.0) << 0xe) == 0) {
+                // 	fpsSync = 3.0;
+                // }
+                // REAALLLY!???
+                if (ellapsed > 3.0f)
+                    ellapsed = 3.0f;
+            }
+        }
+    }
+    else {
+        debugf("FAILED: g_GameFunctions.Update == nullptr\n");
+    }
+
+    if (external::g_GameFunctions.Cleanup != nullptr) {
+        ////// GAME CLEANUP //////
+        external::g_GameFunctions.Cleanup();
+    }
+    else {
+        debugf("FAILED: g_GameFunctions.Cleanup == nullptr\n");
+    }
+
+    #pragma endregion
+
+
+WinMain_DestroyWindow:
+    external::CleanupDirectDraw();
+    ::DestroyWindow(external::g_hWnd);
+
+WinMain_Cleanup:
+    external::CleanupDirectInput();
+
+    external::ReservedPool_CFGProperty___Cleanup();
+    //CFG::Pool.Cleanup();
+
+    external::logf_removed(nullptr);
+
+    external::Scan_Cleanup();
+    external::Scan_WriteDataDirList();
+
+
+    /// DEBUG:
+    //::CoUninitialize();
+
+    return 0;
+}
+
+#pragma endregion
+
+
 
 #pragma endregion

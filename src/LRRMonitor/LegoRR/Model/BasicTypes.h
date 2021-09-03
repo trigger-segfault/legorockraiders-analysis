@@ -1,11 +1,12 @@
 #pragma once
 
+#include "../../framework.h"
+
 
 #pragma pack(push, 1)
 
 namespace lego {
-
-#pragma region Colour
+#pragma region Colour Types
 
 struct ColourRGBI
 {
@@ -82,7 +83,7 @@ static_assert(sizeof(ColourRGBAPacked) == 0x4, "");
 #pragma endregion
 
 
-#pragma region Geometry
+#pragma region Geometry Types
 
 //struct RenderStateItem
 //{
@@ -243,71 +244,6 @@ struct LTRBRect2F
 static_assert(sizeof(LTRBRect2F) == 0x10, "");
 
 #pragma endregion
+} /* namespace lego */
 
-
-#pragma region D3D Geometry
-
-//TD3DRMMatrix4D
-//struct Matrix4F
-//{
-//	/*00,40*/ float values[4][4];
-//	/*40*/
-//};
-//TD3DRMMatrix4D
-typedef float Matrix4F[4][4];
-static_assert(sizeof(Matrix4F) == 0x40, "");
-
-//TD3DRMQuaternion
-struct Quaternion3F
-{
-	/*00,4*/ float s;
-	/*04,c*/ Vector3F v;
-	/*10*/
-};
-static_assert(sizeof(Quaternion3F) == 0x10, "");
-
-//TD3DRMRay
-struct Ray3F
-{
-	/*00,c*/ Vector3F dir;
-	/*0c,c*/ Vector3F pos;
-	/*18*/
-};
-static_assert(sizeof(Ray3F) == 0x18, "");
-
-//TD3DRMBox
-struct Box3F
-{
-	/*00,c*/ Vector3F min;
-	/*0c,c*/ Vector3F max;
-	/*18*/
-};
-static_assert(sizeof(Box3F) == 0x18, "");
-
-//TD3DHVertex
-struct D3DHVertex
-{
-	/*00,4*/ unsigned int dwFlags; // Homogeneous clipping flags
-	/*04,4*/ float hx;
-	/*08,4*/ float hy;
-	/*0c,4*/ float hz;
-	/*10*/
-};
-static_assert(sizeof(D3DHVertex) == 0x10, "");
-
-//TD3DTLVertex
-struct D3DTLVertex
-{
-	/*00,4*/ float sx; // Screen coordinates
-	/*04,4*/ float sy;
-	/*08,4*/ float sz;
-	/*0c,4*/ float rhw; // Reciprocal of homogeneous w
-	/*10*/
-};
-static_assert(sizeof(D3DTLVertex) == 0x10, "");
-
-#pragma endregion
-
-}
 #pragma pack(pop)
-

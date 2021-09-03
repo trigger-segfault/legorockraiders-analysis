@@ -7,8 +7,10 @@
 //#define defGlob(symbol, cast, address) symbol cast address
 //#define defFunc(symbol, cast, address) symbol cast address
 
-#define defVar(ADDR, TYPE, NAME, ...) volatile TYPE (& NAME) __VA_ARGS__ = *(std::remove_reference_t<decltype(NAME)>*)ADDR
-#define defFun(ADDR, RETURN, CONV, NAME, ...) RETURN (CONV* NAME)( __VA_ARGS__ ) = *(decltype(NAME))ADDR
+#define defVar(ADDR, TYPE, NAME, ...) \
+	/*volatile*/ TYPE (& NAME) __VA_ARGS__ = *(std::remove_reference_t<decltype(NAME)>*)ADDR
+#define defFun(ADDR, RETURN, CONV, NAME, ...) \
+	RETURN (CONV* NAME)( __VA_ARGS__ ) = *(decltype(NAME))ADDR
 //#define defCdecl(ADDR, RETURN, NAME, ...) RETURN (__cdecl* NAME) __VA_ARGS__ = *(decltype(NAME))ADDR;
 #else
 #pragma once
@@ -18,8 +20,24 @@
 //#define defGlob(symbol, cast, address) extern symbol
 //#define defFunc(symbol, cast, address) extern symbol
 
-#define defVar(ADDR, TYPE, NAME, ...) /* ADDR */ extern volatile TYPE (& NAME) __VA_ARGS__ 
-#define defFun(ADDR, RETURN, CONV, NAME, ...) /* ADDR */ extern RETURN (CONV* NAME)( __VA_ARGS__ )
+//#define defVar(ADDR, TYPE, NAME, ...) /* ADDR */ extern volatile TYPE (& NAME) __VA_ARGS__ 
+//#define defFun(ADDR, RETURN, CONV, NAME, ...) /* ADDR */ extern RETURN (CONV* NAME)( __VA_ARGS__ )
+
+#define defVar(ADDR, TYPE, NAME, ...) /* <LegoRR.exe @ ##ADDR## > */ \
+	extern /*volatile*/ TYPE (& NAME) __VA_ARGS__
+
+
+#define defFun(ADDR, RETURN, CONV, NAME, ...)  /* <LegoRR.exe @ ##ADDR## > */ \
+	extern RETURN (CONV* NAME)( __VA_ARGS__ )
+
+
+#define idefVar(ADDR, TYPE, NAME, ...) /* <LegoRR.exe @ ##ADDR## > */ \
+	extern TYPE (& NAME) __VA_ARGS__
+
+
+#define idefFun(ADDR, RETURN, CONV, NAME, ...)  /* <LegoRR.exe @ ##ADDR## > */ \
+	RETURN (CONV* NAME)( __VA_ARGS__ )
+
 //#define defCdecl(ADDR, RETURN, NAME, ...) extern RETURN (__cdecl* NAME) __VA_ARGS__ ;
 #endif
 
@@ -28,6 +46,7 @@
 //#define defFunc(symbol, cast, address) symbol cast address
 
 #include "Model.h"
+#include "../Common.h"
 #include <type_traits>
 
 using namespace lego;
@@ -38,18 +57,545 @@ using namespace lego;
 
 //#pragma warning disable format
 //namespace lego {
-namespace external {
+namespace external
+{//<---
 #pragma region Externals
 
+defFun(0x00452880, LiveObject*, __cdecl, Message_GetPrimarySelectedUnit, void);
+defFun(0x004528b0, unsigned int, __cdecl, Message_GetNumSelectedUnits, void);
+
+defFun(0x0044a5d0, void, __cdecl, LiveObject_FPMove, LiveObject* liveObj, int forward, int strafe, float rotate);
+
+
+defFun(0x004896b0, void, __cdecl, InitSharedFileBuffers, void);
+defFun(0x0048b620, BOOL, __cdecl, Registry_QueryValueOnLM, const char* key, const char* valueName, RegistryType valueType, void* out_buffer, unsigned int bufferSize);
+
+
+defFun(0x0047f050, BOOL, __cdecl, InitDirectInput, void);
+defFun(0x0047c430, void, __cdecl, InitDirectDraw, HWND hWnd);
+defFun(0x00488e10, void, __cdecl, InitSoundSystem, BOOL nosound);
+defFun(0x0049d2f0, BOOL, __cdecl, ChooseScreenMode, BOOL showDialog, BOOL isDebug, BOOL isBest, BOOL isWindow, const char* errorMessage);
+defFun(0x0047ef40, void, __cdecl, InitAVIFile, IDirectDraw4* ddraw4);
+defFun(0x0047f1b0, void, __cdecl, UpdateKeyboardState, void);
+defFun(0x0047f2d0, void, __cdecl, UpdateMousePosition, void);
+defFun(0x0047cb90, void, __cdecl, DDraw_Render, void);
+defFun(0x0047cfb0, void, __cdecl, CleanupDirectDraw, void);
+defFun(0x0047f290, void, __cdecl, CleanupDirectInput, void);
+defFun(0x00484f50, void, __cdecl, logf_removed, const char* message, ...);
+defFun(0x00486140, void, __cdecl, Draw_SurfaceLockRect, const Rect2F* surfaceRect);
+defFun(0x0041f950, BOOL, __cdecl, InitGameFunctions, const char* gameName);
+
+
+#pragma region StringUtils.c
+
+defFun(0x00477700, int, __cdecl, stringSplit, char* input, char** out_parts, const char* delimiter);
+// Similar functionality to stringSplit, but with minor differences.
+// Used by LightWave for parsing script file tokens.
+defFun(0x00477770, int, __cdecl, whitespaceSplit, char* input, char** out_parts);
+// Whether this is the real C runtime library ::_strdup or not is unclear, so here it is anyway.
+defFun(0x00477810, char*, __cdecl, _strdup, const char* strSource);
+defFun(0x00477850, char*, __cdecl, formatText, const char* text, ...);
+/// NOTE: accepts const, and returns non-const. This is simply to avoid overloading the function pointer
+defFun(0x004778d0, char*, __cdecl, strstri, const char* str, const char* strSearch);
+//defFun(0x004778d0, char*, __cdecl, strstri, char* str, const char* strSearch);
+//defFun(0x004778d0, const char*, __cdecl, strstri, const char* str, const char* strSearch);
+
+defFun(0x00477930, unsigned int, __cdecl, hash_string, const char* str, BOOL bIgnoreBlanks, BOOL bIgnoreCase);
+defFun(0x004779d0, BOOL3, __cdecl, parseBoolLiteral, const char* str);
+
+#pragma endregion
+
+
+#pragma region Main.c
+
+// Name has been changed from "WinMain" to avoid any compiler headaches.
+defFun(0x00477a60, int, APIENTRY, LegoRR_WinMain, _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow);
+// Sets the "-nm" commandline option only if the "-ftm" option is not set.
+//  (The "-ftm" option is intended to be set when running on Voodoo2-based graphics cards, as is shown by CLGen.exe)
+// This is called when Lego.cfg/Lego*::Main::TextureUsage(units in pixels) is valid and <= available video memory.
+defFun(0x00477e90, void, __cdecl, Main_DisableTextureManagement_NonVoodoo2, void);
+defFun(0x00477eb0, void, __cdecl, ParseCmdlineFlags, const char* fullCmdLine, BOOL* out_nosound, BOOL* out_insistOnCD);
+defFun(0x004781f0, void, __cdecl, Main_UpdateAndRender__004781f0, BOOL doFillSurface);
+defFun(0x00478230, FeatureFlags, __cdecl, GetFeatureFlags, void);
+defFun(0x00478240, int, __cdecl, Setup_GetDeviceBitsPerPixel, void);
+defFun(0x00478260, void, __cdecl, UpdateDirect3DRM, void);
+defFun(0x00478290, BOOL, __cdecl, Main_SetGameFunctions, GameFunctions* gameFuncs);
+// WINMM.DLL::timeGetTime
+defFun(0x004782c0, DWORD, __stdcall, timeGetTime, void);
+defFun(0x004782d0, BOOL, __cdecl, Win_ShouldHandleMessage, MSG* msg);
+defFun(0x00478300, void, __cdecl, HandleMessageQueue, void);
+defFun(0x00478370, void, __cdecl, Win_ShowGameWindow, BOOL isFullScreen, int windowedX, int windowedY, int screenWidth, int screenHeight);
+defFun(0x00478490, BOOL, __cdecl, Main_Direct3DRMCreate, const DeviceMode* device, IDirectDraw* ddraw1, IDirectDrawSurface4* ddSurface4, BOOL isFullScreen);
+defFun(0x004785d0, void, __cdecl, Win_AdjustMainWindowedRect, LPRECT lpRect);
+defFun(0x004785f0, void, __cdecl, Draw_SetDirectXGraphicsQuality, GraphicsQuality quality, BOOL dither, BOOL filter, BOOL mipmap, BOOL linearmipmap, BOOL blend, BOOL sort);
+
+defFun(0x00478690, BOOL, __cdecl, Win_SetMainWindowTitle, LPCSTR title);
+defFun(0x004786b0, BOOL, __cdecl, Win_CreateMainWindow, HINSTANCE hInstance);
 defFun(0x00478780, LRESULT, __cdecl, WindowProc_FullScreen, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 defFun(0x00478980, LRESULT, __cdecl, WindowProc_Windowed,	HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+defFun(0x00478b40, LRESULT, CALLBACK, Win_WindowProc,		HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+defFun(0x00478b90, void, __cdecl, Draw_SetRenderState,		unsigned int renderStateType, unsigned int renderStateValue);
+defFun(0x00478c00, void, __cdecl, Draw_CleanupRenderStates, void);
+defFun(0x00478c40, BOOL, __cdecl, SFX_UNKCallsMixer__00478c40, float param_1, float param_2);
+defFun(0x00478c60, BOOL, __cdecl, FUN_00478c60, float* param_1, float* param_2);
+defFun(0x00478c80, BOOL, __cdecl, SFX_UnkMixer__00478c80, float* param_1, float* param_2, BOOL param_3);
+
+#pragma endregion
+
+
+#pragma region CFG.c
+
+/// PUBLIC:
+defFun(0x004790b0, void, __cdecl,			ReservedPool_CFGProperty___Init, void);
+defFun(0x004790e0, void, __cdecl,			ReservedPool_CFGProperty___Cleanup, void);
+defFun(0x00479120, CFGRoot*, __cdecl,		CFG_Open, const char* filename);
+defFun(0x00479210, const char*, __cdecl,	CFG_JoinPath, const char* keyPath1, ...);
+defFun(0x004792b0, const CFGProperty*, __cdecl,	CFG_GetChildren, const CFGProperty* prop, const char* keyPath);
+defFun(0x004792e0, const CFGProperty*, __cdecl,	CFG_NextFlat, const CFGProperty* prop);
+defFun(0x00479310, char*, __cdecl,			CFG_CopyString, const CFGProperty* prop, const char* keyPath);
+defFun(0x00479370, const char*, __cdecl,	CFG_ReadString, const CFGProperty* prop, const char* keyPath);
+defFun(0x00479390, BOOL3, __cdecl,			CFG_ReadBool, const CFGProperty* prop, const char* keyPath);
+defFun(0x004793d0, float , __cdecl,			CFG_ReadRadians, const CFGProperty* prop, const char* keyPath);
+defFun(0x00479430, float, __cdecl,			CFG_ReadRGBF, const CFGProperty* prop, const char* keyPath, float* out_r, float* out_g, float* out_b);
+defFun(0x00479500, void, __cdecl,			CFG_Close, CFGRoot* root);
+/// INTERNAL:
+defFun(0x00479530, CFGProperty*, __cdecl,	ReservedPool_CFGProperty___Next, CFGProperty* previous);
+defFun(0x00479580, void, __cdecl,			ReservedPool_CFGProperty___Release, CFGProperty* prop);
+/// PUBLIC:
+defFun(0x004795a0, const CFGProperty*, __cdecl,	CFG_GetProperty, CFGProperty* prop, const char* keyPath);
+/// INTERNAL:
+defFun(0x00479750, void, __cdecl,			ReservedPool_CFGProperty___Alloc, void);
+
+#pragma endregion
+
+
+#pragma region Math.c
+
+/// PUBLIC:
+/// RESULT: out_vector = norm({ rand(), rand(), rand() })
+defFun(0x004797c0, Vector3F*, __cdecl, Vector3_Random, Vector3F* out_vector);
+/// RESULT: out_vector = ::D3DRMVectorRotate(out_vector, v, axis, theta)
+defFun(0x004797d0, Vector3F*, __cdecl, Vector3_Rotate, Vector3F* out_vector, const Vector3F* v, const Vector3F* axis, float theta);
+/// RESULT: out_vector = norm(cross_product((c - b), (b - a)))
+defFun(0x004797f0, Vector3F*, __cdecl, Vector3_Norm_CrossProduct_CSubB_BSubA, Vector3F* out_vector, const Vector3F* a, const Vector3F* b, const Vector3F* c);
+defFun(0x004798f0, float10, __cdecl, FUN_004798f0, Vector3F* param_1, Vector3F* param_2, Vector3F* param_3, BOOL param_4);
+defFun(0x00479b60, short, __cdecl, thunk_randomInt16, void);
+defFun(0x00479b70, float, __cdecl, Game_ChooseRandomRange, float rangeMin, float rangeMax);
+/// RESULT: out_vector = a + (norm(b) * (dot_product((c - a), norm(d)) / dot_product(norm(b), norm(d)))
+/// CONDITION: dot_product(norm(b), norm(d)) != 0.0
+defFun(0x00479ba0, BOOL, __cdecl, Vector3_Unk_FUN_00479ba0, Vector3F* out_vector, const Vector3F* a, const Vector3F* b, const Vector3F* c, const Vector3F* d);
+/// RESULT: out_value = dot_product((c - a), d) / dot_product(b, d)
+/// CONDITION: dot_product(b, d) != 0.0
+defFun(0x00479cf0, BOOL, __cdecl, Vector3_SubAC_MulD_Div_DotProductBD, float* out_value, const Vector3F* a, const Vector3F* b, const Vector3F* c, const Vector3F* d);
+/// RESULT: out_vector = a + (b * scalar)
+defFun(0x00479d70, Vector3F*, __cdecl, Vector3_AddScaled, Vector3F* out_vector, const Vector3F* a, const Vector3F* b, float scalar);
+/// RESULT: out_point = a + (b * dot_product((a - c), (perpendicular(d) / dot_product(perpendicular(b), d))))
+/// CONDITION: dot_product(perpendicular(b), d) != 0.0
+defFun(0x00479db0, Point2F*, __cdecl, Vector2_AAdd_BMulDotProduct_ASubC_PerpDDivDotProductBD, Point2F* out_point, const Point2F* a, const Point2F* b, const Point2F* c, const Point2F* d);
+
+defFun(0x00479e40, BOOL, __cdecl, FUN_00479e40, const Point2F* param_1, const Point2F* param_2, const Point2F* param_3, int count);
+
+defFun(0x00479ed0, BOOL, __cdecl, Vector3_CompareUnk1, const Vector3F* a, float scalar, const Vector3F* b, const Vector3F* c);
+/// RESULT: out_matrix = { {
+///                          l[0,0]*r[0,0] + l[0,1]*r[1,0] + l[0,2]*r[2,0] + l[0,3]*r[3,0],
+///                          l[0,0]*r[0,1] + l[0,1]*r[1,1] + l[0,2]*r[2,1] + l[0,3]*r[3,1],
+///                          l[0,0]*r[0,2] + l[0,1]*r[1,2] + l[0,2]*r[2,2] + l[0,3]*r[3,2],
+///                          l[0,0]*r[0,3] + l[0,1]*r[1,3] + l[0,2]*r[2,3] + l[0,3]*r[3,3]
+///                        },{
+///                          l[1,0]*r[0,0] + l[1,1]*r[1,0] + l[1,2]*r[2,0] + l[1,3]*r[3,0],
+///                          l[1,0]*r[0,1] + l[1,1]*r[1,1] + l[1,2]*r[2,1] + l[1,3]*r[3,1],
+///                          l[1,0]*r[0,2] + l[1,1]*r[1,2] + l[1,2]*r[2,2] + l[1,3]*r[3,2],
+///                          l[1,0]*r[0,3] + l[1,1]*r[1,3] + l[1,2]*r[2,3] + l[1,3]*r[3,3]
+///                        },{
+///                          l[2,0]*r[0,0] + l[2,1]*r[1,0] + l[2,2]*r[2,0] + l[2,3]*r[3,0],
+///                          l[2,0]*r[0,1] + l[2,1]*r[1,1] + l[2,2]*r[2,1] + l[2,3]*r[3,1],
+///                          l[2,0]*r[0,2] + l[2,1]*r[1,2] + l[2,2]*r[2,2] + l[2,3]*r[3,2],
+///                          l[2,0]*r[0,3] + l[2,1]*r[1,3] + l[2,2]*r[2,3] + l[2,3]*r[3,3]
+///                        },{
+///                          l[3,0]*r[0,0] + l[3,1]*r[1,0] + l[3,2]*r[2,0] + l[3,3]*r[3,0],
+///                          l[3,0]*r[0,1] + l[3,1]*r[1,1] + l[3,2]*r[2,1] + l[3,3]*r[3,1],
+///                          l[3,0]*r[0,2] + l[3,1]*r[1,2] + l[3,2]*r[2,2] + l[3,3]*r[3,2],
+///                          l[3,0]*r[0,3] + l[3,1]*r[1,3] + l[3,2]*r[2,3] + l[3,3]*r[3,3]
+///                      } }
+/// NOTE: right and left operands are ordered in reverse in the parameter list.
+defFun(0x00479fa0, void, __cdecl, Matrix4_Multiply, Matrix4F out_matrix, const Matrix4F right, const Matrix4F left);
+
+// <https://en.wikipedia.org/wiki/Rotation_matrix#In_three_dimensions>
+// <https://github.com/hharrison/vecmath/blob/master/src/javax/vecmath/Matrix4d.java>
+// <https://github.com/mono/opentk/blob/main/Source/OpenTK/Math/Vector3d.cs>
+// <https://github.com/mono/opentk/blob/3de39a402c2d6d859e39b307c46f4376d2097d8c/Source/Compatibility/Math/Matrix4d.cs>
+
+/// RESULT: out_matrix = { { 1,      0,       0, 0 },
+///                        { 0, cos(t), -sin(t), 0 },
+///                        { 0, sin(t),  cos(t), 0 },
+///                        { 0,      0,       0, 1 } }
+defFun(0x0047a010, void, __cdecl, Matrix4_RotationX, Matrix4F out_matrix, float theta);
+/// RESULT: out_matrix = { {  cos(t), 0, sin(t), 0 },
+///                        {       0, 1,      0, 0 },
+///                        { -sin(t), 0, cos(t), 0 },
+///                        {       0, 0,      0, 1 } }
+defFun(0x0047a060, void, __cdecl, Matrix4_RotationY, Matrix4F out_matrix, float theta);
+/// RESULT: out_matrix = { { cos(t), -sin(t), 0, 0 },
+///                        { sin(t),  cos(t), 0, 0 },
+///                        { 0,            0, 1, 0 },
+///                        { 0,            0, 0, 1 } }
+defFun(0x0047a0b0, void, __cdecl, Matrix4_RotationZ, Matrix4F out_matrix, float theta);
+/// RESULT: out_matrix = { { 1, 0, 0, 0 },
+///                        { 0, 1, 0, 0 },
+///                        { 0, 0, 1, 0 },
+///                        { x, y, z, 1 } }
+defFun(0x0047a100, void, __cdecl, Matrix4_Translation, Matrix4F out_matrix, const Vector3F* vector);
+/// RESULT: out_matrix = { { 1, 0, 0, 0 },
+///                        { 0, 1, 0, 0 },
+///                        { 0, 0, 1, 0 },
+///                        { 0, 0, 0, 1 } }
+defFun(0x0047a130, void, __cdecl, Matrix4_Identity, Matrix4F out_matrix);
+/// RESULT: out_matrix = { { 0, 0, 0, 0 },
+///                        { 0, 0, 0, 0 },
+///                        { 0, 0, 0, 0 },
+///                        { 0, 0, 0, 0 } }
+defFun(0x0047a160, void, __cdecl, Matrix4_Zero, Matrix4F out_matrix);
+/// RESULT: out_matrix = src
+defFun(0x0047a170, void, __cdecl, Matrix4_Copy, Matrix4F out_matrix, const Matrix4F src);
+/// RESULT: out_matrix = { {
+///                          a[0,0]*b[0,0] + a[0,1]*b[1,0] + a[0,2]*b[2,0] + a[0,3]*b[3,0],
+///                          a[0,0]*b[0,1] + a[0,1]*b[1,1] + a[0,2]*b[2,1] + a[0,3]*b[3,1],
+///                          a[0,0]*b[0,2] + a[0,1]*b[1,2] + a[0,2]*b[2,2] + a[0,3]*b[3,2],
+///                          a[0,0]*b[0,3] + a[0,1]*b[1,3] + a[0,2]*b[2,3] + a[0,3]*b[3,3]
+///                        },{
+///                          a[1,0]*b[0,0] + a[1,1]*b[1,0] + a[1,2]*b[2,0] + a[1,3]*b[3,0],
+///                          a[1,0]*b[0,1] + a[1,1]*b[1,1] + a[1,2]*b[2,1] + a[1,3]*b[3,1],
+///                          a[1,0]*b[0,2] + a[1,1]*b[1,2] + a[1,2]*b[2,2] + a[1,3]*b[3,2],
+///                          a[1,0]*b[0,3] + a[1,1]*b[1,3] + a[1,2]*b[2,3] + a[1,3]*b[3,3]
+///                        },{
+///                          a[2,0]*b[0,0] + a[2,1]*b[1,0] + a[2,2]*b[2,0] + a[2,3]*b[3,0],
+///                          a[2,0]*b[0,1] + a[2,1]*b[1,1] + a[2,2]*b[2,1] + a[2,3]*b[3,1],
+///                          a[2,0]*b[0,2] + a[2,1]*b[1,2] + a[2,2]*b[2,2] + a[2,3]*b[3,2],
+///                          a[2,0]*b[0,3] + a[2,1]*b[1,3] + a[2,2]*b[2,3] + a[2,3]*b[3,3]
+///                        },{
+///                          a[3,0]*b[0,0] + a[3,1]*b[1,0] + a[3,2]*b[2,0] + a[3,3]*b[3,0],
+///                          a[3,0]*b[0,1] + a[3,1]*b[1,1] + a[3,2]*b[2,1] + a[3,3]*b[3,1],
+///                          a[3,0]*b[0,2] + a[3,1]*b[1,2] + a[3,2]*b[2,2] + a[3,3]*b[3,2],
+///                          a[3,0]*b[0,3] + a[3,1]*b[1,3] + a[3,2]*b[2,3] + a[3,3]*b[3,3]
+///                      } }
+/*void __cdecl Matrix4_Multiply(Matrix4F out_matrix, const Matrix4F a, const Matrix4F b)
+{
+    Matrix4_Zero(out_matrix);
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            for (int k = 0; k < 4; k++) {
+                out_matrix[i][j] += a[k][j] * b[i][k];
+            }
+        }
+    }
+}
+def m4(): return [[0]*4 for _ in range(4)]
+def mult(a,b):
+    o = m4()
+    for i in range(4):
+        for j in range(4):
+            for k in range(4):
+                o[i][j] += a[k][j] * b[i][k]
+    return o
+                */
+/* <https://github.com/mono/opentk/blob/3de39a402c2d6d859e39b307c46f4376d2097d8c/Source/Compatibility/Math/Matrix4d.cs#L712-L731>
+
+        public static void Mult(ref Matrix4d left, ref Matrix4d right, out Matrix4d result)
+        {
+            result = new Matrix4d();
+            result.M11 = left.M11 * right.M11 + left.M12 * right.M21 + left.M13 * right.M31 + left.M14 * right.M41;
+            result.M12 = left.M11 * right.M12 + left.M12 * right.M22 + left.M13 * right.M32 + left.M14 * right.M42;
+            result.M13 = left.M11 * right.M13 + left.M12 * right.M23 + left.M13 * right.M33 + left.M14 * right.M43;
+            result.M14 = left.M11 * right.M14 + left.M12 * right.M24 + left.M13 * right.M34 + left.M14 * right.M44;
+            result.M21 = left.M21 * right.M11 + left.M22 * right.M21 + left.M23 * right.M31 + left.M24 * right.M41;
+            result.M22 = left.M21 * right.M12 + left.M22 * right.M22 + left.M23 * right.M32 + left.M24 * right.M42;
+            result.M23 = left.M21 * right.M13 + left.M22 * right.M23 + left.M23 * right.M33 + left.M24 * right.M43;
+            result.M24 = left.M21 * right.M14 + left.M22 * right.M24 + left.M23 * right.M34 + left.M24 * right.M44;
+            result.M31 = left.M31 * right.M11 + left.M32 * right.M21 + left.M33 * right.M31 + left.M34 * right.M41;
+            result.M32 = left.M31 * right.M12 + left.M32 * right.M22 + left.M33 * right.M32 + left.M34 * right.M42;
+            result.M33 = left.M31 * right.M13 + left.M32 * right.M23 + left.M33 * right.M33 + left.M34 * right.M43;
+            result.M34 = left.M31 * right.M14 + left.M32 * right.M24 + left.M33 * right.M34 + left.M34 * right.M44;
+            result.M41 = left.M41 * right.M11 + left.M42 * right.M21 + left.M43 * right.M31 + left.M44 * right.M41;
+            result.M42 = left.M41 * right.M12 + left.M42 * right.M22 + left.M43 * right.M32 + left.M44 * right.M42;
+            result.M43 = left.M41 * right.M13 + left.M42 * right.M23 + left.M43 * right.M33 + left.M44 * right.M43;
+            result.M44 = left.M41 * right.M14 + left.M42 * right.M24 + left.M43 * right.M34 + left.M44 * right.M44;
+        }
+
+BOOL __cdecl Vector3_CompareUnk1(Vector3F* a, float scalar, Vector3F* b, Vector3F* c)
+{
+    float fVar1;
+    float fVar2;
+    float fVar3;
+    float fVar4;
+
+    fVar1 = b->y - a->y;
+    fVar4 = b->z - a->z;
+    fVar3 = b->x - a->x;
+    fVar2 = (c->z + c->z) * fVar4 + (c->y + c->y) * fVar1 + (c->x + c->x) * fVar3;
+    fVar1 = fVar2 * fVar2 - ((fVar3 * fVar3 + fVar4 * fVar4 + fVar1 * fVar1) * 4.0 - scalar * scalar);
+    if ((ushort)((ushort)(fVar1 < 0.0) << 8 | (ushort)(fVar1 == 0.0) << 0xe) == 0) {
+        return 1;
+    }
+    return 0;
+}*/
+/*void Matrix4_Copy(float* matrix_a, float* matrix_b) {
+
+    float* pfVar1;
+    int iVar2;
+    int iVar3;
+
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+
+        }
+    }
+    iVar3 = 4;
+    pfVar1 = matrix_a;
+    do {
+        iVar2 = 4;
+        do {
+            *pfVar1 = *(float*)((int)((int)matrix_b - (int)matrix_a) + (int)pfVar1);
+            pfVar1 = pfVar1 + 1;
+            iVar2 += -1;
+        } while (iVar2 != 0);
+        iVar3 += -1;
+    } while (iVar3 != 0);
+    return;
+}*/
+/*
+out_matrix = { { 1, 0, 0, 0 },
+               { 0, 1, 0, 0 },
+               { 0, 0, 1, 0 },
+               { x, y, z, 1 } }
+
+out_matrix = { { cos(t), -sin(t), 0, 0 },
+               { sin(t),  cos(t), 0, 0 },
+               {      0,       0, 1, 0 },
+               {      0,       0, 0, 1 } }
+
+out_matrix = { {  cos(t), 0, sin(t), 0 },
+               {       0, 1,      0, 0 },
+               { -sin(t), 0, cos(t), 0 },
+               {       0, 0,      0, 1 } }
+
+out_matrix = { { 1, 0, 0, 0 },
+               { 0, 1, 0, 0 },
+               { 0, 0, 1, 0 },
+               { 0, 0, 0, 1 } }
+
+out_matrix = { { 1,      0,       0, 0 },
+               { 0, cos(t), -sin(t), 0 },
+               { 0, sin(t),  cos(t), 0 },
+               { 0,      0,       0, 1 } }
+*/
+//defFun(0x0048e430, short, __cdecl, randomInt16, void);
+
+/// RESULT: out_point = a + (b * dot_product((a - c), (perpendicular(d) / dot_product(perpendicular(b), d))))
+/// CONDITION: dot_product(perpendicular(b), d) != 0.0
+/*
+Point2F* __cdecl Vector2_AAdd_BMulDotProduct_ASubC_PerpDDivDotProductBD(Point2F* out_point, const Point2F* a, const Point2F* b, const Point2F* c, const Point2F* d)
+{
+    // value = dot_product(perpendicular(b), d)
+    float value = (-b->y * d->x) + (b->x * d->y);
+    if (value != 0.0) {
+        // value = dot_product((a - c), (perpendicular(d) / value))
+        value = (a->x - c->x) * -(d->y / value) + (d->x / value) * (a->y - c->y);
+        // out_point = a + (b * value)
+        /// RESULT: out_point = a + (b * dot_product((a - c), (perpendicular(d) / dot_product(perpendicular(b), d))))
+        /// CONDITION: dot_product(perpendicular(b), d) != 0.0
+        out_point->x = a->x + (b->x * value);
+        out_point->y = a->y + (b->y * value);
+        return out_point;
+    }
+    return nullptr;
+    float fVar1;
+
+    fVar1 = -b->y * d->x - -b->x * d->y;
+    if (fVar1 != 0.0) {
+        fVar1 = (a->x - c->x) * -(d->y / fVar1) + (d->x / fVar1) * (a->y - c->y);
+        out_point->x = fVar1 * b->x;
+        out_point->y = fVar1 * b->y;
+        out_point->x = a->x + out_point->x;
+        out_point->y = out_point->y + a->y;
+        return out_point;
+    }
+    return NULL;
+}*/
+/*Vector3F* __cdecl Vector3_Norm_CrossProduct_CSubB_BSubA_impl(Vector3F* out_vector, const Vector3F* a, const Vector3F* b, const Vector3F* c)
+{
+    float fVar1;
+    float fVar2;
+    float fVar3;
+    float fVar4;
+    float fVar5;
+    float fVar6;
+    float fVar7;
+
+    // out_vector = norm(cross_product((c - b), (b - a)))
+    Vector3F vec = {
+        (c->z - b->z)*(b->y - a->y) - (c->y - b->y)*(b->z - a->z),
+        (c->x - b->x)*(b->z - a->z) - (c->z - b->z)*(b->x - a->x),
+        (c->y - b->y)*(b->x - a->x) - (c->x - b->x)*(b->y - a->y)
+    };
+    float value = 1.0f / std::sqrt(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z);
+    out_vector->x = vec.x * value;
+    out_vector->y = vec.y * value;
+    out_vector->z = vec.z * value;
+    return Vector3_Normalize(&vector);
+    fVar2 = (c->x - b->x)*(b->z - a->z) - (c->z - b->z)*(b->x - a->x);
+    fVar4 = (c->y - b->y)*(b->x - a->x) - (c->x - b->x)*(b->y - a->y);
+    fVar3 = (c->z - b->z)*(b->y - a->y) - (c->y - b->y)*(b->z - a->z);
+
+    // norm(
+
+    fVar1 = c->x - b->x;
+    fVar4 = b->x - a->x;
+    fVar3 = c->y - b->y;
+    fVar5 = c->z - b->z;
+    fVar6 = b->y - a->y;
+    fVar7 = b->z - a->z;
+    fVar2 = fVar1 * fVar7 - fVar5 * fVar4;
+    fVar4 = fVar3 * fVar4 - fVar1 * fVar6;
+    fVar3 = fVar5 * fVar6 - fVar3 * fVar7;
+    fVar1 = 1.0f / std::sqrt(fVar3 * fVar3 + fVar4 * fVar4 + fVar2 * fVar2);
+    out_vector->x = fVar1 * fVar3;
+    out_vector->y = fVar1 * fVar2;
+    out_vector->z = fVar1 * fVar4;
+    return out_vector;
+}*/
+
+#pragma endregion
+
+
+#pragma region Font.c
+
+
+defFun(0x0047a1a0, ImageFont*, __cdecl, Image_LoadFont, const char* filename);
+// ...
+
+#pragma endregion
+
+
+#pragma region Files.c
+
+/// PUBLIC:
+defFun(0x0047f3f0, void, __cdecl, InitFileSystem, const char* gameName, BOOL insistOnCD, const char* regKey);
+/// INTERNAL:
+defFun(0x0047f7b0, BOOL, __cdecl, Path_CheckForCDROM, void);
+defFun(0x0047f850, BOOL, __cdecl, Path_SetDataDir, const char* dirname);
+/// INTERNAL: But also visible to WAD.c
+defFun(0x0047f8c0, void, __cdecl, File__logf, const char* format, ...);
+defFun(0x0047f900, int, __cdecl, File_OpenWAD, const char* filename);
+/// PUBLIC:
+defFun(0x0047f920, BOOL, __cdecl, Path_GetCDROMDataPath, char* out_filepath, const char* filename);
+defFun(0x0047f960, int, __cdecl, Path_MakeDataSubdir, const char* dirname);
+defFun(0x0047f9a0, FileStream*, __cdecl, File_Open, const char* filename, const char* mode);
+defFun(0x0047fb10, int, __cdecl, File_Seek, FileStream* file, long offset, int origin);
+defFun(0x0047fc40, size_t, __cdecl, File_Read, void* out_buffer, size_t size, size_t count, FileStream* file);
+defFun(0x0047fd10, size_t, __cdecl, File_Write, const void* in_buffer, size_t size, size_t count, FileStream* file);
+defFun(0x0047fd80, size_t, __cdecl, File_Close, FileStream* file);
+defFun(0x0047fdd0, long, __cdecl, File_Tell, FileStream* file);
+defFun(0x0047fe20, BOOL, __cdecl, File_Exist, const char* filename);
+defFun(0x0047fee0, int, __cdecl, File_GetC, FileStream* file);
+defFun(0x0047ff60, int, __cdecl, File_GetLength, FileStream* file);
+/// INTERNAL:
+defFun(0x0047ffa0, char*, __cdecl, File_GetS_WAD__internal, char* out_str, int num, FileStream* file);
+/// PUBLIC:
+defFun(0x00480000, char*, __cdecl, File_GetS, char* out_str, int num, FileStream* file);
+defFun(0x00480070, char*, __cdecl, File_PrintF, FileStream* file, const char* format, ...);
+/// INTERNAL:
+defFun(0x004800e0, FileLocation, __cdecl, File_GetLocation, FileStream* file);
+defFun(0x004800f0, FileLocation, __cdecl, File_FindLocation, const char* filename, const char* mode);
+defFun(0x00480160, BOOL, __cdecl, File_OpenWADEntry, FileWADStream* wadStream, const char* filename);
+defFun(0x00480190, FileStream*, __cdecl, File__New, FileLocation location);
+defFun(0x004801f0, void*, __cdecl, File__malloc, size_t size);
+defFun(0x00480200, void, __cdecl, File__free, void* ptr);
+defFun(0x00480210, void, __cdecl, File__Dispose, FileStream* file);
+defFun(0x00480280, const char*, __cdecl, Path_StripDataDir, const char* filename);
+/// PUBLIC:
+defFun(0x00480310, char*, __cdecl, File_GetS_StripLineEnd, char* out_str, int num, FileStream* file);
+defFun(0x00480360, unsigned char*, __cdecl, File_ReadAllBytes, const char* filename, unsigned int* out_length);
+defFun(0x00480380, void*, __cdecl, File_ReadAll, const char* filename, unsigned int* out_length, BOOL isBinary);
+defFun(0x00480430, int, __cdecl, File_BufferOpen, const char* filename, unsigned int* out_length);
+defFun(0x004804e0, const char*, __cdecl, Path_JoinDataDir, const char* filename);
+defFun(0x00480570, void, __cdecl, File_SetOpenCallback, FileOpenCallback callback, void* lpValue);
+defFun(0x00480590, void, __cdecl, Scan_ReadDataDirList, const char* listFilename);
+defFun(0x00480650, void, __cdecl, Scan_Directory, const char* dirname);
+defFun(0x00480830, int, __cdecl, Scan_File, const char* filename);
+
+#pragma endregion
+
+
+#pragma region Scan.c
+
+defFun(0x0048b520, void, __cdecl, InitFileScanning, void);
+defFun(0x0048b540, void, __cdecl, Scan_SetIsFullScreen, BOOL isFullScreen);
+defFun(0x0048b550, void, __cdecl, Scan_Cleanup, void);
+defFun(0x0048b5b0, void, __cdecl, Scan_WriteDataDirList, void);
+
+#pragma endregion
+
+#pragma region WAD.c
+
+/// INTERNAL:
+// NOTE: This is not a CRT function, it's again, DDI(?) implementing a
+// function that you'd commonly expect to see used.
+// Read null-terminated string from file. (DOES NOT CHECK FOR EOF!!)
+// always returns true.
+defFun(0x0048b760, BOOL, __cdecl, WAD_freadstr, FILE* stream, char* out_str);
+/// PUBLIC:
+defFun(0x0048b7a0, int, __cdecl, WAD_Open, const char* filename);
+/// INTERNAL:
+defFun(0x0048bfa0, WADFile*, __cdecl, WAD_Get, int wadIndex);
+defFun(0x0048bfb0, unsigned int, __cdecl, WAD_GetEntrySize, int wadIndex, int entryIndex);
+defFun(0x0048bfd0, unsigned int, __cdecl, WAD_GetEntryPackedSize, int wadIndex, int entryIndex);
+defFun(0x0048bff0, int, __cdecl, WAD_Stream__Next, void);
+/// PUBLIC:
+defFun(0x0048c010, int, __cdecl, WAD_FindEntry, const char* filename, int opt_wadIndex);
+/// INTERNAL:
+defFun(0x0048c060, int, __cdecl, WAD_FindEntryInWAD, const char* filename, int wadIndex);
+defFun(0x0048c0c0, int, __cdecl, WAD__Next, void);
+defFun(0x0048c100, int, __cdecl, WAD_StreamOpenInWAD, const char* filename, int wadIndex);
+/// PUBLIC:
+defFun(0x0048c230, int, __cdecl, WAD_StreamOpen, const char* filename, int opt_wadIndex);
+defFun(0x0048c280, void, __cdecl, WAD_StreamClose, int streamIndex);
+/// INTERNAL:
+defFun(0x0048c2b0, void*, __cdecl, WAD_StreamGetData__internal, int streamIndex);
+defFun(0x0048c2d0, unsigned int, __cdecl, WAD_StreamGetSize, int streamIndex);
+defFun(0x0048c2f0, void*, __cdecl, WAD_StreamGetData, int streamIndex);
+
+#pragma endregion
+
+
+#pragma region RNC.c
+
+/// PUBLIC:
+defFun(0x0049ca80, unsigned int, __cdecl, Rnc_Decompress, void* srcBuffer, void** out_dstBuffer);
+/// INTERNAL:
+// short return values are RncResult enums
+defFun(0x0049cb00, short, __cdecl, Rnc_Decompress__internal, void* srcBuffer, void* dstBuffer);
+defFun(0x0049cba0, short, __cdecl, Rnc_Decompress_Method1, void* srcBuffer, void* dstBuffer);
+defFun(0x0049cd20, short, __cdecl, Rnc_Decompress_Method2, void* srcBuffer, void* dstBuffer);
+defFun(0x0049cf30, void*, __cdecl, Rnc_BitStreamInit, void* srcBuffer, void* dstBuffer);
+defFun(0x0049cf80, unsigned int, __cdecl, Rnc_BitStreamAdvance, unsigned char bits);
+defFun(0x0049cff0, int, __cdecl, Rnc_FUN_0049cff0, unsigned char bits);
+defFun(0x0049d050, void, __cdecl, Rnc_ReadHuffmanTable, HuffmanLeaf* table, unsigned char bits);
+defFun(0x0049d0c0, unsigned int, __cdecl, Rnc_ReadHuffman, HuffmanLeaf* table);
+defFun(0x0049d130, unsigned int, __cdecl, Rnc_FUN_0049d130, void);
+defFun(0x0049d170, int, __cdecl, Rnc_FUN_0049d170, void);
+defFun(0x0049d210, void, __cdecl, Rnc_FUN_0049d210, HuffmanLeaf* table, unsigned char bits);
+defFun(0x0049d250, void, __cdecl, Rnc_FUN_0049d250, HuffmanLeaf* table, unsigned char bits);
+defFun(0x0049d2c0, unsigned int, __cdecl, Rnc_MirrorBits, unsigned int value, unsigned char bits);
+
+#pragma endregion
+
+
 
 
 defFun(0x0042e7e0, BOOL, __cdecl,	Game_GetObjectByName, const char* objName, lego::ObjectType* out_objType, int* out_objIndex, lego::ResourceData** out_resData);
 defFun(0x004314a0, LevelSurfaceMap*, __cdecl,	GetSurfaceMap, void);
 defFun(0x00450390, BOOL, __cdecl, FUN_00450390, LevelSurfaceMap* surfMap, int x, int y, void* param_4);
 defFun(0x0048e430, short, __cdecl, randomInt16, void);
-defFun(0x00479b70, float, __cdecl, Game_ChooseRandomRange, float rangeMin, float rangeMax);
 defFun(0x004388d0, LiveObject*, __cdecl, Game_CreateLiveResourceObject, ResourceData* resData, ObjectType objType, int objIndex, int objLevel, float x, float y, float theta);
 
 /*defFun(0x004297b0, long double, __cdecl, Level_GetTrainTimeLD, void);
@@ -58,6 +604,8 @@ defFun(0x004297b0, float, __cdecl, Level_GetTrainTime, void);
 /*defFun(0x0041fa70, long double, __cdecl, Game_GetGameSpeedLD, void);
 defFun(0x0041fa70, double, __cdecl, Game_GetGameSpeedD, void);*/
 defFun(0x0041fa70, float, __cdecl, Game_GetGameSpeed, void);
+
+defVar(0x0076bc84, IDirectDraw4*,	g_IDirectDraw4);
 
 defVar(0x004dfe44, unsigned int,	g_LiveObjectLevels_Current_TABLE, [20][15][16]);  // [20][15][16]
 defVar(0x004e4944, unsigned int,	g_LiveObjectLevels_Previous_TABLE, [20][15][16]); // [20][15][16]
@@ -269,8 +817,8 @@ defVar(0x00504874, char**,			g_WeaponNames_TABLE);
 
 defVar(0x005063fc, CFGProperty*,	g_LegoCfgRoot_WeaponTypes);
 defVar(0x00506400, char,			tmp_CHAR_ARRAY_00506400, [1024]);
-defVar(0x00506804, HINSTANCE,		g_hInstance);
 defVar(0x00506800, HWND,			g_hWnd);
+defVar(0x00506804, HINSTANCE,		g_hInstance);
 defVar(0x00506808, BOOL,			g_IsFocused);
 defVar(0x0050680c, BOOL,			g_IsClosing);
 defVar(0x00506810, const char*,		g_WindowClassName);
@@ -316,23 +864,6 @@ defVar(0x00507498, CFGProperty*,	ReservedPool_CFGProperty___g_TABLE, [32]);
 defVar(0x00507518, CFGProperty*,	ReservedPool_CFGProperty___g_NEXT);
 defVar(0x0050751c, unsigned int,	ReservedPool_CFGProperty___g_COUNT);
 defVar(0x00507520, BOOL,			ReservedPool_CFGProperty___g_ISINIT);
-
-defFun(0x004790b0, void, __cdecl,			ReservedPool_CFGProperty___Init, void);
-defFun(0x004790e0, void, __cdecl,			ReservedPool_CFGProperty___Cleanup, void);
-defFun(0x00479120, CFGProperty*, __cdecl,	CFG_Open, const char* filename);
-defFun(0x00479210, const char*, __cdecl,	CFG_JoinPath, const char* keyPath1, ...);
-defFun(0x004792b0, CFGProperty*, __cdecl,	CFG_GetChildren, CFGProperty* prop, const char* keyPath);
-defFun(0x004792e0, CFGProperty*, __cdecl,	CFG_NextFlat, CFGProperty* prop);
-defFun(0x00479310, char*, __cdecl,			CFG_CopyString, CFGProperty* prop, const char* keyPath);
-defFun(0x00479370, const char*, __cdecl,	CFG_ReadString, CFGProperty* prop, const char* keyPath);
-defFun(0x00479390, BOOL3, __cdecl,			CFG_ReadBool, CFGProperty* prop, const char* keyPath);
-defFun(0x004793d0, float , __cdecl,			CFG_ReadRadians, CFGProperty* prop, const char* keyPath);
-defFun(0x00479430, float, __cdecl,			CFG_ReadRGBF, CFGProperty* prop, const char* keyPath, float* out_r, float* out_g, float* out_b);
-defFun(0x00479500, void, __cdecl,			CFG_Close, CFGProperty* root);
-defFun(0x00479530, CFGProperty*, __cdecl,	ReservedPool_CFGProperty___Next, CFGProperty* previous);
-defFun(0x00479580, void, __cdecl,			ReservedPool_CFGProperty___Release, CFGProperty* prop);
-defFun(0x004795a0, CFGProperty*, __cdecl,	CFG_GetProperty, CFGProperty* prop, const char* keyPath);
-defFun(0x00479750, void, __cdecl,			ReservedPool_CFGProperty___Alloc, void);
 
 
 
