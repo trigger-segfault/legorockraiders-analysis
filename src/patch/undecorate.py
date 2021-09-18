@@ -170,9 +170,9 @@ def patch_file(src_file:str, dst_file:Optional[str]=None) -> None:
 #######################################################################################
 
 # assign import * names
-apply_patch_sfxgroup = apply_patch
-patch_data_sfxgroup = patch_data
-patch_file_sfxgroup = patch_file
+apply_patch_undecorate = apply_patch
+patch_data_undecorate = patch_data
+patch_file_undecorate = patch_file
 
 #######################################################################################
 
