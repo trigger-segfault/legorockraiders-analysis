@@ -10,67 +10,76 @@ __author__  = 'Robert Jordan'
 
 #######################################################################################
 
-# <https://docs.python.org/3.7/library/re.html>
-import os #, re
-import enum
-import math
+import enum, os, re
+import traceback
+import functools, operator  # used by `def prod(iterable)`
+import struct               # used by `def signed(value:int, byteSize:int) -> int`
 
-# <https://stackoverflow.com/a/7948307/7517185>
-import functools, operator
-def prod(iterable):
-    return functools.reduce(operator.mul, iterable, 1)
-
+from collections import namedtuple
 from enum import auto
-from re import RegexFlag
-from struct import pack, unpack
-
-try:
-    import regex as re
-except:
-    import re
-    print('failure') # make the linter happy
+from typing import Any, Callable, Dict, Iterable, Iterator, List, Match, Optional, Pattern, Tuple, Type, Union
 
 # <https://pypi.org/project/regex/>
-# import regex  # PyPy regex with \G flag
-
-import traceback
-from typing import Any, Dict, Iterable, Iterator, List, Match, Optional, Pattern, Tuple, Union
+# import regex  # PyPy regex with \G pattern meta escape
+try:
+    import regex
+    REGEX_HAS_G_ESCAPE = True
+except:
+    import re as regex  # only here to make the linter happy, do not actually use this!
+    REGEX_HAS_G_ESCAPE = False
 
 
 #######################################################################################
 
-#region ## CONSTANTS ##
-
-def signed(value:int, byteSize:int) -> int:
-    if byteSize == 1: return unpack('=b', pack('=B', value))[0]
-    if byteSize == 2: return unpack('=h', pack('=H', value))[0]
-    if byteSize == 4: return unpack('=i', pack('=I', value))[0]
-    if byteSize == 8: return unpack('=q', pack('=Q', value))[0]
-
 #region ## CONFIGURABLE DEFAULTS ##
-import os
-
-# USER_DIR:str = os.path.expanduser("~")  # '~' works on Windows for this func
-# EXTENSION_DIR:str = r".vscode/extensions/vscode-lrr"
-# EXTENSION_PATH:str = os.path.join(USER_DIR, EXTENSION_DIR)
 
 #NOTE: assumes this script is in the directory "<repo>/src/*/"
 SCRIPT_DIR:str = os.path.abspath(os.path.dirname(__file__))
-EXPORT_DIR:str = os.path.abspath(os.path.join(SCRIPT_DIR, r"../export"))
-OUTPUT_DIR:str = os.path.abspath(os.path.join(SCRIPT_DIR, r"../../data/source_dump"))
+EXPORT_DIR:str = os.path.abspath(os.path.join(SCRIPT_DIR, r"../../export"))
+OUTPUT_DIR:str = os.path.abspath(os.path.join(SCRIPT_DIR, r"../../../data/source_dump"))
 
 FILENAME_FMT:str = r"LegoRR_{0}{1}" # r"LegoRR_{ISODATE}{ext=.h,.c,.txt}"
 
 # IGNORE_FILES:list = ["_backup"]
 # IGNORE_EXTS:list  = []
 
-H_EXT:str = r".h"
-C_EXT:str = r".c"
+H_EXT:str     = r".h"
+C_EXT:str     = r".c"
 ASCII_EXT:str = r".txt"
 
+RE_FLAGS:re.RegexFlag = re.ASCII | re.MULTILINE #| re.DOTALL
 
-RE_FLAGS:RegexFlag = re.ASCII | re.MULTILINE #| re.DOTALL
+PAD_DEFAULT:bool = True  # default for padding when using Symbol.print
+ENUM_SORT_DEFAULT:bool = True  # default to sorting enums by numerical value
 
+#endregion
+
+
+#######################################################################################
+
+#region NUMBER HELPERS
+
+# <https://stackoverflow.com/a/7948307/7517185>
+def prod(iterable:Iterable) -> Iterable:
+    """math.prod support for Python versions < v3.8"""
+    return functools.reduce(operator.mul, iterable, 1)
+
+
+def signed(value:int, byteSize:int) -> int:
+    """Unsigned to signed integer type"""
+    if value < 0: return value  # already signed
+    
+    if byteSize == 1: return struct.unpack('=b', struct.pack('=B', value))[0] # & 0xff))[0]
+    if byteSize == 2: return struct.unpack('=h', struct.pack('=H', value))[0] # & 0xffff))[0]
+    if byteSize == 4: return struct.unpack('=i', struct.pack('=I', value))[0] # & 0xffffffff))[0]
+    if byteSize == 8: return struct.unpack('=q', struct.pack('=Q', value))[0] # & 0xffffffffffffffff))[0]
+
+#endregion
+
+
+#######################################################################################
+
+#region BIG LIST OF REGEX PATTERNS
 
 ###########################################################################
 ## compact undefined struct fields into one
@@ -88,7 +97,7 @@ RE_FLAGS:RegexFlag = re.ASCII | re.MULTILINE #| re.DOTALL
 #    undefined field_0xc_0x13[0x8];
 
 # match a minimum of 8 (6+2) or more field_0x's
-FIELD0X_MIN = 8
+FIELD0X_MIN = 2 # 8
 FIELD0X_PAT = re.compile(r"^\tundefined field_0x([0-9a-f]+);(?:\n\tundefined field_0x[0-9a-f]+;){" + str( FIELD0X_MIN-2 ) + r",}\n\tundefined field_0x([0-9a-f]+);", RE_FLAGS)
 # FIELD0X_FIELD = re.compile(r"^\tundefined field_0x([0-9a-f]+);\n(?:\tundefined field_0x[0-9a-f]+;\n){" + FIELD0X_MIN + r",}\tundefined field_0x([0-9a-f]+);", RE_FLAGS)
 FIELD0X_REPL = lambda m: f"\tundefined field_0x{m.group(1)}_0x{m.group(2)}[{(int(m.group(2),16)+1-int(m.group(1),16)):#x}];" # length goes in {0}
@@ -110,11 +119,20 @@ def sub_crlf2lf(s:str) -> str:
 ###########################################################################
 ## replace leading spaces with tabs of a designated size
 
-SPACES2TABS_PAT = re.compile(r"^(?:\G|^)[ ]{2}", RE_FLAGS)
-SPACES2TABS_REPL = '\t'
+# With the parsing speed, this really isn't a performance hit to use re + lambdas...
+if REGEX_HAS_G_ESCAPE: # and False:
+    SPACES2TABS_PAT = regex.compile(r"^(?:\G|^)[ ]{2}", RE_FLAGS)
+    SPACES2TABS_REPL = '\t'
 
-SPACES4TABS_PAT = re.compile(r"^(?:\G|^)[ ]{4}", RE_FLAGS)
-SPACES4TABS_REPL = '\t'
+    SPACES4TABS_PAT = regex.compile(r"^(?:\G|^)[ ]{4}", RE_FLAGS)
+    SPACES4TABS_REPL = '\t'
+
+else:
+    SPACES2TABS_PAT = re.compile(r"^([ ]{2})", RE_FLAGS)
+    SPACES2TABS_REPL = lambda m: '\t' * (len(m[1]) // 2)
+
+    SPACES4TABS_PAT = re.compile(r"^([ ]{4})", RE_FLAGS)
+    SPACES4TABS_REPL = lambda m: '\t' * (len(m[1]) // 4)
 
 # for C source
 def sub_spaces2tabs(s:str) -> str:
@@ -171,48 +189,6 @@ def sub_float10(s:str) -> str:
 
 
 ###########################################################################
-# typedef unsigned char    byte;
-
-# typedef long long    longlong;
-# //typedef unsigned char    uchar;
-# typedef unsigned int    uint;
-# //typedef unsigned long    ulong;
-# typedef unsigned long long    ulonglong;
-# typedef unsigned char    undefined1;
-# typedef unsigned short    undefined2;
-# typedef unsigned int    undefined4;
-# typedef unsigned long long    undefined8;
-# typedef unsigned short    ushort;
-
-# typedef short    wchar_t;
-# typedef void	void;
-
-# # Add this define back in
-# #define code   void
-
-
-###########################################################################
-
-# typedef unsigned char    byte;
-
-# typedef long long    longlong;
-# //typedef unsigned char    uchar;
-# typedef unsigned int    uint;
-# //typedef unsigned long    ulong;
-# typedef unsigned long long    ulonglong;
-# typedef unsigned char    undefined1;
-# typedef unsigned short    undefined2;
-# typedef unsigned int    undefined4;
-# typedef unsigned long long    undefined8;
-# typedef unsigned short    ushort;
-
-# typedef short    wchar_t;
-# typedef void	void;
-
-# # Add this define back in
-# #define code   void
-
-#CTYPEDEF_PAT = re.compile(r"^typedef\s+(struct|union)\s(?P<name>[A-Za-z_][0-9A-Za-z_]*)\s(?P=name),\s\*P(?P=name);\n$", RE_FLAGS)
 
 GHIDRA_ALLOWED_TYPEDEFS = {'byte', 'uchar', 'ushort', 'uint', 'ulong', 'longlong', 'ulonglong', 'undefined', 'undefined1', 'undefined2', 'undefined4', 'undefined8', 'float10'}
 
@@ -230,8 +206,14 @@ RE_NSYM    = r"[^A-Za-z_0-9\/\n]"
 
 RE_SYMBOL      = r"(?:[A-Za-z_][A-Za-z_0-9]*)"
 
+# RE_BLOCKCOMMENT_CAP = r"(?:\/\*\s*((?:[^*]|\*\/)*?)\s*\*\/)"
+# RE_COMMENT_CAP = r"(?:\/(?:(\*)|(\/))\s*((?:[^*]|\*\/)*?)\s*\*\/"
 
-WS = r"[^\S\r\n]"
+WS1 = r"[^\S\r\n]"
+# whitespace including block comments
+WS = r"(?:[^\S\r\n\/]|(?:\/\*\s*(?:[^*]|\*[^\/])*\s*\*\/)|\/[^\/])"
+# whitespace including all comments
+WS2 = r"(?:[^\S\r\n\/]|(?:\/\*\s*(?:[^*]|\*[^\/])*\s*\*\/)|(?:\/\/+[^\S\r\n]*(?:[^\n]|\\\n)*)"
 
 # edge cases for more stupid ghidra shenanigans
 RE_SYMBOL_TYPE = rf"(?:char\[0\]|long{WS}+double|(?:signed|unsigned{WS}+)?(?:int|(?:char|short|long|long{WS}+long)(?:{WS}+int)?)|[A-Za-z_][A-Za-z_0-9]*)"
@@ -240,62 +222,27 @@ RE_SYMBOL_TYPE = rf"(?:char\[0\]|long{WS}+double|(?:signed|unsigned{WS}+)?(?:int
 RE_SINTEGER   = r"(?:(?:0[Xx][A-Fa-f0-9]+|[+\-]?[0-9]+)(?:[Uu][Ll]?[Ll]?|[Ll][Ll]?[Uu]?)?)"
 RE_UINTEGER   = r"(?:(?:0[Xx][A-Fa-f0-9]+|\+?[0-9]+)(?:[Uu][Ll]?[Ll]?|[Ll][Ll]?[Uu]?)?)"
 
-#(?:0[Xx][A-Fa-f0-9]+|[0-9]+)
-
-RE_MODIFIER  = rf"(?:const|IN|OUT|OPTIONAL|_(?:In|Out|Inout(?:_opt)?)_)" #|\[\[noreturn\]\]|extern{WS}+\"C\")"
+RE_MODIFIER  = rf"(?:const|volatile|IN|OUT|OPTIONAL|_(?:In|Out|Inout(?:_opt)?)_)" #|\[\[noreturn\]\]|extern{WS}+\"C\")"
 
 RE_PTR = r"\*"
 
 RE_ARRAY     = rf"(?:\[{RE_UINTEGER}\])"
 RE_ARRAY_COUNT     = rf"(?:\[({RE_UINTEGER})\])"
-#RE_ARRAY     = rf"(?:\[{RE_UINTEGER}\])"
 
 RE_DECL = r"(?:__(?:cdecl|stdcall|thiscall|fastcall))"
 
-# RE_MODIFIERS = rf"(?:{RE_MODIFIER}\s+)*)"
-# RE_ARRAYS = rf"(?:{RE_ARRAY}\s*)*)"
-# RE_PTRS = rf"(?:{RE_PTR}\s*)*)"
-
-# RE_MODIFIERS = rf"(?:{RE_MODIFIER}\s+)*)"
-# RE_ARRAYS = rf"(?:{RE_ARRAY}\s*)+)"
 RE_MODIFIERS = rf"(?:{RE_MODIFIER}(?:{WS}+{RE_MODIFIER})*)"
 RE_PTRS = rf"(?:{RE_PTR}(?:{WS}*{RE_PTR})*)"
 RE_ARRAYS = rf"(?:{RE_ARRAY}(?:{WS}*{RE_ARRAY})*)"
 
 RE_CSTYLEKEYWORD = r"(?:struct|union|enum)"
 
-#RENC_DECL = rf"(?:{RE_DECL[1:]}"
-
-# FILTER_TYPEDEFS_PAT = re.compile(r"^typedef ([^;()]+) ([A-Za-z_][A-Za-z_0-9]*);\n")
-#  #f"\tundefined field_0x{m.group(1)}_0x{m.group(2)}[{(int(m.group(2),16)+1-int(m.group(1),16)):#x}];" # length goes in {0}
-# FILTER_TYPEDEFS_REPL = lambda m: (m.group(0) if (m.group(2) in ALLOWED_TYPEDEFS) else "")
-
-# FILTER_FUNCTYPEDEFS_PAT = re.compile(r"^typedef ([^;()]+) \(\* ([A-Za-z_][A-Za-z_0-9]*)\)(\([^)]*\));\n")
-# FILTER_FUNCTYPEDEFS_REPL = lambda m: (m.group(0) if (m.group(2) not in EXCLUDE_FUNCTYPEDEFS) else "")
-
 ##HACK: Handle up to 3 levels of nested function pointers
 RE_ARGUMENTS_BASE = r"[^;()\/\n]*"
 for _ in range(3):
-    RE_ARGUMENTS_BASE = rf"\((?:[^;()\/\n]|\({RE_ARGUMENTS_BASE}\))*\)"
+    RE_ARGUMENTS_BASE = rf"\((?:[^;()\/\n]|{RE_ARGUMENTS_BASE})*\)"
 RE_ARGUMENTS = rf"(?:{RE_ARGUMENTS_BASE})"
 
-#RE_ARGUMENTS = r"(?:\((?:[^;()\/\n]|\([^;()\/\n]*\))*\))"
-#RE_ARGUMENTS = r"(?:\((?:[^;()\/\n]|\([^;()\/\n]*\))*\))"
-
-# RE_ARGUMENTS = r"""(?:
-#     \(
-#         (?: [^;()\/\n] | \([^;()\/\n]*\) )+
-#     \)
-# )"""
-
-
-#    ^(typedef \s+ )? (?P<keyword>enum|struct) \s+
-#     (?P<name>(?:[A-Za-z_][A-Za-z_0-9]*)) (?![A-Za-z_0-9]) [\s\n]* \{
-#         \s*(?:\/\/+\s*(?:(?P<comment>(?:[^\n]|\\\n)*?))\s*(?=\n|$))?\n
-
-#         (?:[^};\n]|\n[^}])*
-
-#     \n\}[^\n;]*;
 
 # RE_BLOCKCOMMENT_CAP = r"(?:\/\*\s*((?:[^*]|\*\/)*?)\s*\*\/)"
 # RE_COMMENT_CAP = r"(?:\/(?:(\*)|(\/))\s*((?:[^*]|\*\/)*?)\s*\*\/"
@@ -304,7 +251,7 @@ RE_ARGUMENTS = rf"(?:{RE_ARGUMENTS_BASE})"
 
 # RE_LINECOMMENT_CAP = r"(?:\/\/+\s*(?:(?P<comment>(?:[^\n]|\\\n)*?))\s*)?(?=\n|$)"
 
-RE_LINECOMMENT_CAP = rf"(?:\/\/+{WS}*(?:(?P<comment>(?:[^\n]|\\\n)*)))?" #{WS}*(?=\n))?"
+RE_LINECOMMENT_CAP = rf"(?:\/\/+{WS1}*(?:(?P<comment>(?:[^\n]|\\\n)*)))?" #{WS}*(?=\n))?"
 
 
 RE_PARSE_SYMBOL = rf"""
@@ -363,14 +310,24 @@ PARSE_TYPEDEF = re.compile(rf"""
 
 PARSE_MEMBER = re.compile(rf"""
      \t  # start of line
-    (?: {RE_CSTYLEKEYWORD} {WS}+ )?
+    #(?: {RE_CSTYLEKEYWORD} {WS}+ )?
         {RE_PARSE_SYMBOL}   # generic symbol parsing
     ;            # end of member
     {WS}* {RE_LINECOMMENT_CAP}
 """, RE_FLAGS | re.VERBOSE)
 
+
+PARSE_MEMBER2 = re.compile(rf"""
+    # \t  # start of line
+    #(?: {RE_CSTYLEKEYWORD} {WS}+ )?
+        {RE_PARSE_SYMBOL}   # generic symbol parsing
+    ;            # end of member
+    {WS}* {RE_LINECOMMENT_CAP}
+""", RE_FLAGS | re.VERBOSE)
+
+
 PARSE_PARAM = re.compile(rf"""
-    (?: {RE_CSTYLEKEYWORD} {WS}+ )?
+    #(?: {RE_CSTYLEKEYWORD} {WS}+ )?
         {RE_PARSE_SYMBOL}       # generic symbol parsing
         # boundary of argument
 """, RE_FLAGS | re.VERBOSE)
@@ -384,133 +341,15 @@ PARSE_ENUMVALUE = re.compile(rf"""
      {RE_LINECOMMENT_CAP}
 """, RE_FLAGS | re.VERBOSE)
 
+PARSE_ENUMVALUE2 = re.compile(rf"""
+     #\t  # start of line
+        (?P<name>{RE_SYMBOL}) {WS}*  # value name
+            = {WS}*
+        (?P<value>{RE_SINTEGER})   {WS}*  # integer value
+    (?P<comma> , {WS}* )? #(?P<comment>)  # comma separator
+     {RE_LINECOMMENT_CAP}
+""", RE_FLAGS | re.VERBOSE)
 
-# PARSE_PARAM = re.compile(rf"""
-#     (?: {RE_CSTYLEKEYWORD} \s+ )?
-#         {RE_PARSE_SYMBOL}       # generic symbol parsing
-#     (?=[,\)])    # boundary of argument
-# """, RE_FLAGS | re.VERBOSE)
-
-#     # ^(typedef \s+ )? (?P<keyword>struct) \s+
-#     # (?P<name>{RE_SYMBOL}) (?!{RE_SYM}) [\s\n]* \{{
-#     #     \s*{RE_LINECOMMENT_CAP}\n
-
-#     #     (?:[^}};\n]|\n[^}}])*
-
-#     # \n\}}[^\n;];
-
-# PARSE_ENUM_BLOCK = re.compile(rf"""
-#     ^(typedef \s+ )? enum \s+
-#     (?P<name>{RE_SYMBOL}) (?!{RE_SYM}) [\s\n]* \{{
-#         \s*{RE_LINECOMMENT_CAP}\n
-
-#         [^}};]
-
-#     \n\}}[^\n;];
-# """, RE_FLAGS | re.VERBOSE)
-
-# PARSE_ENUMVALUE = re.compile(rf"""
-#     (?P<valuename>{RE_SYMBOL}) \s*
-#     = \s*
-#     (?P<value>{RE_SINTEGER}) \s*  # integer value
-#     (,)?  # comma separator
-#     (?:\/\/+\s*(?:(?P<comment>(?:[^\n]|\\\n)*?))\s*)?(?=\n|$)
-# """, RE_FLAGS | re.VERBOSE)
-
-# PARSE_STRUCT_FIELD = rf"""
-#     (?: (?P<modifier>{RE_MODIFIERS}) \s* )?                   # symbol type modifiers
-
-#     (?: {RE_CSTYLEKEYWORD} \s* )?   # C-style struct|union|enum before type name
-#     (?<!{RE_SYM}) (?P<typename>{RE_SYMBOL}) (?!{RE_SYM}) \s*  # REQUIRED: symbol type name
-#     (?: (?P<typeptrs>{RE_PTRS}) \s* )?                        # outside pointers "typeptrs"
-
-#     (?: (\() \s* )?      # enclosing () for function pointers and pointers to fixed arrays
-
-#         (?: (?P<decl>{RE_DECL}) \s* )?     # function declaration type
-#         (?: (?P<nameptrs>{RE_PTRS}) \s* )? # enclosed pointers "nameptrs"
-#         (?: (?<!{RE_SYM}) (?P<name>{RE_SYMBOL}) (?!{RE_SYM}) \s* )? # symbol name
-
-#     (?(4) \) \s* |)      # match closing ()
-
-#     (?:
-#         (?P<arrays>{RE_ARRAYS}) \s*
-#     |
-#         (?P<arguments>{RE_ARGUMENTS}) \s*
-#     )?     # arrays |or| function arguments
-# """
-
-# #    (?=;|,\))    # symbol end
-# #"""
-
-# PARSE_TYPE_PAT = re.compile(rf"""
-#     ^ \s*      # line start
-
-#     (?: (?P<modifier>{RE_MODIFIERS}) \s* )?                   # symbol type modifiers
-
-#     (?: {RE_CSTYLEKEYWORD} \s* )?   # C-style struct|union|enum before type name
-#     (?<!{RE_SYM}) (?P<typename>{RE_SYMBOL}) (?!{RE_SYM}) \s*  # REQUIRED: symbol type name
-#     (?: (?P<typeptrs>{RE_PTRS}) \s* )?                        # outside pointers "typeptrs"
-
-#     (?: (\() \s* )?      # enclosing () for function pointers and pointers to fixed arrays
-
-#         (?: (?P<decl>{RE_DECL}) \s* )?     # function declaration type
-#         (?: (?P<nameptrs>{RE_PTRS}) \s* )? # enclosed pointers "nameptrs"
-#         (?: (?<!{RE_SYM}) (?P<name>{RE_SYMBOL}) (?!{RE_SYM}) \s* )? # symbol name
-
-#     (?(4) \) \s* |)      # match closing ()
-
-#     (?: (?P<arguments>{RE_ARGUMENTS}) \s* )?  # function arguments
-
-#     (?: (?P<arrays>{RE_ARRAYS}) \s* )?        # arrays
-
-#     (?=;|,\))    # line end
-# """, RE_FLAGS | re.VERBOSE)
-
-
-# PARSE_STRUCTFIELD_PAT = re.compile(rf"""
-#     ^ \s*      # line start
-
-#     (?: (?P<modifier>{RE_MODIFIERS}) \s* )?                   # symbol type modifiers
-
-#     (?: {RE_CSTYLEKEYWORD} \s* )?   # C-style struct|union|enum before type name
-#     (?<!{RE_SYM}) (?P<typename>{RE_SYMBOL}) (?!{RE_SYM}) \s*  # REQUIRED: symbol type name
-#     (?: (?P<typeptrs>{RE_PTRS}) \s* )?                        # outside pointers "typeptrs"
-
-#     (?: (\() \s* )?      # enclosing () for function pointers and pointers to fixed arrays
-
-#         (?: (?P<decl>{RE_DECL}) \s* )?     # function declaration type
-#         (?: (?P<nameptrs>{RE_PTRS}) \s* )? # enclosed pointers "nameptrs"
-#         (?: (?<!{RE_SYM}) (?P<name>{RE_SYMBOL}) (?!{RE_SYM}) \s* )? # symbol name
-
-#     (?(4) \) \s* |)      # match closing ()
-
-#     (?:
-#         (?P<arrays>{RE_ARRAYS}) \s*
-#     |
-#         (?P<arguments>{RE_ARGUMENTS}) \s*
-#     )?     # arrays |or| function arguments
-
-#     (?=;|,\))    # line end
-# """, RE_FLAGS | re.VERBOSE)
-
-# PARSE_NAMED_PAT = re.compile(rf"""
-#     ^ \s*      # line start
-
-#     (?: (?P<modifier>{RE_MODIFIERS}) \s* )?                   # symbol type modifiers
-#     (?<!{RE_NSYM}) (?P<typename>{RE_SYMBOL}) (?={RE_NSYM}) \s* # REQUIRED: symbol type name
-#     (?: (?P<typeptrs>{RE_PTRS}) \s* )?                        # outside pointers "typeptrs"
-#     (?: (\() \s* )?      # enclosing () for function pointers and pointers to fixed arrays
-#         (?: (?P<decl>{RE_DECL}) \s* )?     # function declaration type
-#         (?: (?P<nameptrs>{RE_PTRS}) \s* )? # enclosed pointers "nameptrs"
-#         (?: (?<!{RE_NSYM}) (?P<name>{RE_SYMBOL}) (?={RE_NSYM}) \s* )? # symbol name
-#     (?(4)\ \s*)|)        # match closing ()
-#     (?: (?P<arrays>{RE_ARRAYS}) \s* )?     # arrays
-
-#     (?=;|,\))    # line end
-# """, RE_FLAGS | re.VERBOSE)
-
-# re.X # re.VERBOSE
-# re.compile(r"(?P<modifier>{RE_MODIFIERS}+)?(?P<typename>{RE_SYMBOL})(?P<typeptrs>(\(\s*)?(?P<name>{RE_SYMBOL})\s*(?(1)\)|)\s*(?P<arrays>(?:{RE_ARRAY}\s*)+)?;")
 
 # PARSE_STRUCTFIELD_PAT = re.compile(r"^\t ((?:\[ ;")
 
@@ -536,6 +375,12 @@ PARSE_ENUMVALUE = re.compile(rf"""
 # typedef LRESULT (MMIOPROC)(LPSTR, UINT, LPARAM, LPARAM);
 # typedef int (* FARPROC)(void);
 
+#endregion
+
+
+#######################################################################################
+
+#region Symbol types
 
 class SymbolKind(enum.IntEnum):
     PRIMITIVE = auto()
@@ -551,49 +396,36 @@ class SymbolKind(enum.IntEnum):
     MEMBER    = auto() # special case, should not be added to symbol db
     PARAM     = auto() # special case, should not be added to symbol db
 
+
 class Symbol:
     PTR_SIZE:int = 4
-    @classmethod
-    def _arraycount(cls, arrays:Optional[List[int]]=None) -> int:
-        if not arrays: return 1
-        return prod(arrays)
-    @classmethod
-    def _arraysize(cls, size:int, arrays:Optional[List[int]]=None) -> int:
-        if not arrays: return size
-        return size * cls._arraycount(arrays)
-    @classmethod
-    def _pointersize(cls, size:int, pointers:Optional[int]=None) -> int:
-        if not pointers: return size
-        return cls.PTR_SIZE
-    @classmethod
-    def _calcsize(cls, size:int, pointers:Optional[int]=None, arrays:Optional[List[int]]=None) -> int:
-        size = cls._pointersize(size, pointers)
-        return cls._arraycount(size, arrays)
+    # @classmethod
+    # def _arraycount(cls, arrays:Optional[List[int]]=None) -> int:
+    #     if not arrays: return 1
+    #     return prod(arrays)
+    # @classmethod
+    # def _arraysize(cls, size:int, arrays:Optional[List[int]]=None) -> int:
+    #     if not arrays: return size
+    #     return size * cls._arraycount(arrays)
+    # @classmethod
+    # def _pointersize(cls, size:int, pointers:Optional[int]=None) -> int:
+    #     if not pointers: return size
+    #     return cls.PTR_SIZE
+    # @classmethod
+    # def _calcsize(cls, size:int, pointers:Optional[int]=None, arrays:Optional[List[int]]=None) -> int:
+    #     size = cls._pointersize(size, pointers)
+    #     return cls._arraycount(size, arrays)
 
-    DB:'SymbolDatabase' = None
+    # DB:'SymbolDatabase' = None
 
     parent:Optional['Symbol']
     kind:SymbolKind
     name:str
-    # pointers:int
-    # arrays:List[int]
-    # decl:Optional[str]
-    # modifier:Optional[str]
     _size:Optional[int]
     comment:str
     textbody:str
     _hide:bool
     _evaled:bool
-    # modifier:Optional[str]
-    # convention:Optional[str]
-    # const:bool
-
-
-    # def __repr__(self) -> str:
-    #     if self.convention is not None:
-
-    #     if self.kind is SymbolKind.FUNCDEF:
-
 
     def __init__(self, kind:SymbolKind, name:str, *, size:Optional[int]=None, comment:Optional[str]=None, textbody:Optional[str]=None, hide:bool=False, evaled:bool=False, parent:Optional['Symbol']=None):
         self.parent = parent
@@ -609,13 +441,15 @@ class Symbol:
         raise NotImplementedError(f'{self.__class__.__name__}.forward()')
     def declare(self) -> str:
         raise NotImplementedError(f'{self.__class__.__name__}.declare()')
+    def define(self) -> str:
+        raise NotImplementedError(f'{self.__class__.__name__}.define()')
 
     @classmethod
     def format_type(cls, typename:str, *, name:Optional[str]=None, modifier:Optional[str]=None, typeptrs:Optional[int]=None, decl:Optional[str]=None, nameptrs:Optional[int]=None, arguments:Optional[List[str]]=None, arrays:Optional[List[int]]=None) -> str:
         name     = (' ' + name)     if name     is not None else ''
         modifier = (modifier + ' ') if modifier is not None else ''
         decl     = (decl + ' ')     if decl     is not None else ''
-        # pointers = ''.join('*' * pointers) if pointers else ''
+        # str.join is used here so we can configure pointer spacing
         typeptrs = ''.join('*' * typeptrs) if typeptrs else ''
         nameptrs = ''.join('*' * nameptrs) if nameptrs else ''
         arrays   = ''.join(f'[{n}]' for n in arrays) if arrays else ''
@@ -626,22 +460,15 @@ class Symbol:
         else:
             arguments = '(' + (', '.join(a for a in arguments) if arguments else 'void') + ')'
 
-        if nameptrs: # and (arrays or decl): # we need parenthesis around the pointers (+ name)
+        if nameptrs:  # we need parenthesis around the pointers (+ name)
             return f'{modifier}{typename}{typeptrs} ({decl}{nameptrs}{name}){arguments}{arrays}'
         else:
             return f'{modifier}{typename}{typeptrs} {decl}{nameptrs}{name}{arguments}{arrays}'
     
 
+    def print(self, *, pad:bool=PAD_DEFAULT, **kwargs):
+        print(str(self), **kwargs)
 
-    def print(self, **kwargs):
-        print(repr(self), **kwargs)
-
-    # @property
-    # def is_pointer(self) -> bool: return self.pointers is not None and self.pointers > 0
-
-    # @property
-    # def is_array(self) -> bool: return self.arrays is not None and len(self.arrays) > 0
-    
     @property
     def is_function(self) -> bool: False
 
@@ -665,39 +492,6 @@ class Symbol:
     
     @property
     def targetsize(self) -> Optional[int]: return None
-
-    # @property
-    # def array_count(self) -> int:
-    #     if not self.arrays: return 1
-    #     return prod(self.arrays)
-
-    # @property
-    # def eval_symbol(self) -> 'Symbol': return self
-
-    # @property
-    # def eval_kind(self) -> SymbolKind: return self.kind
-
-    # @property
-    # def eval_size(self) -> int:
-    #     if self.size is None:
-    #         return Symbol._calcsize(self.eval_symbol.eval_size, self.pointers, self.arrays)
-    #         # raise NotImplementedError('size is None, and has no calculate function')
-    #     return self.size
-
-    
-    # @property
-    # def needs_eval(self) -> bool:
-    #     return not self._evaled
-    
-    # def try_eval(self, db:'SymbolDatabase') -> List[str]:
-    #     if not self._evaled:
-    #         requires = self._try_eval(db)
-    #         if not requires:
-    #             self._evaled = True
-    #     return self._evaled
-
-    # def _try_eval(self, db:'SymbolDatabase') -> List[str]:
-    #     return True
     
     @property
     def needs_eval(self) -> bool: return not self._evaled
@@ -711,21 +505,24 @@ class Symbol:
         return True
 
 
-
-
 class PrimitiveSymbol(Symbol):
     def __init__(self, name:str, size:int):
         if size is None:
             raise TypeError(f'{self.__class__.__name__} size cannot be None')
         super().__init__(SymbolKind.PRIMITIVE, name, size=size, evaled=True, hide=True)
-    
+        
     def forward(self) -> str:
-        raise NotImplementedError(f'{self.__class__.__name__}.forward()')
+        raise ValueError(f'{self.__class__.__name__}.forward() primitive cannot be forward-declared')
     def declare(self) -> str:
-        raise NotImplementedError(f'{self.__class__.__name__}.declare()')
-
+        raise ValueError(f'{self.__class__.__name__}.declare() primitive cannot be declared')
+    def define(self) -> str:
+        raise ValueError(f'{self.__class__.__name__}.define() primitive cannot be define')
+    
     def __repr__(self):
-        return 'primitive {self.name}'
+        return f'primitive {self.name}'
+    def __str__(self):
+        return f'{self.name}'
+
 
 class TypeSymbol(Symbol):
     typename:str
@@ -735,7 +532,7 @@ class TypeSymbol(Symbol):
     modifier:Optional[str]
     decl:Optional[str]
     type_symbol:Optional[Symbol]
-    arguments:Optional[List['MemberSymbol']]
+    arguments:Optional[List['ParamSymbol']]
     _basesize:Optional[int]
     _is_function:bool
     
@@ -756,21 +553,22 @@ class TypeSymbol(Symbol):
         if not self.is_function:
             args = None
         elif self.arguments:
-            args = [repr(a) for a in self.arguments]
+            args = [str(a) for a in self.arguments]
         else:
             args = ['void']
         
         return f'{Symbol.format_type(self.typename, name=self.name, modifier=self.modifier, typeptrs=self.typeptrs, nameptrs=self.nameptrs, arrays=self.arrays, arguments=args)}'
+    __str__ = __repr__
 
 
-    def add_argument(self, arg:'MemberSymbol') -> None:
-        if not self._is_function: #self.kind is not SymbolKind.FUNCTION:
+    def add_argument(self, arg:'ParamSymbol') -> None:
+        if not self._is_function:
             raise ValueError(f'{self.__class__.__name__}.add_argument() : cannot add argument to symbol of kind {self.kind.name}')
         arg.index = len(self.arguments)
         self.arguments.append(arg)
     
     @property
-    def is_function(self) -> bool: return self._is_function #self.kind is SymbolKind.FUNCTION
+    def is_function(self) -> bool: return self._is_function
 
     @property
     def is_pointer(self) -> bool: bool(self.nameptrs or self.typeptrs)
@@ -780,9 +578,6 @@ class TypeSymbol(Symbol):
 
     @property
     def basesize(self) -> Optional[int]: return self._basesize
-    
-    # @property
-    # def has_size(self) -> bool: return self.basesize is not None
 
     @property
     def repeat(self) -> int: return prod(self.arrays) if (not self.nameptrs and self.arrays) else 1
@@ -792,7 +587,7 @@ class TypeSymbol(Symbol):
             self.type_symbol = db.get(self.typename)
 
 
-        if self._is_function: #self.kind is SymbolKind.FUNCTION:
+        if self._is_function:
             for arg in self.arguments:
                 arg.evaluate(db)
 
@@ -805,12 +600,14 @@ class TypeSymbol(Symbol):
         if not self.has_size:
             if self.nameptrs:
                 self._size = self._basesize = Symbol.PTR_SIZE
-                return True
+                ##DEBUG: testing
+                #return True
             
             elif self.typeptrs:
                 self._basesize = Symbol.PTR_SIZE
                 self._size = self._basesize * self.repeat
-                return True
+                ##DEBUG: testing
+                #return True
             
             elif self.type_symbol is not None:
                 ##TODO: Make as many passes as needed until all symbols are evalulated
@@ -822,15 +619,12 @@ class TypeSymbol(Symbol):
                     self._size = self._basesize * self.repeat
                     return True
 
-            return False  # we still need our underlying type size, can't evaluate
+            ##DEBUG: testing
+            #return False  # we still need our underlying type size, can't evaluate
 
-        return self.has_size  #self.type_symbol is not None and self.has_size
-    # @property
-    # def eval_size(self) -> int:
-    #     if self.size is None:
-    #         self.size = self.eval_symbol.eval_size * 
-    #     return self.size
-        # return self.eval_symbol.eval_size
+        return self.type_symbol is not None and self.has_size
+        # return self.has_size  #self.type_symbol is not None and self.has_size
+
 
 class TypedefSymbol(TypeSymbol):
 
@@ -840,6 +634,10 @@ class TypedefSymbol(TypeSymbol):
     def __repr__(self):
         comment = f' // {self.comment}' if self.comment else ''
         return f'typedef {super().__repr__()};{comment}'
+    def __str__(self):
+        comment = f' // {self.comment}' if self.comment else ''
+        return f'typedef {super().__str__()};{comment}'
+
 
 class FunctionSymbol(TypeSymbol):
     returnname:str
@@ -848,9 +646,13 @@ class FunctionSymbol(TypeSymbol):
     def __init__(self, name:str, typename:str, **kwargs):
         super().__init__(SymbolKind.FUNCTION, name,typename, **kwargs)
 
-    def __repr__(self):
-        return f'typedef {super().__repr__()};'
     
+    def __repr__(self):
+        return f'{super().__repr__()};' # append semicolon ';'
+    def __str__(self):
+        return f'{super().__str__()};' # append semicolon ';'
+
+
 class ValueSymbol(Symbol):
     index:Optional[int]
     value:int
@@ -865,12 +667,50 @@ class ValueSymbol(Symbol):
 
     @property
     def is_flag(self) -> bool:
-        return self.parent is not None and self.parent.kind is SymbolKind.FLAGS
+        return self.parent.is_flags # self.parent is not None and self.parent.kind is SymbolKind.FLAGS
 
+    # def __repr__(self):
+    #     # comment = f' // {self.comment}' if self.comment else ''
+    #     # # It's cleaner to format 0 flag values without the hex specified,
+    #     # #  since most of the time these values are NONE and not a mask option
+    #     # if self.value == 0:  # '0' for both flags and enums
+    #     #     value = f'{self.value:d}'
+    #     # elif self.is_flag:   # 0x-hex for flags
+    #     #     value = f'{self.value:#x}'
+    #     # else:                # decimal for normal enums
+    #     #     value = f'{signed(self.value, self.targetsize or 4):d}'
+    #     # return f'\t{self.name} = {value},{comment}'
+    #     return f'\t{self!r}'
     def __repr__(self):
+        return self.padstring(None)
+        # comment = f' // {self.comment}' if self.comment else ''
+        # # It's cleaner to format 0 flag values without the hex specified,
+        # #  since most of the time these values are NONE and not a mask option
+        # if self.value == 0:  # '0' for both flags and enums
+        #     value = f'{self.value:d}'
+        # elif self.is_flag:   # 0x-hex for flags
+        #     value = f'{self.value:#x}'
+        # else:                # decimal for normal enums
+        #     value = f'{signed(self.value, self.targetsize or 4):d}'
+        # return f'{self.name} = {value},{comment}'
+    __str__ = __repr__
+    
+    def padstring(self, padlength:Optional[int]=None, **kwargs):
         comment = f' // {self.comment}' if self.comment else ''
-        value = f'{self.value:#x}' if self.is_flag else str(signed(self.value, self.targetsize or 4))
-        return f'\t{self.name} = {value},{comment}'
+        # It's cleaner to format 0 flag values without the hex specified,
+        #  since most of the time these values are NONE and not a mask option
+        if self.value == 0:  # '0' for both flags and enums
+            value = f'{self.value:d}'
+        elif self.is_flag:   # 0x-hex for flags
+            value = f'{self.value:#x}'
+        else:                # decimal for normal enums
+            value = f'{signed(self.value, self.targetsize or 4):d}'
+        return f'{self.name.ljust(padlength or 0)} = {value},{comment}'
+        # text = f'{self!s}\n{{\n' + '\n'.join(f'\t{v!s}' for v in self.values) + f'\n}};'
+        # text = 'enum' + text[4:]
+        # if self.kind is SymbolKind.FLAGS:
+        #     text += f'\nDEFINE_ENUM_FLAG_OPERATORS({self.name});'
+        # print(text, **kwargs)
 
 
 class BaseEnumSymbol(Symbol):
@@ -878,24 +718,38 @@ class BaseEnumSymbol(Symbol):
     type_symbol:Optional[Symbol]
     values:List[ValueSymbol]
     _targetsize:Optional[int]
+    _is_flags:bool
 
-    def __init__(self, kind:SymbolKind, name:str, typename:Optional[str]=None, *, targetsize:Optional[int]=None, **kwargs):
+    def __init__(self, kind:SymbolKind, name:str, typename:Optional[str]=None, *, is_flags:bool=False, targetsize:Optional[int]=None, **kwargs):
         super().__init__(kind, name, size=None, **kwargs)
         self.typename = typename
         self._targetsize = targetsize
         self.type_symbol = None
         self.values = []
+        self._is_flags = is_flags
 
-    # def __repr__(self):
-    #     #value = f'{self.value:#x}' if self.kind is SymbolKind.FLAGS else str(signed(self.value, self.targetsize or 4))
-    #     typename = f' : {self.typename}' if self.typename else ''
-    #     # flags = ' // flags' if self.kind is SymbolKind.FLAGS else ''
-    #     return f'enum {self.name}{typename};' #{flags}'
+    def __repr__(self):
+        keyname = 'flags' if self.is_flags else 'enum'
+        typename = f' : {self.typename}' if self.typename else ''
+        comment = f' // {self.comment}' if self.comment else ''
+        return f'{keyname} {self.name}{typename};{comment}'
+    def __str__(self):
+        typename = f' : {self.typename}' if self.typename else ''
+        comment = f' // {self.comment}' if self.comment else ''
+        return f'enum {self.name}{typename}{comment}'
     
     def add_value(self, value:ValueSymbol) -> None:
         value.parent = self
         value.index = len(self.values)
         self.values.append(value)
+    
+    def sort_values(self, *, key:Optional[Callable[[ValueSymbol],Any]]=None, reverse:bool=False) -> None:
+        if key is None: key = lambda v: v.value
+        self.values.sort(key=key, reverse=reverse)
+
+        # update indices
+        for i,v in enumerate(self.values):
+            v.index = i
         
     def _evaluate(self, db:'SymbolDatabase') -> bool:
         if self.typename is None:
@@ -918,33 +772,44 @@ class BaseEnumSymbol(Symbol):
         return self.has_size  #self.type_symbol is not None and self.has_size
     
     @property
+    def is_flags(self) -> Optional[int]: return self._is_flags
+
+    @property
     def targetsize(self) -> Optional[int]: return self._targetsize
     
-    def print(self, **kwargs):
-        text = f'{self!r}\n{{\n' + '\n'.join(repr(v) for v in self.values) + f'\n}};'
+    def print(self, *, pad:bool=PAD_DEFAULT, **kwargs):
+        padlength = None if not pad else max(len(v.name) for v in self.values)
+        text = f'{self!s}\n{{\n' + '\n'.join(f'\t{v.padstring(padlength)}' for v in self.values) + f'\n}};'
+        #text = f'{self!s}\n{{\n' + '\n'.join(f'\t{v!s}' for v in self.values) + f'\n}};'
         text = 'enum' + text[4:]
         if self.kind is SymbolKind.FLAGS:
             text += f'\nDEFINE_ENUM_FLAG_OPERATORS({self.name});'
         print(text, **kwargs)
 
+
 class EnumSymbol(BaseEnumSymbol):
     def __init__(self, name:str, typename:Optional[str]=None, **kwargs):
-        super().__init__(SymbolKind.ENUM, name, typename, **kwargs)
-        # self.value_symbols = []
+        super().__init__(SymbolKind.ENUM, name, typename, is_flags=False, **kwargs)
         
-    def __repr__(self):
-        typename = f' : {self.typename}' if self.typename else ''
-        comment = f' // {self.comment}' if self.comment else ''
-        return f'enum {self.name}{typename};{comment}'
+    # def __repr__(self):
+    #     typename = f' : {self.typename}' if self.typename else ''
+    #     comment = f' // {self.comment}' if self.comment else ''
+    #     return f'enum {self.name}{typename};{comment}'
+
 
 class FlagsSymbol(BaseEnumSymbol):
     def __init__(self, name:str, typename:Optional[str]=None, **kwargs):
-        super().__init__(SymbolKind.FLAGS, name, typename, **kwargs)
+        super().__init__(SymbolKind.FLAGS, name, typename, is_flags=True, **kwargs)
 
-    def __repr__(self):
-        typename = f' : {self.typename}' if self.typename else ''
-        comment = f' // {self.comment}' if self.comment else ''
-        return f'flags {self.name}{typename};{comment}'
+    # def __repr__(self):
+    #     typename = f' : {self.typename}' if self.typename else ''
+    #     comment = f' // {self.comment}' if self.comment else ''
+    #     return f'flags {self.name}{typename};{comment}'
+    # def __str__(self):
+    #     typename = f' : {self.typename}' if self.typename else ''
+    #     comment = f' // {self.comment}' if self.comment else ''
+    #     return f'enum {self.name}{typename}{comment}'
+
 
 class MemberSymbol(TypeSymbol):
     index:Optional[int]
@@ -956,18 +821,21 @@ class MemberSymbol(TypeSymbol):
         self.offset = offset
     
     def __repr__(self):
-        if self.parent is not None: # and self.parent.has_size:
+        if self.parent is not None:
             off  = f'{self.offset:x}' if self.offset is not None else ''
             if off and self.parent.has_size:
                 off = off.rjust(len(f'{self.parent.size:x}'), '0')
+            
             size = f'{self.size:x}' if self.size is not None else ''
-            pre = f'\t/*{off},{size}*/\t'
+
+            pre = f'/*{off},{size}*/\t'
         else:
-            pre = '\t'
+            pre = ''
+        
         comment = f' // {self.comment}' if self.comment else ''
         return f'{pre}{super().__repr__()};{comment}'
-        # comment = f' // {self.comment}' if self.comment else ''
-        # return f'\t{super().__repr__()};{comment}'
+    __str__ = __repr__
+
 
 class ParamSymbol(TypeSymbol):
     index:Optional[int]
@@ -978,8 +846,11 @@ class ParamSymbol(TypeSymbol):
         self.index = index
         self.offset = offset
     
-    def __repr__(self):
-        return f'{super().__repr__()}'
+    # def __repr__(self):
+    #     return f'{super().__repr__()}'
+    # def __str__(self):
+    #     return f'{super().__str__()}'
+
 
 class BaseStructSymbol(Symbol):
     members:List[MemberSymbol]
@@ -1005,10 +876,15 @@ class BaseStructSymbol(Symbol):
     @property
     def targetsize(self) -> Optional[int]: return self._targetsize
     
-    def print(self, **kwargs):
+    def print(self, *, pad:bool=PAD_DEFAULT, **kwargs):
         size = f'\n\t/*{self.size:x}*/' if self.size is not None else ''
-        text = f'{self!r}\n{{\n' + '\n'.join(repr(m) for m in self.members) + f'{size}\n}};'
+        pack_begin = pack_end = ''
+        if self.pack is not None:
+            pack_begin = f'#pragma pack(push, {self.pack:d})\n'
+            pack_end   = f'\n#pragma pack(pop)'
+        text = f'{pack_begin}{self!s}\n{{\n' + '\n'.join(f'\t{m!r}' for m in self.members) + f'{size}\n}};{pack_end}'
         print(text, **kwargs)
+
 
 class StructSymbol(BaseStructSymbol):
 
@@ -1016,11 +892,19 @@ class StructSymbol(BaseStructSymbol):
         super().__init__(SymbolKind.STRUCT, name, **kwargs)
         
     def _evaluate(self, db:'SymbolDatabase') -> bool:
-        if not self.has_size:
+        members_eval = True
+        ##DEBUG: always evaluate so that members get fully evaluated
+        if self.has_size:
+            # No size re-eval needed, but ensure that all members get fully evaluated
+            members_eval = all(m.evaluate(db) for m in self.members)
+
+        elif not self.has_size:
             size = 0
             pack = self.pack if self.pack else 4  # default pack
             for member in self.members:
-                member.evaluate(db)
+                if not member.evaluate(db):
+                    members_eval = False  # still keep going
+
                 if not member.has_size:
                     return False  # can't evaluate
 
@@ -1064,12 +948,18 @@ class StructSymbol(BaseStructSymbol):
                 size += pack - (size % pack) # pad size to pack align
             self._size = size
 
-        return self.has_size
+        ##DEBUG: testing
+        return self.has_size and members_eval
+        #return self.has_size
     
     def __repr__(self):
         pack = f' : pack({self.pack})' if self.pack else ''
         comment = f' // {self.comment}' if self.comment else ''
         return f'struct {self.name}{pack};{comment}'
+    def __str__(self):
+        comment = f' // {self.comment}' if self.comment else ''
+        return f'struct {self.name}{comment}'
+
 
 class UnionSymbol(BaseStructSymbol):
 
@@ -1077,11 +967,19 @@ class UnionSymbol(BaseStructSymbol):
         super().__init__(SymbolKind.UNION, name, **kwargs)
         
     def _evaluate(self, db:'SymbolDatabase') -> bool:
-        if not self.has_size:
+        members_eval = True
+        ##DEBUG: always evaluate so that members get fully evaluated
+        if self.has_size:
+            # No size re-eval needed, but ensure that all members get fully evaluated
+            members_eval = all(m.evaluate(db) for m in self.members)
+
+        elif not self.has_size:
             size = 0
             pack = self.pack if self.pack else 4  # default pack
             for member in self.members:
-                member.evaluate(db)
+                if not member.evaluate(db):
+                    members_eval = False  # still keep going
+
                 if not member.has_size:
                     return False  # can't evaluate
 
@@ -1092,12 +990,409 @@ class UnionSymbol(BaseStructSymbol):
                 size += pack - (size % pack) # pad size to pack align
             self._size = size
 
-        return self.has_size
+        ##DEBUG: testing
+        return self.has_size and members_eval
+        #return self.has_size
 
     def __repr__(self):
         pack = f' : pack({self.pack})' if self.pack else ''
         comment = f' // {self.comment}' if self.comment else ''
         return f'union {self.name}{pack};{comment}'
+    def __str__(self):
+        comment = f' // {self.comment}' if self.comment else ''
+        return f'union {self.name}{comment}'
+
+#endregion
+
+
+#######################################################################################
+
+#region Tagged comment classification
+
+# used to work around Ghidra's utter lack of helpful output
+
+PARSE_TAGGED_COMMENT = re.compile(rf"""
+    {WS1}* \[ (?P<taggedbody>[^ \] ]+) \] {WS1}* (?P<remaining>.*)
+""", RE_FLAGS | re.VERBOSE)
+
+PARSE_TAGGED_COMMENT_TYPE = re.compile(rf"""
+    (?: (?P<module> [^ \]|: ]+ )
+        |
+    (?: (?P<keyword> class|struct|union|enum|flags ) : (?P<targetsize> {RE_UINTEGER} ) ) )
+        |
+    (?: type : (?P<typename> {RE_SYMBOL} ) )
+        |
+    (?: pack : (?P<pack> {RE_UINTEGER} ) )
+        |
+    (?: tags : (?P<tags>.* ) )
+        |
+    (?: (?P<unknown> [^ : ]* ) : (?P<unknownbody> .* ) )
+    """, RE_FLAGS | re.VERBOSE)
+
+
+# define Python user-defined exceptions
+class TaggedError(Exception):
+    """Errors when parsing tagged comment helpers"""
+    offset:Optional[int]
+    comment:Optional[str]
+
+    def __init__(self, *args, offset:Optional[int]=None, comment:Optional[str]=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.offset = offset
+        self.comment = comment
+
+class TaggedDuplicateError(TaggedError):
+    """A named tag or module appears more than once"""
+    pass
+
+class TaggedFormatError(TaggedError):
+    """Bad formatting for tagged comment item"""
+    pass
+
+
+class TaggedComment(namedtuple('_TaggedComment', ('taggedbody', 'remaining', 'module', 'keyword', 'targetsize', 'typename', 'pack', 'tags', 'unknown'))):
+
+    taggedbody:Optional[str]
+    remaining:Optional[str]
+    module:Optional[str]
+    keyword:Optional[str]
+    targetsize:Optional[int]
+    typename:Optional[str]
+    pack:Optional[int]
+    tags:List[str]
+    unknown:Dict[str,str]
+
+    def __new__(cls, taggedbody:Optional[str]=None, remaining:Optional[str]=None, module:Optional[str]=None, keyword:Optional[str]=None, targetsize:Optional[int]=None, typename:Optional[str]=None, pack:Optional[int]=None, tags:Optional[List[str]]=None, unknown:Optional[Dict[str,str]]=None):
+
+        if tags is None: tags = []
+        if unknown is None: unknown = {}
+
+        return super().__new__(cls, taggedbody=taggedbody, remaining=remaining, module=module, keyword=keyword, targetsize=targetsize, typename=typename, pack=pack, tags=tags, unknown=unknown)
+
+    TAGGED_RESERVED = ('class', 'struct', 'union', 'enum', 'flags')
+    TAGGED_GROUPS = ('module', 'keyword', 'typename', 'pack', 'tags', 'unknown')
+
+    @classmethod
+    def _parse_tagged(cls, comment:str, dic:dict, m:Match, offset:int, key:str, value:str) -> None:
+        getattr(cls, f'_parse_tagged_{key}')(comment, dic, m, offset, key, value)
+    
+    @classmethod
+    def _parse_tagged_module(cls, comment:str, dic:dict, m:Match, offset:int, key:str, value:str) -> None:
+        dic[key] = value
+    
+    @classmethod
+    def _parse_tagged_keyword(cls, comment:str, dic:dict, m:Match, offset:int, key:str, value:str) -> None:
+        dic[key] = value
+        dic['targetsize'] = int(m['targetsize'], 0)
+
+    @classmethod
+    def _parse_tagged_typename(cls, comment:str, dic:dict, m:Match, offset:int, key:str, value:str) -> None:
+        dic[key] = value
+
+    @classmethod
+    def _parse_tagged_pack(cls, comment:str, dic:dict, m:Match, offset:int, key:str, value:str) -> None:
+        dic[key] = int(value, 0)
+
+    @classmethod
+    def _parse_tagged_unknown(cls, comment:str, dic:dict, m:Match, offset:int, key:str, value:str) -> None:
+        #value = value.strip()  # don't strip, since the patterns don't check elsewhere
+        if not value:
+            raise TaggedFormatError(f'Empty tagged type name', offset=offset, comment=comment)
+        if value in cls.TAGGED_RESERVED:
+            raise TaggedFormatError(f'Failed to match special tagged type {value!r}', offset=offset, comment=comment)
+        if value in dic.get(key, {}):
+            raise TaggedDuplicateError(f'Unknown tagged type {value!r} already exists', offset=offset, comment=comment)
+        dic.setdefault(key, {})[value] = m['unknownbody']
+        
+    @classmethod
+    def _parse_tagged_tags(cls, comment:str, dic:dict, m:Match, offset:int, key:str, value:str) -> None:
+        dic[key] = tags = []
+        if not value:
+            return # no handling for empty tags
+        
+        for t in value.split(','):
+            if t in tags: # could be warning (or ignored)
+                raise TaggedDuplicateError(f'Tags name {value!r} already exists', offset=offset, comment=comment)
+            tags.append(t)
+        
+
+    @classmethod
+    def parse(cls, comment:str) -> 'TaggedComment':
+        """parse_tagged_comment(s) -> (success, keyword, targetsize, typename, pack, tags, unknown tags)"""
+        comment = (comment or '').strip()
+
+        m1 = PARSE_TAGGED_COMMENT.fullmatch(comment)
+        if not m1:
+            return cls(taggedbody=None, remaining=comment)
+
+        taggedbody, remaining = m1['taggedbody'], m1['remaining']
+
+        dic = {}
+        for s in taggedbody.split('|'):
+            s = s.strip()
+            if not s: raise TaggedFormatError(f'Empty tagged item {s!r}', comment=comment)
+            if s.__class__ is not str:
+                print(f'WRONG TYPE: {s.__class__.__name__}')
+            m2 = PARSE_TAGGED_COMMENT_TYPE.fullmatch(s)
+            if not m2: raise TaggedFormatError(f'Unexpected tagged item format {s!r}', comment=comment)
+
+            key = ([k for k in cls.TAGGED_GROUPS if m2[k] is not None] or (None,))[0]
+            
+            if key != 'unknown' and key in dic:  # unknown has its own handling for this
+                raise TaggedDuplicateError(f'Tagged type name {key!r} already exists', offset=m2.span(0), comment=comment)
+
+            # call one of the predefined tagged function names
+            getattr(cls, f'_parse_tagged_{key}')(comment, dic, m2, offset=m2.span(0), key=key, value=m2[key])
+            #cls._parse_tagged(comment, dic, m2, offset=m2.span(0), key=key, value=m2[key])
+
+        return cls(taggedbody=taggedbody, remaining=remaining, **dic)
+
+#endregion
+
+
+#######################################################################################
+
+#region Parser classes
+
+# define Python user-defined exceptions
+class ParserError(Exception):
+    """Errors when parsing a file"""
+    filename:Optional[str]
+    filetext:Optional[str]
+    linenumber:Optional[int]
+    index:Optional[int]
+
+    offset:Optional[int]
+
+    def __init__(self, *args, filename:Optional[str]=None, filetext:Optional[str]=None, linenumber:Optional[int]=None, index:Optional[int]=None, offset:Optional[int]=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.filename = filename
+        self.filetext = filetext
+        self.linenumber = linenumber
+        self.index = index
+        self.offset = offset
+
+
+class BaseParser:
+    filename:Optional[str]
+    filetext:Optional[str]
+    linenumber:Optional[int]
+    index:Optional[int]
+
+    def __init__(self):
+        self.filename = None
+        self.filetext = None
+        self.linenumber = None
+        self.index = None
+
+    def error(self, *args, offset:Optional[int]=None, **kwargs):
+        #TODO: Do a better job with index and linenumber
+        error_cls = ParserError
+        if args and args[0] is type:
+            error_cls, args = args[0], args[1:]
+        
+        raise error_cls(*args, filename=self.filename, filetext=self.filetext, linenumber=self.linenumber, index=self.index, offset=offset, **kwargs)
+
+class HeaderParser(BaseParser):
+    db:'SymbolDatabase'
+    def __init__(self, db:'SymbolDatabase'):
+        super().__init__()
+        self.db = db
+
+    def parsefile(self, filename:str, encoding:str='utf-8', **kwargs):
+        with open(filename, 'rt', encoding=encoding) as reader:
+            filetext = reader.read()
+        
+        return self.parse(filetext, filename=filename, **kwargs)
+
+
+    def parse(self, filetext:str, *, filename:Optional[str]=None, **kwargs):
+        self.filename = filename
+        self.filetext = filetext
+        
+        text = filetext # modified and used as the parsed text
+
+        # prepare for parsing, fix Ghidra's crap
+        text = sub_crlf2lf(text)
+        text = sub_spaces4tabs(text)
+        text = sub_float10(text)
+        text = sub_compact_field0x(text)
+        text = rem_ctypedef(text)
+        text = rem_define(text)
+
+        # parse typedefs and blocks (struct,enum,union)
+        self.parse_typedefs(text, **kwargs)
+        self.parse_blocks(text, **kwargs)
+
+        # parse function declarations
+        #self.parse_functions(text, **kwargs)
+
+    
+    def parse_tagged_comment(self, comment:str) -> TaggedComment:
+        return TaggedComment.parse(comment)
+
+    def parse_typedefs(self, text:str, **kwargs) -> None:
+        for m in PARSE_TYPEDEF.finditer(text):
+            name        = m['name']  # may be None, which we need to handle as an error
+            is_function = m['arguments'] is not None
+
+            if is_function:
+                hide = name in EXCLUDE_FUNCTYPEDEFS
+            else:
+                hide = name not in ALLOWED_TYPEDEFS
+
+            self.db.add(self.parse_symbol_type(TypedefSymbol, m, hide=hide, nocomment=True, **kwargs))
+
+    def parse_blocks(self, text:str, **kwargs) -> None: # -> Iterable[Symbol]:
+        for m in PARSE_TYPE_BLOCK.finditer(text):
+            name    = m['name']
+            typedef = m['typedef'] or None
+
+            self.db.add(self.parse_block(m, **kwargs))
+            if typedef and typedef != name:  # don't typedef yourself
+                self.db.add_typedef(typedef, name)
+
+
+    def parse_block(self, m:Match, **kwargs) -> Symbol:
+        keyword, typedef, name, comment, textbody = m.group('keyword', 'typedef', 'name', 'comment', 'textbody')
+        comment = (comment or '').strip() or None
+
+        t = self.parse_tagged_comment(comment)
+        hide = t.taggedbody is None
+
+        if keyword == 'enum':
+            symbol_cls = FlagsSymbol if (t.keyword and t.keyword == 'flags') else EnumSymbol
+
+            ## OPTIONAL: replace comment=comment with comment=t.remaining  for untagged half of comments
+            symbol = symbol_cls(name, typename=t.typename, targetsize=t.targetsize, comment=comment or None, hide=hide, **kwargs)
+            for value in self.parse_enum_values(ValueSymbol, textbody, **kwargs):
+                symbol.add_value(value)
+            if ENUM_SORT_DEFAULT:
+                symbol.sort_values()  # numerical-sort enums by default
+        else:
+            # class and struct have no handling difference at the moment
+            symbol_cls = UnionSymbol if keyword == 'union' else StructSymbol
+            
+            ## OPTIONAL: replace comment=comment with comment=t.remaining  for untagged half of comments
+            symbol = symbol_cls(name, targetsize=t.targetsize, pack=t.pack, comment=comment or None, hide=hide, **kwargs)
+            for member in self.parse_block_members(MemberSymbol, textbody, **kwargs):
+                symbol.add_member(member)
+        
+        # self.db.add(symbol)
+        return symbol
+    
+    def parse_symbol_value(self, symbol_cls:Type[ValueSymbol], m:Match, nocomment:bool=False, **kwargs) -> ValueSymbol:
+        name    = m['name']
+        value   = int(m['value'], 0)
+        comment = m['comment'] or None
+
+        return symbol_cls(name, value, comment=comment, **kwargs)
+            
+    def parse_enum_values(self, symbol_cls:Type[ValueSymbol], text:str, **kwargs) -> List[ValueSymbol]:
+        text = text.strip()
+        values = []
+
+        for s in text.split('\n'):
+            s = s.strip()
+            if not s: continue  # ignore empty lines
+
+            m2 = PARSE_ENUMVALUE2.fullmatch(s)
+            if not m2: self.error(f'BAD MEMBER: {s}')
+            values.append(self.parse_symbol_value(symbol_cls, m2, nocomment=True, **kwargs))
+        
+        return values
+    
+    def parse_block_members(self, symbol_cls:Type[TypeSymbol], text:str, **kwargs) -> List[MemberSymbol]:
+        text = text.strip() #m['textbody'].strip()
+        members = []
+
+        for s in text.split('\n'):
+            s = s.strip()
+            if not s: continue  # ignore empty lines
+
+            m2 = PARSE_MEMBER2.fullmatch(s)
+            if not m2: self.error(f'BAD MEMBER: {s}')
+            members.append(self.parse_symbol_type(symbol_cls, m2, nocomment=False, **kwargs))
+        
+        return members
+
+    def parse_type_arguments(self, symbol_cls:Type[TypeSymbol], text:str, **kwargs) -> List[TypeSymbol]:
+        text = text.strip()
+        if text in ('','void','VOID'): return [] # special case for (void) empty arguments
+
+        args = []
+
+        arguments = text
+        while arguments:  # loop will continue until arguments is entirely stripped
+            arguments = arguments.lstrip()
+            m = PARSE_PARAM.match(arguments)
+
+            #realoffset = len(text)-len(arguments)
+            if not m:
+                self.error(f'BAD arguments state: {arguments!r}')
+            args.append(self.parse_symbol_type(symbol_cls, m, nocomment=True, **kwargs))
+
+            arguments = arguments[m.span()[1]:].lstrip()
+            if arguments:
+                if arguments[0] == ',':
+                    arguments = arguments[1:] #.lstrip()  # strip commma
+                    if not arguments:
+                        self.error(f'BAD end of arguments, nothing after comma: {arguments}')
+                else:
+                    self.error(f'BAD end of arguments, expected comma: {arguments}')
+
+        return args
+
+    def _parse_ptr_counts(self, text:str) -> int:
+        # key is used because both pointers attached to the name, and attached to the type,
+        #  which can be both for function typedefs, etc.
+        return (text or '').count('*')
+        
+    def _parse_ptr_counts(self, text:str) -> int:
+        # key is used because both pointers attached to the name, and attached to the type,
+        #  which can be both for function typedefs, etc.
+        return (text or '').count('*')
+
+    def _parse_array_counts(self, text:str) -> Tuple[int,...]:
+        if text is None: return ()  # no arrays matched, return empty tuple
+        
+        arrays = []
+
+        #NOTE: this should never have any failures, so we can safely use finditer
+        for m2 in PARSE_ARRAYCOUNT.finditer(text):
+            arrays.append(int(m2['count'], 0))
+
+        return tuple(arrays)
+
+    # def _parse_is_function(self, text:str) -> bool:
+    #     return bool(text)  # no arguments match, must not be a function
+
+    def parse_symbol_type(self, symbol_cls:Type[TypeSymbol], m:Match, nocomment:bool=False, **kwargs) -> TypeSymbol:
+        typename    = m['typename']
+        name        = m['name']     or None
+        modifier    = m['modifier'] or None
+        decl        = m['decl']     or None
+        typeptrs    = self._parse_ptr_counts(m['typeptrs'])
+        nameptrs    = self._parse_ptr_counts(m['nameptrs'])
+        arrays      = self._parse_array_counts(m['arrays'])
+        is_function = m['arguments'] is not None
+        comment     = None if nocomment else (m['comment'] or None)
+
+        symbol = symbol_cls(name, typename, modifier=modifier, decl=decl, typeptrs=typeptrs, nameptrs=nameptrs, arrays=arrays, is_function=is_function, comment=comment, **kwargs)
+
+        if is_function:
+            # arguments[1:-1] to strip surrounding '(' ')' braces
+            for arg in self.parse_type_arguments(ParamSymbol, m['arguments'][1:-1], **kwargs):
+                symbol.add_argument(arg) #, **kwargs)
+
+        return symbol
+
+#endregion
+
+
+#######################################################################################
+
+#region Symbols database
 
 class SymbolDatabase:
     symbols:Dict[str,Symbol]
@@ -1176,17 +1471,27 @@ class SymbolDatabase:
                     # pname[1:] to strip 'I' from interface pointer name
                     self.add(TypedefSymbol(ptr + pname[1:].upper(), pname, typeptrs=1, hide=True))
     
-    def parse_header(self, text:str, **kwargs):
+    def include_headerfile(self, filename:str, encoding:str='utf-8', **kwargs) -> bool:
+        with open(filename, 'rt', encoding=encoding) as reader:
+            filetext = reader.read()
+        
+        return self.include_header(filetext, filename=filename, **kwargs)
+        
+    def include_header(self, filetext:str, *, filename:Optional[str], **kwargs) -> bool:
+        parser = HeaderParser(self)
 
-        text = sub_crlf2lf(text)
-        text = sub_spaces4tabs(text)
-        text = sub_float10(text)
-        text = sub_compact_field0x(text)
-        text = rem_ctypedef(text)
-        text = rem_define(text)
-        self.parse_typedefs(text, **kwargs)
-        self.parse_blocks(text, **kwargs)
+        parser.parse(filetext, filename=filename, **kwargs)
 
+        # Lazily iterate through the list of symbols and evaluate everything as we go.
+        #  any symbol that says it failed will be evaluated in the next pass, and so on.
+        #
+        # Symbol.evaluate(db) SHOULD NEVER call another Symbol.evaluate!!
+        #  This is what the pass system is handled for to avoid any awkward cyclic redundancy.
+        #
+        # Symbol.evaluate(db) may return false even if it can be used by other types.
+        # Evaluation requires all Symbol links to function,
+        #  while many symbols only need to know their size to function.
+        #  Use the Symbol.has_size property to determine if you have what you need
         remaining = list(self.symbols.values())
         last_pass = -1
         passes = 0
@@ -1204,208 +1509,107 @@ class SymbolDatabase:
         if last_pass == 0 or remaining:
             print(f'Failed to evaluate all tokens. Completed {len(self.symbols)-len(remaining)}/{len(self.symbols)} within {passes} passes')
             print(f'last_pass = {last_pass}')
-            import os
             SCRIPT_DIR:str = os.path.abspath(os.path.dirname(__file__))
             print(SCRIPT_DIR)
             with open(os.path.join(SCRIPT_DIR, 'ghidra_export.log'), 'wt+', encoding='utf-8') as f:
                 for r in remaining:
                     f.write(repr(r) + '\n')
                 f.flush()
+            return False
+
         else:
-            print('All symbols successfully evaluated')
-    
-    def parse_comment(self, comment:str) -> Tuple[bool, str, int, str, int]:
-        """parse_comment(s) -> (success, keyword, targetsize, typename, pack)"""
-        m = re.search(rf"[\[|](?P<keyword>(?:struct|union)|(enum|flags)):(?P<targetsize>{RE_UINTEGER})(?:\|(?(2)type:(?P<typename>{RE_SYMBOL})|pack:(?P<pack>{RE_UINTEGER}))[\]|])?", comment.strip(), RE_FLAGS)
-        if m:
-            keyword = m.group('keyword')
-            targetsize = int(m.group('targetsize'),0)
-            typename = m.group('typename') or None
-            pack = m.group('pack')
-            if pack is not None: pack = int(pack,0)
-            return (True, keyword, targetsize, typename, pack)
-        return (False, None, None, None, None)
+            print(f'All symbols successfully evaluated within {passes} passes')
+            return True
 
-
-
-    def parse_typedefs(self, text:str, **kwargs):
-        for m in PARSE_TYPEDEF.finditer(text):
-            hide = False
-            name = m.group('name')
-            is_function = m.group('arguments') is not None
-            if is_function:
-                hide = name in EXCLUDE_FUNCTYPEDEFS
-            else:
-                hide = name not in ALLOWED_TYPEDEFS
-            # if m.group('name') in ALLOWED_TYPEDEFS:
-            self.add(self.parse_symbol_type(TypedefSymbol, m, hide=hide, nocomment=True, **kwargs))
-
-    def parse_block(self, m:Match, **kwargs):
-        keyword = m.group('keyword')
-        typedef = m.group('typedef')
-        name = m.group('name')
-        if typedef == name:
-            typedef = None
-        comment = (m.group('comment') or '').strip()
-        #self.parse_comment(comment)
-        # targetsize = None
-        # pack = None
-        # typename = None
-        success, keyword2, targetsize, typename, pack = self.parse_comment(comment)
-        # if comment:
-        if keyword == 'enum':
-            symbol_cls = FlagsSymbol if (keyword2 and keyword2 == 'flags') else EnumSymbol
-            # if keyword2 is not None and keyword2 == 'flags':
-            #     symbol_cls = FlagsSymbol
-            myenum = symbol_cls(name, typename, targetsize=targetsize, comment=comment or None, hide=not success)
-            for m2 in PARSE_ENUMVALUE.finditer(m.group(0)):
-                ename = m2.group('name')
-                evalue = int(m2.group('value'),0)
-                ecomment = m2.group('comment')
-                myenum.add_value(ValueSymbol(ename, evalue, comment=ecomment))
-            # self.add(myenum)
-            return myenum
-        else:
-            symbol_cls = UnionSymbol if keyword == 'union' else StructSymbol
-            mystruct = symbol_cls(name, targetsize=targetsize, pack=pack, comment=comment or None, hide=not success)
-            for m2 in PARSE_MEMBER.finditer(m.group(0)):
-                mystruct.add_member(self.parse_symbol_type(MemberSymbol, m2, nocomment=False, **kwargs))
-            # self.add(mystruct)
-            return mystruct
-        # if typedef:
-
-            # self.add(symbol)
-            # m2 = re.search()
-            # self.add(self.parse_enum(symbol_cls, m, **kwargs)
-        #self.add(self.parse_symbol_type(TypedefSymbol, m, **kwargs))
-    def parse_blocks(self, text:str, **kwargs):
-        for m in PARSE_TYPE_BLOCK.finditer(text):
-            typedef = m.group('typedef') or ''
-            name = m.group('name')
-            if not typedef or typedef == name: typedef = None
-            self.add(self.parse_block(m, **kwargs))
-            if typedef:
-                self.add_typedef(typedef, name)
-            # keyword = m.group('keyword')
-            # name = m.group('typedef') or m.group('name')
-            # comment = (m.group('comment') or '').strip()
-            # #self.parse_comment(comment)
-            # # targetsize = None
-            # # pack = None
-            # # typename = None
-            # success, keyword2, targetsize, typename, pack = self.parse_comment(comment)
-            # # if comment:
-            # if keyword == 'enum':
-            #     symbol_cls = FlagsSymbol if (keyword2 and keyword2 == 'flags') else EnumSymbol
-            #     # if keyword2 is not None and keyword2 == 'flags':
-            #     #     symbol_cls = FlagsSymbol
-            #     myenum = symbol_cls(name, typename, targetsize=targetsize, comment=comment or None, hide=not success)
-            #     for m2 in PARSE_ENUMVALUE.finditer(m.group(0)):
-            #         ename = m2.group('name')
-            #         evalue = int(m2.group('value'),0)
-            #         ecomment = m2.group('comment')
-            #         myenum.add_value(ValueSymbol(ename, evalue, comment=ecomment))
-            #     self.add(myenum)
-            #     # return myenum
-            # else:
-            #     symbol_cls = UnionSymbol if keyword == 'union' else StructSymbol
-            #     mystruct = symbol_cls(name, targetsize=targetsize, pack=pack, comment=comment or None, hide=not success)
-            #     for m2 in PARSE_MEMBER.finditer(m.group(0)):
-            #         mystruct.add_member(self.parse_symbol_type(MemberSymbol, m2, nocomment=False, **kwargs))
-            #     self.add(mystruct)
-            #     # return mystruct
-            #     # self.add(symbol)
-            #     # m2 = re.search()
-            #     # self.add(self.parse_enum(symbol_cls, m, **kwargs)
-            # #self.add(self.parse_symbol_type(TypedefSymbol, m, **kwargs))
-        #text = sub_
-
-    def parse_symbol_type(self, symbol_cls:type, m:Match, nocomment:bool=False, **kwargs) -> TypeSymbol:
-        name = m.group('name') or None
-        modifier = m.group('modifier') or None
-        decl = m.group('decl') or None
-        comment = None if nocomment else (m.group('comment') or None)
-        typeptrs = (m.group('typeptrs') or '').count('*')
-        nameptrs = (m.group('nameptrs') or '').count('*')
-        typename = m.group('typename')
-        if m.group('arrays'):
-            arrays = []
-            for m2 in PARSE_ARRAYCOUNT.finditer(m.group('arrays')):
-                arrays.append(int(m2.group('count'),0))
-            arrays = tuple(arrays)
-        else:
-            arrays = ()
-        is_function = m.group('arguments') is not None
-
-        if symbol_cls is TypedefSymbol and is_function:
-            symbol_cls = FunctionSymbol
-        symbol = symbol_cls(name, typename, modifier=modifier, decl=decl, typeptrs=typeptrs, nameptrs=nameptrs, arrays=arrays, is_function=is_function, comment=comment, **kwargs)
-        if is_function:
-            for arg in self.parse_arguments(ParamSymbol, m, **kwargs):
-                symbol.add_argument(arg) #, **kwargs)
-        return symbol
-
-
-    def parse_arguments(self, symbol_cls:type, m:Match, **kwargs) -> list:
-        if m.group('arguments') is not None:
-            arguments = m.group('arguments')[1:-1].strip()
-            if arguments in ('','void','VOID'):
-                return []
-            args = []
-            for s2,m2 in [(s.strip(),PARSE_PARAM.search(s.strip())) for s in arguments.split(',')]:
-                if not m2:
-                    print(f'BAD argument: {s2}')
-                args.append(self.parse_symbol_type(symbol_cls, m2, nocomment=True, **kwargs))
-            # for m2 in PARSE_PARAM.finditer():
-            #     args.append(self.parse_symbol_type(symbol_cls, m2, nocomment=True, **kwargs))
-            return args
-        return None
         
     def failed_targets(self):
         print(*[repr(s) for s in self.values() if s.has_size and hasattr(s,'targetsize') and s.targetsize is not None and s.size != s.targetsize],sep='\n')
 
+    def populate_primitives(self):
+        self.add_primitive('void', 0)
+        # self.add_primitive('bool', 1)
 
-    # def parse_members(self, s:str, *, parent:Optional['BlockSymbol']=None) -> Iterable['BlockMember']:
-    #     for m in PARSE_MEMBER.finditer(s):
+        self.add_primitive('char',      1, prefixes=('', 'signed ', 'unsigned '))
+        self.add_primitive('short',     2, prefixes=('', 'signed ', 'unsigned '), postfixes=('', ' int'))
+
+        self.add_primitive('signed',    4)
+        self.add_primitive('unsigned',  4)
+        self.add_primitive('int',       4, prefixes=('', 'signed ', 'unsigned '))
+
+        self.add_primitive('long',      4, prefixes=('', 'signed ', 'unsigned '), postfixes=('', ' int'))
+        self.add_primitive('long long', 8, prefixes=('', 'signed ', 'unsigned '), postfixes=('', ' int'))
+
+        self.add_primitive('float',   4)
+        self.add_primitive('double',  8)
+        self.add_primitive('long double', 10)
+    
+    def populate_ghidra_primitives(self):
+        if not self.symbols:
+            # if empty, we need to populate base primitives
+            self.populate_primitives()
+        self.add_typedef('va_list', 'char', pointers=1)
+
+        self.add_typedef('code',    'void', pointers=1)
+        self.add_typedef('pointer', 'void', pointers=1)
+        self.add_typedef('pointer32', 'void', pointers=1)
+
+        # edge case for more stupid ghidra shenanigans
+        self.add_typedef('char[0]', 'void')
+        # self.add_typedef('float10', 'long double')
+
+        # fix Ghidra being a butt for the millionth time. WHY IN THE WORLD IS THIS TYPEDEF'ED AS 8 BYTES!????
+        self.add_primitive('GUID', 16)
+
+#endregion
 
 
+#######################################################################################
 
-Symbol.DB = db = SymbolDatabase()
+#region Setup global variables
 
+db = SymbolDatabase()
+# Symbol.DB = db
 
-db.add_primitive('void', 0)
-# db.add_primitive('bool', 1)
-
-db.add_primitive('char',      1, prefixes=('', 'signed ', 'unsigned '))
-db.add_primitive('short',     2, prefixes=('', 'signed ', 'unsigned '), postfixes=('', ' int'))
-
-db.add_primitive('signed',    4)
-db.add_primitive('unsigned',  4)
-db.add_primitive('int',       4, prefixes=('', 'signed ', 'unsigned '))
-
-db.add_primitive('long',      4, prefixes=('', 'signed ', 'unsigned '), postfixes=('', ' int'))
-db.add_primitive('long long', 8, prefixes=('', 'signed ', 'unsigned '), postfixes=('', ' int'))
-
-db.add_primitive('float',   4)
-db.add_primitive('double',  8)
-db.add_primitive('long double', 10)
+db.populate_ghidra_primitives()
 
 
-# db.add_primitive('wchar_t',   2)
-# db.add_primitive('size_t',    4)
-# db.add_primitive('ptrdiff_t', 4)
-db.add_typedef('va_list', 'char', pointers=1)
+# db.add_primitive('void', 0)
+# # db.add_primitive('bool', 1)
 
-db.add_typedef('code',    'void', pointers=1)
-db.add_typedef('pointer', 'void', pointers=1)
-db.add_typedef('pointer32', 'void', pointers=1)
+# db.add_primitive('char',      1, prefixes=('', 'signed ', 'unsigned '))
+# db.add_primitive('short',     2, prefixes=('', 'signed ', 'unsigned '), postfixes=('', ' int'))
 
-# edge case for more stupid ghidra shenanigans
-db.add_typedef('char[0]', 'void')
-# db.add_typedef('float10', 'long double')
+# db.add_primitive('signed',    4)
+# db.add_primitive('unsigned',  4)
+# db.add_primitive('int',       4, prefixes=('', 'signed ', 'unsigned '))
 
-# fix Ghidra being a butt for the millionth time. WHY IN THE WORLD IS THIS TYPEDEF'ED AS 8 BYTES!????
-db.add_primitive('GUID', 16)
+# db.add_primitive('long',      4, prefixes=('', 'signed ', 'unsigned '), postfixes=('', ' int'))
+# db.add_primitive('long long', 8, prefixes=('', 'signed ', 'unsigned '), postfixes=('', ' int'))
+
+# db.add_primitive('float',   4)
+# db.add_primitive('double',  8)
+# db.add_primitive('long double', 10)
+
+
+## GHIDRA PRIMITIVES:
+
+# # db.add_primitive('wchar_t',   2)
+# # db.add_primitive('size_t',    4)
+# # db.add_primitive('ptrdiff_t', 4)
+# db.add_typedef('va_list', 'char', pointers=1)
+
+# db.add_typedef('code',    'void', pointers=1)
+# db.add_typedef('pointer', 'void', pointers=1)
+# db.add_typedef('pointer32', 'void', pointers=1)
+
+# # edge case for more stupid ghidra shenanigans
+# db.add_typedef('char[0]', 'void')
+# # db.add_typedef('float10', 'long double')
+
+# # fix Ghidra being a butt for the millionth time. WHY IN THE WORLD IS THIS TYPEDEF'ED AS 8 BYTES!????
+# db.add_primitive('GUID', 16)
+
+## END
 
 # db.add_typedef('FILE', 'void')
 
@@ -1547,31 +1751,8 @@ db.add_primitive('GUID', 16)
 
 # db.add(TypedefSymbol('HANDLE', 16))
 
-###########################################################################
-# def make_sub(name, pat, repl):
-#     def do_sub(s:str, pat=pat, repl=repl):
-#         return pat.sub(repl, s)
-#     # oldname = do_sub.__name__
-#     if do_sub.__qualname__.endswith(do_sub.__name__):
-#         do_sub.__qualname__ = do_sub.__qualname__[:len(do_sub.__qualname__)-len(do_sub.__name__)] + name
-#     do_sub.__name__ = name
-#     return do_sub
-
-
-
-# re.compile(r"^(?:\G|^)[ ]{2}", RE_FLAGS)
-# re.compile(r"^([ .]*)[ ]{2}([ .]*)", RE_FLAGS)
-
-# # <https://stackoverflow.com/a/33028140/7517185>
-# C_TABS_TOSPACES_SEARCH:Pattern = re.compile(r"^(?:\G|^)[ ]{2}", RE_FLAGS)
-# C_TABS_TOSPACES_REPLACE:str = '\t'
-
 
 #endregion
-
-#######################################################################################
-
-
 
 
 #######################################################################################
@@ -1604,6 +1785,7 @@ def main(argv:Optional[list]=None) -> int:
 
     args = parser.parse_args(argv)
 
+    print('Main function not implemented yet...')
 
     #endregion
 
