@@ -79,7 +79,7 @@ def signed(value:int, byteSize:int) -> int:
 
 #######################################################################################
 
-#region BIG LIST OF REGEX PATTERNS
+#region REGEX SUBSTITUTION FUNCTIONS
 
 ###########################################################################
 ## compact undefined struct fields into one
@@ -187,10 +187,16 @@ FLOAT10_REPL = r"typedef long double \1;"
 def sub_float10(s:str) -> str:
     return FLOAT10_PAT.sub(FLOAT10_REPL, s)
 
+#endregion
+
+
+#######################################################################################
+
+#region BIG LIST OF UNORGANIZED REGEX PATTERNS
 
 ###########################################################################
 
-GHIDRA_ALLOWED_TYPEDEFS = {'byte', 'uchar', 'ushort', 'uint', 'ulong', 'longlong', 'ulonglong', 'undefined', 'undefined1', 'undefined2', 'undefined4', 'undefined8', 'float10'}
+# GHIDRA_ALLOWED_TYPEDEFS = {'byte', 'uchar', 'ushort', 'uint', 'ulong', 'longlong', 'ulonglong', 'undefined', 'undefined1', 'undefined2', 'undefined4', 'undefined8', 'float10'}
 
 ALLOWED_TYPEDEFS = {'Mesh_TextureStateChangeData', 'Mesh_Texture', 'Material', 'Animation_t', 'Movie_t', 'Material_t'}
 
@@ -204,20 +210,24 @@ EXCLUDE_FUNCTYPEDEFS = {'QsortCompare', 'PTOP_LEVEL_EXCEPTION_FILTER', '_PNH', '
 RE_SYM     = r"[A-Za-z_0-9]"
 RE_NSYM    = r"[^A-Za-z_0-9\/\n]"
 
-RE_SYMBOL      = r"(?:[A-Za-z_][A-Za-z_0-9]*)"
 
 # RE_BLOCKCOMMENT_CAP = r"(?:\/\*\s*((?:[^*]|\*\/)*?)\s*\*\/)"
 # RE_COMMENT_CAP = r"(?:\/(?:(\*)|(\/))\s*((?:[^*]|\*\/)*?)\s*\*\/"
 
 WS1 = r"[^\S\r\n]"
+# WS1N = r"\s"
 # whitespace including block comments
 WS = r"(?:[^\S\r\n\/]|(?:\/\*\s*(?:[^*]|\*[^\/])*\s*\*\/)|\/[^\/])"
+# whitespace including block comments and newlines
+WSN = r"(?:[^\S\/]|(?:\/\*\s*(?:[^*]|\*[^\/])*\s*\*\/)|\/[^\/])"
 # whitespace including all comments
 WS2 = r"(?:[^\S\r\n\/]|(?:\/\*\s*(?:[^*]|\*[^\/])*\s*\*\/)|(?:\/\/+[^\S\r\n]*(?:[^\n]|\\\n)*)"
 
+RE_IDENTIFIER = r"(?:[A-Za-z_][A-Za-z_0-9]*)"
+
 # edge cases for more stupid ghidra shenanigans
 RE_SYMBOL_TYPE = rf"(?:char\[0\]|long{WS}+double|(?:signed|unsigned{WS}+)?(?:int|(?:char|short|long|long{WS}+long)(?:{WS}+int)?)|[A-Za-z_][A-Za-z_0-9]*)"
-#RE_SYMBOL      = r"(?:long\s+double|(?:signed|unsigned\s+)?(?:int|(?:char|short|long|long\s+long)(?:\s+int)?)|[A-Za-z_][A-Za-z_0-9]*)"
+# RE_SYMBOL      = r"(?:[A-Za-z_][A-Za-z_0-9]*)"
 
 RE_SINTEGER   = r"(?:(?:0[Xx][A-Fa-f0-9]+|[+\-]?[0-9]+)(?:[Uu][Ll]?[Ll]?|[Ll][Ll]?[Uu]?)?)"
 RE_UINTEGER   = r"(?:(?:0[Xx][A-Fa-f0-9]+|\+?[0-9]+)(?:[Uu][Ll]?[Ll]?|[Ll][Ll]?[Uu]?)?)"
@@ -234,6 +244,8 @@ RE_DECL = r"(?:__(?:cdecl|stdcall|thiscall|fastcall))"
 RE_MODIFIERS = rf"(?:{RE_MODIFIER}(?:{WS}+{RE_MODIFIER})*)"
 RE_PTRS = rf"(?:{RE_PTR}(?:{WS}*{RE_PTR})*)"
 RE_ARRAYS = rf"(?:{RE_ARRAY}(?:{WS}*{RE_ARRAY})*)"
+# global namespace "::" or optional global prefix "::<namespace>::<name>::" or just "<namespace>::<name>::"
+RE_NAMESPACE = rf"(?: :: | (?: :: )? (?: {RE_IDENTIFIER}:: )+ )"
 
 RE_CSTYLEKEYWORD = r"(?:struct|union|enum)"
 
@@ -255,37 +267,41 @@ RE_LINECOMMENT_CAP = rf"(?:\/\/+{WS1}*(?:(?P<comment>(?:[^\n]|\\\n)*)))?" #{WS}*
 
 
 RE_PARSE_SYMBOL = rf"""
-    (?: (?P<modifier>{RE_MODIFIERS}) {WS}* )?                   # symbol type modifiers
+    (?: (?P<modifier>{RE_MODIFIERS}) {WSN}* )?                   # symbol type modifiers
 
-    (?: {RE_CSTYLEKEYWORD} {WS}* )?   # C-style struct|union|enum before type name
-    (?<!{RE_SYM}) (?P<typename>{RE_SYMBOL_TYPE}) (?!{RE_SYM}) {WS}*  # REQUIRED: symbol type name
-    (?: (?P<typeptrs>{RE_PTRS}) {WS}* )?                        # outside pointers "typeptrs"
+    (?: {RE_CSTYLEKEYWORD} {WSN}* )?   # C-style struct|union|enum before type name
+    (?<!{RE_SYM}) (?P<typename>{RE_SYMBOL_TYPE}) (?!{RE_SYM}) {WSN}*  # REQUIRED: symbol type name
+    (?: (?P<typeptrs>{RE_PTRS}) {WSN}* )?                        # outside pointers "typeptrs"
 
-    (?: (\() {WS}* )?      # enclosing () for function pointers and pointers to fixed arrays
+    (?: (\() {WSN}* )?      # enclosing () for function pointers and pointers to fixed arrays
 
-        (?: (?P<decl>{RE_DECL}) {WS}* )?     # function declaration type
-        (?: (?P<nameptrs>{RE_PTRS}) {WS}* )? # enclosed pointers "nameptrs"
-        (?: (?<!{RE_SYM}) (?P<name>{RE_SYMBOL}) (?!{RE_SYM}) {WS}* )? # symbol name
+        (?: (?P<decl>{RE_DECL}) {WSN}* )?     # function declaration type
+        (?: (?P<nameptrs>{RE_PTRS}) {WSN}* )? # enclosed pointers "nameptrs"
+        # (?: (?<!{RE_SYM}) (?P<name>{RE_IDENTIFIER}) (?!{RE_SYM}) {WSN}* )? # symbol name
+        
+        (?: (?<!{RE_SYM})
+            (?: (?P<namespace> {RE_NAMESPACE} ) )?
+            (?P<name>{RE_IDENTIFIER}) (?!{RE_SYM}) {WSN}*
+        )? # symbol name
 
-    (?(4) \) {WS}* |)      # match closing ()
+    (?(4) \) {WSN}* |)      # match closing ()
 
-    (?: (?P<arguments>{RE_ARGUMENTS}) {WS}* )?  # function arguments
+    (?: (?P<arguments>{RE_ARGUMENTS}) {WSN}* )?  # function arguments
 
-    (?: (?P<arrays>{RE_ARRAYS}) {WS}* )?        # arrays
+    (?: (?P<arrays>{RE_ARRAYS}) {WSN}* )?        # arrays
 """
-
 
 PARSE_TYPE_BLOCK = re.compile(rf"""
     ^
     (typedef {WS}+ )? (?P<keyword>struct|union|enum) {WS}+  # type keywords
-    (?P<name>{RE_SYMBOL}) (?!{RE_SYM}) \s* #[{WS}\n]*  # type name
+    (?P<name>{RE_IDENTIFIER}) (?!{RE_SYM}) \s* #[{WS}\n]*  # type name
     \{{
         {WS}*{RE_LINECOMMENT_CAP}\n
 
         (?P<textbody> (?:[^}}\n]|\n[^}}])* )  # contents of block
 
     \n\}} {WS}*  # end of block brace
-    (?(1) (?P<typedef>{RE_SYMBOL}) (?=[;,])) # optional typedef name
+    (?(1) (?P<typedef>{RE_IDENTIFIER}) (?=[;,])) # optional typedef name
     [^\n;]*;   # semicolon terminator
 """, RE_FLAGS | re.VERBOSE)
 
@@ -302,22 +318,65 @@ PARSE_TYPEDEF = re.compile(rf"""
 
     {RE_PARSE_SYMBOL};
 
-    (?(7)|\0)  # fail if we didn't match a typedef name
+    (?(8)  | (?!))  # fail if we didn't match the typedef 'name' capture group
+    #(?(8)|\0)  # fail if we didn't match the typedef 'name' capture group
+
+""", RE_FLAGS | re.VERBOSE)
+
+PARSE_FUNCTION_HEADER = re.compile(rf"""
+    ^
+    {RE_PARSE_SYMBOL};
+
+    (?(6)  (?!) |)  # fail if we matched the 'nameptrs' capture group... this behavior isn't supported
+    (?(8)  | (?!))  # fail if we didn't match the function 'name' capture group
+    (?(9)  | (?!))  # fail if we didn't match the function 'arguments' capture group
+    (?(10) (?!) |)  # fail if we matched the 'arrays' capture group... that's not part of a function
 
 """, RE_FLAGS | re.VERBOSE)
 
 
+PARSE_NAME = re.compile(rf"""
+    # \t  # start of line
+
+    # make '#' illegal too, due to preprocessors
+    (?<![A-Za-z_0-9#]) (?P<typename>{RE_IDENTIFIER}) (?!{RE_SYM})
+
+""", RE_FLAGS | re.VERBOSE)
+
+PARSE_PREPROCESSOR = re.compile(rf"""
+    #(?<![^\n]) {WS}*  # start of line
+
+    # escape '#' ( '\#' or '[#]' ) because of extended (VERBOSE) flag
+    #[#](?P<name> {RE_IDENTIFIER} )
+    [#](?P<preprocessor> ( define ) | {RE_IDENTIFIER} )
+
+    (?(2) (?: # define-only
+        {WS1}+ (?P<name> {RE_IDENTIFIER} )
+
+        # macro function arguments cannot have space after define name... right?
+        (?: (?P<arguments> \( (?:[^\/\\\n()] | \/[^\/*()] | \\[^\n()])+ \) ) )?  # macro function arguments
+
+    | # nothing extra to match for non-defines
+    ) )
+
+    # lazy quantifier so that we can strip trailing space
+    #                                  |no comments| double-negative check forwards for '\n' or nothing
+    (?: {WS1}+ (?P<output> (?:
+        (?(2) (?: # define-only
+                (?P<value> {RE_SINTEGER} )
+                    |
+                (?P<typename> {RE_SYMBOL_TYPE} )
+        ) | (?!) )? # negative empty lookahead to fail this group, then we fall through to ?P<unknown>
+            |
+        (?P<unknown> (?:[^\/\\\n] | \/[^\/*] | \\[^\n])+? )
+    ) ) )?
+
+    # optional comment above define
+    {WS1}* {RE_LINECOMMENT_CAP} #(?=\n|$)
+
+""", RE_FLAGS | re.VERBOSE)
 
 PARSE_MEMBER = re.compile(rf"""
-     \t  # start of line
-    #(?: {RE_CSTYLEKEYWORD} {WS}+ )?
-        {RE_PARSE_SYMBOL}   # generic symbol parsing
-    ;            # end of member
-    {WS}* {RE_LINECOMMENT_CAP}
-""", RE_FLAGS | re.VERBOSE)
-
-
-PARSE_MEMBER2 = re.compile(rf"""
     # \t  # start of line
     #(?: {RE_CSTYLEKEYWORD} {WS}+ )?
         {RE_PARSE_SYMBOL}   # generic symbol parsing
@@ -327,23 +386,19 @@ PARSE_MEMBER2 = re.compile(rf"""
 
 
 PARSE_PARAM = re.compile(rf"""
+    (?:
     #(?: {RE_CSTYLEKEYWORD} {WS}+ )?
         {RE_PARSE_SYMBOL}       # generic symbol parsing
+    )
+        |
+    ## WARNING: This must be the SECOND choice after RE_PARSE_SYMBOL, as that pattern depends on its numbered capture groups
+    (?P<ellipsis> \.\.\. )
         # boundary of argument
 """, RE_FLAGS | re.VERBOSE)
 
 PARSE_ENUMVALUE = re.compile(rf"""
-     \t  # start of line
-        (?P<name>{RE_SYMBOL}) {WS}*  # value name
-            = {WS}*
-        (?P<value>{RE_SINTEGER})   {WS}*  # integer value
-    (?P<comma> , {WS}* )? #(?P<comment>)  # comma separator
-     {RE_LINECOMMENT_CAP}
-""", RE_FLAGS | re.VERBOSE)
-
-PARSE_ENUMVALUE2 = re.compile(rf"""
      #\t  # start of line
-        (?P<name>{RE_SYMBOL}) {WS}*  # value name
+        (?P<name>{RE_IDENTIFIER}) {WS}*  # value name
             = {WS}*
         (?P<value>{RE_SINTEGER})   {WS}*  # integer value
     (?P<comma> , {WS}* )? #(?P<comment>)  # comma separator
@@ -421,21 +476,29 @@ class Symbol:
     parent:Optional['Symbol']
     kind:SymbolKind
     name:str
+    _display_name:Optional[str]
+    namespace:Optional[str]
     _size:Optional[int]
     comment:str
     textbody:str
     _hide:bool
     _evaled:bool
+    tagged:Optional['TaggedComment']
+    address:Optional[int]
 
-    def __init__(self, kind:SymbolKind, name:str, *, size:Optional[int]=None, comment:Optional[str]=None, textbody:Optional[str]=None, hide:bool=False, evaled:bool=False, parent:Optional['Symbol']=None):
+    def __init__(self, kind:SymbolKind, name:str, *, display_name:Optional[str]=None, namespace:Optional[str]=None, size:Optional[int]=None, comment:Optional[str]=None, textbody:Optional[str]=None, address:Optional[int]=None, hide:bool=False, evaled:bool=False, parent:Optional['Symbol']=None, tagged:Optional['TaggedComment']=None):
         self.parent = parent
         self.kind = kind
         self.name = name
+        self._display_name = display_name
+        self.namespace = namespace
         self._size = size
         self.comment = comment
         self.textbody = textbody
         self._hide = bool(hide)
         self._evaled = bool(evaled)
+        self.tagged = tagged
+        self.address = address
     
     def forward(self) -> str:
         raise NotImplementedError(f'{self.__class__.__name__}.forward()')
@@ -445,38 +508,56 @@ class Symbol:
         raise NotImplementedError(f'{self.__class__.__name__}.define()')
 
     @classmethod
-    def format_type(cls, typename:str, *, name:Optional[str]=None, modifier:Optional[str]=None, typeptrs:Optional[int]=None, decl:Optional[str]=None, nameptrs:Optional[int]=None, arguments:Optional[List[str]]=None, arrays:Optional[List[int]]=None) -> str:
-        name     = (' ' + name)     if name     is not None else ''
-        modifier = (modifier + ' ') if modifier is not None else ''
-        decl     = (decl + ' ')     if decl     is not None else ''
+    def format_type(cls, typename:str, *, name:Optional[str]=None, modifier:Optional[str]=None, typeptrs:Optional[int]=None, decl:Optional[str]=None, nameptrs:Optional[int]=None, arguments:Optional[List[str]]=None, arrays:Optional[List[int]]=None, namespace:Optional[str]=None) -> str:
+        if modifier is None: modifier = ''
+        if typename is None: typename = ''
+        if decl is None: decl = ''
+        if name is None: name = ''
+        
+        # namespace name is full name with trailing '::', that way we can allow optional '::' global ns access
+        if namespace is None: namespace = ''
+
         # str.join is used here so we can configure pointer spacing
         typeptrs = ''.join('*' * typeptrs) if typeptrs else ''
         nameptrs = ''.join('*' * nameptrs) if nameptrs else ''
         arrays   = ''.join(f'[{n}]' for n in arrays) if arrays else ''
-        if decl is None:
-            decl = ''
+
         if arguments is None:
             arguments = ''
         else:
             arguments = '(' + (', '.join(a for a in arguments) if arguments else 'void') + ')'
 
+
+        typepart = ' '.join(filter(bool, (modifier, f'{typename}{typeptrs}')))
+        namepart = ' '.join(filter(bool, (f'{decl}{nameptrs}', f'{namespace}{name}')))
+    
         if nameptrs:  # we need parenthesis around the pointers (+ name)
-            return f'{modifier}{typename}{typeptrs} ({decl}{nameptrs}{name}){arguments}{arrays}'
+            return ' '.join(filter(bool, (typepart, f'({namepart}){arguments}{arrays}')))
         else:
-            return f'{modifier}{typename}{typeptrs} {decl}{nameptrs}{name}{arguments}{arrays}'
+            return ' '.join(filter(bool, (typepart, f'{namepart}{arguments}{arrays}')))
+
     
 
     def print(self, *, pad:bool=PAD_DEFAULT, **kwargs):
         print(str(self), **kwargs)
 
     @property
-    def is_function(self) -> bool: False
+    def is_function(self) -> bool: return False
+    
+    @property
+    def is_ellipsis(self) -> bool: return False
 
     @property
-    def is_pointer(self) -> bool: False
+    def is_pointer(self) -> bool: return False
 
     @property
-    def is_array(self) -> bool: False
+    def is_array(self) -> bool: return False
+    
+    @property
+    def is_value(self) -> bool: return False
+    
+    @property
+    def is_flags(self) -> bool: return False
 
     @property
     def basesize(self) -> Optional[int]: return self.size
@@ -494,7 +575,19 @@ class Symbol:
     def targetsize(self) -> Optional[int]: return None
     
     @property
+    def display_name(self) -> Optional[str]: return self._display_name if self._display_name is not None else self.name
+    @display_name.setter
+    def display_name(self, new_display_name:Optional[str]): self._display_name = new_display_name
+    
+    @property
+    def hide(self) -> bool: return self._hide
+    @hide.setter
+    def hide(self, new_hide:bool): self._hide = bool(new_hide)
+    
+    @property
     def needs_eval(self) -> bool: return not self._evaled
+    @needs_eval.setter
+    def needs_eval(self, new_needs_eval:bool): self._evaled = bool(new_needs_eval)
     
     def evaluate(self, db:'SymbolDatabase') -> bool:
         if not self._evaled:
@@ -502,14 +595,15 @@ class Symbol:
         return self._evaled
 
     def _evaluate(self, db:'SymbolDatabase') -> bool:
+        """implement required evaluation for derived classes with this function"""
         return True
 
 
 class PrimitiveSymbol(Symbol):
-    def __init__(self, name:str, size:int):
+    def __init__(self, name:str, size:int, *, evaled:bool=True, hide:bool=True, **kwargs):
         if size is None:
             raise TypeError(f'{self.__class__.__name__} size cannot be None')
-        super().__init__(SymbolKind.PRIMITIVE, name, size=size, evaled=True, hide=True)
+        super().__init__(SymbolKind.PRIMITIVE, name, size=size, evaled=evaled, hide=hide, **kwargs)
         
     def forward(self) -> str:
         raise ValueError(f'{self.__class__.__name__}.forward() primitive cannot be forward-declared')
@@ -519,9 +613,9 @@ class PrimitiveSymbol(Symbol):
         raise ValueError(f'{self.__class__.__name__}.define() primitive cannot be define')
     
     def __repr__(self):
-        return f'primitive {self.name}'
+        return f'primitive {self.display_name}'
     def __str__(self):
-        return f'{self.name}'
+        return f'{self.display_name}'
 
 
 class TypeSymbol(Symbol):
@@ -557,8 +651,14 @@ class TypeSymbol(Symbol):
         else:
             args = ['void']
         
-        return f'{Symbol.format_type(self.typename, name=self.name, modifier=self.modifier, typeptrs=self.typeptrs, nameptrs=self.nameptrs, arrays=self.arrays, arguments=args)}'
+        name = self.display_name # self.name
+        typename = self.display_typename # self.typename
+        return f'{Symbol.format_type(typename, name=name, modifier=self.modifier, decl=self.decl, typeptrs=self.typeptrs, nameptrs=self.nameptrs, arrays=self.arrays, arguments=args, namespace=self.namespace)}'
     __str__ = __repr__
+
+    ##HACK: Added to deal with overriding symbol names in the database
+    @property
+    def display_typename(self) -> str: return self.typename if self.type_symbol is None else self.type_symbol.display_name
 
 
     def add_argument(self, arg:'ParamSymbol') -> None:
@@ -568,13 +668,16 @@ class TypeSymbol(Symbol):
         self.arguments.append(arg)
     
     @property
+    def is_ellipsis(self) -> bool: return self.typename is not None and self.typename == '...'
+
+    @property
     def is_function(self) -> bool: return self._is_function
 
     @property
-    def is_pointer(self) -> bool: bool(self.nameptrs or self.typeptrs)
+    def is_pointer(self) -> bool: return bool(self.nameptrs or self.typeptrs)
 
     @property
-    def is_array(self) -> bool: bool(self.arrays)
+    def is_array(self) -> bool: return bool(self.arrays)
 
     @property
     def basesize(self) -> Optional[int]: return self._basesize
@@ -584,21 +687,24 @@ class TypeSymbol(Symbol):
     
     def _evaluate(self, db:'SymbolDatabase') -> bool:
         if self.type_symbol is None:
-            self.type_symbol = db.get(self.typename)
+            self.type_symbol = db.get(self.typename, allow_ellipsis=self.is_ellipsis) #True)
 
 
-        if self._is_function:
+        if self.is_function:
             for arg in self.arguments:
                 arg.evaluate(db)
 
-            ###FIXME: Add this back? "MMIOPROC" triggers this
+            # ##FIXME: Add this back? "MMIOPROC" triggers this
             # if not self.nameptrs:
             #     # non-pointer function types cannot evaluate size
             #     print(f'BAD {self!r}')
             #     return self.type_symbol is not None
 
         if not self.has_size:
-            if self.nameptrs:
+            if self.is_ellipsis:
+                self._size = self._basesize = 0
+
+            elif self.nameptrs or self.is_function:
                 self._size = self._basesize = Symbol.PTR_SIZE
                 ##DEBUG: testing
                 #return True
@@ -629,7 +735,7 @@ class TypeSymbol(Symbol):
 class TypedefSymbol(TypeSymbol):
 
     def __init__(self, name:str, typename:str, **kwargs):
-        super().__init__(SymbolKind.TYPEDEF, name,typename, **kwargs)
+        super().__init__(SymbolKind.TYPEDEF, name, typename, **kwargs)
 
     def __repr__(self):
         comment = f' // {self.comment}' if self.comment else ''
@@ -639,12 +745,25 @@ class TypedefSymbol(TypeSymbol):
         return f'typedef {super().__str__()};{comment}'
 
 
+class DefineTypedefSymbol(TypedefSymbol):
+
+    def __init__(self, name:str, typename:str, **kwargs):
+        super().__init__(name, typename, **kwargs)
+
+    def __repr__(self):
+        comment = f' // {self.comment}' if self.comment else ''
+        return f'#define {self.display_name} {self.typename}{comment}'
+    def __str__(self):
+        comment = f' // {self.comment}' if self.comment else ''
+        return f'#define {self.display_name} {self.typename}{comment}'
+
+
 class FunctionSymbol(TypeSymbol):
     returnname:str
     returnsymbol:Optional[Symbol]
 
     def __init__(self, name:str, typename:str, **kwargs):
-        super().__init__(SymbolKind.FUNCTION, name,typename, **kwargs)
+        super().__init__(SymbolKind.FUNCTION, name, typename, **kwargs)
 
     
     def __repr__(self):
@@ -666,8 +785,9 @@ class ValueSymbol(Symbol):
     def size(self) -> Optional[int]: return self.parent.size if self.parent is not None else None
 
     @property
-    def is_flag(self) -> bool:
-        return self.parent.is_flags # self.parent is not None and self.parent.kind is SymbolKind.FLAGS
+    def is_flags(self) -> bool: return self.parent.is_flags if self.parent is not None else False
+    @property
+    def is_value(self) -> bool: return True
 
     # def __repr__(self):
     #     # comment = f' // {self.comment}' if self.comment else ''
@@ -675,11 +795,11 @@ class ValueSymbol(Symbol):
     #     # #  since most of the time these values are NONE and not a mask option
     #     # if self.value == 0:  # '0' for both flags and enums
     #     #     value = f'{self.value:d}'
-    #     # elif self.is_flag:   # 0x-hex for flags
+    #     # elif self.is_flags:   # 0x-hex for flags
     #     #     value = f'{self.value:#x}'
     #     # else:                # decimal for normal enums
     #     #     value = f'{signed(self.value, self.targetsize or 4):d}'
-    #     # return f'\t{self.name} = {value},{comment}'
+    #     # return f'\t{self.display_name} = {value},{comment}'
     #     return f'\t{self!r}'
     def __repr__(self):
         return self.padstring(None)
@@ -688,11 +808,11 @@ class ValueSymbol(Symbol):
         # #  since most of the time these values are NONE and not a mask option
         # if self.value == 0:  # '0' for both flags and enums
         #     value = f'{self.value:d}'
-        # elif self.is_flag:   # 0x-hex for flags
+        # elif self.is_flags:   # 0x-hex for flags
         #     value = f'{self.value:#x}'
         # else:                # decimal for normal enums
         #     value = f'{signed(self.value, self.targetsize or 4):d}'
-        # return f'{self.name} = {value},{comment}'
+        # return f'{self.display_name} = {value},{comment}'
     __str__ = __repr__
     
     def padstring(self, padlength:Optional[int]=None, **kwargs):
@@ -701,16 +821,37 @@ class ValueSymbol(Symbol):
         #  since most of the time these values are NONE and not a mask option
         if self.value == 0:  # '0' for both flags and enums
             value = f'{self.value:d}'
-        elif self.is_flag:   # 0x-hex for flags
+        elif self.is_flags:   # 0x-hex for flags
             value = f'{self.value:#x}'
         else:                # decimal for normal enums
             value = f'{signed(self.value, self.targetsize or 4):d}'
-        return f'{self.name.ljust(padlength or 0)} = {value},{comment}'
+        return f'{self.display_name.ljust(padlength or 0)} = {value},{comment}'
         # text = f'{self!s}\n{{\n' + '\n'.join(f'\t{v!s}' for v in self.values) + f'\n}};'
         # text = 'enum' + text[4:]
         # if self.kind is SymbolKind.FLAGS:
-        #     text += f'\nDEFINE_ENUM_FLAG_OPERATORS({self.name});'
+        #     text += f'\nDEFINE_ENUM_FLAG_OPERATORS({self.display_name});'
         # print(text, **kwargs)
+
+class DefineValueSymbol(ValueSymbol):
+
+    def __init__(self, name:str, value:int, **kwargs):
+        super().__init__(name, value, index=None, **kwargs)
+
+    def __repr__(self):
+        return self.padstring(None)
+    __str__ = __repr__
+    
+    def padstring(self, padlength:Optional[int]=None, **kwargs):
+        comment = f' // {self.comment}' if self.comment else ''
+        # It's cleaner to format 0 flag values without the hex specified,
+        #  since most of the time these values are NONE and not a mask option
+        if self.value == 0:  # '0' for both flags and enums
+            value = f'{self.value:d}'
+        elif self.is_flags:   # 0x-hex for flags
+            value = f'{self.value:#x}'
+        else:                # decimal for normal enums
+            value = f'{signed(self.value, self.targetsize or 4):d}'
+        return f'#define {self.display_name.ljust(padlength or 0)} {value}{comment}'
 
 
 class BaseEnumSymbol(Symbol):
@@ -730,13 +871,20 @@ class BaseEnumSymbol(Symbol):
 
     def __repr__(self):
         keyname = 'flags' if self.is_flags else 'enum'
-        typename = f' : {self.typename}' if self.typename else ''
+        typename = f' : {self.display_typename}' if self.typename else ''
+        #typename = f' : {self.typename}' if self.typename else ''
         comment = f' // {self.comment}' if self.comment else ''
-        return f'{keyname} {self.name}{typename};{comment}'
+        return f'{keyname} {self.display_name}{typename};{comment}'
     def __str__(self):
-        typename = f' : {self.typename}' if self.typename else ''
+        typename = f' : {self.display_typename}' if self.typename else ''
+        #typename = f' : {self.typename}' if self.typename else ''
         comment = f' // {self.comment}' if self.comment else ''
-        return f'enum {self.name}{typename}{comment}'
+        return f'enum {self.display_name}{typename}{comment}'
+        
+    ##HACK: Added to deal with overriding symbol names in the database
+    @property
+    def display_typename(self) -> str: return self.typename if self.type_symbol is None else self.type_symbol.display_name
+
     
     def add_value(self, value:ValueSymbol) -> None:
         value.parent = self
@@ -778,37 +926,23 @@ class BaseEnumSymbol(Symbol):
     def targetsize(self) -> Optional[int]: return self._targetsize
     
     def print(self, *, pad:bool=PAD_DEFAULT, **kwargs):
-        padlength = None if not pad else max(len(v.name) for v in self.values)
+        padlength = None if not pad else max(len(v.display_name) for v in self.values)
         text = f'{self!s}\n{{\n' + '\n'.join(f'\t{v.padstring(padlength)}' for v in self.values) + f'\n}};'
         #text = f'{self!s}\n{{\n' + '\n'.join(f'\t{v!s}' for v in self.values) + f'\n}};'
         text = 'enum' + text[4:]
         if self.kind is SymbolKind.FLAGS:
-            text += f'\nDEFINE_ENUM_FLAG_OPERATORS({self.name});'
+            text += f'\nDEFINE_ENUM_FLAG_OPERATORS({self.display_name});'
         print(text, **kwargs)
 
 
 class EnumSymbol(BaseEnumSymbol):
     def __init__(self, name:str, typename:Optional[str]=None, **kwargs):
         super().__init__(SymbolKind.ENUM, name, typename, is_flags=False, **kwargs)
-        
-    # def __repr__(self):
-    #     typename = f' : {self.typename}' if self.typename else ''
-    #     comment = f' // {self.comment}' if self.comment else ''
-    #     return f'enum {self.name}{typename};{comment}'
 
 
 class FlagsSymbol(BaseEnumSymbol):
     def __init__(self, name:str, typename:Optional[str]=None, **kwargs):
         super().__init__(SymbolKind.FLAGS, name, typename, is_flags=True, **kwargs)
-
-    # def __repr__(self):
-    #     typename = f' : {self.typename}' if self.typename else ''
-    #     comment = f' // {self.comment}' if self.comment else ''
-    #     return f'flags {self.name}{typename};{comment}'
-    # def __str__(self):
-    #     typename = f' : {self.typename}' if self.typename else ''
-    #     comment = f' // {self.comment}' if self.comment else ''
-    #     return f'enum {self.name}{typename}{comment}'
 
 
 class MemberSymbol(TypeSymbol):
@@ -955,10 +1089,10 @@ class StructSymbol(BaseStructSymbol):
     def __repr__(self):
         pack = f' : pack({self.pack})' if self.pack else ''
         comment = f' // {self.comment}' if self.comment else ''
-        return f'struct {self.name}{pack};{comment}'
+        return f'struct {self.display_name}{pack};{comment}'
     def __str__(self):
         comment = f' // {self.comment}' if self.comment else ''
-        return f'struct {self.name}{comment}'
+        return f'struct {self.display_name}{comment}'
 
 
 class UnionSymbol(BaseStructSymbol):
@@ -997,10 +1131,10 @@ class UnionSymbol(BaseStructSymbol):
     def __repr__(self):
         pack = f' : pack({self.pack})' if self.pack else ''
         comment = f' // {self.comment}' if self.comment else ''
-        return f'union {self.name}{pack};{comment}'
+        return f'union {self.display_name}{pack};{comment}'
     def __str__(self):
         comment = f' // {self.comment}' if self.comment else ''
-        return f'union {self.name}{comment}'
+        return f'union {self.display_name}{comment}'
 
 #endregion
 
@@ -1118,7 +1252,6 @@ class TaggedComment(namedtuple('_TaggedComment', ('taggedbody', 'remaining', 'mo
 
     @classmethod
     def parse(cls, comment:str) -> 'TaggedComment':
-        """parse_tagged_comment(s) -> (success, keyword, targetsize, typename, pack, tags, unknown tags)"""
         comment = (comment or '').strip()
 
         m1 = PARSE_TAGGED_COMMENT.fullmatch(comment)
@@ -1193,6 +1326,7 @@ class BaseParser:
         
         raise error_cls(*args, filename=self.filename, filetext=self.filetext, linenumber=self.linenumber, index=self.index, offset=offset, **kwargs)
 
+
 class HeaderParser(BaseParser):
     db:'SymbolDatabase'
     def __init__(self, db:'SymbolDatabase'):
@@ -1206,7 +1340,7 @@ class HeaderParser(BaseParser):
         return self.parse(filetext, filename=filename, **kwargs)
 
 
-    def parse(self, filetext:str, *, filename:Optional[str]=None, **kwargs):
+    def parse(self, filetext:str, *, filename:Optional[str]=None, preprocessor:bool=True, functions:bool=True, **kwargs):
         self.filename = filename
         self.filetext = filetext
         
@@ -1218,39 +1352,92 @@ class HeaderParser(BaseParser):
         text = sub_float10(text)
         text = sub_compact_field0x(text)
         text = rem_ctypedef(text)
-        text = rem_define(text)
+        if not preprocessor:
+            text = rem_define(text)
+
+        # only simple defines
+        if preprocessor:
+            self.parse_defines(text, **kwargs)
 
         # parse typedefs and blocks (struct,enum,union)
         self.parse_typedefs(text, **kwargs)
         self.parse_blocks(text, **kwargs)
 
         # parse function declarations
-        #self.parse_functions(text, **kwargs)
+        if functions:
+            self.parse_functions(text, **kwargs)
 
     
     def parse_tagged_comment(self, comment:str) -> TaggedComment:
         return TaggedComment.parse(comment)
+    
+    def parse_defines(self, text:str, **kwargs) -> None:
+        for m in PARSE_PREPROCESSOR.finditer(text):
+            preprocessor = m['preprocessor']
+            if preprocessor == 'undef':
+                self.error(f'Preprocessor #undef not supported: {m[0]}')
+            elif preprocessor != 'define':
+                continue  # not handled
+            
+            name        = m['name']
+            is_function = m['arguments'] is not None
+            typename    = m['typename']
+            value       = m['value']
+            comment     = m['comment'] or None
+
+            if is_function:
+                self.error(f'Macro functions not supported: {m[0]}')
+            if name is None:
+                self.error(f'Failed to parse define name: {m[0]}')
+            
+            if typename is not None:
+                self.db.add_define(DefineTypedefSymbol(name, typename, comment=comment, **kwargs))
+            elif value is not None:
+                self.db.add_define(DefineValueSymbol(name, int(value, 0), comment=comment, **kwargs))
+            else:
+                self.error(f'Failed to parse define typename or value: {m[0]}')
 
     def parse_typedefs(self, text:str, **kwargs) -> None:
         for m in PARSE_TYPEDEF.finditer(text):
-            name        = m['name']  # may be None, which we need to handle as an error
+            name        = m['name']
+            decl        = m['decl'] or None
             is_function = m['arguments'] is not None
 
             if is_function:
+                if name not in EXCLUDE_FUNCTYPEDEFS:
+                    ##HACK: only __cdecl function typedefs are defined for OpenLRR,
+                    ##      and ghidra doesn't display calling conventions on function typedefs...
+                    if decl is None: decl = '__cdecl'
+
                 hide = name in EXCLUDE_FUNCTYPEDEFS
             else:
                 hide = name not in ALLOWED_TYPEDEFS
 
-            self.db.add(self.parse_symbol_type(TypedefSymbol, m, hide=hide, nocomment=True, **kwargs))
+            self.db.add(self.parse_symbol_type(TypedefSymbol, m, hide=hide, nocomment=True, default_decl=decl, **kwargs))
+
+    def parse_functions(self, text:str, **kwargs) -> None:
+        for m in PARSE_FUNCTION_HEADER.finditer(text):
+            name        = m['name']
+            decl        = m['decl'] or None
+
+            ##HACK: Ghidra does not display __stdcall calling conventions for functions.
+            ##      Assume all missing decls are __stdcall.
+            if decl is None: decl = '__stdcall'
+
+            hide = name.startswith('__')  # helper prefixed attached to all useless internal C runtime functions
+
+            self.db.add(self.parse_symbol_type(FunctionSymbol, m, hide=hide, nocomment=True, default_decl=decl, **kwargs))
 
     def parse_blocks(self, text:str, **kwargs) -> None: # -> Iterable[Symbol]:
         for m in PARSE_TYPE_BLOCK.finditer(text):
             name    = m['name']
             typedef = m['typedef'] or None
 
-            self.db.add(self.parse_block(m, **kwargs))
+            symbol = self.parse_block(m, **kwargs)
+            self.db.add(symbol)
             if typedef and typedef != name:  # don't typedef yourself
-                self.db.add_typedef(typedef, name)
+                self.db.add(TypedefSymbol(typedef, name, parent=symbol, **kwargs))
+                # self.db.add_typedef(typedef, name)
 
 
     def parse_block(self, m:Match, **kwargs) -> Symbol:
@@ -1264,7 +1451,7 @@ class HeaderParser(BaseParser):
             symbol_cls = FlagsSymbol if (t.keyword and t.keyword == 'flags') else EnumSymbol
 
             ## OPTIONAL: replace comment=comment with comment=t.remaining  for untagged half of comments
-            symbol = symbol_cls(name, typename=t.typename, targetsize=t.targetsize, comment=comment or None, hide=hide, **kwargs)
+            symbol = symbol_cls(name, typename=t.typename, targetsize=t.targetsize, comment=comment or None, hide=hide, tagged=t, **kwargs)
             for value in self.parse_enum_values(ValueSymbol, textbody, **kwargs):
                 symbol.add_value(value)
             if ENUM_SORT_DEFAULT:
@@ -1274,7 +1461,7 @@ class HeaderParser(BaseParser):
             symbol_cls = UnionSymbol if keyword == 'union' else StructSymbol
             
             ## OPTIONAL: replace comment=comment with comment=t.remaining  for untagged half of comments
-            symbol = symbol_cls(name, targetsize=t.targetsize, pack=t.pack, comment=comment or None, hide=hide, **kwargs)
+            symbol = symbol_cls(name, targetsize=t.targetsize, pack=t.pack, comment=comment or None, hide=hide, tagged=t, **kwargs)
             for member in self.parse_block_members(MemberSymbol, textbody, **kwargs):
                 symbol.add_member(member)
         
@@ -1296,7 +1483,7 @@ class HeaderParser(BaseParser):
             s = s.strip()
             if not s: continue  # ignore empty lines
 
-            m2 = PARSE_ENUMVALUE2.fullmatch(s)
+            m2 = PARSE_ENUMVALUE.fullmatch(s)
             if not m2: self.error(f'BAD MEMBER: {s}')
             values.append(self.parse_symbol_value(symbol_cls, m2, nocomment=True, **kwargs))
         
@@ -1310,7 +1497,7 @@ class HeaderParser(BaseParser):
             s = s.strip()
             if not s: continue  # ignore empty lines
 
-            m2 = PARSE_MEMBER2.fullmatch(s)
+            m2 = PARSE_MEMBER.fullmatch(s)
             if not m2: self.error(f'BAD MEMBER: {s}')
             members.append(self.parse_symbol_type(symbol_cls, m2, nocomment=False, **kwargs))
         
@@ -1330,11 +1517,19 @@ class HeaderParser(BaseParser):
             #realoffset = len(text)-len(arguments)
             if not m:
                 self.error(f'BAD arguments state: {arguments!r}')
-            args.append(self.parse_symbol_type(symbol_cls, m, nocomment=True, **kwargs))
+            
+            ##HACK: Special handling for ellipsis, which doesn't match any other groups
+            is_ellipsis = m['ellipsis'] is not None
+            if is_ellipsis:
+                args.append(symbol_cls(None, '...', **kwargs))
+            else:
+                args.append(self.parse_symbol_type(symbol_cls, m, nocomment=True, **kwargs))
 
             arguments = arguments[m.span()[1]:].lstrip()
             if arguments:
-                if arguments[0] == ',':
+                if is_ellipsis:
+                    self.error(f'BAD end of arguments, nothing should be after ellipsis {"..."!r}: {arguments}')
+                elif arguments[0] == ',':
                     arguments = arguments[1:] #.lstrip()  # strip commma
                     if not arguments:
                         self.error(f'BAD end of arguments, nothing after comma: {arguments}')
@@ -1367,18 +1562,19 @@ class HeaderParser(BaseParser):
     # def _parse_is_function(self, text:str) -> bool:
     #     return bool(text)  # no arguments match, must not be a function
 
-    def parse_symbol_type(self, symbol_cls:Type[TypeSymbol], m:Match, nocomment:bool=False, **kwargs) -> TypeSymbol:
+    def parse_symbol_type(self, symbol_cls:Type[TypeSymbol], m:Match, nocomment:bool=False, default_decl:Optional[str]=None, **kwargs) -> TypeSymbol:
         typename    = m['typename']
-        name        = m['name']     or None
-        modifier    = m['modifier'] or None
-        decl        = m['decl']     or None
+        name        = m['name']      or None
+        namespace   = m['namespace'] or None
+        modifier    = m['modifier']  or None
+        decl        = m['decl']      or default_decl
         typeptrs    = self._parse_ptr_counts(m['typeptrs'])
         nameptrs    = self._parse_ptr_counts(m['nameptrs'])
         arrays      = self._parse_array_counts(m['arrays'])
         is_function = m['arguments'] is not None
         comment     = None if nocomment else (m['comment'] or None)
 
-        symbol = symbol_cls(name, typename, modifier=modifier, decl=decl, typeptrs=typeptrs, nameptrs=nameptrs, arrays=arrays, is_function=is_function, comment=comment, **kwargs)
+        symbol = symbol_cls(name, typename, modifier=modifier, decl=decl, typeptrs=typeptrs, nameptrs=nameptrs, arrays=arrays, is_function=is_function, comment=comment, namespace=namespace, **kwargs)
 
         if is_function:
             # arguments[1:-1] to strip surrounding '(' ')' braces
@@ -1396,20 +1592,72 @@ class HeaderParser(BaseParser):
 
 class SymbolDatabase:
     symbols:Dict[str,Symbol]
+    defines:Dict[str,Symbol]  # very simple defines dict that only evaluates directly to a symbol or value (the later of which is unused)
+    convert_defines:bool
+    ##HACK: Awkward way of handling ellipsis '...' arguments without rewrites
+    ellipsis:PrimitiveSymbol
 
-    def __init__(self, *args, **kwargs):
-        self.symbols = dict(*args, **kwargs)
+    def __init__(self, symbols:Optional[Dict[str,Symbol]]=None, defines:Optional[Dict[str,Symbol]]=None, convert_defines:bool=True): #*args, **kwargs):
+        self.symbols = dict(symbols) if symbols is not None else {}
+        self.defines = dict(defines) if defines is not None else {}
+        self.convert_defines = bool(convert_defines)
+        self.ellipsis = PrimitiveSymbol('...', 0,  evaled=True, hide=True)
 
     def add(self, symbol:Symbol) -> bool:
+        define = self.get_define(symbol.name, None)
+        if define is not None:
+            raise ValueError(f'Symbol name overwritten by define {define.name!r}, parser cannot handle this')
+        return self.add_symbol(symbol)
+
+    def get(self, key:str, default:Any=None, *, allow_ellipsis:bool=False) -> Optional[Symbol]:
+        if isinstance(key, Symbol): key = key.name
+
+        define = self.get_define(key, None)
+        if define is not None:
+            if self.convert_defines and isinstance(define, DefineTypedefSymbol):
+                symbol = self.get_symbol(define.typename, None, allow_ellipsis=allow_ellipsis)
+                if symbol is None:
+                    raise ValueError(f'Unexpected failed to convert define typename {define.name} for: {define}')
+                return symbol
+            return define
+        return self.get_symbol(key, default, allow_ellipsis=allow_ellipsis)
+
+
+    def add_symbol(self, symbol:Symbol) -> bool:
         orig = self.symbols.setdefault(symbol.name, symbol)
         if orig is not symbol:
             if isinstance(orig, TypeSymbol) and isinstance(symbol, (BaseStructSymbol, BaseEnumSymbol)):
                 self.symbols[symbol.name] = symbol  # override redudant typedefs
                 return True
+            ##DEBUG:
+            elif not isinstance(symbol, TypedefSymbol):
+                print(f'[Duplicate]: {symbol.name}\n old: {orig}>\n new: {symbol}')
         return orig is symbol
-    def get(self, key:str, default:Any=None) -> Optional[Symbol]:
+
+    def get_symbol(self, key:str, default:Any=None, *, allow_ellipsis:bool=False) -> Optional[Symbol]:
+        if isinstance(key, Symbol): key = key.name
+
+        if allow_ellipsis and key == self.ellipsis.name:
+            return self.ellipsis
+        
         return self.symbols.get(key, default)
-    
+
+
+    def add_define(self, define:Symbol) -> bool:
+        orig = self.defines.setdefault(define.name, define)
+        if orig != define:
+            raise ValueError(f'Duplicate define for {define.name!r}, parser cannot handle this')
+        return orig is define
+
+    def get_define(self, key:str, default:Any=None) -> Optional[Symbol]:
+        if isinstance(key, Symbol): key = key.name
+        return self.defines.get(key, default)
+
+
+    def get_ellipsis(self, key:str, default:Any=None) -> Optional[PrimitiveSymbol]:
+        return self.ellipsis if key == self.ellipsis.name else default
+
+
     def __len__(self) -> int:
         return len(self.symbols)
     def __iter__(self) -> Iterator[str]:
@@ -1434,53 +1682,82 @@ class SymbolDatabase:
         if isinstance(key, Symbol): key = key.name
         del self.symbols[key]
             
-    def add_primitive(self, name:str, size:int, *, prefixes=(), postfixes=()):
+    def add_primitive(self, name:str, size:int, *, prefixes:List[str]=(), postfixes:List[str]=(), evaled:bool=True, hide:bool=True) -> None:
         if not prefixes: prefixes = ('',)
         if not postfixes: postfixes = ('',)
         for pre in prefixes:
             for post in postfixes:
                 pname = pre + name + post
-                self.add(PrimitiveSymbol(pname, size))
+                self.add(PrimitiveSymbol(pname, size, evaled=evaled, hide=hide))
 
-    def add_typedef(self, name:str, typename:str, *, pointers:int=0, arrays:List[int]=(), prefixes=(), postfixes=()):
+    def add_typedef(self, name:str, typename:str, *, pointers:int=0, arrays:List[int]=(), prefixes:List[str]=(), postfixes:List[str]=(), hide:bool=True) -> None:
         if not prefixes: prefixes = ('',)
         if not postfixes: postfixes = ('',)
         for pre in prefixes:
             for post in postfixes:
                 pname = pre + name + post
-                self.add(TypedefSymbol(pname, typename, typeptrs=pointers, arrays=arrays, hide=True))
+                self.add(TypedefSymbol(pname, typename, typeptrs=pointers, arrays=arrays, hide=hide))
 
-    def add_wintype(self, name:str, typename:str, prefixes=(), postfixes=(), *, ptr='LP'):
+    def add_wintype(self, name:str, typename:str, prefixes:List[str]=(), postfixes:List[str]=(), *, ptr:Optional[str]='LP', hide:bool=True) -> None:
         if not prefixes: prefixes = ('',)
         if not postfixes: postfixes = ('',)
         for pre in prefixes:
             for post in postfixes:
                 pname = pre + name + post
-                self.add(TypedefSymbol(pname, typename, hide=True))
+                self.add(TypedefSymbol(pname, typename, hide=hide))
                 if ptr is not None:
-                    self.add(TypedefSymbol(ptr + pname, pname, typeptrs=1, hide=True))
+                    self.add(TypedefSymbol(ptr + pname, pname, typeptrs=1, hide=hide))
 
-    def add_interface(self, name, prefixes=(), postfixes=(), *, ptr='LP'):
+    def add_interface(self, name:str, prefixes:List[str]=(), postfixes:List[str]=(), *, ptr:Optional[str]='LP', hide:bool=True) -> None:
         if not prefixes: prefixes = ('',)
         if not postfixes: postfixes = ('',)
         for pre in prefixes:
             for post in postfixes:
                 pname = pre + name + post
-                self.add(TypedefSymbol(pname, 'IUnknown', hide=True))
+                self.add(TypedefSymbol(pname, 'IUnknown', hide=hide))
                 if ptr is not None:
                     # pname[1:] to strip 'I' from interface pointer name
-                    self.add(TypedefSymbol(ptr + pname[1:].upper(), pname, typeptrs=1, hide=True))
+                    self.add(TypedefSymbol(ptr + pname[1:].upper(), pname, typeptrs=1, hide=hide))
+
+    def override_display_name(self, key:Union[str,Symbol], display_name:str, *, optional:bool=False) -> None:
+        """This should be called after db.include_header*()"""
+        if isinstance(key, Symbol):
+            key.display_name = display_name
+        # when optional, do nothing if key isn't defined in symbols
+        elif not optional or key in self.symbols:
+            # self.symbols[key]._display_name = display_name
+            self.symbols[key].display_name = display_name
     
-    def include_headerfile(self, filename:str, encoding:str='utf-8', **kwargs) -> bool:
+    def hide_symbol(self, key:Union[str,Symbol], hide:bool=True, *, optional:bool=False) -> None:
+        if isinstance(key, Symbol):
+            key.hide = hide
+        # when optional, do nothing if key isn't defined in symbols
+        elif not optional or key in self.symbols:
+            self.symbols[key].hide = hide
+
+
+    def include_headerfile(self, filename:str, encoding:str='utf-8', evaluate:bool=True, **kwargs) -> bool:
         with open(filename, 'rt', encoding=encoding) as reader:
             filetext = reader.read()
         
-        return self.include_header(filetext, filename=filename, **kwargs)
+        return self.include_header(filetext, filename=filename, evaluate=evaluate, **kwargs)
         
-    def include_header(self, filetext:str, *, filename:Optional[str], **kwargs) -> bool:
+    def include_header(self, filetext:str, *, filename:Optional[str], evaluate:bool=True, **kwargs) -> bool:
         parser = HeaderParser(self)
 
         parser.parse(filetext, filename=filename, **kwargs)
+
+        if evaluate:
+            return self.evaluate_all()
+        else:
+            return True
+        
+    def evaluate_all(self, **kwargs) -> bool:
+        return self._evaluate_all(**kwargs)
+        
+    def _evaluate_all(self, **kwargs) -> bool:
+        # lazy auto-evaluation for Ellipsis
+        self.ellipsis.evaluate(self)
 
         # Lazily iterate through the list of symbols and evaluate everything as we go.
         #  any symbol that says it failed will be evaluated in the next pass, and so on.
@@ -1492,7 +1769,8 @@ class SymbolDatabase:
         # Evaluation requires all Symbol links to function,
         #  while many symbols only need to know their size to function.
         #  Use the Symbol.has_size property to determine if you have what you need
-        remaining = list(self.symbols.values())
+        remaining = list(self.defines.values()) + list(self.symbols.values())
+        total = len(remaining)
         last_pass = -1
         passes = 0
         while remaining and last_pass != 0:
@@ -1507,7 +1785,7 @@ class SymbolDatabase:
             passes += 1
         
         if last_pass == 0 or remaining:
-            print(f'Failed to evaluate all tokens. Completed {len(self.symbols)-len(remaining)}/{len(self.symbols)} within {passes} passes')
+            print(f'Failed to evaluate all tokens. Completed {total-len(remaining)}/{total} within {passes} passes')
             print(f'last_pass = {last_pass}')
             SCRIPT_DIR:str = os.path.abspath(os.path.dirname(__file__))
             print(SCRIPT_DIR)
@@ -1521,13 +1799,12 @@ class SymbolDatabase:
             print(f'All symbols successfully evaluated within {passes} passes')
             return True
 
-        
+
     def failed_targets(self):
         print(*[repr(s) for s in self.values() if s.has_size and hasattr(s,'targetsize') and s.targetsize is not None and s.size != s.targetsize],sep='\n')
 
     def populate_primitives(self):
-        self.add_primitive('void', 0)
-        # self.add_primitive('bool', 1)
+        self.add_primitive('void',      0)
 
         self.add_primitive('char',      1, prefixes=('', 'signed ', 'unsigned '))
         self.add_primitive('short',     2, prefixes=('', 'signed ', 'unsigned '), postfixes=('', ' int'))
@@ -1539,26 +1816,92 @@ class SymbolDatabase:
         self.add_primitive('long',      4, prefixes=('', 'signed ', 'unsigned '), postfixes=('', ' int'))
         self.add_primitive('long long', 8, prefixes=('', 'signed ', 'unsigned '), postfixes=('', ' int'))
 
-        self.add_primitive('float',   4)
-        self.add_primitive('double',  8)
+        self.add_primitive('float',     4)
+        self.add_primitive('double',    8)
         self.add_primitive('long double', 10)
+
+        ##NOTE: Ghidra *does* have a typedef for these, but there's also no need to rely on them
+        self.add_primitive('bool',      1)
+        self.add_primitive('wchar_t',   2)
+        self.add_primitive('size_t',    4)
+        self.add_primitive('ptrdiff_t', 4)
+
+        # existing typedef
+        self.add_typedef('va_list', 'char', pointers=1)
+
+class LegoRRSymbolDatabase(SymbolDatabase):
+    ALLOWED_TYPEDEFS = {'Mesh_TextureStateChangeData', 'Mesh_Texture', 'Material', 'Animation_t', 'Movie_t', 'Material_t'}
+    EXCLUDE_FUNCTYPEDEFS = {'QsortCompare', 'PTOP_LEVEL_EXCEPTION_FILTER', '_PNH', 'WNDPROC', 'DLGPROC', 'MMIOPROC', 'FARPROC'}
+
+    def hide_typedefs(self, hide:bool=..., namelist:List[str]=...) -> None:
+        if hide is Ellipsis and namelist is Ellipsis:
+            hide, namelist = False, self.ALLOWED_TYPEDEFS
+        
+        hide = bool(hide)
+        for typedef in (s for s in self.symbols if isinstance(s, TypedefSymbol) and not s.is_function):
+            typedef.hide = ((typedef.name in namelist) == hide)
+
+    def hide_funcdefs(self, hide:bool=..., namelist:List[str]=...) -> None:
+        if hide is Ellipsis and namelist is Ellipsis:
+            hide, namelist = True, self.EXCLUDE_FUNCTYPEDEFS
+        
+        hide = bool(hide)
+        for typedef in (s for s in self.symbols if isinstance(s, TypedefSymbol) and s.is_function):
+            typedef.hide = ((typedef.name in namelist) == hide)
     
-    def populate_ghidra_primitives(self):
+    def hide_untagged(self, hide:bool) -> None:
+        """Hide structs, unions, and enums without a tagged comment classification"""
+        for symbol in (s for s in self.symbols if isinstance(s, (BaseStructSymbol, BaseEnumSymbol))):
+            if symbol.tagged is None:
+                symbol.hide = hide
+    
+    def populate_ghidra_primitives(self, *, preprocessor:bool=False):
+        """preprocessor will include typedefs for required preprocessor defined symbols"""
         if not self.symbols:
             # if empty, we need to populate base primitives
             self.populate_primitives()
-        self.add_typedef('va_list', 'char', pointers=1)
 
-        self.add_typedef('code',    'void', pointers=1)
-        self.add_typedef('pointer', 'void', pointers=1)
+        # existing typedef
+        #self.add_typedef('va_list', 'char', pointers=1)
+
+        if not preprocessor:
+            # handled by basic #define preprocessor, but can be removed if its acting up
+            self.add_typedef('code',    'void')
+        
+        self.add_typedef('pointer',   'void', pointers=1)
         self.add_typedef('pointer32', 'void', pointers=1)
 
         # edge case for more stupid ghidra shenanigans
-        self.add_typedef('char[0]', 'void')
-        # self.add_typedef('float10', 'long double')
+        self.add_typedef('char[0]',   'void')
+        # self.add_typedef('float10',   'long double')  # transformed by HeaderParser into valid typedef
 
         # fix Ghidra being a butt for the millionth time. WHY IN THE WORLD IS THIS TYPEDEF'ED AS 8 BYTES!????
-        self.add_primitive('GUID', 16)
+        self.add_primitive('GUID', 16, evaled=True, hide=True)
+    
+    def override_openlrr_display_names(self, *, optional:Optional[bool]=None) -> None:
+        self.override_display_name('byte',   'uint8',  optional=optional)
+        self.override_display_name('short',  'sint16', optional=optional)
+        self.override_display_name('ushort', 'uint16', optional=optional)
+        self.override_display_name('int',    'sint32', optional=optional)
+        self.override_display_name('uint',   'uint32', optional=optional)
+        self.override_display_name('long',   'sint32', optional=optional)
+        self.override_display_name('ulong',  'uint32', optional=optional)
+        self.override_display_name('longlong',  'sint64')
+        self.override_display_name('ulonglong', 'uint64')
+        self.override_display_name('size_t', 'uint32', optional=optional)
+        self.override_display_name('float',  'real32', optional=optional)
+        self.override_display_name('BOOL',   'bool32', optional=optional)
+        
+        optional_true = True if optional is None else optional
+        self.override_display_name('BOOL3',  'BoolTri', optional=optional_true)
+        self.override_display_name('ImageBMP', 'Image', optional=optional_true)
+        self.override_display_name('ImageFont', 'Font', optional=optional_true)
+        self.override_display_name('ImageFlic', 'Flic', optional=optional_true)
+        self.override_display_name('Rect2I', 'Area2I', optional=optional_true)
+        self.override_display_name('Rect2F', 'Area2F', optional=optional_true)
+        self.override_display_name('D3DRMVertex', 'Vertex3F', optional=optional_true)
+
+
 
 #endregion
 
@@ -1567,113 +1910,21 @@ class SymbolDatabase:
 
 #region Setup global variables
 
-db = SymbolDatabase()
+db = LegoRRSymbolDatabase()
 # Symbol.DB = db
 
-db.populate_ghidra_primitives()
+db.populate_ghidra_primitives(preprocessor=True)
 
 
-# db.add_primitive('void', 0)
-# # db.add_primitive('bool', 1)
+# GHIDRA_ALLOWED_TYPEDEFS = {'byte', 'uchar', 'ushort', 'uint', 'ulong', 'longlong', 'ulonglong', 'undefined', 'undefined1', 'undefined2', 'undefined4', 'undefined8', 'float10'}
 
-# db.add_primitive('char',      1, prefixes=('', 'signed ', 'unsigned '))
-# db.add_primitive('short',     2, prefixes=('', 'signed ', 'unsigned '), postfixes=('', ' int'))
+ALLOWED_TYPEDEFS = {'Mesh_TextureStateChangeData', 'Mesh_Texture', 'Material', 'Animation_t', 'Movie_t', 'Material_t'}
 
-# db.add_primitive('signed',    4)
-# db.add_primitive('unsigned',  4)
-# db.add_primitive('int',       4, prefixes=('', 'signed ', 'unsigned '))
+EXCLUDE_FUNCTYPEDEFS = {'QsortCompare', 'PTOP_LEVEL_EXCEPTION_FILTER', '_PNH', 'WNDPROC', 'DLGPROC', 'MMIOPROC', 'FARPROC'}
 
-# db.add_primitive('long',      4, prefixes=('', 'signed ', 'unsigned '), postfixes=('', ' int'))
-# db.add_primitive('long long', 8, prefixes=('', 'signed ', 'unsigned '), postfixes=('', ' int'))
-
-# db.add_primitive('float',   4)
-# db.add_primitive('double',  8)
-# db.add_primitive('long double', 10)
-
-
-## GHIDRA PRIMITIVES:
-
-# # db.add_primitive('wchar_t',   2)
-# # db.add_primitive('size_t',    4)
-# # db.add_primitive('ptrdiff_t', 4)
-# db.add_typedef('va_list', 'char', pointers=1)
-
-# db.add_typedef('code',    'void', pointers=1)
-# db.add_typedef('pointer', 'void', pointers=1)
-# db.add_typedef('pointer32', 'void', pointers=1)
-
-# # edge case for more stupid ghidra shenanigans
-# db.add_typedef('char[0]', 'void')
-# # db.add_typedef('float10', 'long double')
-
-# # fix Ghidra being a butt for the millionth time. WHY IN THE WORLD IS THIS TYPEDEF'ED AS 8 BYTES!????
-# db.add_primitive('GUID', 16)
-
-## END
-
-# db.add_typedef('FILE', 'void')
-
-# db.add(PrimitiveSymbol('void', 0))
-
-# db.add(PrimitiveSymbol('char', 1))
-# db.add(PrimitiveSymbol('signed char', 1))
-# db.add(PrimitiveSymbol('unsigned char', 1))
-
-# db.add(PrimitiveSymbol('short', 2))
-# db.add(PrimitiveSymbol('short int', 2))
-# db.add(PrimitiveSymbol('signed short', 2))
-# db.add(PrimitiveSymbol('signed short int', 2))
-# db.add(PrimitiveSymbol('unsigned short', 2))
-# db.add(PrimitiveSymbol('unsigned short int', 2))
-
-# db.add(PrimitiveSymbol('int', 4))
-# db.add(PrimitiveSymbol('signed', 4))
-# db.add(PrimitiveSymbol('signed int', 4))
-# db.add(PrimitiveSymbol('unsigned', 4))
-# db.add(PrimitiveSymbol('unsigned int', 4))
-
-# db.add(PrimitiveSymbol('long', 4))
-# db.add(PrimitiveSymbol('long int', 4))
-# db.add(PrimitiveSymbol('signed long', 4))
-# db.add(PrimitiveSymbol('signed long int', 4))
-# db.add(PrimitiveSymbol('unsigned long', 4))
-# db.add(PrimitiveSymbol('unsigned long int', 4))
-# db.add(PrimitiveSymbol('long long', 8))
-# db.add(PrimitiveSymbol('long long int', 8))
-# db.add(PrimitiveSymbol('signed long long', 8))
-# db.add(PrimitiveSymbol('signed long long int', 8))
-# db.add(PrimitiveSymbol('unsigned long long', 8))
-# db.add(PrimitiveSymbol('unsigned long long int', 8))
-
-# db.add(PrimitiveSymbol('unsigned long long int', 8))
-
-# db.add(PrimitiveSymbol('wchar_t', 2))
-# db.add(PrimitiveSymbol('size_t', 4))
-# db.add(PrimitiveSymbol('ptrdiff_t', 4))
-
-# db.add(PrimitiveSymbol('guid', 16))
-
-# def add_typedef(db, name, typename):
-#     db.add(TypedefSymbol(name, typename, hide=True))
-
-# def add_wintype(db, name, typename, *postfixes, ptrprefix='LP'):
-#     if not postfixes: postfixes = ('',)
-#     for postfix in postfixes:
-#         postname = name + postfix
-#         db.add(TypedefSymbol(postname, typename, hide=True))
-#         db.add(TypedefSymbol(ptrprefix + postname, postname, pointers=1, hide=True))
-
-# def add_interface(db, name, *postfixes, ptrprefix='LP'):
-#     if not postfixes: postfixes = ('',)
-#     for postfix in postfixes:
-#         postname = name + postfix
-#         db.add(TypedefSymbol(postname, 'IUnknown', hide=True))
-#         db.add(TypedefSymbol(ptrprefix + postname, postname, pointers=1, hide=True))
+#region OLD TYPEDEF'ING
 
 # db.add(TypedefSymbol('FILE', 'void', hide=True))
-
-# db.add(TypedefSymbol('code', 'void', hide=True))
-# db.add(TypedefSymbol('pointer', 'void', hide=True))
 
 # db.add(PrimitiveSymbol('point', 8))
 # db.add(PrimitiveSymbol('vector3', 12))
@@ -1704,7 +1955,6 @@ db.populate_ghidra_primitives()
 
 # db.add(TypedefSymbol('HRESULT', 'long', hide=True))
 # db.add(TypedefSymbol('MCIERROR', 'DWORD', hide=True))
-
 
 # db.add(TypedefSymbol('IUnknown', 'void', hide=True))
 # db.add(TypedefSymbol('IDirectDraw', 'IUnknown', hide=True))
@@ -1740,7 +1990,6 @@ db.populate_ghidra_primitives()
 # db.add(TypedefSymbol('LPCWSTR', 'WCHAR', pointers=1, hide=True))
 
 
-
 # db.add(TypedefSymbol('LPVOID', 'VOID', pointers=1, hide=True))
 # db.add(TypedefSymbol('LPBOOL', 'BOOL', pointers=1, hide=True))
 # db.add(TypedefSymbol('LPBYTE', 'BYTE', pointers=1, hide=True))
@@ -1750,6 +1999,8 @@ db.populate_ghidra_primitives()
 # db.add(PrimitiveSymbol('GUID', 16))
 
 # db.add(TypedefSymbol('HANDLE', 16))
+
+#endregion
 
 
 #endregion
