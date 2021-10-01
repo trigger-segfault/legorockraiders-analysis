@@ -10,7 +10,7 @@ __author__  = 'Robert Jordan'
 
 #######################################################################################
 
-import enum, os, re
+import enum, io, os, re
 import traceback
 import functools, operator  # used by `def prod(iterable)`
 import struct               # used by `def signed(value:int, byteSize:int) -> int`
@@ -28,6 +28,84 @@ except:
     import re as regex  # only here to make the linter happy, do not actually use this!
     REGEX_HAS_G_ESCAPE = False
 
+#######################################################################################
+
+#region GHIDRA EXPORT INSTRUCTIONS
+
+# Instructions for Exporting Ghidra programs.
+# To format and then present to a **sane**
+# compiler with added information.
+
+#==========================================
+# Code Browser: <ProgramPath>
+#==========================================
+# File > Export Program...
+
+#==========================================#
+# Export <ProgramName>                   X #
+#==========================================#
+#      Format: [<see below>          v ]   # REQUIRED FORMAT
+# Output File: [LegoRR_<ISO>(-suf)][...]   # (OPTIONAL) e.g. "LegoRR_2021-09-30" or "LegoRR_2021-09-30-aa" (for suffix, etc.)
+#                                          #
+#                         [ Options... ]   # NEXT STEP
+#------------------------------------------# (these options reset after every export... *sigh*)
+
+###########################################################################
+
+#region GHIDRA EXPORT FORMAT: Ascii
+
+# Output extension: .txt    (do not include in Output File name)
+# Ascii export is used to scrape:
+#  - function addresses
+#  - global variables and addresses
+
+#==========================================#
+# Options                                X # (The look of the Options window is specific to certain formats)
+#==========================================#
+# -Advanced------------------------------- # LABEL   = relied upon for globals
+# Label Suffix  :     Comment Prefix  ;    # COMMENT = relied upon for functions
+# ---------------------------------------- #
+#     Comments [ ]        Properties [ ]   #
+#   Structures [ ]    Undefined Data [ ]   #
+#  Ref Headers [ ]         Back Refs [ ]   #
+# Forward Refs [ ]         Functions [ ]   #
+#  Block Names [ ]                         #
+# ---------------------------------------- #
+#         [Select All]  [Deselect All] <---#- PRESS DESELECT (unchecks all above)
+#                                          #
+# -Width---------------------------------- #
+#          Labels: 80        Address: 10   # ESSENTIAL = Address
+#           Bytes: 0     PreMnemonic: 0    #
+#        Mnemonic: 50        Operand: 512  # ESSENTIAL = Mnemonic
+#     End of Line: 100    References: 0    # (Many zeros are relied upon so that a field won't exist)
+# Data Field Name: 0                       # (Other non-zeros need enough space to avoid clipping)
+#------------------------------------------#
+
+#endregion
+
+###########################################################################
+
+#region GHIDRA EXPORT FORMAT: C/C++
+
+# Output extension: .h/.c  (do not include in Output File name)
+# C/C++ export is used to scrape:
+#  - datatype definitions
+#  - function declarations (with calling convention)
+
+#==========================================#
+# Options                                X # (The look of the Options window is specific to certain formats)
+#==========================================#
+#      Create Header File (.h) [X]         # REQUIRED
+#           Create C File (.c) [ ]         # (optional, does not effect parsing)
+#  Use C++ Style Comments (//) [X]         # ESSENTIAL
+#   Emit Data-type Definitions [X]         # ESSENTIAL = datatypes are needed for parsing everything else
+#  Function Tags to Filter [HIDDEN,_STD_]  # QOL = hide all irrelevant functions/standard library functions
+#       Function Tags Excluded [X]         # QOL (for above)
+#------------------------------------------#
+
+#endregion
+
+#endregion
 
 #######################################################################################
 
@@ -117,6 +195,16 @@ def sub_crlf2lf(s:str) -> str:
 
 
 ###########################################################################
+## replace CRLF "\r\n" newlines with simple LF "\n" newlines
+##  AND trim all excess trailing whitespace and empty lines
+
+TRIMLINES_PAT = re.compile(r"[ \t\n\r]+(?=\n)", RE_FLAGS)
+
+def rem_trimlines(s:str) -> str:
+    return TRIMLINES_PAT.sub("", s)
+
+
+###########################################################################
 ## replace leading spaces with tabs of a designated size
 
 # With the parsing speed, this really isn't a performance hit to use re + lambdas...
@@ -186,6 +274,57 @@ FLOAT10_PAT = re.compile(r"^(float10)$", RE_FLAGS)
 FLOAT10_REPL = r"typedef long double \1;"
 def sub_float10(s:str) -> str:
     return FLOAT10_PAT.sub(FLOAT10_REPL, s)
+
+
+###########################################################################
+# remove "xxxxxxxx   -> xxxxxxxx   [UNDEFINED BYTES REMOVED]" from ascii output
+UNDEFINEDBYTES_PAT = re.compile(r"""^[a-f0-9]{8}[ ]{3}->[ ][a-f0-9]{8}[ ]{3}\[UNDEFINED[ ]BYTES[ ]REMOVED\]$""", RE_FLAGS)
+
+def rem_undefinedbytes(s:str) -> str:
+    return UNDEFINEDBYTES_PAT.sub("", s)
+
+
+###########################################################################
+# remove predefined C-strings from ascii output global variables
+REMOVEGLOBALCSTRING_PAT = re.compile(r"""^[ ]{10}s_[^\n\s]*_[a-f0-9]{8}:\n[a-f0-9]{8}[ ]{2}ds[ ]{48}".*"$""", RE_FLAGS)
+
+def rem_globalcstring(s:str) -> str:
+    return REMOVEGLOBALCSTRING_PAT.sub("", s)
+
+
+###########################################################################
+# remove predefined floating point constants used in calculations
+REMOVECONSTFLOATING_NOLAB_PAT = re.compile(r"""^(?<!:\n)[a-f0-9]{8}[ ]{2}(?:float[ ]|double)[ ]{44}(?!\?\?).+$""", RE_FLAGS)
+
+REMOVECONSTFLOATING_LAB_PAT = re.compile(r"""^[ ]{10}(?:FLOAT_[a-f0-9]{8}[ ]|DOUBLE_[a-f0-9]{8}):\n[a-f0-9]{8}[ ]{2}(?:float[ ]|double)[ ]{44}(?!\?\?).+$""", RE_FLAGS)
+
+def rem_constfloating(s:str) -> str:
+    return REMOVECONSTFLOATING_LAB_PAT.sub("", REMOVECONSTFLOATING_NOLAB_PAT.sub("", s))
+
+
+###########################################################################
+# use to find a final ASM instruction to separate functions from globals in ascii output
+FINDGLOBALSTART_PAT = re.compile(r"""^[a-f0-9]{8}[ ]{2}(?:JN?[ZGL]|JMP|CALL|I?RET|NOP)(?: [^\n]*)?$""", RE_FLAGS)
+# used to find the first DLL import to separate globals from remaining C runtime/EXE data
+FINDGLOBALEND_PAT = re.compile(r"""^[ ]{10}PTR_[A-Za-z_][A-Za-z_0-9]*_[a-f0-9]{8}:\n[a-f0-9]{8}[ ]{2}addr[ ]{46}[A-Za-z0-9_\-]+\.[A-Za-z]{3}::[A-Za-z_][A-Za-z_0-9]*$""", RE_FLAGS)
+
+def find_globalspan(s:str) -> Tuple[int,int]:
+    start = end = None
+    m1 = None  # we need to find the last match
+    for m in FINDGLOBALSTART_PAT.finditer(s):
+        m1 = m
+    if m1: start = m1.span(0)[1]  # end of this match is start of globals
+    
+    m2 = FINDGLOBALEND_PAT.search(s, start or 0)
+    if m2: end   = m2.span(0)[0]  # start of this match is end of globals
+
+    return (start, end)
+
+def split_functionglobalspans(s:str) -> Tuple[str,str]: # (functions, globals)
+    start,end = find_globalspan(s)
+    if start is None or end is None:
+        return (None,None)
+    return (s[0:start], s[start:end])
 
 #endregion
 
@@ -406,6 +545,51 @@ PARSE_ENUMVALUE = re.compile(rf"""
 """, RE_FLAGS | re.VERBOSE)
 
 
+### ASCII FILE REGEX ###
+
+PARSE_FUNCTION_ASCII_ORIG = re.compile(r"""^[a-f0-9]{8}[^\n]*\n[ ]{10};(?P<function>[^\n]+)(?:\n[ ]{10}[; ][^\n]*)*(?:\n(?P<address>[a-f0-9]{8})[ ]{2})""", RE_FLAGS)
+
+PARSE_FUNCTION_ASCII = re.compile(r"""^[ ]{10};(?P<function>[^\n]+)(?:\n[ ]{10}[; ][^\n]*)*(?:\n(?P<address>[a-f0-9]{8})[ ]{2})""", RE_FLAGS)
+
+
+# RE_CONST_STRING = re.compile(r"""^(?:[ ]{10}(?P<name>s_[^\n\s]+_[a-f0-9]{8}):\n)(?:(?P<address>[a-f0-9]{8})[ ]{2})(?P<typename>ds)[ ]{48}(?P<value_raw>".*")$""", RE_FLAGS)
+
+
+# RE_CONST_FLOAT_NOLAB = re.compile(r"""^(?<!:\n)(?:(?P<address>[a-f0-9]{8})[ ]{2})(?P<typename>float)[ ]{45}(?!\?\?)(?P<value>.+)$""", RE_FLAGS)
+
+# RE_CONST_FLOAT = re.compile(r"""^(?:[ ]{10}(?P<name>FLOAT_[a-f0-9]{8}):\n)(?:(?P<address>[a-f0-9]{8})[ ]{2})(?P<typename>float)[ ]{45}(?!\?\?)(?P<value>.+)$""", RE_FLAGS)
+# # RE_CONST_FLOAT = re.compile(r"""^(?:[ ]{10}(?P<name>FLOAT_[a-f0-9]{8}):\n)?(?:(?P<address>[a-f0-9]{8})[ ]{2})(?P<typename>float)[ ]{45}(?!\?\?)(?P<value>.+)$""", RE_FLAGS)
+
+
+# RE_CONST_DOUBLE_NOLAB = re.compile(r"""(?<!:\n)(?:(?P<address>[a-f0-9]{8})[ ]{2})(?P<typename>double)[ ]{44}(?!\?\?)(?P<value>.+)$""", RE_FLAGS)
+
+# RE_CONST_DOUBLE = re.compile(r"""^(?:[ ]{10}(?P<name>DOUBLE_[a-f0-9]{8}):\n)(?:(?P<address>[a-f0-9]{8})[ ]{2})(?P<typename>double)[ ]{44}(?!\?\?)(?P<value>.+)$""", RE_FLAGS)
+# # RE_CONST_DOUBLE = re.compile(r"""^(?:[ ]{10}(?P<name>DOUBLE_[a-f0-9]{8}):\n)?(?:(?P<address>[a-f0-9]{8})[ ]{2})(?P<typename>double)[ ]{44}(?!\?\?)(?P<value>.+)$""", RE_FLAGS)
+
+# RE_IDL = re.compile(r"""^(?:[ ]{10}(?P<name>[A-Za-z_][A-Za-z_0-9]+):\n)(?:(?P<address>[a-f0-9]{8})[ ]{2})(?P<typename>GUID)[ ]{46}(?P<value_raw>(?:(?P<value_name>.+?)[ ]+)?(?P<value>[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}))$""", RE_FLAGS)
+
+RE_GLOBALVAR = r"""^(?:[ ]{10}(?P<name>[^\n\s]+):\n)(?:(?P<address>[a-f0-9]{8})[ ]{2})(?P<typename>[A-Za-z_][A-Za-z_0-9]*)(?:[ \t]?(?P<typeptrs>(?:\*[ \t]?)+))?(?P<arrays>(?:\[\d+\])+)?"""
+
+PARSE_GLOBALVAR_QQ = re.compile(rf"""{RE_GLOBALVAR}[ ]+(?P<value_raw>\?\?|NaP)$""", RE_FLAGS)
+
+# must be used after stripping RE_GLOBAL_QQ
+PARSE_GLOBALVAR_VALUE = re.compile(rf"""{RE_GLOBALVAR}[ ]+(?P<value_raw>.*)$""", RE_FLAGS)
+
+PARSE_GLOBALVAR_EMPTY = re.compile(rf"""{RE_GLOBALVAR}$""", RE_FLAGS)
+
+PARSE_GLOBALVAR_ALL = re.compile(rf"""{RE_GLOBALVAR}(?:[ ]+(?P<value_raw>.*))?$""", RE_FLAGS)
+
+
+# RE_UNDEFINEDBYTES = re.compile(r"""^(?P<address>[a-f0-9]{8})   -> (?P<address2>[a-f0-9]{8})   \[UNDEFINED BYTES REMOVED\]$""", RE_FLAGS)
+
+# # use to find a final ASM instruction to separate functions from globals in ascii output
+# RE_ASCII_GLOBALSSTART = re.compile(r"""^[a-f0-9]{8}[ ]{2}(?:JN?[ZGL]|JMP|CALL|I?RET|NOP)(?: [^\n]*)?$""")
+# # used to find the first DLL import to separate globals from remaining C runtime/EXE data
+# RE_ASCII_GLOBALSEND = re.compile(r"""^[ ]{10}PTR_[A-Za-z_][A-Za-z_0-9]*_[a-f0-9]{8}:\n[a-f0-9]{8}[ ]{2}addr[ ]{46}[A-Za-z0-9_\-]+\.[A-Za-z]{3}::[A-Za-z_][A-Za-z_0-9]*$""", RE_FLAGS)
+
+PARSE_GLOBALGUID = re.compile(r"""^(?:[ ]{10}(?P<name>[A-Za-z_][A-Za-z_0-9]+):\n)(?:(?P<address>[a-f0-9]{8})[ ]{2})(?P<typename>GUID)[ ]{46}(?P<value_raw>(?:(?P<value_name>.+?)[ ]+)?(?P<value>[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}))$""", RE_FLAGS)
+
+
 # PARSE_STRUCTFIELD_PAT = re.compile(r"^\t ((?:\[ ;")
 
 # typedef Main_StateChangeData Mesh_TextureStateChangeData;
@@ -446,6 +630,7 @@ class SymbolKind(enum.IntEnum):
     FLAGS     = auto() # enum with [flags:] comment
     TYPEDEF   = auto() # typedef "anything but functions"
     FUNCTION  = auto()
+    VARIABLE  = auto()
 
     VALUE     = auto() # special case, should not be added to symbol db
     MEMBER    = auto() # special case, should not be added to symbol db
@@ -488,6 +673,7 @@ class Symbol:
 
     def __init__(self, kind:SymbolKind, name:str, *, display_name:Optional[str]=None, namespace:Optional[str]=None, size:Optional[int]=None, comment:Optional[str]=None, textbody:Optional[str]=None, address:Optional[int]=None, hide:bool=False, evaled:bool=False, parent:Optional['Symbol']=None, tagged:Optional['TaggedComment']=None):
         self.parent = parent
+        #self.kind = SymbolKind(kind)  #HACK: Ensure we can use `is` operator
         self.kind = kind
         self.name = name
         self._display_name = display_name
@@ -540,6 +726,26 @@ class Symbol:
 
     def print(self, *, pad:bool=PAD_DEFAULT, **kwargs):
         print(str(self), **kwargs)
+    
+    def format(self, *, end:Optional[str]=None, **kwargs) -> str:
+        # Ultra-lazy wrapper around Symbol.print()
+        strio = io.StringIO()
+        if end is None: end = ''
+        self.print(file=strio, end=end, **kwargs)
+        return strio.getvalue()
+    
+    def format_full(self, *, end:Optional[str]=None, namespace:bool=True, address:bool=True, exename:str='LegoRR.exe', **kwargs) -> str:
+        text = self.format(end=end, **kwargs)
+        if not namespace and self.namespace:
+            text = text.replace(self.namespace, '')
+        if address and self.address is not None:
+            text = f'// <{exename} @{self.address:08x}>\n{text}'
+        return text
+        
+    def print_full(self, *, pad:bool=PAD_DEFAULT, end:Optional[str]=None, **kwargs):
+        # An EVEN LAZIER wrapper around a wrapper around Symbol.print()
+        #  This is so bad...
+        print(self.format_full(pad=pad, **kwargs), end=end)
 
     @property
     def is_function(self) -> bool: return False
@@ -585,6 +791,9 @@ class Symbol:
     def hide(self, new_hide:bool): self._hide = bool(new_hide)
     
     @property
+    def primitive(self) -> Optional['PrimitiveSymbol']: return None
+    
+    @property
     def needs_eval(self) -> bool: return not self._evaled
     @needs_eval.setter
     def needs_eval(self, new_needs_eval:bool): self._evaled = bool(new_needs_eval)
@@ -616,6 +825,9 @@ class PrimitiveSymbol(Symbol):
         return f'primitive {self.display_name}'
     def __str__(self):
         return f'{self.display_name}'
+    
+    @property
+    def primitive(self) -> Optional['PrimitiveSymbol']: return self
 
 
 class TypeSymbol(Symbol):
@@ -684,6 +896,24 @@ class TypeSymbol(Symbol):
 
     @property
     def repeat(self) -> int: return prod(self.arrays) if (not self.nameptrs and self.arrays) else 1
+
+    @property
+    def primitive(self) -> Optional['PrimitiveSymbol']:
+        # if self.kind is not SymbolKind.TYPEDEF:
+        #     return None
+        #if isinstance(self, PrimitiveSymbol):
+        type_sym = self #.type_symbol
+        while type_sym is not None and type_sym.kind is SymbolKind.TYPEDEF:
+            type_sym = self.type_symbol
+        if type_sym is not None and type_sym.kind is SymbolKind.PRIMITIVE:
+            return self
+        return None
+        #     if isinstance(type_sym, PrimitiveSymbol):
+        #         return type_sym
+        #     if isinstance(type_sym, Type):
+        #         return type_sym
+        # if self.type_symbol is not None:
+        #     if hasattr(self.type)
     
     def _evaluate(self, db:'SymbolDatabase') -> bool:
         if self.type_symbol is None:
@@ -770,6 +1000,40 @@ class FunctionSymbol(TypeSymbol):
         return f'{super().__repr__()};' # append semicolon ';'
     def __str__(self):
         return f'{super().__str__()};' # append semicolon ';'
+
+class VariableSymbol(TypeSymbol):
+    value:Optional[Any]
+    value_raw:Optional[str]
+
+    def __init__(self, name:str, typename:str, value:Optional[Any]=None, value_raw:Optional[str]=None, **kwargs):
+        super().__init__(SymbolKind.VARIABLE, name, typename, **kwargs)
+        self.value = value
+        self.value_raw = value_raw
+    
+    def __repr__(self):
+        ##TODO: = value append
+        # if self.value is not None:
+        #     if self.value is Ellipsis: # dummy shorthand for NULL
+        #         value = f' = nullptr'
+        #     elif isinstance(self.value, str):
+        #         if self.value_raw is not None:
+        #             value = f' = {self.value_raw}'
+        #         else:
+        #             value = repr(self.value)
+        #             singlequote = (value[0] == '\'' and value[-1] == '\'')
+        #             value = value[1:-1]
+        #             if singlequote:
+        #                 value = value.replace('\\\'', '\'').replace('\"', '\\\"')
+        #             value = f' = {value}'
+        #     elif isinstance(self.)
+        # value = f' = self.value
+        return f'{super().__repr__()};' # append semicolon ';'
+    def __str__(self):
+        return f'{super().__str__()};' # append semicolon ';'
+        
+    @property
+    def is_value(self) -> bool: return self.value is not None or self.value_raw is not None
+
 
 
 class ValueSymbol(Symbol):
@@ -1154,7 +1418,7 @@ PARSE_TAGGED_COMMENT_TYPE = re.compile(rf"""
         |
     (?: (?P<keyword> class|struct|union|enum|flags ) : (?P<targetsize> {RE_UINTEGER} ) ) )
         |
-    (?: type : (?P<typename> {RE_SYMBOL} ) )
+    (?: type : (?P<typename> {RE_SYMBOL_TYPE} ) )
         |
     (?: pack : (?P<pack> {RE_UINTEGER} ) )
         |
@@ -1525,7 +1789,7 @@ class HeaderParser(BaseParser):
             else:
                 args.append(self.parse_symbol_type(symbol_cls, m, nocomment=True, **kwargs))
 
-            arguments = arguments[m.span()[1]:].lstrip()
+            arguments = arguments[m.span(0)[1]:].lstrip()
             if arguments:
                 if is_ellipsis:
                     self.error(f'BAD end of arguments, nothing should be after ellipsis {"..."!r}: {arguments}')
@@ -1538,11 +1802,6 @@ class HeaderParser(BaseParser):
 
         return args
 
-    def _parse_ptr_counts(self, text:str) -> int:
-        # key is used because both pointers attached to the name, and attached to the type,
-        #  which can be both for function typedefs, etc.
-        return (text or '').count('*')
-        
     def _parse_ptr_counts(self, text:str) -> int:
         # key is used because both pointers attached to the name, and attached to the type,
         #  which can be both for function typedefs, etc.
@@ -1582,6 +1841,202 @@ class HeaderParser(BaseParser):
                 symbol.add_argument(arg) #, **kwargs)
 
         return symbol
+
+class AsciiParser(HeaderParser):
+    
+    def parse(self, filetext:str, *, filename:Optional[str]=None, functions:bool=True, merge_functions:bool=True, doglobals:bool=True, guids:bool=False, cstrings:bool=False, cfloating:bool=False, **kwargs):
+        self.filename = filename
+        # probably best to enforce this, due to the massive size of these files...
+        filetext = rem_trimlines(filetext)
+        self.filetext = filetext
+        
+        text = filetext # modified and used as the parsed text
+
+        # prepare for parsing, fix Ghidra's crap
+
+        #text = rem_trimlines(text) # (performed above)
+        text = rem_undefinedbytes(text)
+
+        textf,textg = split_functionglobalspans(text)
+
+        # parse global variables and addresses
+        if doglobals:
+            if textg is None:
+                self.error('Failed to split globals')
+            
+            if cstrings:
+                self.error('cstrings not supported yet!')
+            textg = rem_globalcstring(textg)
+
+            if cfloating:
+                self.error('cfloating not supported yet!')
+            textg = rem_constfloating(textg)
+
+            if guids:
+                self.parse_global_guids(textg, **kwargs)
+            textg = PARSE_GLOBALGUID.sub("", textg)
+
+            self.parse_global_vars(textg, **kwargs)
+            textg = PARSE_GLOBALVAR_ALL.sub("", textg)
+
+            # textg = rem_undefinedbytes(textg)
+
+        # parse function addresses
+        if functions:
+            if textf is None:
+                self.error('Failed to split function')
+            self.parse_functions(textf, merge_functions=merge_functions, **kwargs)
+    
+    def parse_global_vars(self, text:str, **kwargs) -> None:
+        for m in PARSE_GLOBALVAR_ALL.finditer(text):
+            address   = int(m['address'], 16)
+            typename  = m['typename']
+            name      = m['name']
+            typeptrs  = self._parse_ptr_counts(m['typeptrs'])
+            arrays    = self._parse_array_counts(m['arrays'])
+
+            value_raw = m['value_raw'] or None
+            if value_raw is not None and value_raw in ('??', 'NaP'):
+                value_raw = None
+
+            self.db.add(VariableSymbol(name, typename, value_raw=value_raw, address=address, typeptrs=typeptrs, arrays=arrays))
+
+        # #PARSE_GLOBALVAR_ORDERS = (PARSE_GLOBALVAR_QQ, PARSE_GLOBALVAR_VALUE, PARSE_GLOBALVAR_EMPTY)
+        # PARSE_GLOBALVAR_ORDERS = (PARSE_GLOBALVAR_VALUE, PARSE_GLOBALVAR_EMPTY)
+        # for i,PARSE in enumerate(PARSE_GLOBALVAR_ORDERS):
+        #     for m in PARSE.finditer(text):
+        #         address   = int(m['address'], 16)
+        #         typename  = m['typename']
+        #         name      = m['name']
+        #         typeptrs  = self._parse_ptr_counts(m['typeptrs'])
+        #         arrays    = self._parse_array_counts(m['arrays'])
+
+        #         value_raw = m['value_raw'] if (PARSE is PARSE_GLOBALVAR_VALUE) else None
+        #         if value_raw is not None and value_raw in ('??', 'NaP'):
+        #             value_raw = None
+
+        #         self.db.add(VariableSymbol(name, typename, value_raw=value_raw, address=address, typeptrs=typeptrs, arrays=arrays))
+        #     # remove <GLOBALS>
+        #     #text2 = PARSE.sub("", text2)
+    
+    def parse_global_guids(self, text:str, **kwargs) -> None:
+        for m in PARSE_GLOBALGUID.finditer(text):
+            address   = int(m['address'], 16)
+            typename  = m['typename']
+            name      = m['name']
+            
+            value     = m['value']
+            value_raw = m['value_raw']
+
+            comment   = '[???|tags:IDL]'
+            tagged    = self.parse_tagged_comment(comment)
+
+            self.db.add(VariableSymbol(name, typename, value=value, value_raw=value_raw, address=address, comment=comment, tagged=tagged))
+
+    def parse_functions(self, text:str, *, merge_functions:bool=True, **kwargs) -> None:
+        count = 0
+        for m in PARSE_FUNCTION_ASCII.finditer(text):
+            address   = int(m['address'], 16)
+            function  = m['function']
+            
+            m1 = re.match(r"^[^\(]+[ *](?P<name>[^ *\(]+)+\(", function)
+            if not m1: self.error(f'Failed to parse name of function {len(count)}: {function!r}')
+            name      = m1['name']
+
+            ##HACK: Skip over this garbage (don't even count it)
+            if name.startswith('Unwind@'):
+                continue
+
+            m2 = PARSE_FUNCTION_HEADER.match(function + ';')
+            if not m2 and name.startswith('__'):
+                # Ignore those nasty std internal functions with arguments such as: undefined1[12] param_1.
+                count += 1
+                continue
+            elif not m2:
+                self.error(f'Failed to parse function {count}: {function!r}')
+            name      = m2['name']
+            decl      = m2['decl'] or None
+
+            ##HACK: Ghidra does not display any calling conventions for functions in ascii.
+            ##      Assume all missing decls are __cdecl.
+            ##      Since we can list the number of __stdcall's on one or two hands.
+            if decl is None: decl = '__cdecl'
+
+            hide = name.startswith('__')  # helper prefixed attached to all useless internal C runtime functions
+
+            if merge_functions and name in self.db.symbols:
+                symbol = self.db[name]
+                if symbol.address is not None:
+                    pass # not fully expected, but possibly not an error depending on the scenario
+                else:
+                    symbol.address = address # add address to previously parsed header function
+            else:
+                try:
+                    # Doesn't exist, add it ourselves
+                    self.db.add(self.parse_symbol_type(FunctionSymbol, m2, hide=hide, nocomment=True, default_decl=decl, address=address, **kwargs))
+                except Exception as ex:
+                    if name.startswith('__'):
+                        # Ignore those nasty std internal functions with arguments such as: undefined1[12] param_1.
+                        pass
+                    else:
+                        raise ex
+
+            count += 1
+
+        #     decl        = m['decl'] or None
+        #     if not [d for d in ('__cdecl', '__stdcall', '__fastcall', '__thiscall') if d in functxt]:
+        #         # No calling convention, enforce __cdecl because
+        #         #  we can list the number of stdcalls on one or two hands.
+        #         decl_orig = decl
+        #         decl = '__cdecl '
+
+        #     count += 1
+
+        #     ##HACK: Ghidra does not display __stdcall calling conventions for functions.
+        #     ##      Assume all missing decls are __stdcall.
+        #     if decl is None: decl = '__stdcall'
+
+        #     hide = name.startswith('__')  # helper prefixed attached to all useless internal C runtime functions
+
+        #     self.db.add(self.parse_symbol_type(FunctionSymbol, m, hide=hide, nocomment=True, default_decl=decl, **kwargs))
+        # for fn in list(RE_TXT_FUNCTIONS.finditer(txt_g)):
+        #     address = int(fn['address'],16)
+        #     functxt = fn['function']
+        #     m = re.match(r"^[^\(]+[ ](?P<name>[^\(]+)+\(", functxt)
+        #     if not m: raise ValueError(f'failed to find func {len(func_list)} name from: {functxt!r}')
+        #     name = m['name']
+        #     namespan = m.span("name")
+        #     if name.startswith('__'):
+        #         # skip double-underscore C runtime names
+        #         continue
+        #     #
+        #     decl = ''
+        #     if not [d for d in ('__cdecl', '__stdcall', '__fastcall', '__thiscall') if d in functxt]:
+        #         # No calling convention, enforce __cdecl because
+        #         #  we can list the number of stdcalls on one or two hands.
+        #         decl_orig = decl
+        #         decl = '__cdecl '
+        #     # HARDCODED HANDLING
+        #     if name in addr_map:
+        #         name_orig = name
+        #         name = DUPLICATE_NAMES[name]
+        #     #
+        #     functxt_orig = functxt
+        #     # print(functxt)
+        #     # print(namespan)
+        #     # DEBUG_i += 1
+        #     # if DEBUG_i == 20:
+        #     #     raise ValueError('DEBUG stop')
+        #     # print(f'{functxt_orig[:namespan[0]]}', '||||', f'{functxt_orig[namespan[1]:]}')
+        #     # replace calling convention and/or duplicate name
+        #     functxt = f'{functxt_orig[:namespan[0]]}{decl}{name}{functxt_orig[namespan[1]:]}'
+        #     #
+        #     func_list.append((address, name, functxt))
+        #     functxt_list.append(functxt)
+        #     addr_map[name] = address
+        # functions = '\n'.join(f'{fn};' for fn in functxt_list)
+        # return functions, func_list, addr_map
+
 
 #endregion
 
@@ -1631,7 +2086,7 @@ class SymbolDatabase:
                 return True
             ##DEBUG:
             elif not isinstance(symbol, TypedefSymbol):
-                print(f'[Duplicate]: {symbol.name}\n old: {orig}>\n new: {symbol}')
+                print(f'[Duplicate]: {symbol.name}\n old: {orig}\n new: {symbol}')
         return orig is symbol
 
     def get_symbol(self, key:str, default:Any=None, *, allow_ellipsis:bool=False) -> Optional[Symbol]:
@@ -1742,8 +2197,25 @@ class SymbolDatabase:
         
         return self.include_header(filetext, filename=filename, evaluate=evaluate, **kwargs)
         
-    def include_header(self, filetext:str, *, filename:Optional[str], evaluate:bool=True, **kwargs) -> bool:
+    def include_header(self, filetext:str, *, filename:Optional[str]=None, evaluate:bool=True, **kwargs) -> bool:
         parser = HeaderParser(self)
+
+        parser.parse(filetext, filename=filename, **kwargs)
+
+        if evaluate:
+            return self.evaluate_all()
+        else:
+            return True
+
+
+    def include_asciifile(self, filename:str, encoding:str='utf-8', evaluate:bool=True, **kwargs) -> bool:
+        with open(filename, 'rt', encoding=encoding) as reader:
+            filetext = reader.read()
+        
+        return self.include_ascii(filetext, filename=filename, evaluate=evaluate, **kwargs)
+        
+    def include_ascii(self, filetext:str, *, filename:Optional[str]=None, evaluate:bool=True, **kwargs) -> bool:
+        parser = AsciiParser(self)
 
         parser.parse(filetext, filename=filename, **kwargs)
 
@@ -1877,6 +2349,16 @@ class LegoRRSymbolDatabase(SymbolDatabase):
 
         # fix Ghidra being a butt for the millionth time. WHY IN THE WORLD IS THIS TYPEDEF'ED AS 8 BYTES!????
         self.add_primitive('GUID', 16, evaled=True, hide=True)
+        
+        self.add_typedef('addr', 'void', pointers=1, hide=False)
+        self.add_typedef('ddw',  'uint', hide=False)
+
+        # I'm not sure how to best-deal with these Ghidra types.
+        self.add_typedef('ds',   'char', pointers=1, hide=True)
+        self.add_typedef('unicode', 'wchar_t', pointers=1, hide=True)
+        self.add_typedef('db',   'byte', pointers=1, hide=True)
+        # self.add_typedef('ds',   'char', arrays=[1], hide=True)
+        # self.add_typedef('db',   'byte', arrays=[1], hide=True)
     
     def override_openlrr_display_names(self, *, optional:Optional[bool]=None) -> None:
         self.override_display_name('byte',   'uint8',  optional=optional)
