@@ -1,0 +1,37 @@
+
+collision:
+
+	minifigure water/lava collision
+DONE	minifigure leaving craft collision
+	aircraft landing collision
+	
+	craft limit on climbing
+	
+
+
+
+effects:
+
+DONE	make smoke system general - becomes generic subsystem
+
+
+
+
+weapons:
+
+	pusher gun
+	dynamite
+
+
+
+creatures:
+
+	make rockmonster choose vehicles
+	
+
+
+
+
+triggers
+	attach triggers to objects, and map locations
+

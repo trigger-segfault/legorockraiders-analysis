@@ -1,0 +1,359 @@
+//ﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂ
+// craft File For <LEGO Rock Raiders>
+//‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹
+
+#ifndef	__CRAFT_H
+
+
+
+enum
+{
+	MODE_AND_SIZE				=1,
+	LEFT_STICK_HORIZONTAL	=6,
+	LEFT_STICK_VERTICAL		=7,
+	RIGHT_STICK_HORIZONTAL	=4,
+	RIGHT_STICK_VERTICAL		=5,
+
+};
+
+
+enum
+{
+	STANDARD_JOYPAD		=4,
+	DUAL_SHOCK				=7,
+};
+
+/* definitions */
+
+
+#define	THRESHOLD	(800)
+
+
+#define		LARGE_DIGGER_TURN_DELTA						(64)
+#define		LARGE_DIGGER_FORWARD_ACCEL_DELTA			(8)
+#define		LARGE_DIGGER_BACKWARD_ACCEL_DELTA		(-8)
+#define		LARGE_DIGGER_DECEL_DELTA					(4)
+#define		LARGE_DIGGER_FORWARD_SPEED_CAP			(128)
+#define		LARGE_DIGGER_BACKWARD_SPEED_CAP			(-128)
+#define		LARGE_DIGGER_MASS								(1000)
+
+#define		LARGE_DIGGER_DRILL_SPEED_CAP				(1024)
+#define		LARGE_DIGGER_DRILL_ACCEL_DELTA			(32)
+#define		LARGE_DIGGER_DRILL_DECEL_DELTA			(16)
+
+
+		 /* defines */
+
+
+#define MAX_MINIFIGURES				4
+#define	MAX_CRAFT						16
+#define	MAX_ROCKMONSTERS				8
+#define	MAX_ROCKWHALES					2
+#define	MAX_SPRITECREATURES			30				//scorpion/spiders/snakes
+#define	MAX_CREATURES					(MAX_ROCKMONSTERS+MAX_ROCKWHALES+MAX_SPRITECREATURES)
+
+#define	MAX_PICKUPS						10
+
+#define	MINIFIGURE_START				(0)
+#define	CRAFT_LIST_START				(MAX_MINIFIGURES)
+#define	ROCKMONSTER_START				(CRAFT_LIST_START+MAX_CRAFT)
+#define	ROCKWHALE_START				(ROCKMONSTER_START+MAX_ROCKMONSTERS)
+#define	CREATURE_START					(ROCKWHALE_START+MAX_ROCKWHALES)
+#define	PICKUP_START					(CREATURE_START+MAX_SPRITECREATURES)
+
+#define	MAX_OBJECTS						(PICKUP_START+MAX_PICKUPS)
+
+
+enum
+{
+	COLLISION_RADIUS,
+	ACTIVATION_RADIUS,
+};
+
+
+enum
+{
+	CF_AUTO_TURN_FORWARD			=	1,		/* if set, then turning without forward motion will apply some forward motion */
+	CF_CAN_DRILL					=	2,		/* vehicle can drill rock */
+	CF_,	
+};
+
+/* structures */
+
+
+
+typedef enum
+{
+	CRAFT_LARGE_DIGGER,
+	CRAFT_LARGE_HELICOPTER,
+	CRAFT_BIG_LASER,
+
+	CRAFT_BULLDOZER,
+	CRAFT_SMALL_TRUCK,
+	CRAFT_SMALL_LASER,
+	CRAFT_SMALL_DIGGER,
+
+	CRAFT_SMALL_HELICOPTER,
+	CRAFT_HOVERBOARD,
+
+	MAX_CRAFT_TYPES,
+
+}	CRAFT_IDENTITY;
+
+
+/* structures */
+
+typedef struct CRAFT
+{
+	int				typeID;
+	int				id;
+	int				controlledBy;
+	int				flags;
+
+	int				x;	
+	int				y;	
+	int				zDeltaDelta;
+	int				zDelta;
+	int				zSurface;
+	int				z;
+	ANGLE				angleY;
+	int				speed;
+	ANGLE				wheelSpin;
+
+	int				turnRateCap;
+	int				turnRate;
+	int				turnRateDelta;
+
+	int				accelDeltaForward;
+	int				accelDeltaBackward;
+	int				decelDelta;
+	int				forwardSpeedCap;
+	int				backwardSpeedCap;
+
+	int				forwardSpeedCapScaled;
+	int				backwardSpeedCapScaled;
+
+	int				turnForceMoveDelta;
+	int				turnForceMoveCap;
+	int				mass;
+
+	int				collisionRadius;		/* can't get closer than this */
+	int				activationRadius;		/* if inside this, then the craft can be activated by a minifigure */
+
+	int				drillSfxVoice;			/* some craft may require a looping voice */
+	int				drillSpeed;
+	int				drillSpeedCap;
+	int				drillSpeedDelta;
+	int				drillPos;
+	int				maxRockType;			/* highest level of rock that craft can drill */
+	int				drillRadius;
+	int				drillAngleOffset;
+
+/* angle smoothing */
+	int				targetXr;
+	int				targetZr;
+	int				currentXr;
+	int				currentZr;
+
+	int				engineVolume;			/* applies to both types */
+	int				engineBaseFrequency;
+	int				engineOffsetFrequency;
+
+
+/* aircraft stuff */
+
+	int				loopingSfxVoice;
+	int				flightFlag;
+	int				altitudeReference;
+	int				rotorRotation;
+	int				rotorSpeed;
+	int				hoverHeight;
+	int				hoverHeightTarget;
+	int				climbRate;
+	int				radius;
+	int				spread;
+
+	int				sleepTimer;
+
+	BOOL				(*craftHandler)(struct CRAFT *craft, void *player, int time);
+
+	lpContainer		cont;
+
+}	CRAFT, *lpCRAFT;
+
+
+
+
+typedef enum
+{
+	PLAYER_FLAG_COMBINE_ANALOGUE	=	1,			/* if set analogue control is combined on left stick, else left is direction right is speed */
+	PLAYER_FLAG_MINIFIGURE_ACTIVE,				/* if set minifigure is active, else craft is active */
+	PLAYER_FLAG_,
+
+} PlayerFlags;
+
+typedef enum
+{
+	PLAYER_ONE,
+	PLAYER_TWO,
+
+} PLAYERS;
+
+typedef	struct player_st
+{
+	int					id;
+	PlayerFlags			flags;
+	lpCRAFT				craft;
+	lpMINIFIGURE		minifigure;
+	CONTROL				controlSet[MAX_CONTROLS];
+	unsigned char		padBuffer[34];
+
+/* other stuff */
+
+	int					reticulePulseIndex;
+	int					reticuleAlpha;
+
+	int					score;
+	int					controllerConnected;
+
+}	PLAYER, *lpPLAYER;
+
+
+typedef struct craft_pool_st
+{
+	CRAFT				craftList[MAX_CRAFT];
+	lpContainer		list[TR_CRAFT_MAX_TYPES];			/* containers for the HMD models, NULL will indicate not loaded for this level */
+	int				numCraft;
+
+}	CRAFT_POOL;
+
+
+typedef struct minifigure_pool_st
+{
+	MINIFIGURE				minifigureList[MAX_MINIFIGURES];
+	int						numMinifigures;
+	lpSPR_ACTIVITY_SET	activitySet;
+
+}	MINIFIGURE_POOL;
+
+
+
+typedef struct craftGlobs_st
+{
+	CRAFT_POOL			craftPool;
+	MINIFIGURE_POOL	minifigurePool;
+	PLAYER				playerList[2];
+	int					numPlayers;
+
+}	CRAFT_GLOBS;
+
+
+
+
+
+typedef struct obj_st
+{
+	int			objectClass;
+	int			x;
+	int			y;
+	int			z;
+	int			zSurface;
+	int			angleY;
+	int			targetAngleY;
+	int			speed;
+	int			zSpeed;
+	lpContainer	cont;
+	void			*objectData;		/* pointer to specific data for object class */
+
+} OBJECT, *lpOBJECT;
+
+
+
+
+
+typedef struct objectGlobs_st
+{
+	OBJECT					objectList[MAX_OBJECTS];
+
+/* data for specific classes */
+
+/* creatures */
+
+
+
+/* craft */
+
+
+
+/* minifigures */
+
+	MINIFIGURE				minifigureList[MAX_MINIFIGURES];
+	int						numMinifigures;
+	lpSPR_ACTIVITY_SET	minifigureActivitySet;
+
+} OBJECT_GLOBS;
+
+
+
+
+
+/* the craft data setup structure */
+typedef struct craft_setup_st
+{
+	char			modelName[16];
+	int			modelScale;
+	BOOL			(*craftHandler)(lpCRAFT craft, lpPLAYER player, int time);
+	int			accelDeltaForward;
+	int			accelDeltaBackward;
+	int			decelDelta;
+	int			forwardSpeedCap;
+	int			backwardSpeedCap;
+	int			turnRateDelta;
+	int			turnRateCap;
+	int			turnForceMoveDelta;
+	int			turnForceMoveCap;
+	int			cruisingaltitude;
+	int			climbRate;
+	int			mass;
+	int			radius;
+	int			spread;
+	int			clipSize;
+
+	int			collisionRadius;
+	int			activationRadius;
+	int			zDeltaDelta;
+
+	int			engineBaseFrequency;
+	int			engineOffsetFrequency;
+
+	int			flags;
+	int			drillSpeedDelta;
+	int			drillSpeedCap;
+	int			maxRockType;
+	int			drillRadius;
+	int			drillAngleOffset;
+
+}	CRAFT_SETUP;
+
+
+extern			CRAFT_GLOBS		craftGlobs;
+extern			OBJECT_GLOBS	objectGlobs;
+extern			CONTROL			nullControlSet[MAX_CONTROLS];
+
+
+void	Craft_initialiseLists(void);
+BOOL	Craft_CreateCraft(int craftType,int x, int y, int direction);
+
+void Craft_CreateCraftData(lpCRAFT craft, int vehicleType, int index);
+BOOL	Craft_UpdateGroundCraft(lpCRAFT craft, lpPLAYER player, int time);
+BOOL	Craft_UpdateAirCraft(lpCRAFT craft, lpPLAYER player, int time);
+void	Craft_DrawActivationReticule(lpCRAFT craft, lpPLAYER player);
+void	Craft_SetVolumeAndFrequencyEngineSfx(lpCRAFT craft, int sample, int baseFrequency, int frequencyAdjust);
+
+lpCRAFT	Craft_GetCraftInRangeOfMinifigure(lpMINIFIGURE minifigure, int newX, int newY, int newZ, int *type);
+
+#define	__CRAFT_H
+
+#endif
+
+

@@ -1,0 +1,112 @@
+	org     $80010000       ; this can be omitted if you specify the
+				; org address on the linker command line
+
+
+text    group                   ; group containing defined data
+
+
+	section .text,text      ; specifying them here is not strictly necessary
+
+
+
+;gods stuff part of lego now...
+
+	include "obj/main.obj"
+	include "obj/3d.obj"
+	include "obj/mem.obj"
+	include "obj/filepc.obj"
+	include "obj/sound.obj"
+	include "obj/input.obj"
+	include "obj/config.obj"
+	include "obj/graphics.obj"
+	include "obj/viewport.obj"
+	include "obj/image.obj"
+	include "obj/textwind.obj"
+	include "obj/fonts.obj"
+	include "obj/contain.obj"
+	include "obj/activity.obj"
+	include "obj/material.obj"
+	include "obj/maths.obj"
+	include "obj/draw.obj"
+	include "obj/error.obj"
+	include "obj/hmd.obj"
+	include "obj/asmcode.obj"
+	include "obj/rnc_2.obj"
+
+	include "obj/lego.obj"    
+	include "obj/steve.obj"   
+	include "obj/objects.obj"   
+	include "obj/map3d.obj"   
+	include "obj/loader.obj"  
+	include "obj/sfx.obj"     
+	include "obj/console.obj" 
+	include "obj/control.obj" 
+	include "obj/surface.obj" 
+	include "obj/camera.obj"  
+	include "obj/craft.obj"   
+	include "obj/player.obj"   
+	include "obj/cd.obj"	     
+	include "obj/boulder.obj" 
+	include "obj/trigger.obj" 
+	include "obj/creature.obj"
+	include "obj/snake.obj"   
+	include "obj/spider.obj"  
+	include "obj/scorpion.obj"
+	include "obj/rmonster.obj"
+	include "obj/rwhale.obj"  
+	include "obj/editor.obj"  
+	include "obj/radar.obj"  
+	include "obj/lang.obj"  
+	include "obj/particle.obj"  
+	include "obj/weapons.obj"  
+	include "obj/freezer.obj"  
+	include "obj/laser.obj" 
+	include "obj/pause.obj"  
+	include "obj/menu.obj"  
+	include "obj/front.obj"  
+	include "obj/dynamite.obj"
+	include "obj/teleport.obj"  
+	include "obj/pusher.obj" 
+	include "obj/geoscan.obj" 
+	include "obj/pickup.obj"
+	include "obj/gameinfo.obj"
+	include "obj/movie.obj"
+	include "obj/landpad.obj"
+	include "obj/timer.obj"
+	
+
+bss     group   bss             ; group containing uninitialised data
+	section .rdata,text     ; sections created by C compiler
+	section .data,text      ; but does ensure that they appear in the correct
+	section .sdata,text     ; order in the linked output file
+
+	section .sbss,bss       ; the bss sections
+	section .bss,bss
+
+
+        inclib  "libsn.lib"  
+        inclib  "libds.lib"  
+        inclib  "libetc.lib" 
+        inclib  "libcard.lib"
+        inclib  "libapi.lib" 
+        inclib  "libgte.lib" 
+        inclib  "libgpu.lib" 
+        inclib  "libgs.lib"  
+        inclib  "libhmd.lib" 
+        inclib  "libcd.lib"  
+        inclib  "libpress.lib"
+        inclib  "libsnd.lib" 
+        inclib  "libspu.lib" 
+        inclib  "libc.lib"   
+        inclib  "libmath.lib"
+        inclib  "libpad.lib" 
+
+
+	regs    pc=__SN_ENTRY_POINT     ; this initialises the program counter register so
+					; that the downloader sets the entry point before
+					; the program is executed
+
+					; SN_ENTRY_POINT is defined in a module in libsn.lib and
+					; clears the bss, sets up the heap, etc. before calling main()
+
+

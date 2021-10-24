@@ -1,0 +1,124 @@
+
+
+
+
+
+
+
+
+
+	/* class enumeration */
+
+	typedef enum
+	{
+		OC_CRAFT,
+		OC_PICKUP,
+		OC_CREATURE,
+		OC_MINIFIGURE,			/* only one type of minifigure at present */
+		OC_SYSTEM,
+
+		OC_MAX_CLASS,
+
+	} OBJECT_CLASS;
+
+
+	/* craft types */
+
+	typedef enum
+	{
+		TR_CRAFT_LARGE_DIGGER,
+		TR_CRAFT_LARGE_HELICOPTER,
+		TR_CRAFT_BIG_LASER,
+		TR_CRAFT_BULLDOZER,
+		TR_CRAFT_SMALL_TRUCK,
+		TR_CRAFT_SMALL_LASER,
+		TR_CRAFT_SMALL_DIGGER,
+		TR_CRAFT_SMALL_HELICOPTER,
+		TR_CRAFT_HOVERBOARD,
+
+	} CRAFT_TYPES;
+
+
+
+
+	/* pickup types */
+	enum
+	{
+		TR_PICKUP_FREEZER_AMMO,
+		TR_PICKUP_PUSHER_AMMO,
+		TR_PICKUP_DYNAMITE,
+		TR_PICKUP_SUPER_DYNAMITE,
+		TR_PICKUP_POWER_CRYSTAL,
+		TR_PICKUP_BONUS_CRYSTAL,
+		TR_PICKUP_FUEL,
+		TR_PICKUP_CRATE,
+	
+	};
+
+
+	enum
+	{
+		TR_CREATURE_ROCKMONSTER,	
+		TR_CREATURE_ROCKWHALE,	
+		TR_CREATURE_SNAKE,
+		TR_CREATURE_SPIDER,
+		TR_CREATURE_SCORPION,
+
+	};
+
+
+
+	this is the structure for an object trigger
+
+	typedef struct trig_entity_st
+	{
+		int				triggerType;			/* -1 == end of list, -2== previously triggered */
+		int				elapsedTime;			/* trigger list will be sorted by time */ 
+		int				x;
+		int				y;
+		int				z;							/* most will go at floor height, but some pick-ups could float */
+		int				rotation;						/* y-rotation */
+
+		int				objectClass;
+		int				objectType;
+	
+		int				parameter1;
+		int				parameter2;
+		int				parameter3;
+		int				parameter4;
+
+		int				flags;
+	
+	} TRIGGER_ENTITY, *lpTRIGGER_ENTITY;
+
+
+
+
+
+
+	example data for object placement (triggerType is not detailed here, as it is unnecessary)
+
+
+TRIGGER_ENTITY	testList[]=
+{
+	{
+		0,				/* no condition */
+		0,				/* generation elapsed time in seconds */
+		posX,
+		posY,
+		posZ,				/* not important, height is found from position */
+		rotY,
+
+		OC_CRAFT,			/* create a vehicle/aircraft */
+		TR_CRAFT_LARGE_DIGGER,
+
+		0,				/* parameters and flags (unused by general object placement) */
+		0,
+		0,
+		0,
+
+		0,
+	}
+
+};
+
