@@ -1,5 +1,7 @@
 #pragma once
 #include "datatypes.h"
+#include "functypes.h"
+
 
 
 // <LegoRR.exe @0049f004>
@@ -1751,7 +1753,7 @@ sint32 nerpsUnkSampleIndex;
 // <LegoRR.exe @004a776c>
 addr c_NERPsRuntime_TutorialActionCallback;
 // <LegoRR.exe @004a9ee8>
-AIPriorityType s_PriorityList_Type;
+AI_Priority s_PriorityList_Type;
 // <LegoRR.exe @004a9eec>
 char* s_PriorityList_Name;
 // <LegoRR.exe @004a9f28>
@@ -1829,7 +1831,7 @@ addr PTR_s_(null)_004b0f9c;
 // <LegoRR.exe @004b0fa0>
 addr PTR_u_(null)_004b0fa0;
 // <LegoRR.exe @004b0fa4>
-_CRuntime3_Globs _ctr3;
+_CRuntime3_Globs _crt3;
 // <LegoRR.exe @004b3170>
 sint32 INT_004b3170;
 // <LegoRR.exe @004b3174>
@@ -1895,9 +1897,9 @@ bool32 BOOL_004dc8d4;
 // <LegoRR.exe @004dc8dc>
 sint32 COUNT_004dc8dc;
 // <LegoRR.exe @004dc8e0>
-SubMenu* PTRSubMenu_004dc8e0;
+Menu* PTRMenu_004dc8e0;
 // <LegoRR.exe @004dc8e4>
-MenuCollection* PTRMenuCollection_004dc8e4;
+MenuSet* PTRMenuSet_004dc8e4;
 // <LegoRR.exe @004dc8e8>
 HelpWindow_Globs helpwindowGlobs;
 // <LegoRR.exe @004dd658>
@@ -1935,7 +1937,7 @@ Image* PTRImageBMP_ARRAY_004de248[74];
 // <LegoRR.exe @004de370>
 char* PTRString_ARRAY_004de370[74];
 // <LegoRR.exe @004de498>
-SFXType SFXType_ARRAY_004de498[74];
+SFX_Type SFX_Type_ARRAY_004de498[74];
 // <LegoRR.exe @004de5c0>
 KeysByte g_InterfaceIcon_Keys_TABLE[74];
 // <LegoRR.exe @004de60c>
@@ -1973,11 +1975,11 @@ InterfaceMenuItem g_InterfaceMenuItemDefines_TABLE[24];
 // <LegoRR.exe @004decc4>
 Point2I g_Interface_SelectedBlock;
 // <LegoRR.exe @004deccc>
-InterfaceMenuType InterfaceMenuType_004deccc;
+Interface_MenuType Interface_MenuType_004deccc;
 // <LegoRR.exe @004decd0>
 Point2F Point2F_004decd0;
 // <LegoRR.exe @004decd8>
-ObjectType ObjectType_004decd8;
+LegoObject_Type LegoObject_Type_004decd8;
 // <LegoRR.exe @004decdc>
 sint32 INTObjectIndex_004decdc;
 // <LegoRR.exe @004dece0>
@@ -1989,9 +1991,9 @@ real32 FLOAT_004decf0;
 // <LegoRR.exe @004decf4>
 Point2I Point2IBlockPos_004decf4;
 // <LegoRR.exe @004decfc>
-InterfaceMenuType InterfaceMenuType_004decfc;
+Interface_MenuType Interface_MenuType_004decfc;
 // <LegoRR.exe @004ded00>
-MenuIcon INTMenuIcon_004ded00;
+Interface_MenuItem INTMenuIcon_004ded00;
 // <LegoRR.exe @004ded04>
 undefined4 DAT_004ded04;
 // <LegoRR.exe @004ded08>
@@ -2003,11 +2005,11 @@ bool32 BOOL_004ded1c;
 // <LegoRR.exe @004ded20>
 real32 TIMER_004ded20;
 // <LegoRR.exe @004ded24>
-AdvisorType AdvisorType_004ded24;
+Advisor_Type Advisor_Type_004ded24;
 // <LegoRR.exe @004ded28>
-MenuIcon MenuIcon_004ded28;
+Interface_MenuItem Interface_MenuItem_004ded28;
 // <LegoRR.exe @004ded2c>
-ObjectType ObjectType_004ded2c;
+LegoObject_Type LegoObject_Type_004ded2c;
 // <LegoRR.exe @004ded30>
 sint32 INT_004ded30;
 // <LegoRR.exe @004ded34>
@@ -2021,11 +2023,11 @@ real32 FLOAT_004df1ec;
 // <LegoRR.exe @004df1f0>
 WallHighlightType WallHighlightType_004df1f0;
 // <LegoRR.exe @004df1f4>
-SFXType SFXType_004df1f4;
+SFX_Type SFX_Type_004df1f4;
 // <LegoRR.exe @004df1f8>
 undefined4 FLAGS_004df1f8;
 // <LegoRR.exe @004df1fc>
-SFXType SFXType_004df1fc;
+SFX_Type SFX_Type_004df1fc;
 // <LegoRR.exe @004df200>
 bool32 BOOLSFXPlaying_004df200;
 // <LegoRR.exe @004df208>
@@ -2033,7 +2035,7 @@ Point2I s_ShowBlockToolTip_MousePos;
 // <LegoRR.exe @004df410>
 GameControl_Globs gamectrlGlobs;
 // <LegoRR.exe @004df790>
-LiveObject_Globs liveGlobs;
+LegoObject_Globs objectGlobs;
 // <LegoRR.exe @004ebdd8>
 LightEffects_Globs lightGlobs;
 // <LegoRR.exe @004ebed0>
@@ -2179,7 +2181,7 @@ char* g_Reward_BackFont_filename;
 // <LegoRR.exe @00556b50>
 Font* g_Reward_BackFont;
 // <LegoRR.exe @00556b54>
-CFGProperty* g_Reward_LegoCfgRoot;
+Config* g_Reward_LegoCfgRoot;
 // <LegoRR.exe @00556b58>
 char* g_Reward_CfgRootName;
 // <LegoRR.exe @00556b5c>
@@ -2227,135 +2229,13 @@ NERPsFile_Globs nerpsfileGlobs;
 // <LegoRR.exe @00556e00>
 Loader_Globs loaderGlobs;
 // <LegoRR.exe @00557090>
-LiveObject* PTRLiveObject_00557090;
+LegoObject* PTRLiveObject_00557090;
 // <LegoRR.exe @005570a0>
 Camera_Globs cameraGlobs;
 // <LegoRR.exe @005570c0>
 Lego_Globs legoGlobs;
 // <LegoRR.exe @00557fc0>
-MenuCollection* g_PausedMenu;
-// <LegoRR.exe @00557fc4>
-MenuCollection* g_MainMenuFull;
-// <LegoRR.exe @00557fc8>
-MenuCollection* g_OptionsMenu;
-// <LegoRR.exe @00557fcc>
-MenuCollection* g_SaveMenu;
-// <LegoRR.exe @00557fd0>
-LevelCollection g_TutorialLevels;
-// <LegoRR.exe @00557fe4>
-LevelCollection g_MissionLevels;
-// <LegoRR.exe @00557ff8>
-LevelIdentifier* g_StartMissionLevel;
-// <LegoRR.exe @00557ffc>
-LevelIdentifier* g_StartTutorialLevel;
-// <LegoRR.exe @00558010>
-sint32 g_MainMenuFull_TriggerCredits;
-// <LegoRR.exe @0055801c>
-sint32 g_MainMenuFull_TriggerYesQuit;
-// <LegoRR.exe @00558020>
-sint32 g_Menu_LabelUnkValue_1;
-// <LegoRR.exe @00558024>
-sint32 g_MenuMenuFull_MissionsNormal;
-// <LegoRR.exe @00558028>
-sint32 g_MenuMenuFull_MissionsTutorial;
-// <LegoRR.exe @0055802c>
-sint32 g_PausedMenu_TriggerContinue;
-// <LegoRR.exe @00558030>
-sint32 g_PausedMenu_SliderGameSpeed_0_5;
-// <LegoRR.exe @00558034>
-sint32 g_PausedMenu_SliderSoundVolume_0_10;
-// <LegoRR.exe @00558038>
-sint32 g_PausedMenu_SliderMusicVolume_0_10;
-// <LegoRR.exe @0055803c>
-sint32 g_PausedMenu_SliderBrightness_0_10;
-// <LegoRR.exe @00558040>
-sint32 g_PausedMenu_CycleHelpWindow_Off_On;
-// <LegoRR.exe @00558044>
-sint32 g_PausedMenu_TriggerReplayObjective;
-// <LegoRR.exe @00558048>
-sint32 g_PausedMenu_TriggerQuit;
-// <LegoRR.exe @0055804c>
-sint32 g_PausedMenu_TriggerRestart;
-// <LegoRR.exe @00558050>
-sint32 g_PausedMenu_CycleWallDetail_High_Low;
-// <LegoRR.exe @00558054>
-sint32 g_PausedMenu_CycleMusic_On_Off;
-// <LegoRR.exe @00558058>
-sint32 g_PausedMenu_CycleSound_On_Off;
-// <LegoRR.exe @0055805c>
-sint32 g_PausedMenu_CycleAutoGameSpeed_On_Off;
-// <LegoRR.exe @00558060>
-sint32 g_SaveMenu_TriggerBack;
-// <LegoRR.exe @00558064>
-undefined4 DAT_00558064;
-// <LegoRR.exe @00558068>
-undefined4 DAT_00558068;
-// <LegoRR.exe @0055806c>
-Flic* PTRImageFlic_0055806c;
-// <LegoRR.exe @00558070>
-uint32 TIMEUINT_00558070;
-// <LegoRR.exe @00558074>
-uint32 TIMEUINT_00558074;
-// <LegoRR.exe @00558078>
-Font* FONT_00558078;
-// <LegoRR.exe @0055807c>
-char* g_Main_Version;
-// <LegoRR.exe @00558080>
-SaveData g_SaveData_TABLE[6];
-// <LegoRR.exe @005584d0>
-sint32 g_SaveNumber;
-// <LegoRR.exe @005584d4>
-char* g_Menu_DefaultLevelBMPS;
-// <LegoRR.exe @005584dc>
-Point2F Point2F_005584dc;
-// <LegoRR.exe @005584ec>
-Container* g_MenuWipeResource;
-// <LegoRR.exe @005584f0>
-uint32 FLAGS_005584f0;
-// <LegoRR.exe @005584f4>
-real32 FLOAT_005584f4;
-// <LegoRR.exe @005584f8>
-real32 FLOAT_005584f8;
-// <LegoRR.exe @005584fc>
-Container* PTRContLight_005584fc;
-// <LegoRR.exe @00558500>
-bool32 BOOL_00558500;
-// <LegoRR.exe @00558504>
-bool32 g_SaveMenu_IsLoadMode;
-// <LegoRR.exe @00558508>
-bool32 BOOL_00558508;
-// <LegoRR.exe @0055850c>
-Size2I g_Menu_SaveImage_BigSize;
-// <LegoRR.exe @00558514>
-char g_Menu_LoadGame_text[64];
-// <LegoRR.exe @00558554>
-char g_Menu_SaveGame_text[64];
-// <LegoRR.exe @00558594>
-MenuTextWindow* g_MenuSaveTextWindow;
-// <LegoRR.exe @00558598>
-MenuTextWindow* g_MenuSaveLevelWindow;
-// <LegoRR.exe @0055859c>
-char g_Overwrite_Title[128];
-// <LegoRR.exe @0055861c>
-char g_Overwrite_Text[256];
-// <LegoRR.exe @0055871c>
-char g_Overwrite_Ok[128];
-// <LegoRR.exe @0055879c>
-char g_Overwrite_Cancel[128];
-// <LegoRR.exe @0055881c>
-bool32 BOOL_0055881c;
-// <LegoRR.exe @00558824>
-undefined4 DAT_00558824;
-// <LegoRR.exe @00558828>
-sint32 g_Menu_MaxLevelScreens;
-// <LegoRR.exe @00558834>
-uint32 g_Missions_HoverLevelNumber;
-// <LegoRR.exe @00558838>
-uint32 g_Missions_LastLevelNumber;
-// <LegoRR.exe @0055883c>
-bool32 BOOL_0055883c;
-// <LegoRR.exe @00558840>
-real32 FLOAT_00558840;
+Front_Globs frontGlobs;
 // <LegoRR.exe @00558850>
 BatFlocks_Globs flocksGlobs;
 // <LegoRR.exe @00558860>

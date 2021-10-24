@@ -1,4 +1,6 @@
 #pragma once
+//#include "functypes.h"
+
 
 
 typedef void* addr;
@@ -8,243 +10,204 @@ typedef Main_StateChangeData Mesh_TextureStateChangeData;
 typedef G98CMovie Movie_t;
 
 
-typedef bool32 (__cdecl* AnimCloneWalkTreeCallback)(IDirect3DRMFrame3*, void*);
-typedef void (__cdecl* ContainerActivityCallback)(Container*, void*);
-typedef void (__cdecl* ContainerSoundTriggerCallback)(char*, Container*, void*);
-typedef void (__cdecl* ContainerTriggerFrameCallback)(Container*, void*);
-typedef bool32 (__cdecl* ContainerWalkTreeCallback)(IDirect3DRMFrame3*, void*);
-typedef void (__cdecl* DrawPixelFunc)(sint32, sint32, uint32);
-typedef void (__cdecl* ElectricFenceEnumerateCallback)(BlockElectricFence*, void*);
-typedef void (__cdecl* FileLoadCallback)(char*, uint32, void*);
-typedef void (__cdecl* FlocksCallback)(Flocks*, FlocksItem*, void*);
-typedef float10 (__cdecl* GetSurfaceZFunc)(real32, real32, SurfaceMap*);
-typedef bool32 (__cdecl* InfoEnumerateCallback)(InfoMessageInstance*, void*);
-typedef bool32 (__cdecl* LevelIdentifierCallback)(LevelIdentifier*, void*);
-typedef bool32 (__cdecl* LwsFindSFXIDFunc)(char*, uint32*);
-typedef sint32 (__cdecl* LwsPlaySample3DFunc)(IDirect3DRMFrame3*, uint32, bool32, bool32, Vector3F*);
-typedef bool32 (__cdecl* LwsSoundEnabledFunc)(void);
-typedef bool32 (__cdecl* MainStateInitialise)(void);
-typedef bool32 (__cdecl* MainStateMainLoop)(real32);
-typedef void (__cdecl* MainStateShutdown)(void);
-typedef void (__cdecl* MainWindowCallback)(HWND, UINT, WPARAM, LPARAM);
-typedef void (__cdecl* MenuItemCycleCallback)(sint32);
-typedef void (__cdecl* MenuItemRealSliderCallback)(real32);
-typedef void (__cdecl* MenuItemSliderCallback)(sint32);
-typedef void (__cdecl* MenuItemTriggerCallback)(void);
-typedef void (__cdecl* MeshRenderCallback)(Mesh*, void*, Viewport*);
-typedef bool32 (__cdecl* NERPsBlockPointerCallback)(BlockPointer*, uint32, uint32, void*);
-typedef sint32 (__cdecl* NERPsFunction)(sint32*);
-typedef bool32 (__cdecl* SearchLiveObjectCallback)(LiveObject*, void*);
-typedef void (__cdecl* SoundCDStopCallback)(void);
-typedef void (__cdecl* XYCallback)(sint32, sint32);
-
-
-enum AbilityType : sint32 // [LegoRR/LegoObject.c|enum:0x4|type:int]
+enum Activity_Type : sint32 // [LegoRR/LegoObject.c|enum:0x4|type:int]
 {
-	ABILITY_PILOT    = 0,
-	ABILITY_SAILOR   = 1,
-	ABILITY_DRIVER   = 2,
-	ABILITY_DYNAMITE = 3,
-	ABILITY_REPAIR   = 4,
-	ABILITY_SCANNER  = 5,
-	ABILITY__INVALID = -1,
+	Activity_Stand               = 0,
+	Activity_Route               = 1,
+	Activity_RouteRubble         = 2,
+	Activity_RunPanic            = 3,
+	Activity_Drill               = 4,
+	Activity_Teleport            = 5,
+	Activity_Walk                = 6,
+	Activity_Reinforce           = 7,
+	Activity_Reverse             = 8,
+	Activity_TurnLeft            = 9,
+	Activity_TurnRight           = 10,
+	Activity_CantDo              = 11,
+	Activity_Emerge              = 12,
+	Activity_Enter               = 13,
+	Activity_EnterRein           = 14,
+	Activity_Collect             = 15,
+	Activity_Gather              = 16,
+	Activity_Carry               = 17,
+	Activity_CarryRubble         = 18,
+	Activity_Throw               = 19,
+	Activity_CarryTurnLeft       = 20,
+	Activity_CarryTurnRight      = 21,
+	Activity_CarryStand          = 22,
+	Activity_HitLeft             = 23,
+	Activity_HitRight            = 24,
+	Activity_HitFront            = 25,
+	Activity_HitBack             = 26,
+	Activity_HitHard             = 27,
+	Activity_Dynamite            = 28,
+	Activity_Deposit             = 29,
+	Activity_Clear               = 30,
+	Activity_Place               = 31,
+	Activity_Repair              = 32,
+	Activity_Slip                = 33,
+	Activity_Rest                = 34,
+	Activity_Eat                 = 35,
+	Activity_Stamp               = 36,
+	Activity_ThrowMan            = 37,
+	Activity_ThrownByRockMonster = 38,
+	Activity_GetUp               = 39,
+	Activity_BuildPath           = 40,
+	Activity_Upgrade             = 41,
+	Activity_Explode             = 42,
+	Activity_Unpowered           = 43,
+	Activity_FireLaser           = 44,
+	Activity_Freezed             = 45,
+	Activity_FreezeStart         = 46,
+	Activity_FreezeMelt          = 47,
+	Activity_Recharge            = 48,
+	Activity_WakeUp              = 49,
+	Activity_Train               = 50,
+	Activity_FloatOn             = 51,
+	Activity_FloatOff            = 52,
+	Activity_Opening             = 53,
+	Activity_Closing             = 54,
+	Activity_Open                = 55,
+	Activity_Waiting1            = 56,
+	Activity_Waiting2            = 57,
+	Activity_Waiting3            = 58,
+	Activity_Waiting4            = 59,
+	Activity_Waiting5            = 60,
+	Activity_Waiting6            = 61,
+	Activity_Waiting7            = 62,
+	Activity_Waiting8            = 63,
+	Activity_Waiting9            = 64,
+	Activity_Waiting10           = 65,
+	Activity_Waiting11           = 66,
+	Activity_Waiting12           = 67,
+	Activity_Waiting13           = 68,
+	Activity_Waiting14           = 69,
+	Activity_Waiting15           = 70,
+	Activity_Waiting16           = 71,
+	Activity_Waiting17           = 72,
+	Activity_Waiting18           = 73,
+	Activity_Waiting19           = 74,
+	Activity_Waiting20           = 75,
+	Activity_Waiting21           = 76,
+	Activity_Crumble             = 77,
+	Activity_TeleportIn          = 78,
+	Activity_Type_Count          = 79,
+	Activity_Type_Invalid        = -1,
 };
 
-enum ActivityType : sint32 // [LegoRR/LegoObject.c|enum:0x4|type:int]
+enum Advisor_Anim : sint32 // [LegoRR/Advisor.c|enum:0x4|type:int]
 {
-	ACTIVITY_STAND               = 0,
-	ACTIVITY_ROUTE               = 1,
-	ACTIVITY_ROUTERUBBLE         = 2,
-	ACTIVITY_RUNPANIC            = 3,
-	ACTIVITY_DRILL               = 4,
-	ACTIVITY_TELEPORT            = 5,
-	ACTIVITY_WALK                = 6,
-	ACTIVITY_REINFORCE           = 7,
-	ACTIVITY_REVERSE             = 8,
-	ACTIVITY_TURNLEFT            = 9,
-	ACTIVITY_TURNRIGHT           = 10,
-	ACTIVITY_CANTDO              = 11,
-	ACTIVITY_EMERGE              = 12,
-	ACTIVITY_ENTER               = 13,
-	ACTIVITY_ENTERREIN           = 14,
-	ACTIVITY_COLLECT             = 15,
-	ACTIVITY_GATHER              = 16,
-	ACTIVITY_CARRY               = 17,
-	ACTIVITY_CARRYRUBBLE         = 18,
-	ACTIVITY_THROW               = 19,
-	ACTIVITY_CARRYTURNLEFT       = 20,
-	ACTIVITY_CARRYTURNRIGHT      = 21,
-	ACTIVITY_CARRYSTAND          = 22,
-	ACTIVITY_HITLEFT             = 23,
-	ACTIVITY_HITRIGHT            = 24,
-	ACTIVITY_HITFRONT            = 25,
-	ACTIVITY_HITBACK             = 26,
-	ACTIVITY_HITHARD             = 27,
-	ACTIVITY_DYNAMITE            = 28,
-	ACTIVITY_DESPOSIT            = 29,
-	ACTIVITY_CLEAR               = 30,
-	ACTIVITY_PLACE               = 31,
-	ACTIVITY_REPAIR              = 32,
-	ACTIVITY_SLIP                = 33,
-	ACTIVITY_REST                = 34,
-	ACTIVITY_EAT                 = 35,
-	ACTIVITY_STAMP               = 36,
-	ACTIVITY_THROWMAN            = 37,
-	ACTIVITY_THROWNBYROCKMONSTER = 38,
-	ACTIVITY_GETUP               = 39,
-	ACTIVITY_BUILDPATH           = 40,
-	ACTIVITY_UPGRADE             = 41,
-	ACTIVITY_EXPLODE             = 42,
-	ACTIVITY_UNPOWERED           = 43,
-	ACTIVITY_FIRELASER           = 44,
-	ACTIVITY_FREEZED             = 45,
-	ACTIVITY_FREEZESTART         = 46,
-	ACTIVITY_FREEZEMELT          = 47,
-	ACTIVITY_RECHARGE            = 48,
-	ACTIVITY_WAKEUP              = 49,
-	ACTIVITY_TRAIN               = 50,
-	ACTIVITY_FLOATON             = 51,
-	ACTIVITY_FLOATOFF            = 52,
-	ACTIVITY_OPENING             = 53,
-	ACTIVITY_CLOSING             = 54,
-	ACTIVITY_OPEN                = 55,
-	ACTIVITY_WAITING1            = 56,
-	ACTIVITY_WAITING2            = 57,
-	ACTIVITY_WAITING3            = 58,
-	ACTIVITY_WAITING4            = 59,
-	ACTIVITY_WAITING5            = 60,
-	ACTIVITY_WAITING6            = 61,
-	ACTIVITY_WAITING7            = 62,
-	ACTIVITY_WAITING8            = 63,
-	ACTIVITY_WAITING9            = 64,
-	ACTIVITY_WAITING10           = 65,
-	ACTIVITY_WAITING11           = 66,
-	ACTIVITY_WAITING12           = 67,
-	ACTIVITY_WAITING13           = 68,
-	ACTIVITY_WAITING14           = 69,
-	ACTIVITY_WAITING15           = 70,
-	ACTIVITY_WAITING16           = 71,
-	ACTIVITY_WAITING17           = 72,
-	ACTIVITY_WAITING18           = 73,
-	ACTIVITY_WAITING19           = 74,
-	ACTIVITY_WAITING20           = 75,
-	ACTIVITY_WAITING21           = 76,
-	ACTIVITY_CRUMBLE             = 77,
-	ACTIVITY_TELEPORTIN          = 78,
-	ACTIVITY__INVALID            = -1,
+	Advisor_Anim_PointToMap = 0,
+	Advisor_Anim_Point_N    = 1,
+	Advisor_Anim_Point_NE   = 2,
+	Advisor_Anim_Point_E    = 3,
+	Advisor_Anim_Point_SE   = 4,
+	Advisor_Anim_Point_S    = 5,
+	Advisor_Anim_Point_SW   = 6,
+	Advisor_Anim_Point_W    = 7,
+	Advisor_Anim_Point_NW   = 8,
+	Advisor_Anim_Point_Up   = 9,
+	Advisor_Anim_Talk_Top   = 10,
+	Advisor_Anim_Count      = 11,
+	Advisor_Anim_Invalid    = -1,
 };
 
-enum AdvisorAnimType : sint32 // [LegoRR/Advisor.c|enum:0x4|type:int]
+enum Advisor_Type : sint32 // [LegoRR/Advisor.c|enum:0x4|type:int] "Acheived" is a source-accurate, but misspelled name
 {
-	ADVISORANIM_POINTTOMAP = 0,
-	ADVISORANIM_POINT_N    = 1,
-	ADVISORANIM_POINT_NE   = 2,
-	ADVISORANIM_POINT_E    = 3,
-	ADVISORANIM_POINT_SE   = 4,
-	ADVISORANIM_POINT_S    = 5,
-	ADVISORANIM_POINT_SW   = 6,
-	ADVISORANIM_POINT_W    = 7,
-	ADVISORANIM_POINT_NW   = 8,
-	ADVISORANIM_POINT_UP   = 9,
-	ADVISORANIM_TALK_TOP   = 10,
-	ADVISORANIM__COUNT     = 11,
-	ADVISORANIM__INVALID   = -1,
+	Advisor_Objective                        = 0,
+	Advisor_ObjectiveAcheived                = 1,
+	Advisor_ObjectiveAchieved                = 1,
+	Advisor_ObjectiveFailed                  = 2,
+	Advisor_IconPoint_Normal                 = 3,
+	Advisor_IconPoint_BackButton             = 4,
+	Advisor_IconPoint_TopButtons             = 5,
+	Advisor_PanelPoint_RadarToggle           = 6,
+	Advisor_PanelPoint_RadarTaggedObjectView = 7,
+	Advisor_PanelPoint_RadarZoomIn           = 8,
+	Advisor_PanelPoint_RadarZoomOut          = 9,
+	Advisor_PanelPoint_RadarMapView          = 10,
+	Advisor_PanelPoint_InfoDockGoto          = 11,
+	Advisor_PanelPoint_InfoDockClose         = 12,
+	Advisor_PanelPoint_TopPanelInfo          = 13,
+	Advisor_PanelPoint_TopPanelOptions       = 14,
+	Advisor_PanelPoint_TopPanelPriorities    = 15,
+	Advisor_PanelPoint_TopPanelCallToArms    = 16,
+	Advisor_PanelPoint_TopPanelGoBack        = 17,
+	Advisor_PanelPoint_ControlZoomIn         = 18,
+	Advisor_PanelPoint_ControlZoomOut        = 19,
+	Advisor_TalkInGame                       = 20,
+	Advisor_Type_Count                       = 21,
+	Advisor_Type_Invalid                     = -1,
 };
 
-enum AdvisorType : sint32 // [LegoRR/Advisor.c|enum:0x4|type:int]
+enum AI_Priority : sint32 // [LegoRR/AITask.c|enum:0x4|type:int]
 {
-	ADVISOR_OBJECTIVE                        = 0,
-	ADVISOR_OBJECTIVEACHIEVED                = 1,
-	ADVISOR_OBJECTIVEFAILED                  = 2,
-	ADVISOR_ICONPOINT_NORMAL                 = 3,
-	ADVISOR_ICONPOINT_BACKBUTTON             = 4,
-	ADVISOR_ICONPOINT_TOPBUTTONS             = 5,
-	ADVISOR_PANELPOINT_RADARTOGGLE           = 6,
-	ADVISOR_PANELPOINT_RADARTOGGLEOBJECTVIEW = 7,
-	ADVISOR_PANELPOINT_RADARZOOMIN           = 8,
-	ADVISOR_PANELPOINT_RADARZOOMOUT          = 9,
-	ADVISOR_PANELPOINT_RADARMAPVIEW          = 10,
-	ADVISOR_PANELPOINT_INFODOCKGOTO          = 11,
-	ADVISOR_PANELPOINT_INFODOCKCLOSE         = 12,
-	ADVISOR_PANELPOINT_TOPPANELINFO          = 13,
-	ADVISOR_PANELPOINT_TOPPANELOPTIONS       = 14,
-	ADVISOR_PANELPOINT_TOPPANELPRIORITIES    = 15,
-	ADVISOR_PANELPOINT_TOPPANELCALLTOARMS    = 16,
-	ADVISOR_PANELPOINT_TOPPANELGOBACK        = 17,
-	ADVISOR_PANELPOINT_CONTROLZOOMIN         = 18,
-	ADVISOR_PANELPOINT_CONTROLZOOMOUT        = 19,
-	ADVISOR_TALKINGAME                       = 20,
-	ADVISOR__COUNT                           = 21,
-	ADVISOR__INVALID                         = -1,
+	AI_Priority_Crystal           = 0,
+	AI_Priority_Ore               = 1,
+	AI_Priority_DefaultCollect    = 2,
+	AI_Priority_Destruction       = 3,
+	AI_Priority_Construction      = 4,
+	AI_Priority_Request           = 5,
+	AI_Priority_Reinforce         = 6,
+	AI_Priority_Repair            = 7,
+	AI_Priority_Clearing          = 8,
+	AI_Priority_Storage           = 9,
+	AI_Priority_Refining          = 10,
+	AI_Priority_HealthLow         = 11,
+	AI_Priority_GetIn             = 12,
+	AI_Priority_Upgrade           = 13,
+	AI_Priority_BuildPath         = 14,
+	AI_Priority_AttackRockMonster = 15,
+	AI_Priority_Barrier           = 16,
+	AI_Priority_FindLoad          = 17,
+	AI_Priority_Recharge          = 18,
+	AI_Priority_UpgradeBuilding   = 19,
+	AI_Priority_Gather            = 20,
+	AI_Priority_Steal             = 21,
+	AI_Priority_Punch             = 22,
+	AI_Priority_Depart            = 23,
+	AI_Priority_AttackPath        = 24,
+	AI_Priority_AttackObject      = 25,
+	AI_Priority_Congregate        = 26,
+	AI_Priority_Count             = 27,
+	AI_Priority_Invalid           = -1,
 };
 
-enum AIPriorityType : sint32 // [LegoRR/AITask.c|enum:0x4|type:int]
+enum AITask_Type : sint32 // [LegoRR/AITask.c|enum:0x4|type:int]
 {
-	AI_PRIORITY_CRYSTAL           = 0,
-	AI_PRIORITY_ORE               = 1,
-	AI_PRIORITY_DEFAULTCOLLECT    = 2,
-	AI_PRIORITY_DESTRUCTION       = 3,
-	AI_PRIORITY_CONSTRUCTION      = 4,
-	AI_PRIORITY_REQUEST           = 5,
-	AI_PRIORITY_REINFORCE         = 6,
-	AI_PRIORITY_REPAIR            = 7,
-	AI_PRIORITY_CLEARING          = 8,
-	AI_PRIORITY_STORAGE           = 9,
-	AI_PRIORITY_REFINING          = 10,
-	AI_PRIORITY_HEALTHLOW         = 11,
-	AI_PRIORITY_GETIN             = 12,
-	AI_PRIORITY_UPGRADE           = 13,
-	AI_PRIORITY_BUILDPATH         = 14,
-	AI_PRIORITY_ATTACKROCKMONSTER = 15,
-	AI_PRIORITY_BARRIER           = 16,
-	AI_PRIORITY_FINDLOAD          = 17,
-	AI_PRIORITY_RECHARGE          = 18,
-	AI_PRIORITY_UPGRADEBUILDING   = 19,
-	AI_PRIORITY_GATHER            = 20,
-	AI_PRIORITY_STEAL             = 21,
-	AI_PRIORITY_PUNCH             = 22,
-	AI_PRIORITY_DEPART            = 23,
-	AI_PRIORITY_ATTACKPATH        = 24,
-	AI_PRIORITY_ATTACKOBJECT      = 25,
-	AI_PRIORITY_CONGREGATE        = 26,
-	AI_PRIORITY__COUNT            = 27,
-	AI_PRIORITY__INVALID          = -1,
-};
-
-enum AITaskType : sint32 // [LegoRR/AITask.c|enum:0x4|type:int]
-{
-	AITASK_GOTO              = 0,
-	AITASK_FOLLOW            = 1,
-	AITASK_FOLLOWATTACK      = 2,
-	AITASK_COLLECT           = 3,
-	AITASK_GATHER            = 4,
-	AITASK_DEPOSITE          = 5,
-	AITASK_DUMP              = 6,
-	AITASK_REQUEST           = 7,
-	AITASK_DIG               = 8,
-	AITASK_DYNAMITE          = 9,
-	AITASK_REPAIR            = 10,
-	AITASK_REINFORCE         = 11,
-	AITASK_CLEAR             = 12,
-	AITASK_WAIT              = 13,
-	AITASK_ANIMATIONWAIT     = 14,
-	AITASK_ELECFENCE         = 15,
-	AITASK_EAT               = 16,
-	AITASK_GOTOEAT           = 17,
-	AITASK_FINDDRIVER        = 18,
-	AITASK_GETTOOL           = 19,
-	AITASK_BIRDSCARER        = 20,
-	AITASK_UPGRADE           = 21,
-	AITASK_BUILDPATH         = 22,
-	AITASK_TRAIN             = 23,
-	AITASK_DEPART            = 24,
-	AITASK_ATTACKPATH        = 25,
-	AITASK_ATTACKROCKMONSTER = 26,
-	AITASK_RECHARGE          = 27,
-	AITASK_DOCK              = 28,
-	AITASK_ATTACKOBJECT      = 29,
-	AITASK_FINDLOAD          = 30,
-	AITASK__INVALID          = -1,
+	AITask_Type_Goto              = 0,
+	AITask_Type_Follow            = 1,
+	AITask_Type_FollowAttack      = 2,
+	AITask_Type_Collect           = 3,
+	AITask_Type_Gather            = 4,
+	AITask_Type_Deposit           = 5,
+	AITask_Type_Dump              = 6,
+	AITask_Type_Request           = 7,
+	AITask_Type_Dig               = 8,
+	AITask_Type_Dynamite          = 9,
+	AITask_Type_Repair            = 10,
+	AITask_Type_Reinforce         = 11,
+	AITask_Type_Clear             = 12,
+	AITask_Type_Wait              = 13,
+	AITask_Type_AnimationWait     = 14,
+	AITask_Type_ElecFence         = 15,
+	AITask_Type_Eat               = 16,
+	AITask_Type_GotoEat           = 17,
+	AITask_Type_FindDriver        = 18,
+	AITask_Type_GetTool           = 19,
+	AITask_Type_BirdScarer        = 20,
+	AITask_Type_Upgrade           = 21,
+	AITask_Type_BuildPath         = 22,
+	AITask_Type_Train             = 23,
+	AITask_Type_Depart            = 24,
+	AITask_Type_AttackPath        = 25,
+	AITask_Type_AttackRockMonster = 26,
+	AITask_Type_Recharge          = 27,
+	AITask_Type_Dock              = 28,
+	AITask_Type_AttackObject      = 29,
+	AITask_Type_FindLoad          = 30,
+	AITask_Type_Count             = 31,
+	AITask_Type_Invalid           = -1,
 };
 
 enum BlockOrientation : uint8 // [LegoRR/dummy.c|enum:0x1|type:byte|tags:UNFINISHED]
@@ -260,56 +223,49 @@ enum BoolTri : uint32 // [common.c|enum:0x4|type:uint] BoolTri, A 3-state boolea
 	BOOL3_ERROR = 2,
 };
 
-enum BubbleType : sint32 // [LegoRR/Bubble.c|enum:0x4|type:int]
+enum Bubble_Type : sint32 // [LegoRR/Bubble.c|enum:0x4|type:int]
 {
-	BUBBLE_CANTDO              = 0,
-	BUBBLE_IDLE                = 1,
-	BUBBLE_COLLECTCRYSTAL      = 2,
-	BUBBLE_COLLECTORE          = 3,
-	BUBBLE_COLLECTSTUD         = 4,
-	BUBBLE_COLLECTDYNAMITE     = 5,
-	BUBBLE_COLLECTBARRIER      = 6,
-	BUBBLE_COLLECTELECFENCE    = 7,
-	BUBBLE_COLLECTDRILL        = 8,
-	BUBBLE_COLLECTSHOVEL       = 9,
-	BUBBLE_COLLECTHAMMER       = 10,
-	BUBBLE_COLLECTSPANNER      = 11,
-	BUBBLE_COLLECTLASERBEAM    = 12,
-	BUBBLE_COLLECTPUSHERBEAM   = 13,
-	BUBBLE_COLLECTFREEZERBEAM  = 14,
-	BUBBLE_COLLECTSONICBLASTER = 15,
-	BUBBLE_CARRYCRYSTAL        = 16,
-	BUBBLE_CARRYORE            = 17,
-	BUBBLE_CARRYSTUD           = 18,
-	BUBBLE_CARRYDYNAMITE       = 19,
-	BUBBLE_CARRYBARRIER        = 20,
-	BUBBLE_CARRYELECFENCE      = 21,
-	BUBBLE_GOTO                = 22,
-	BUBBLE_DYNAMITE            = 23,
-	BUBBLE_REINFORCE           = 24,
-	BUBBLE_DRILL               = 25,
-	BUBBLE_REPAIR              = 26,
-	BUBBLE_DIG                 = 27,
-	BUBBLE_FLEE                = 28,
-	BUBBLE_POWEROFF            = 29,
-	BUBBLE_CALLTOARMS          = 30,
-	BUBBLE_ELECFENCE           = 31,
-	BUBBLE_EAT                 = 32,
-	BUBBLE_DRIVE               = 33,
-	BUBBLE_UPGRADE             = 34,
-	BUBBLE_BUILDPATH           = 35,
-	BUBBLE_TRAIN               = 36,
-	BUBBLE_RECHARGE            = 37,
-	BUBBLE_REQUEST             = 38,
-	BUBBLE__INVALID            = -1,
-};
-
-enum CameraType : sint32 // [LegoRR/LegoCamera.c|enum:0x4|type:int]
-{
-	CAMERATYPE_NONE        = 0,
-	CAMERATYPE_TOPDOWN     = 1,
-	CAMERATYPE_RADAR       = 2,
-	CAMERATYPE_FIRSTPERSON = 3,
+	Bubble_CantDo            = 0,
+	Bubble_Idle              = 1,
+	Bubble_CollectCrystal    = 2,
+	Bubble_CollectOre        = 3,
+	Bubble_CollectStud       = 4,
+	Bubble_CollectDynamite   = 5,
+	Bubble_CollectBarrier    = 6,
+	Bubble_CollectElecFence  = 7,
+	Bubble_CollectDrill      = 8,
+	Bubble_CollectSpade      = 9,
+	Bubble_CollectHammer     = 10,
+	Bubble_CollectSpanner    = 11,
+	Bubble_CollectLaser      = 12,
+	Bubble_CollectPusher     = 13,
+	Bubble_CollectFreezer    = 14,
+	Bubble_CollectBirdScarer = 15,
+	Bubble_CarryCrystal      = 16,
+	Bubble_CarryOre          = 17,
+	Bubble_CarryStud         = 18,
+	Bubble_CarryDynamite     = 19,
+	Bubble_CarryBarrier      = 20,
+	Bubble_CarryElecFence    = 21,
+	Bubble_Goto              = 22,
+	Bubble_Dynamite          = 23,
+	Bubble_Reinforce         = 24,
+	Bubble_Drill             = 25,
+	Bubble_Repair            = 26,
+	Bubble_Dig               = 27,
+	Bubble_Flee              = 28,
+	Bubble_PowerOff          = 29,
+	Bubble_CallToArms        = 30,
+	Bubble_ElecFence         = 31,
+	Bubble_Eat               = 32,
+	Bubble_Drive             = 33,
+	Bubble_Upgrade           = 34,
+	Bubble_BuildPath         = 35,
+	Bubble_Train             = 36,
+	Bubble_Recharge          = 37,
+	Bubble_Request           = 38,
+	Bubble_Type_Count        = 39,
+	Bubble_Type_Invalid      = -1,
 };
 
 enum Container_Combine_Type : uint32 // [Gods98/Containers.c|enum:0x4|type:uint]
@@ -412,9 +368,9 @@ enum Direction : sint32 // [common.c|enum:0x4|type:int]
 
 enum DrawEffect : uint32 // [Gods98/Draw.c|enum:0x4|type:uint]
 {
-	DRAWEFFECT_NONE      = 0,
-	DRAWEFFECT_XOR       = 1,
-	DRAWEFFECT_HALFTRANS = 2,
+	DrawEffect_None      = 0,
+	DrawEffect_XOR       = 1,
+	DrawEffect_HalfTrans = 2,
 };
 
 enum ErodeType : uint8 // [LegoRR/Lego.c|enum:0x1|type:byte|tags:MAPFILE]
@@ -445,11 +401,11 @@ enum FallinType : uint8 // [LegoRR/Lego.c|enum:0x1|type:byte|tags:MAPFILE]
 	FALLIN_CAVEIN_VERYHIGH = 8,
 };
 
-enum FileSystemType : sint32 // [Gods98/Files.c|enum:0x4|type:int] Location of a lego File stream (WAD or REAL)
+enum FileSys : sint32 // [Gods98/Files.c|enum:0x4|type:int] Location of a lego File stream (WAD or REAL)
 {
-	FILESYSTEM_WAD = 0,
-	FILESYSTEM_STD = 1,
-	FILESYSTEM_ERR = 2,
+	FileSys_Wad      = 0,
+	FileSys_Standard = 1,
+	FileSys_Error    = 2,
 };
 
 enum FlicDisplayMode : uint32 // [Gods98/Flic.c|enum:0x4|type:uint]
@@ -499,74 +455,158 @@ enum Image_TextureMode : uint32 // [Gods98/Images.c|enum:0x4|type:uint]
 	IMAGE_TEXTUREMODE_COUNT             = 7,
 };
 
-enum InfoType : sint32 // [LegoRR/Info.c|enum:0x4|type:int]
+enum Info_Type : sint32 // [LegoRR/Info.c|enum:0x4|type:int]
 {
-	INFO_CRYSTALFOUND         = 0,
-	INFO_ORESEAMFOUND         = 1,
-	INFO_ROCKMONSTER          = 2,
-	INFO_LAVAROCKMONSTER      = 3,
-	INFO_ICEROCKMONSTER       = 4,
-	INFO_UNDERATTACK          = 5,
-	INFO_LANDSLIDE            = 6,
-	INFO_CAVEIN               = 7,
-	INFO_CONSTRUCTED          = 8,
-	INFO_CAVERNLOCATED        = 9,
-	INFO_LEGOMANDEATH         = 10,
-	INFO_VEHICLEDEATH         = 11,
-	INFO_BUILDINGDEATH        = 12,
-	INFO_DYNAMITEPLACED       = 13,
-	INFO_NOPOWER              = 14,
-	INFO_POWERDRAIN           = 15,
-	INFO_AIRDEPLETING         = 16,
-	INFO_AIRLOW               = 17,
-	INFO_AIROUT               = 18,
-	INFO_AIRRESTORED          = 19,
-	INFO_TRAINDRIVER          = 20,
-	INFO_TRAINDYNAMITE        = 21,
-	INFO_TRAINREPAIR          = 22,
-	INFO_TRAINPILOT           = 23,
-	INFO_TRAINSAILOR          = 24,
-	INFO_TRAINSCANNER         = 25,
-	INFO_ORECOLLECTED         = 26,
-	INFO_WALLDUG              = 27,
-	INFO_WALLREINFORCED       = 28,
-	INFO_CRYSTALPOWER         = 29,
-	INFO_LAVAERODE            = 30,
-	INFO_SLUGEMERGE           = 31,
-	INFO_PATHCOMPLETED        = 32,
-	INFO_FOUNDMINIFIGURE      = 33,
-	INFO_CANUPGRADEMINIFIGURE = 34,
-	INFO_CANTRAINMINIFIGURE   = 35,
-	INFO_CRYSTALSEAMFOUND     = 36,
-	INFO_GENERICSEAMFOUND     = 37,
-	INFO_GENERICDEATH         = 38,
-	INFO_GENERICMONSTER       = 39,
-	INFO__INVALID             = -1,
+	Info_CrystalFound         = 0,
+	Info_OreSeamFound         = 1,
+	Info_RockMonster          = 2,
+	Info_LavaRockMonster      = 3,
+	Info_IceRockMonster       = 4,
+	Info_UnderAttack          = 5,
+	Info_Landslide            = 6,
+	Info_CaveIn               = 7,
+	Info_Constructed          = 8,
+	Info_CavernLocated        = 9,
+	Info_LegoManDeath         = 10,
+	Info_VehicleDeath         = 11,
+	Info_BuildingDeath        = 12,
+	Info_DynamitePlaced       = 13,
+	Info_NoPower              = 14,
+	Info_PowerDrain           = 15,
+	Info_AirDepleting         = 16,
+	Info_AirLow               = 17,
+	Info_AirOut               = 18,
+	Info_AirRestored          = 19,
+	Info_TrainDriver          = 20,
+	Info_TrainDynamite        = 21,
+	Info_TrainRepair          = 22,
+	Info_TrainPilot           = 23,
+	Info_TrainSailor          = 24,
+	Info_TrainScanner         = 25,
+	Info_OreCollected         = 26,
+	Info_WallDug              = 27,
+	Info_WallReinforced       = 28,
+	Info_CrystalPower         = 29,
+	Info_LavaErode            = 30,
+	Info_SlugEmerge           = 31,
+	Info_PathCompleted        = 32,
+	Info_FoundMinifigure      = 33,
+	Info_CanUpgradeMinifigure = 34,
+	Info_CanTrainMinifigure   = 35,
+	Info_CrystalSeamFound     = 36,
+	Info_GenericSeamFound     = 37,
+	Info_GenericDeath         = 38,
+	Info_GenericMonster       = 39,
+	Info_Type_Count           = 40,
+	Info_Type_Invalid         = -1,
 };
 
-enum InterfaceMenuType : sint32 // [LegoRR/Interface.c|enum:0x4|type:int]
+enum Interface_MenuItem : sint32 // [LegoRR/Interface.c|enum:0x4|type:int] "Back" has no official name
 {
-	INTERFACE_MENU_MAIN              = 0,
-	INTERFACE_MENU_GROUND            = 1,
-	INTERFACE_MENU_ERODE             = 2,
-	INTERFACE_MENU_PLACEFENCE        = 3,
-	INTERFACE_MENU_CONSTRUCTION      = 4,
-	INTERFACE_MENU_RUBBLE            = 5,
-	INTERFACE_MENU_WALL              = 7,
-	INTERFACE_MENU_TRACKER           = 8,
-	INTERFACE_MENU_LEGOMAN           = 9,
-	INTERFACE_MENU_VEHICLE           = 10,
-	INTERFACE_MENU_WATERVEHICLE      = 11,
-	INTERFACE_MENU_UNMANNEDVEHICLE   = 12,
-	INTERFACE_MENU_BUILDING          = 13,
-	INTERFACE_MENU_ELECTRICFENCE     = 14,
-	INTERFACE_MENU_FIRSTPERSON       = 15,
-	INTERFACE_MENU_GETTOOL           = 16,
-	INTERFACE_MENU_TRAINSKILL        = 17,
-	INTERFACE_MENU_UPGRADEVEHICLE    = 18,
-	INTERFACE_MENU_BUILDBUILDING     = 19,
-	INTERFACE_MENU_BUILDSMALLVEHICLE = 20,
-	INTERFACE_MENU_BUILDLARGEVEHICLE = 21,
+	Interface_MenuItem_Back                  = 0,
+	Interface_MenuItem_TeleportMan           = 1,
+	Interface_MenuItem_BuildBuilding         = 2,
+	Interface_MenuItem_BuildSmallVehicle     = 3,
+	Interface_MenuItem_BuildLargeVehicle     = 4,
+	Interface_MenuItem_LayPath               = 5,
+	Interface_MenuItem_RemovePath            = 6,
+	Interface_MenuItem_RepairLava            = 7,
+	Interface_MenuItem_GeologistTest         = 8,
+	Interface_MenuItem_ClearRubble           = 9,
+	Interface_MenuItem_Dam                   = 10,
+	Interface_MenuItem_Dig                   = 11,
+	Interface_MenuItem_Reinforce             = 12,
+	Interface_MenuItem_Dynamite              = 13,
+	Interface_MenuItem_PlaceFence            = 14,
+	Interface_MenuItem_DeselectDig           = 15,
+	Interface_MenuItem_CancelConstruction    = 16,
+	Interface_MenuItem_SelectMan             = 17,
+	Interface_MenuItem_SelectVehicle         = 18,
+	Interface_MenuItem_SelectBuilding        = 19,
+	Interface_MenuItem_VehiclePickUp         = 20,
+	Interface_MenuItem_MinifigurePickUp      = 21,
+	Interface_MenuItem_UnLoadVehicle         = 22,
+	Interface_MenuItem_UnLoadMinifigure      = 23,
+	Interface_MenuItem_GetIn                 = 24,
+	Interface_MenuItem_GetOut                = 25,
+	Interface_MenuItem_GotoDock              = 26,
+	Interface_MenuItem_LegoManGoto           = 27,
+	Interface_MenuItem_VehicleGoto           = 28,
+	Interface_MenuItem_VehicleDig            = 29,
+	Interface_MenuItem_LegoManDig            = 30,
+	Interface_MenuItem_GoFeed                = 31,
+	Interface_MenuItem_DeleteMan             = 32,
+	Interface_MenuItem_DropBirdScarer        = 33,
+	Interface_MenuItem_PowerOn               = 34,
+	Interface_MenuItem_PowerOff              = 35,
+	Interface_MenuItem_Repair                = 36,
+	Interface_MenuItem_MakeTeleporterPrimary = 37,
+	Interface_MenuItem_EjectCrystal          = 38,
+	Interface_MenuItem_EjectOre              = 39,
+	Interface_MenuItem_DeleteBuilding        = 40,
+	Interface_MenuItem_DeleteVehicle         = 41,
+	Interface_MenuItem_DeleteElectricFence   = 42,
+	Interface_MenuItem_Attack                = 43,
+	Interface_MenuItem_GotoTopView           = 44,
+	Interface_MenuItem_GotoFirstPerson       = 45,
+	Interface_MenuItem_GotoSecondPerson      = 46,
+	Interface_MenuItem_TrackObject           = 47,
+	Interface_MenuItem_GetTool               = 48,
+	Interface_MenuItem_GetDrill              = 49,
+	Interface_MenuItem_GetSpade              = 50,
+	Interface_MenuItem_GetHammer             = 51,
+	Interface_MenuItem_GetSpanner            = 52,
+	Interface_MenuItem_GetLaser              = 53,
+	Interface_MenuItem_GetPusherGun          = 54,
+	Interface_MenuItem_GetFreezerGun         = 55,
+	Interface_MenuItem_GetBirdScarer         = 56,
+	Interface_MenuItem_TrainSkill            = 57,
+	Interface_MenuItem_TrainDriver           = 58,
+	Interface_MenuItem_TrainEngineer         = 59,
+	Interface_MenuItem_TrainGeologist        = 60,
+	Interface_MenuItem_TrainPilot            = 61,
+	Interface_MenuItem_TrainSailor           = 62,
+	Interface_MenuItem_TrainDynamite         = 63,
+	Interface_MenuItem_UpgradeMan            = 64,
+	Interface_MenuItem_UpgradeBuilding       = 65,
+	Interface_MenuItem_UpgradeVehicle        = 66,
+	Interface_MenuItem_UpgradeEngine         = 67,
+	Interface_MenuItem_UpgardeDrill          = 68,
+	Interface_MenuItem_UpgardeScan           = 69,
+	Interface_MenuItem_UpgardeCarryRRY       = 70,
+	Interface_MenuItem_Encyclopedia          = 71,
+	Interface_MenuItem_ClearSelection        = 72,
+	Interface_MenuItem_Build                 = 73,
+	Interface_MenuItem_Type_Count            = 74,
+	Interface_MenuItem_Type_Invalid          = -1,
+};
+
+enum Interface_MenuType : sint32 // [LegoRR/Interface.c|enum:0x4|type:int]
+{
+	Interface_Menu_Main              = 0,
+	Interface_Menu_Ground            = 1,
+	Interface_Menu_Erode             = 2,
+	Interface_Menu_PlaceFence        = 3,
+	Interface_Menu_Construction      = 4,
+	Interface_Menu_Rubble            = 5,
+	Interface_Menu_UNK_6             = 6,
+	Interface_Menu_Wall              = 7,
+	Interface_Menu_Tracker           = 8,
+	Interface_Menu_LegoMan           = 9,
+	Interface_Menu_Vehicle           = 10,
+	Interface_Menu_WaterVehicle      = 11,
+	Interface_Menu_UnmannedVehicle   = 12,
+	Interface_Menu_Building          = 13,
+	Interface_Menu_ElectricFence     = 14,
+	Interface_Menu_FP                = 15,
+	Interface_Menu_GetTool           = 16,
+	Interface_Menu_TrainSkill        = 17,
+	Interface_Menu_UpgradeVehicle    = 18,
+	Interface_Menu_BuildBuilding     = 19,
+	Interface_Menu_BuildSmallVehicle = 20,
+	Interface_Menu_BuildLargeVehicle = 21,
+	Interface_Menu_Type_Count        = 22,
+	Interface_Menu_Type_Invalid      = -1,
 };
 
 enum Keys : sint32 // [Gods98/Input.c|enum:0x4|type:int|tags:HELPER]
@@ -779,13 +819,113 @@ enum KeysByte : uint8 // [Gods98/Input.c|enum:0x1|type:byte]
 	KEY_DELETE          = 211,
 };
 
-enum LevelCompleteStatus : sint32 // [LegoRR/Objective.c|enum:0x4|type:int] Not sure if Objective...
+enum Lego_SurfaceType : sint32 // [LegoRR/Lego.c|enum:0x4|type:int|tags:BIGENUMALIAS] See TerrainType for byte-sized enum version.
 {
-	LEVELSTATUS_NONE            = 0,
+	Lego_SurfaceType_Tunnel        = 0,
+	Lego_SurfaceType_Immovable     = 1,
+	Lego_SurfaceType_Hard          = 2,
+	Lego_SurfaceType_Medium        = 3,
+	Lego_SurfaceType_Loose         = 4,
+	Lego_SurfaceType_Soil          = 5,
+	Lego_SurfaceType_Lava          = 6,
+	Lego_SurfaceType_Water         = 7,
+	Lego_SurfaceType_OreSeam       = 8,
+	Lego_SurfaceType_Lake          = 9,
+	Lego_SurfaceType_CrystalSeam   = 10,
+	Lego_SurfaceType_RechargeSeam  = 11,
+	Lego_SurfaceType_Rubble        = 12,
+	Lego_SurfaceType_Reinforcement = 13,
+	Lego_SurfaceType_Path          = 14,
+	Lego_SurfaceType_SlugHole      = 15,
+	Lego_SurfaceType_Undiscovered  = 16,
+	Lego_SurfaceType_Cavern        = 17,
+	Lego_SurfaceType_Count         = 18,
+	Lego_SurfaceType_Invalid       = -1,
+};
+
+enum LegoCamera_Type : sint32 // [LegoRR/LegoCamera.c|enum:0x4|type:int]
+{
+	LegoCamera_None       = 0,
+	LegoCamera_Top        = 1,
+	LegoCamera_Radar      = 2,
+	LegoCamera_FP         = 3,
+	LegoCamera_Type_Count = 4,
+};
+
+enum LegoObject_AbilityType : sint32 // [LegoRR/LegoObject.c|enum:0x4|type:int]
+{
+	LegoObject_AbilityType_Pilot    = 0,
+	LegoObject_AbilityType_Sailor   = 1,
+	LegoObject_AbilityType_Driver   = 2,
+	LegoObject_AbilityType_Dynamite = 3,
+	LegoObject_AbilityType_Repair   = 4,
+	LegoObject_AbilityType_Scanner  = 5,
+	LegoObject_AbilityType_Count    = 6,
+	LegoObject_AbilityType_Invalid  = -1,
+};
+
+enum LegoObject_ID : sint32 // [LegoRR/dummy.c|enum:0x4|type:int|tags:HELPER]
+{
+	LegoObject_ID_Ore          = 0,
+	LegoObject_ID_ProcessedOre = 1,
+	LegoObject_ID_Ore_Count    = 2,
+};
+
+enum LegoObject_ToolType : sint32 // [LegoRR/LegoObject.c|enum:0x4|type:int] One of the few enums with extra space before max
+{
+	LegoObject_ToolType_Drill      = 0,
+	LegoObject_ToolType_Spade      = 1,
+	LegoObject_ToolType_Hammer     = 2,
+	LegoObject_ToolType_Spanner    = 3,
+	LegoObject_ToolType_Laser      = 4,
+	LegoObject_ToolType_PusherGun  = 5,
+	LegoObject_ToolType_BirdScarer = 6,
+	LegoObject_ToolType_FreezerGun = 7,
+	LegoObject_ToolType_Count      = 11,
+	LegoObject_ToolType_Invalid    = -1,
+};
+
+enum LegoObject_Type : sint32 // [LegoRR/LegoObject.c|enum:0x4|type:int]
+{
+	LegoObject_None              = 0,
+	LegoObject_Vehicle           = 1,
+	LegoObject_MiniFigure        = 2,
+	LegoObject_RockMonster       = 3,
+	LegoObject_Building          = 4,
+	LegoObject_Boulder           = 5,
+	LegoObject_PowerCrystal      = 6,
+	LegoObject_Ore               = 7,
+	LegoObject_Dynamite          = 8,
+	LegoObject_Barrier           = 9,
+	LegoObject_UpgradePart       = 10,
+	LegoObject_ElectricFence     = 11,
+	LegoObject_SpiderWeb         = 12,
+	LegoObject_OohScary          = 13,
+	LegoObject_ElectricFenceStud = 14,
+	LegoObject_Path              = 15,
+	LegoObject_Pusher            = 16,
+	LegoObject_Freezer           = 17,
+	LegoObject_IceCube           = 18,
+	LegoObject_LaserShot         = 19,
+	LegoObject_Type_Count        = 20,
+	LegoObject_TVCamera          = -1,
+};
+
+enum LevelStatus : sint32 // [LegoRR/Objective.c|enum:0x4|type:int] Not sure if Objective...
+{
+	LEVELSTATUS_INCOMPLETE      = 0,
 	LEVELSTATUS_COMPLETE        = 1,
 	LEVELSTATUS_FAILED          = 2,
 	LEVELSTATUS_FAILED_CRYSTALS = 3,
 	LEVELSTATUS_FAILED_OTHER    = 4,
+};
+
+enum LOD_PolyLevel : sint32 // [LegoRR/MeshLOD.c|enum:0x4|type:int]
+{
+	LOD_LowPoly    = 0,
+	LOD_MediumPoly = 1,
+	LOD_HighPoly   = 2,
+	LOD_FPPoly     = 3,
 };
 
 enum MaterialType : uint32 // [Gods98/Mesh.c|enum:0x4|type:uint]
@@ -798,96 +938,17 @@ enum MaterialType : uint32 // [Gods98/Mesh.c|enum:0x4|type:uint]
 	MATERIAL_POWER    = 5,
 };
 
-enum MenuIcon : sint32 // [LegoRR/Interface.c|enum:0x4|type:int]
+enum MenuItem_Type : sint32 // [LegoRR/FrontEnd.c|enum:0x4|type:int]
 {
-	INTERFACE_MENUITEM_BACKTODEFAULT         = 0,
-	INTERFACE_MENUITEM_TELEPORTMAN           = 1,
-	INTERFACE_MENUITEM_BUILDBUILDING         = 2,
-	INTERFACE_MENUITEM_BUILDSMALLVEHICLE     = 3,
-	INTERFACE_MENUITEM_BUILDLARGEVEHICLE     = 4,
-	INTERFACE_MENUITEM_LAYPATH               = 5,
-	INTERFACE_MENUITEM_REMOVEPATH            = 6,
-	INTERFACE_MENUITEM_REPAIRLAVA            = 7,
-	INTERFACE_MENUITEM_GEOLOGISTTEST         = 8,
-	INTERFACE_MENUITEM_CLEARRUBBLE           = 9,
-	INTERFACE_MENUITEM_DAM                   = 10,
-	INTERFACE_MENUITEM_DIG                   = 11,
-	INTERFACE_MENUITEM_REINFORCE             = 12,
-	INTERFACE_MENUITEM_DYNAMITE              = 13,
-	INTERFACE_MENUITEM_PLACEFENCE            = 14,
-	INTERFACE_MENUITEM_DESELECTDIG           = 15,
-	INTERFACE_MENUITEM_CANCELCONSTRUCTION    = 16,
-	INTERFACE_MENUITEM_SELECTMAN             = 17,
-	INTERFACE_MENUITEM_SELECTVEHICLE         = 18,
-	INTERFACE_MENUITEM_SELECTBUILDING        = 19,
-	INTERFACE_MENUITEM_VEHICLEPICKUP         = 20,
-	INTERFACE_MENUITEM_MINIFIGUREPICKUP      = 21,
-	INTERFACE_MENUITEM_UNLOADVEHICLE         = 22,
-	INTERFACE_MENUITEM_UNLOADMINIFIGURE      = 23,
-	INTERFACE_MENUITEM_GETIN                 = 24,
-	INTERFACE_MENUITEM_GETOUT                = 25,
-	INTERFACE_MENUITEM_GOTODOCK              = 26,
-	INTERFACE_MENUITEM_LEGOMANGOTO           = 27,
-	INTERFACE_MENUITEM_VEHICLEGOTO           = 28,
-	INTERFACE_MENUITEM_VEHICLEDIG            = 29,
-	INTERFACE_MENUITEM_LEGOMANDIG            = 30,
-	INTERFACE_MENUITEM_GOFEED                = 31,
-	INTERFACE_MENUITEM_DELETEMAN             = 32,
-	INTERFACE_MENUITEM_DROPBIRDSCARER        = 33,
-	INTERFACE_MENUITEM_POWERON               = 34,
-	INTERFACE_MENUITEM_POWEROFF              = 35,
-	INTERFACE_MENUITEM_REPAIR                = 36,
-	INTERFACE_MENUITEM_MAKETELEPORTERPRIMARY = 37,
-	INTERFACE_MENUITEM_EJECTCRYSTAL          = 38,
-	INTERFACE_MENUITEM_EJECTORE              = 39,
-	INTERFACE_MENUITEM_DELETEBUILDING        = 40,
-	INTERFACE_MENUITEM_DELETEVEHICLE         = 41,
-	INTERFACE_MENUITEM_DELETEELECTRICFENCE   = 42,
-	INTERFACE_MENUITEM_ATTACK                = 43,
-	INTERFACE_MENUITEM_GOTOTOPVIEW           = 44,
-	INTERFACE_MENUITEM_GOTOFIRSTPERSON       = 45,
-	INTERFACE_MENUITEM_GOTOSECONDPERSON      = 46,
-	INTERFACE_MENUITEM_TRACKOBJECT           = 47,
-	INTERFACE_MENUITEM_GETTOOL               = 48,
-	INTERFACE_MENUITEM_GETDRILL              = 49,
-	INTERFACE_MENUITEM_GETSPADE              = 50,
-	INTERFACE_MENUITEM_GETHAMMER             = 51,
-	INTERFACE_MENUITEM_GETSPANNER            = 52,
-	INTERFACE_MENUITEM_GETLASER              = 53,
-	INTERFACE_MENUITEM_GETPUSHERGUN          = 54,
-	INTERFACE_MENUITEM_GETFREEZERGUN         = 55,
-	INTERFACE_MENUITEM_GETBIRDSCARER         = 56,
-	INTERFACE_MENUITEM_TRAINSKILL            = 57,
-	INTERFACE_MENUITEM_TRAINDRIVER           = 58,
-	INTERFACE_MENUITEM_TRAINENGINEER         = 59,
-	INTERFACE_MENUITEM_TRAINGEOLOGIST        = 60,
-	INTERFACE_MENUITEM_TRAINPILOT            = 61,
-	INTERFACE_MENUITEM_TRAINSAILOR           = 62,
-	INTERFACE_MENUITEM_TRAINDYNAMITE         = 63,
-	INTERFACE_MENUITEM_UPGRADEMAN            = 64,
-	INTERFACE_MENUITEM_UPGRADEBUILDING       = 65,
-	INTERFACE_MENUITEM_UPGRADEVEHICLE        = 66,
-	INTERFACE_MENUITEM_UPGRADEENGINE         = 67,
-	INTERFACE_MENUITEM_UPGRADEDRILL          = 68,
-	INTERFACE_MENUITEM_UPGRADESCAN           = 69,
-	INTERFACE_MENUITEM_UPGRADECARRY          = 70,
-	INTERFACE_MENUITEM_ENCYCLOPEDIA          = 71,
-	INTERFACE_MENUITEM_CLEARSELECTION        = 72,
-	INTERFACE_MENUITEM_BUILD                 = 73,
-	INTERFACE_MENUITEM__COUNT                = 74,
-};
-
-enum MenuItemType : sint32 // [LegoRR/FrontEnd.c|enum:0x4|type:int]
-{
-	MENUITEM_CYCLE      = 0,
-	MENUITEM_TRIGGER    = 1,
-	MENUITEM_TEXTINPUT  = 2,
-	MENUITEM_SLIDER     = 3,
-	MENUITEM_REALSLIDER = 4,
-	MENUITEM_NEXT       = 5,
-	MENUITEM_MISSIONS   = 6,
-	MENUITEM__COUNT     = 7,
-	MENUITEM__INVALID   = -1,
+	MenuItem_Cycle        = 0,
+	MenuItem_Trigger      = 1,
+	MenuItem_TextInput    = 2,
+	MenuItem_Slider       = 3,
+	MenuItem_RealSlider   = 4,
+	MenuItem_Next         = 5,
+	MenuItem_LevelSelect  = 6,
+	MenuItem_Type_Count   = 7,
+	MenuItem_Type_Invalid = -1,
 };
 
 enum MeshType : uint32 // [Gods98/Mesh.c|enum:0x4|type:uint]
@@ -897,74 +958,75 @@ enum MeshType : uint32 // [Gods98/Mesh.c|enum:0x4|type:uint]
 	MESH_TYPE_LIGHTWAVEOBJECT = 2,
 };
 
-enum MessageType : sint32 // [LegoRR/Message.c|enum:0x4|type:int]
+enum Message_Type : sint32 // [LegoRR/Message.c|enum:0x4|type:int]
 {
-	MESSAGE_NULL                           = 0,
-	MESSAGE_SELECT                         = 1,
-	MESSAGE_SELECTED                       = 2,
-	MESSAGE_CLEARSELECT                    = 3,
-	MESSAGE_DESELECT                       = 4,
-	MESSAGE_GOTO                           = 5,
-	MESSAGE_ROCKMONSTERGOTO                = 6,
-	MESSAGE_ROCKMONSTERGOTO_COMPLETE       = 7,
-	MESSAGE_USERGOTO                       = 8,
-	MESSAGE_FIRSTPERSON                    = 9,
-	MESSAGE_TRACKOBJECT                    = 10,
-	MESSAGE_TOPVIEW                        = 11,
-	MESSAGE_PLAYSAMPLE                     = 12,
-	MESSAGE_DIG                            = 13,
-	MESSAGE_DIG_COMPLETE                   = 14,
-	MESSAGE_REPAIR                         = 15,
-	MESSAGE_REPAIR_COMPLETE                = 16,
-	MESSAGE_REINFORCE                      = 17,
-	MESSAGE_REINFORCE_COMPLETE             = 18,
-	MESSAGE_ROCKFALL                       = 19,
-	MESSAGE_ROCKFALL_COMPLETE              = 20,
-	MESSAGE_GENERATECRYSTAL                = 21,
-	MESSAGE_GENERATECRYSTAL_COMPLETE       = 22,
-	MESSAGE_COLLECTCRYSTAL                 = 23,
-	MESSAGE_COLLECTCRYSTAL_COMPLETE        = 24,
-	MESSAGE_CRYSTALTOREFINERY              = 25,
-	MESSAGE_CRYSTALTOREFINERY_COMPLETE     = 26,
-	MESSAGE_GENERATEORE                    = 27,
-	MESSAGE_GENERATEORE_COMPLETE           = 28,
-	MESSAGE_COLLECTORE                     = 29,
-	MESSAGE_COLLECTORE_COMPLETE            = 30,
-	MESSAGE_GENERATEROCKMONSTER            = 31,
-	MESSAGE_GENERATEROCKMONSTER_COMPLETE   = 32,
-	MESSAGE_GATHERROCK                     = 33,
-	MESSAGE_GATHERROCK_COMPLETE            = 34,
-	MESSAGE_PICKRANDOMFLOOR                = 35,
-	MESSAGE_PICKRANDOMFLOOR_COMPLETE       = 36,
-	MESSAGE_ATTACKBUILDING                 = 37,
-	MESSAGE_ATTACKBUILDING_COMPLETE        = 38,
-	MESSAGE_CLEAR                          = 39,
-	MESSAGE_CLEAR_COMPLETE                 = 40,
-	MESSAGE_GETIN                          = 41,
-	MESSAGE_MANSELECTEDANDMONSTERCLICKED   = 42,
-	MESSAGE_FOLLOWATTACK                   = 43,
-	MESSAGE_COLLECTTOOL                    = 44,
-	MESSAGE_REDUCESELECTION                = 45,
-	MESSAGE_CLEARFALLIN                    = 46,
-	MESSAGE_CLEARFALLIN_COMPLETE           = 47,
-	MESSAGE_BUILDPATH                      = 48,
-	MESSAGE_BUILDPATH_COMPLETE             = 49,
-	MESSAGE_TRAIN                          = 50,
-	MESSAGE_TRAIN_COMPLETE                 = 51,
-	MESSAGE_GENERATECRYSTALANDORE          = 52,
-	MESSAGE_GENERATECRYSTALANDORE_COMPLETE = 53,
-	MESSAGE_GENERATEFROMCRYORE             = 54,
-	MESSAGE_GENERATEFROMCRYORE_COMPLETE    = 55,
-	MESSAGE_UPGRADE                        = 56,
-	MESSAGE_UPGRADE_COMPLETE               = 57,
-	MESSAGE_CLEARBUILDING                  = 58,
-	MESSAGE_CLEARBUILDING_COMPLETE         = 59,
-	MESSAGE_CLEARINITIAL                   = 60,
-	MESSAGE_CLEARINITIAL_COMPLETE          = 61,
-	MESSAGE_CLEARREMOVEPATH                = 62,
-	MESSAGE_CLEARREMOVEPATH_COMPLETE       = 63,
-	MESSAGE_DEBUG_DESTROYALL               = 64,
-	MESSAGE__INVALID                       = -1,
+	Message_Null                          = 0,
+	Message_Select                        = 1,
+	Message_Selected                      = 2,
+	Message_ClearSelection                = 3,
+	Message_Deselect                      = 4,
+	Message_Goto                          = 5,
+	Message_RockMonsterGoto               = 6,
+	Message_RockMonsterGotoComplete       = 7,
+	Message_UserGoto                      = 8,
+	Message_FirstPerson                   = 9,
+	Message_TrackObject                   = 10,
+	Message_TopView                       = 11,
+	Message_PlaySample                    = 12,
+	Message_Dig                           = 13,
+	Message_DigComplete                   = 14,
+	Message_Repair                        = 15,
+	Message_RepairComplete                = 16,
+	Message_Reinforce                     = 17,
+	Message_ReinforceComplete             = 18,
+	Message_RockFall                      = 19,
+	Message_RockFallComplete              = 20,
+	Message_GenerateCrystal               = 21,
+	Message_GenerateCrystalComplete       = 22,
+	Message_CollectCrystal                = 23,
+	Message_CollectCrystalComplete        = 24,
+	Message_CrystalToRefinery             = 25,
+	Message_CrystalToRefineryComplete     = 26,
+	Message_GenerateOre                   = 27,
+	Message_GenerateOreComplete           = 28,
+	Message_CollectOre                    = 29,
+	Message_CollectOreComplete            = 30,
+	Message_GenerateRockMonster           = 31,
+	Message_GenerateRockMonsterComplete   = 32,
+	Message_GatherRock                    = 33,
+	Message_GatherRockComplete            = 34,
+	Message_PickRandomFloor               = 35,
+	Message_PickRandomFloorComplete       = 36,
+	Message_AttackBuilding                = 37,
+	Message_AttackBuildingComplete        = 38,
+	Message_Clear                         = 39,
+	Message_ClearComplete                 = 40,
+	Message_GetIn                         = 41,
+	Message_ManSelectedAndMonsterClicked  = 42,
+	Message_FollowAttack                  = 43,
+	Message_CollectTool                   = 44,
+	Message_ReduceSelection               = 45,
+	Message_ClearFallIn                   = 46,
+	Message_ClearFallInComplete           = 47,
+	Message_BuildPath                     = 48,
+	Message_BuildPathComplete             = 49,
+	Message_Train                         = 50,
+	Message_TrainComplete                 = 51,
+	Message_GenerateCrystalAndOre         = 52,
+	Message_GenerateCrystalAndOreComplete = 53,
+	Message_GenerateFromCryOre            = 54,
+	Message_GenerateFromCryOreComplete    = 55,
+	Message_Upgrade                       = 56,
+	Message_UpgradeComplete               = 57,
+	Message_ClearBuilding                 = 58,
+	Message_ClearBuildingComplete         = 59,
+	Message_ClearInitial                  = 60,
+	Message_ClearInitialComplete          = 61,
+	Message_ClearRemovePath               = 62,
+	Message_ClearRemovePathComplete       = 63,
+	Message_Debug_DestroyAll              = 64,
+	Message_Type_Count                    = 65,
+	Message_Type_Invalid                  = -1,
 };
 
 enum MiscEffectType : sint32 // [LegoRR/Effects.c|enum:0x4|type:int] Need a better name for this.
@@ -1011,35 +1073,22 @@ enum NERPsTutorialAction : uint32 // [LegoRR/NERPs.c|enum:0x4|type:uint]
 	NERPS_TUTORIAL_GETMONSTERATTUTORIAL            = 13,
 };
 
-enum ObjectType : sint32 // [LegoRR/LegoObject.c|enum:0x4|type:int]
+enum Panel_Type : sint32 // [LegoRR/Panels.c|enum:0x4|type:int]
 {
-	OBJECT_NONE              = 0,
-	OBJECT_VEHICLE           = 1,
-	OBJECT_MINIFIGURE        = 2,
-	OBJECT_ROCKMONSTER       = 3,
-	OBJECT_BUILDING          = 4,
-	OBJECT_BOULDER           = 5,
-	OBJECT_POWERCRYSTAL      = 6,
-	OBJECT_ORE               = 7,
-	OBJECT_DYNAMITE          = 8,
-	OBJECT_BARRIER           = 9,
-	OBJECT_UPGRADEPART       = 10,
-	OBJECT_ELECTRICFENCE     = 11,
-	OBJECT_SPIDERWEB         = 12,
-	OBJECT_OOHSCARY          = 13,
-	OBJECT_ELECTRICFENCESTUD = 14,
-	OBJECT_PATH              = 15,
-	OBJECT_PUSHER            = 16,
-	OBJECT_FREEZER           = 17,
-	OBJECT_ICECUBE           = 18,
-	OBJECT_LASERSHOT         = 19,
-	OBJECT_TVCAMERA          = -1,
-};
-
-enum OreType : sint32 // [LegoRR/dummy.c|enum:0x4|type:int|tags:HELPER]
-{
-	ORE_NORMAL    = 0,
-	ORE_PROCESSED = 1,
+	Panel_Radar          = 0,
+	Panel_RadarFill      = 1,
+	Panel_RadarOverlay   = 2,
+	Panel_Messages       = 3,
+	Panel_MessagesSide   = 4,
+	Panel_CrystalSideBar = 5,
+	Panel_TopPanel       = 6,
+	Panel_Information    = 7,
+	Panel_PriorityList   = 8,
+	Panel_CameraControl  = 9,
+	Panel_InfoDock       = 10,
+	Panel_Encyclopedia   = 11,
+	Panel_Type_Count     = 12,
+	Panel_Type_Invalid   = -1,
 };
 
 enum PanelButtonCameraControl : sint32 // [LegoRR/Panels.c|enum:0x4|type:int|tags:PANELBUTTON]
@@ -1133,24 +1182,6 @@ enum PanelButtonType : sint32 // [LegoRR/Panels.c|enum:0x4|type:int|tags:REALENU
 	PANELBUTTON__COUNT = 24,
 };
 
-enum PanelType : sint32 // [LegoRR/Panels.c|enum:0x4|type:int]
-{
-	PANEL_RADAR          = 0,
-	PANEL_RADARFILL      = 1,
-	PANEL_RADAROVERLAY   = 2,
-	PANEL_MESSAGES       = 3,
-	PANEL_MESSAGESIDE    = 4,
-	PANEL_CRYSTALSIDEBAR = 5,
-	PANEL_TOPPANEL       = 6,
-	PANEL_INFORMATION    = 7,
-	PANEL_PRIORITYLIST   = 8,
-	PANEL_CAMERACONTROL  = 9,
-	PANEL_INFODOCK       = 10,
-	PANEL_ENCYCLOPEDIA   = 11,
-	PANEL__COUNT         = 12,
-	PANEL__INVALID       = -1,
-};
-
 enum PathType : uint8 // [LegoRR/Lego.c|enum:0x1|type:byte|tags:MAPFILE]
 {
 	PATH_NONE      = 0,
@@ -1158,72 +1189,66 @@ enum PathType : uint8 // [LegoRR/Lego.c|enum:0x1|type:byte|tags:MAPFILE]
 	PATH_POWERPATH = 2,
 };
 
-enum PointerType : sint32 // [LegoRR/Pointer.c|enum:0x4|type:int]
+enum Pointer_Type : sint32 // [LegoRR/Pointer.c|enum:0x4|type:int]
 {
-	POINTER_STANDARD                 = 0,
-	POINTER_BLANK                    = 1,
-	POINTER_SELECTED                 = 2,
-	POINTER_DRILL                    = 3,
-	POINTER_CANTDRILL                = 4,
-	POINTER_CLEAR                    = 5,
-	POINTER_GO                       = 6,
-	POINTER_CANTGO                   = 7,
-	POINTER_TELEPORT                 = 8,
-	POINTER_CANTTELEPORT             = 9,
-	POINTER_REINFORCE                = 10,
-	POINTER_CANTREINFORCE            = 11,
-	POINTER_RADARPAN                 = 12,
-	POINTER_TRACKOBJECT              = 13,
-	POINTER_HELP                     = 14,
-	POINTER_CANTHELP                 = 15,
-	POINTER_PUTDOWN                  = 16,
-	POINTER_GETIN                    = 17,
-	POINTER_GETOUT                   = 18,
-	POINTER_TUTORIALBLOCKINFO        = 19,
-	POINTER_OKAY                     = 20,
-	POINTER_NOTOKAY                  = 21,
-	POINTER_CANBUILD                 = 22,
-	POINTER_CANNOTBUILD              = 23,
-	POINTER_DYNAMITE                 = 24,
-	POINTER_CANTDYNAMITE             = 25,
-	POINTER_PICKUP                   = 26,
-	POINTER_CANTPICKUP               = 27,
-	POINTER_PICKUPORE                = 28,
-	POINTER_LEGOMANCANTDIG           = 29,
-	POINTER_VEHICLECANTDIG           = 30,
-	POINTER_LEGOMANDIG               = 31,
-	POINTER_VEHICLEDIG               = 32,
-	POINTER_LEGOMANCANTPICKUP        = 33,
-	POINTER_VEHICLECANTPICKUP        = 34,
-	POINTER_LEGOMANPICKUP            = 35,
-	POINTER_VEHICLEPICKUP            = 36,
-	POINTER_LEGOMANCANTGO            = 37,
-	POINTER_VEHICLECANTGO            = 38,
-	POINTER_LEGOMANGO                = 39,
-	POINTER_VEHICLEGO                = 40,
-	POINTER_LEGOMANCLEAR             = 41,
-	POINTER_VEHICLECLEAR             = 42,
-	POINTER_SURFACETYPE_IMMOVABLE    = 43,
-	POINTER_SURFACETYPE_HARD         = 44,
-	POINTER_SURFACETYPE_MEDIUM       = 45,
-	POINTER_SURFACETYPE_LOOSE        = 46,
-	POINTER_SURFACETYPE_SOIL         = 47,
-	POINTER_SURFACETYPE_LAVA         = 48,
-	POINTER_SURFACETYPE_WATER_unused = 49,
-	POINTER_SURFACETYPE_ORESEAM      = 50,
-	POINTER_SURFACETYPE_LAKE         = 51,
-	POINTER_SURFACETYPE_CRYSTALSEAM  = 52,
-	POINTER_SURFACETYPE_RECHARGESEAM = 53,
-	POINTER_CANTZOOM                 = 54,
-	POINTER_ZOOM                     = 55,
-};
-
-enum PolyMode : sint32 // [LegoRR/???|enum:0x4|type:int]
-{
-	POLY_LOW    = 0,
-	POLY_MEDIUM = 1,
-	POLY_HIGH   = 2,
-	POLY_FP     = 3,
+	Pointer_Standard                 = 0,
+	Pointer_Blank                    = 1,
+	Pointer_Selected                 = 2,
+	Pointer_Drill                    = 3,
+	Pointer_CantDrill                = 4,
+	Pointer_Clear                    = 5,
+	Pointer_Go                       = 6,
+	Pointer_CantGo                   = 7,
+	Pointer_Teleport                 = 8,
+	Pointer_CantTeleport             = 9,
+	Pointer_Reinforce                = 10,
+	Pointer_CantReinforce            = 11,
+	Pointer_RadarPan                 = 12,
+	Pointer_TrackObject              = 13,
+	Pointer_Help                     = 14,
+	Pointer_CantHelp                 = 15,
+	Pointer_PutDown                  = 16,
+	Pointer_GetIn                    = 17,
+	Pointer_GetOut                   = 18,
+	Pointer_TutorialBlockInfo        = 19,
+	Pointer_Okay                     = 20,
+	Pointer_NotOkay                  = 21,
+	Pointer_CanBuild                 = 22,
+	Pointer_CannotBuild              = 23,
+	Pointer_Dynamite                 = 24,
+	Pointer_CantDynamite             = 25,
+	Pointer_PickUp                   = 26,
+	Pointer_CantPickUp               = 27,
+	Pointer_PickUpOre                = 28,
+	Pointer_LegoManCantDig           = 29,
+	Pointer_VehicleCantDig           = 30,
+	Pointer_LegoManDig               = 31,
+	Pointer_VehicleDig               = 32,
+	Pointer_LegoManCantPickUp        = 33,
+	Pointer_VehicleCantPickUp        = 34,
+	Pointer_LegoManPickUp            = 35,
+	Pointer_VehiclePickUp            = 36,
+	Pointer_LegoManCantGo            = 37,
+	Pointer_VehicleCantGo            = 38,
+	Pointer_LegoManGo                = 39,
+	Pointer_VehicleGo                = 40,
+	Pointer_LegoManClear             = 41,
+	Pointer_VehicleClear             = 42,
+	Pointer_SurfaceType_Immovable    = 43,
+	Pointer_SurfaceType_Hard         = 44,
+	Pointer_SurfaceType_Medium       = 45,
+	Pointer_SurfaceType_Loose        = 46,
+	Pointer_SurfaceType_Soil         = 47,
+	Pointer_SurfaceType_Lava         = 48,
+	Pointer_SurfaceType_Water        = 49,
+	Pointer_SurfaceType_OreSeam      = 50,
+	Pointer_SurfaceType_Lake         = 51,
+	Pointer_SurfaceType_CrystalSeam  = 52,
+	Pointer_SurfaceType_RechargeSeam = 53,
+	Pointer_CantZoom                 = 54,
+	Pointer_Zoom                     = 55,
+	Pointer_Type_Count               = 56,
+	Pointer_Type_Invalid             = -1,
 };
 
 enum PredugType : uint8 // [LegoRR/Lego.c|enum:0x1|type:byte|tags:MAPFILE]
@@ -1251,20 +1276,20 @@ enum RegistryType : uint32 // [Gods98/Registry.c|enum:0x4|type:uint] Supported r
 	REGISTRY_DWORD_VALUE  = 1,
 };
 
-enum RewardItemType : sint32 // [LegoRR/Rewards.c|enum:0x4|type:int]
+enum Reward_Type : sint32 // [LegoRR/Rewards.c|enum:0x4|type:int]
 {
-	REWARDTYPE_CRYSTALS      = 0,
-	REWARDTYPE_ORE           = 1,
-	REWARDTYPE_DIGGABLE      = 2,
-	REWARDTYPE_CONSTRUCTIONS = 3,
-	REWARDTYPE_CAVERNS       = 4,
-	REWARDTYPE_FIGURES       = 5,
-	REWARDTYPE_ROCKMONSTERS  = 6,
-	REWARDTYPE_OXYGEN        = 7,
-	REWARDTYPE_TIMER         = 8,
-	REWARDTYPE_SCORE         = 9,
-	REWARDTYPE__COUNT        = 10,
-	REWARDTYPE__INVALID      = -1,
+	Reward_Crystals      = 0,
+	Reward_Ore           = 1,
+	Reward_Diggable      = 2,
+	Reward_Constructions = 3,
+	Reward_Caverns       = 4,
+	Reward_Figures       = 5,
+	Reward_RockMonsters  = 6,
+	Reward_Oxygen        = 7,
+	Reward_Timer         = 8,
+	Reward_Score         = 9,
+	Reward_Type_Count    = 10,
+	Reward_Type_Invalid  = -1,
 };
 
 enum RewardScrollLabelMode : uint32 // [LegoRR/Rewards.c|enum:0x4|type:uint] Inclusive mode, None does nothing, WINDOW also performs IMAGE and TEXT, IMAGE also performs TEXT, TEXT does only that
@@ -1314,57 +1339,58 @@ enum ScreenMenuType : sint32 // [LegoRR/FrontEnd.c|enum:0x4|type:int] Types of m
 	MENU_SCREEN_SAVE        = 4,
 };
 
-enum SFXType : sint32 // [LegoRR/SFX.c|enum:0x4|type:int] SFXType is different from actual Sample indexes, these are hardcoded values that can easily be looked up by ID
+enum SFX_Type : sint32 // [LegoRR/SFX.c|enum:0x4|type:int] SFXType is different from actual Sample indexes, these are hardcoded values that can easily be looked up by ID
 {
 	SFX_NULL                    = 0,
-	SFX_STAMP                   = 1,
-	SFX_DRILL                   = 2,
-	SFX_DRILLFADE               = 3,
-	SFX_ROCKBREAK               = 4,
-	SFX_DRIP                    = 5,
-	SFX_AMBIENT                 = 6,
-	SFX_AMBIENTLOOP             = 7,
-	SFX_STEP                    = 8,
-	SFX_ROCKMONSTER             = 9,
-	SFX_ROCKMONSTER2            = 10,
-	SFX_ROCKMONSTERSTEP         = 11,
-	SFX_MFDEPOSIT               = 12,
-	SFX_BUTTONPRESSED           = 13,
-	SFX_MFLIFT                  = 14,
-	SFX_MFTHROW                 = 15,
-	SFX_WALKER                  = 16,
-	SFX_YESSIR                  = 17,
-	SFX_BUILD                   = 18,
-	SFX_OKAY                    = 19,
-	SFX_NOTOKAY                 = 20,
-	SFX_INTERFACESLIDEONSCREEN  = 21,
-	SFX_INTERFACESLIDEOFFSCREEN = 22,
-	SFX_PANELSLIDEONSCREEN      = 23,
-	SFX_PANELSLIDEOFFSCREEN     = 24,
-	SFX_SIREN                   = 25,
-	SFX_CRYSTALRECHARGE         = 26,
-	SFX_LASER                   = 27,
-	SFX_LASERHIT                = 28,
-	SFX_LAZERRECHARGE           = 29,
-	SFX_TOPPRIORITY             = 30,
-	SFX_IMMOVABLEROCK           = 31,
-	SFX_WALL                    = 32,
-	SFX_FLOOR                   = 33,
-	SFX_BOULDERHIT              = 34,
-	SFX_PLACE                   = 35,
-	SFX_PLACEORE                = 36,
-	SFX_PLACECRYSTAL            = 37,
-	SFX_LAVA                    = 38,
-	SFX_ROCKWIPE                = 39,
-	SFX_FALLIN                  = 40,
-	SFX_MUSICLOOP               = 41,
-	SFX_CAPTAINSLIDE            = 42,
-	SFX_DYNAMITE                = 43,
-	SFX_AMBIENTMUSICLOOP        = 44,
-	SFX__INVALID                = -1,
+	SFX_Stamp                   = 1,
+	SFX_Drill                   = 2,
+	SFX_DrillFade               = 3,
+	SFX_RockBreak               = 4,
+	SFX_Drip                    = 5,
+	SFX_Ambient                 = 6,
+	SFX_AmbientLoop             = 7,
+	SFX_Step                    = 8,
+	SFX_RockMonster             = 9,
+	SFX_RockMonster2            = 10,
+	SFX_RockMonsterStep         = 11,
+	SFX_MFDeposit               = 12,
+	SFX_ButtonPressed           = 13,
+	SFX_MFLift                  = 14,
+	SFX_MFThrow                 = 15,
+	SFX_Walker                  = 16,
+	SFX_YesSir                  = 17,
+	SFX_Build                   = 18,
+	SFX_Okay                    = 19,
+	SFX_NotOkay                 = 20,
+	SFX_InterfaceSlideOnScreen  = 21,
+	SFX_InterfaceSlideOffScreen = 22,
+	SFX_PanelSlideOnScreen      = 23,
+	SFX_PanelSlideOffScreen     = 24,
+	SFX_Siren                   = 25,
+	SFX_CrystalRecharge         = 26,
+	SFX_Laser                   = 27,
+	SFX_LaserHit                = 28,
+	SFX_LazerRecharge           = 29,
+	SFX_TopPriority             = 30,
+	SFX_ImmovableRock           = 31,
+	SFX_Wall                    = 32,
+	SFX_Floor                   = 33,
+	SFX_BoulderHit              = 34,
+	SFX_Place                   = 35,
+	SFX_PlaceOre                = 36,
+	SFX_PlaceCrystal            = 37,
+	SFX_Lava                    = 38,
+	SFX_RockWipe                = 39,
+	SFX_FallIn                  = 40,
+	SFX_MusicLoop               = 41,
+	SFX_CaptainSlide            = 42,
+	SFX_Dynamite                = 43,
+	SFX_AmbientMusicLoop        = 44,
+	SFX_Preload_Count           = 45,
+	SFX_Type_Invalid            = -1,
 };
 
-enum Sound3DPlayMode : uint32 // [Gods98/3DSound.c|enum:0x4|type:uint]
+enum Sound3D_Play : uint32 // [Gods98/3DSound.c|enum:0x4|type:uint]
 {
 	SOUND3D_PLAY_ONFRAME = 0,
 	SOUND3D_PLAY_ONPOS   = 1,
@@ -1435,29 +1461,6 @@ enum SurfaceTexture : uint8 // [LegoRR/Lego.c|enum:0x1|type:byte|tags:MAPFILE,CO
 	TEXTURE__INVALID            = 255,
 };
 
-enum SurfaceType : sint32 // [LegoRR/Lego.c|enum:0x4|type:int|tags:BIGENUMALIAS] See TerrainType for byte-sized enum version.
-{
-	SURFACE_TUNNEL        = 0,
-	SURFACE_IMMOVABLE     = 1,
-	SURFACE_HARD          = 2,
-	SURFACE_MEDIUM        = 3,
-	SURFACE_LOOSE         = 4,
-	SURFACE_SOIL          = 5,
-	SURFACE_LAVA          = 6,
-	SURFACE_WATER_unused  = 7,
-	SURFACE_ORESEAM       = 8,
-	SURFACE_LAKE          = 9,
-	SURFACE_CRYSTALSEAM   = 10,
-	SURFACE_RECHARGESEAM  = 11,
-	SURFACE_RUBBLE        = 12,
-	SURFACE_REINFORCEMENT = 13,
-	SURFACE_PATH          = 14,
-	SURFACE_SLUGHOLE      = 15,
-	SURFACE_UNDISCOVERED  = 16,
-	SURFACE_CAVERN        = 17,
-	SURFACE__INVALID      = -1,
-};
-
 enum TerrainType : uint8 // [LegoRR/Lego.c|enum:0x1|type:byte|tags:MAPFILE]
 {
 	TERRAIN_TUNNEL       = 0,
@@ -1480,7 +1483,7 @@ enum TerrainType : uint8 // [LegoRR/Lego.c|enum:0x1|type:byte|tags:MAPFILE]
 	TERRAIN_CAVERN       = 17,
 };
 
-enum TextType : sint32 // [LegoRR/Text.c|enum:0x4|type:int]
+enum Text_Type : sint32 // [LegoRR/Text.c|enum:0x4|type:int]
 {
 	TEXT_WALK                = 0,
 	TEXT_DRILL               = 1,
@@ -1520,66 +1523,54 @@ enum TextureType : sint32 // [LegoRR/dummy.c|enum:0x4|type:int|tags:HELPER,UNUSE
 	TEXTURES__INVALID = -1,
 };
 
-enum ToolTipType : sint32 // [LegoRR/ToolTip.c|enum:0x4|type:int]
+enum ToolTip_Type : sint32 // [LegoRR/ToolTip.c|enum:0x4|type:int]
 {
-	TOOLTIP_NULL                       = 0,
-	TOOLTIP_RADARBLOCK                 = 1,
-	TOOLTIP_UNITSELECTED               = 2,
-	TOOLTIP_CONSTRUCTION               = 3,
-	TOOLTIP_INTERFACEMENU              = 4,
-	TOOLTIP_INTERFACEMENUBACKBUTTON    = 5,
-	TOOLTIP_MAPBLOCK                   = 6,
-	TOOLTIP_PRIORITY                   = 7,
-	TOOLTIP_INFOMENUCONTINUE           = 8,
-	TOOLTIP_INFOMENUDISABLEFUTURE      = 9,
-	TOOLTIP_RADARTOGGLE                = 10,
-	TOOLTIP_RADAROBJECTVIEW            = 11,
-	TOOLTIP_RADARZOOMIN                = 12,
-	TOOLTIP_RADARZOOMOUT               = 13,
-	TOOLTIP_RADARMAPVIEW               = 14,
-	TOOLTIP_INFODOCKGOTO               = 15,
-	TOOLTIP_INFODOCKCLOSE              = 16,
-	TOOLTIP_TOPPANELCALLTOARMS         = 17,
-	TOOLTIP_TOPPANELINFO               = 18,
-	TOOLTIP_TOPPANELOPTIONS            = 19,
-	TOOLTIP_TOPPANELPRIORITIES         = 20,
-	TOOLTIP_PRIORITYDISABLE            = 21,
-	TOOLTIP_PRIORITYUPONE              = 22,
-	TOOLTIP_PRIORITYRESET              = 23,
-	TOOLTIP_CAMCONTROLZOOMIN           = 24,
-	TOOLTIP_CAMCONTROLZOOMOUT          = 25,
-	TOOLTIP_CAMCONTROLCYCLE            = 26,
-	TOOLTIP_CAMCONTROLROTATE           = 27,
-	TOOLTIP_SIDEBAR_ORE                = 28,
-	TOOLTIP_SIDEBAR_CRYSTAL            = 29,
-	TOOLTIP_CLOSE                      = 30,
-	TOOLTIP_PREVIOUSMESSAGE            = 31,
-	TOOLTIP_NEXTMESSAGE                = 32,
-	TOOLTIP_MORE                       = 33,
-	TOOLTIP_BACK                       = 34,
-	TOOLTIP_CAMCONTROLCYCLEMINIFIGURES = 35,
-	TOOLTIP_REWARD_SAVE                = 36,
-	TOOLTIP_REWARD_ADVANCE             = 37,
-	TOOLTIP_FRONTEND_BACK              = 38,
-};
-
-enum ToolType : sint32 // [LegoRR/LegoObject.c|enum:0x4|type:int]
-{
-	TOOL_DRILL      = 0,
-	TOOL_SPADE      = 1,
-	TOOL_HAMMER     = 2,
-	TOOL_SPANNER    = 3,
-	TOOL_LASER      = 4,
-	TOOL_PUSHERGUN  = 5,
-	TOOL_BIRDSCARER = 6,
-	TOOL_FREEZERGUN = 7,
-	TOOL__INVALID   = -1,
+	ToolTip_None                       = 0,
+	ToolTip_RadarBlock                 = 1,
+	ToolTip_UnitSelect                 = 2,
+	ToolTip_Construction               = 3,
+	ToolTip_InterfaceMenu              = 4,
+	ToolTip_InterfaceMenuBackButton    = 5,
+	ToolTip_MapBlock                   = 6,
+	ToolTip_Priority                   = 7,
+	ToolTip_InfoMenuContinue           = 8,
+	ToolTip_InfoMenuDisableFuture      = 9,
+	ToolTip_RadarToggle                = 10,
+	ToolTip_RadarObjectView            = 11,
+	ToolTip_RadarZoomIn                = 12,
+	ToolTip_RadarZoomOut               = 13,
+	ToolTip_RadarMapView               = 14,
+	ToolTip_InfoDockGoto               = 15,
+	ToolTip_InfoDockClose              = 16,
+	ToolTip_TopPanelCallToArms         = 17,
+	ToolTip_TopPanelInfo               = 18,
+	ToolTip_TopPanelOptions            = 19,
+	ToolTip_TopPanelPriorities         = 20,
+	ToolTip_PriorityDisable            = 21,
+	ToolTip_PriorityUpOne              = 22,
+	ToolTip_PriorityReset              = 23,
+	ToolTip_CamControlZoomIn           = 24,
+	ToolTip_CamControlZoomOut          = 25,
+	ToolTip_CamControlCycle            = 26,
+	ToolTip_CamControlRotate           = 27,
+	ToolTip_SideBar_Ore                = 28,
+	ToolTip_SideBar_Crystals           = 29,
+	ToolTip_Close                      = 30,
+	ToolTip_PreviousMessage            = 31,
+	ToolTip_NextMessage                = 32,
+	ToolTip_More                       = 33,
+	ToolTip_Back                       = 34,
+	ToolTip_CamControlCycleMinifigures = 35,
+	ToolTip_Reward_Save                = 36,
+	ToolTip_Reward_Advance             = 37,
+	ToolTip_FrontEnd_Back              = 38,
+	ToolTip_Type_Count                 = 39,
 };
 
 enum ViewMode : sint32 // [LegoRR/Lego.c|enum:0x4|type:int]
 {
-	VIEW_FIRSTPERSON = 0,
-	VIEW_TOPDOWN     = 1,
+	ViewMode_FP  = 0,
+	ViewMode_Top = 1,
 };
 
 enum WallHighlightByte : uint8 // [LegoRR/Lego.c|enum:0x1|type:byte] Byte-sized WallHighlightType (white, gray, red, green, blue, dark-yellow)
@@ -1630,13 +1621,65 @@ enum AdvisorStateFlags : uint32 // [LegoRR/Advisor.c|flags:0x4|type:uint]
 };
 DEFINE_ENUM_FLAG_OPERATORS(AdvisorStateFlags);
 
-enum AudioFlags : uint32 // [LegoRR/SFX.c|flags:0x4|type:uint] SFX_GlobFlags
+enum AITaskFlags : uint32 // [LegoRR/AITask.c|flags:0x4|type:uint]
 {
-	AUDIO_SOUNDON      = 0x1,
-	AUDIO_POPULATEMODE = 0x2,
-	AUDIO_UNK_8        = 0x8,
+	AITASK_FLAG_NONE = 0,
 };
-DEFINE_ENUM_FLAG_OPERATORS(AudioFlags);
+DEFINE_ENUM_FLAG_OPERATORS(AITaskFlags);
+
+enum BlockFlags1 : uint32 // [LegoRR/Lego.c|flags:0x4|type:uint]
+{
+	BLOCK1_NONE                    = 0,
+	BLOCK1_RUBBLE_LOW              = 0x1,
+	BLOCK1_RUBBLE_MEDIUM           = 0x2,
+	BLOCK1_RUBBLE_FULL             = 0x3,
+	BLOCK1_SURVEYED                = 0x4,
+	BLOCK1_FLOOR                   = 0x8,
+	BLOCK1_WALL                    = 0x10,
+	BLOCK1_REINFORCED              = 0x20,
+	BLOCK1_CORNEROBTUSE            = 0x40,
+	BLOCK1_CORNERINNER             = 0x80,
+	BLOCK1_UNK_100                 = 0x100,
+	BLOCK1_UNK_200                 = 0x200,
+	BLOCK1_BUILDINGSOLID           = 0x400,
+	BLOCK1_UNK_800                 = 0x800,
+	BLOCK1_UNK_1000                = 0x1000,
+	BLOCK1_UNK_2000                = 0x2000,
+	BLOCK1_UNK_4000                = 0x4000,
+	BLOCK1_BUILDINGPATH            = 0x8000,
+	BLOCK1_HIDDEN                  = 0x20000,
+	BLOCK1_DESTROYEDCONNECTION_UNK = 0x40000,
+	BLOCK1_UNK_80000               = 0x80000,
+	BLOCK1_FOUNDATION              = 0x100000,
+	BLOCK1_CLEARED_UNK             = 0x200000,
+	BLOCK1_UNK_400000              = 0x400000,
+	BLOCK1_UNK_800000              = 0x800000,
+	BLOCK1_UNK_1000000             = 0x1000000,
+	BLOCK1_EXPOSED                 = 0x4000000,
+	BLOCK1_BUSY                    = 0x8000000,
+	BLOCK1_UNK_10000000            = 0x10000000,
+	BLOCK1_PATH                    = 0x20000000,
+	BLOCK1_UNK_40000000            = 0x40000000,
+	BLOCK1_UNK_80000000            = 0x80000000,
+};
+DEFINE_ENUM_FLAG_OPERATORS(BlockFlags1);
+
+enum BlockFlags2 : uint32 // [LegoRR/Lego.c|flags:0x4|type:uint]
+{
+	BLOCK2_NONE             = 0,
+	BLOCK2_GENERATEPOWER    = 0x1,
+	BLOCK2_UNK_2            = 0x2,
+	BLOCK2_TOOLSTORE_UNK    = 0x4,
+	BLOCK2_FENCEREQUEST     = 0x8,
+	BLOCK2_UNK_10           = 0x10,
+	BLOCK2_SLUGHOLE_EXPOSED = 0x20,
+	BLOCK2_EMERGE_POINT     = 0x40,
+	BLOCK2_EMERGE_TRIGGER   = 0x80,
+	BLOCK2_POWERED          = 0x100,
+	BLOCK2_SLUGHOLE_HIDDEN  = 0x200,
+	BLOCK2_UNK_400          = 0x400,
+};
+DEFINE_ENUM_FLAG_OPERATORS(BlockFlags2);
 
 enum BlockSpiderWebFlags : uint32 // [LegoRR/SpiderWeb.c|flags:0x4|type:uint]
 {
@@ -1647,14 +1690,22 @@ DEFINE_ENUM_FLAG_OPERATORS(BlockSpiderWebFlags);
 
 enum CameraFlags : uint32 // [LegoRR/LegoCamera.c|flags:0x4|type:uint]
 {
-	CAMERA_NONE         = 0,
-	CAMERA_TILTRANGE    = 0x1,
-	CAMERA_YAWRANGE     = 0x2,
-	CAMERA_DISTRANGE    = 0x4,
-	CAMERA_FREEMOVEMENT = 0x8,
-	CAMERA_UNK_10       = 0x10,
+	CAMERA_FLAG_NONE          = 0,
+	CAMERA_FLAG_TILTRANGE     = 0x1,
+	CAMERA_FLAG_ROTATIONRANGE = 0x2,
+	CAMERA_FLAG_ZOOMRANGE     = 0x4,
+	CAMERA_FLAG_FREEMOVEMENT  = 0x8,
+	CAMERA_FLAG_FPSETUP       = 0x10,
 };
 DEFINE_ENUM_FLAG_OPERATORS(CameraFlags);
+
+enum Config_GlobFlags : uint32 // [Gods98/Memory.c|flags:0x4|type:uint]
+{
+	CONFIG_GLOB_FLAG_NONE          = 0,
+	CONFIG_GLOB_FLAG_INITIALISED   = 0x1,
+	CONFIG_GLOB_FLAG_LOADINGCONFIG = 0x2,
+};
+DEFINE_ENUM_FLAG_OPERATORS(Config_GlobFlags);
 
 enum Container_GlobFlags : uint32 // [Gods98/Containers.c|flags:0x4|type:uint] All flags used by the ResourceManager struct.
 {
@@ -1685,56 +1736,56 @@ DEFINE_ENUM_FLAG_OPERATORS(ContainerFlags);
 
 enum DependencyFlags : uint32 // [LegoRR/Dependencies.c|flags:0x4|type:uint]
 {
-	DEPENDENCY_NONE        = 0,
-	DEPENDENCY_HITONCESTAY = 0x1,
-	DEPENDENCY_UNK_2       = 0x2,
-	DEPENDENCY_UNK_4       = 0x4,
-	DEPENDENCY_UNK_8       = 0x8,
-	DEPENDENCY_UNK_100     = 0x100,
+	DEPENDENCY_FLAG_NONE        = 0,
+	DEPENDENCY_FLAG_HITONCESTAY = 0x1,
+	DEPENDENCY_FLAG_UNK_2       = 0x2,
+	DEPENDENCY_FLAG_UNK_4       = 0x4,
+	DEPENDENCY_FLAG_UNK_8       = 0x8,
+	DEPENDENCY_FLAG_UNK_100     = 0x100,
 };
 DEFINE_ENUM_FLAG_OPERATORS(DependencyFlags);
 
-enum DirectDraw_DeviceFlags : uint32 // [Gods98/DirectDraw.c|flags:0x4|type:uint] Valid flag is actually shared: DIRECTDRAW_FLAG_VALID
+enum Detail_TransformFlags : uint8 // [LegoRR/Detail.c|flags:0x1|type:byte]
 {
-	DIRECTDRAW_FLAG_DEVICE_NONE          = 0,
-	DIRECTDRAW_FLAG_DEVICE_VALID         = 0x1,
-	DIRECTDRAW_FLAG_DEVICE_DEPTH8        = 0x10,
-	DIRECTDRAW_FLAG_DEVICE_DEPTH16       = 0x20,
-	DIRECTDRAW_FLAG_DEVICE_DEPTH24       = 0x40,
-	DIRECTDRAW_FLAG_DEVICE_DEPTH32       = 0x80,
-	DIRECTDRAW_FLAG_DEVICE_ZBUFF8        = 0x100,
-	DIRECTDRAW_FLAG_DEVICE_ZBUFF16       = 0x200,
-	DIRECTDRAW_FLAG_DEVICE_ZBUFF24       = 0x400,
-	DIRECTDRAW_FLAG_DEVICE_ZBUFF32       = 0x800,
-	DIRECTDRAW_FLAG_DEVICE_COLOUR        = 0x1000,
-	DIRECTDRAW_FLAG_DEVICE_HARDWARE      = 0x2000,
-	DIRECTDRAW_FLAG_DEVICE_VIDEOTEXTURE  = 0x4000,
-	DIRECTDRAW_FLAG_DEVICE_SYSTEMTEXTURE = 0x8000,
+	DETAIL_TRANSFORM_FLAG_NONE   = 0,
+	DETAIL_ROTATE_FLAG_X1_DEG90  = 0x1,
+	DETAIL_ROTATE_FLAG_X1_DEGM90 = 0x2,
+	DETAIL_ROTATE_FLAG_Y1_DEG90  = 0x4,
+	DETAIL_ROTATE_FLAG_Y1_DEGM90 = 0x8,
+	DETAIL_ROTATE_FLAG_Z1_DEG90  = 0x10,
+	DETAIL_ROTATE_FLAG_Z1_DEGM90 = 0x20,
+	DETAIL_TRANSLATE_FLAG_Y10    = 0x40,
+	DETAIL_TRANSLATE_FLAG_YM10   = 0x80,
 };
-DEFINE_ENUM_FLAG_OPERATORS(DirectDraw_DeviceFlags);
+DEFINE_ENUM_FLAG_OPERATORS(Detail_TransformFlags);
 
-enum DirectDraw_DriverFlags : uint32 // [Gods98/DirectDraw.c|flags:0x4|type:uint] Valid flag is actually shared: DIRECTDRAW_FLAG_VALID
+enum DirectionFlags : uint32 // [LegoRR/Lego.c|flags:0x4|type:uint]
 {
-	DIRECTDRAW_FLAG_DRIVER_NONE     = 0,
-	DIRECTDRAW_FLAG_DRIVER_VALID    = 0x1,
-	DIRECTDRAW_FLAG_DRIVER_PRIMARY  = 0x10,
-	DIRECTDRAW_FLAG_DRIVER_WINDOWOK = 0x20,
+	DIRECTION_FLAG_NONE = 0,
+	DIRECTION_FLAG_N    = 0x1,
+	DIRECTION_FLAG_E    = 0x2,
+	DIRECTION_FLAG_NE   = 0x3,
+	DIRECTION_FLAG_S    = 0x4,
+	DIRECTION_FLAG_NS   = 0x5,
+	DIRECTION_FLAG_SE   = 0x6,
+	DIRECTION_FLAG_NSE  = 0x7,
+	DIRECTION_FLAG_W    = 0x8,
+	DIRECTION_FLAG_NW   = 0x9,
+	DIRECTION_FLAG_EW   = 0xa,
+	DIRECTION_FLAG_NEW  = 0xb,
+	DIRECTION_FLAG_SW   = 0xc,
+	DIRECTION_FLAG_NSW  = 0xd,
+	DIRECTION_FLAG_SEW  = 0xe,
+	DIRECTION_FLAG_NSEW = 0xf,
 };
-DEFINE_ENUM_FLAG_OPERATORS(DirectDraw_DriverFlags);
+DEFINE_ENUM_FLAG_OPERATORS(DirectionFlags);
 
-enum DirectDraw_ModeFlags : uint32 // [Gods98/DirectDraw.c|flags:0x4|type:uint] Valid flag is actually shared: DIRECTDRAW_FLAG_VALID
+enum Draw_GlobFlags : uint32 // [Gods98/Draw.c|flags:0x4|type:uint]
 {
-	DIRECTDRAW_FLAG_MODE_NONE  = 0,
-	DIRECTDRAW_FLAG_MODE_VALID = 0x1,
+	DRAW_GLOB_FLAG_NONE        = 0,
+	DRAW_GLOB_FLAG_INITIALISED = 0x1,
 };
-DEFINE_ENUM_FLAG_OPERATORS(DirectDraw_ModeFlags);
-
-enum FeatureFlags : uint32 // [LegoRR/Lego.c|flags:0x4|type:uint] Flags specified by the "-flags #" command line argument (which has to be in decimal...)
-{
-	FEATURE_NONE        = 0,
-	FEATURE_BLOCKFADEIN = 0x8000,
-};
-DEFINE_ENUM_FLAG_OPERATORS(FeatureFlags);
+DEFINE_ENUM_FLAG_OPERATORS(Draw_GlobFlags);
 
 enum FlicUserFlags : uint32 // [Gods98/Flic.c|flags:0x4|type:uint]
 {
@@ -1755,20 +1806,28 @@ enum FontFlags : uint32 // [Gods98/Fonts.c|flags:0x4|type:uint]
 };
 DEFINE_ENUM_FLAG_OPERATORS(FontFlags);
 
+enum Front_RockWipeFlags : uint8 // [LegoRR/Front.c|flags:0x1|type:byte]
+{
+	ROCKWIPE_FLAG_NONE  = 0,
+	ROCKWIPE_FLAG_UNK_1 = 0x1,
+	ROCKWIPE_FLAG_UNK_2 = 0x2,
+};
+DEFINE_ENUM_FLAG_OPERATORS(Front_RockWipeFlags);
+
 enum GameFlags1 : uint32 // [LegoRR/Lego.c|flags:0x4|type:uint]
 {
 	GAME1_NONE                  = 0,
 	GAME1_RADARON               = 0x2,
 	GAME1_LEVELSTART            = 0x4,
-	GAME1_MUSICON               = 0x8,
-	GAME1_SOUNDON               = 0x10,
-	GAME1_WALLPROMESHES         = 0x20,
-	GAME1_FRAMERATEMONITOR      = 0x40,
-	GAME1_MEMORYMONITOR         = 0x80,
-	GAME1_DRAGGINGBOX_UNK       = 0x100,
+	GAME1_USEMUSIC              = 0x8,
+	GAME1_USESFX                = 0x10,
+	GAME1_USEDETAIL             = 0x20,
+	GAME1_SHOWFPS               = 0x40,
+	GAME1_SHOWMEMORY            = 0x80,
+	GAME1_MULTISELECT           = 0x100,
 	GAME1_UNK_200               = 0x200,
-	GAME1_CLEAR                 = 0x400,
-	GAME1_PANELS                = 0x800,
+	GAME1_DDRAWCLEAR            = 0x400,
+	GAME1_RENDERPANELS          = 0x800,
 	GAME1_RADAR_MAPVIEW         = 0x1000,
 	GAME1_RADAR_TRACKOBJECTVIEW = 0x2000,
 	GAME1_UNK_4000              = 0x4000,
@@ -1833,6 +1892,41 @@ enum GameFlags3 : uint32 // [LegoRR/Lego.c|flags:0x4|type:uint]
 };
 DEFINE_ENUM_FLAG_OPERATORS(GameFlags3);
 
+enum Graphics_DeviceFlags : uint32 // [Gods98/DirectDraw.c|flags:0x4|type:uint] Valid flag is actually shared: DIRECTDRAW_FLAG_VALID
+{
+	GRAPHICS_DEVICE_FLAG_NONE          = 0,
+	GRAPHICS_DEVICE_FLAG_VALID         = 0x1,
+	GRAPHICS_DEVICE_FLAG_DEPTH8        = 0x10,
+	GRAPHICS_DEVICE_FLAG_DEPTH16       = 0x20,
+	GRAPHICS_DEVICE_FLAG_DEPTH24       = 0x40,
+	GRAPHICS_DEVICE_FLAG_DEPTH32       = 0x80,
+	GRAPHICS_DEVICE_FLAG_ZBUFF8        = 0x100,
+	GRAPHICS_DEVICE_FLAG_ZBUFF16       = 0x200,
+	GRAPHICS_DEVICE_FLAG_ZBUFF24       = 0x400,
+	GRAPHICS_DEVICE_FLAG_ZBUFF32       = 0x800,
+	GRAPHICS_DEVICE_FLAG_COLOUR        = 0x1000,
+	GRAPHICS_DEVICE_FLAG_HARDWARE      = 0x2000,
+	GRAPHICS_DEVICE_FLAG_VIDEOTEXTURE  = 0x4000,
+	GRAPHICS_DEVICE_FLAG_SYSTEMTEXTURE = 0x8000,
+};
+DEFINE_ENUM_FLAG_OPERATORS(Graphics_DeviceFlags);
+
+enum Graphics_DriverFlags : uint32 // [Gods98/DirectDraw.c|flags:0x4|type:uint] Valid flag is actually shared: DIRECTDRAW_FLAG_VALID
+{
+	GRAPHICS_DRIVER_FLAG_NONE     = 0,
+	GRAPHICS_DRIVER_FLAG_VALID    = 0x1,
+	GRAPHICS_DRIVER_FLAG_PRIMARY  = 0x10,
+	GRAPHICS_DRIVER_FLAG_WINDOWOK = 0x20,
+};
+DEFINE_ENUM_FLAG_OPERATORS(Graphics_DriverFlags);
+
+enum Graphics_ModeFlags : uint32 // [Gods98/DirectDraw.c|flags:0x4|type:uint] Valid flag is actually shared: DIRECTDRAW_FLAG_VALID
+{
+	GRAPHICS_MODE_FLAG_NONE  = 0,
+	GRAPHICS_MODE_FLAG_VALID = 0x1,
+};
+DEFINE_ENUM_FLAG_OPERATORS(Graphics_ModeFlags);
+
 enum HelpWindowFlags : uint32 // [LegoRR/HelpWindow.c|flags:0x4|type:uint]
 {
 	HELPWINDOW_NONE    = 0,
@@ -1881,59 +1975,13 @@ enum InterfaceIconFlags : uint32 // [LegoRR/Interface.c|flags:0x4|type:uint]
 };
 DEFINE_ENUM_FLAG_OPERATORS(InterfaceIconFlags);
 
-enum LevelBlockFlags1 : uint32 // [LegoRR/Lego.c|flags:0x4|type:uint]
+enum LegoObject_GlobFlags : uint32 // [LegoRR/LegoObject.c|flags:0x4|type:uint] LegoObject_GlobFlags, ReservedPool LiveObject INITFLAGS
 {
-	BLOCK1_NONE                    = 0,
-	BLOCK1_RUBBLE_LOW              = 0x1,
-	BLOCK1_RUBBLE_MEDIUM           = 0x2,
-	BLOCK1_RUBBLE_FULL             = 0x3,
-	BLOCK1_SURVEYED                = 0x4,
-	BLOCK1_GROUND                  = 0x8,
-	BLOCK1_WALL_UNK                = 0x10,
-	BLOCK1_REINFORCED              = 0x20,
-	BLOCK1_CORNEROBTUSE            = 0x40,
-	BLOCK1_CORNERINNER             = 0x80,
-	BLOCK1_UNK_100                 = 0x100,
-	BLOCK1_UNK_200                 = 0x200,
-	BLOCK1_BUILDINGSOLID           = 0x400,
-	BLOCK1_UNK_800                 = 0x800,
-	BLOCK1_UNK_1000                = 0x1000,
-	BLOCK1_UNK_2000                = 0x2000,
-	BLOCK1_UNK_4000                = 0x4000,
-	BLOCK1_BUILDINGPATH            = 0x8000,
-	BLOCK1_HIDDEN                  = 0x20000,
-	BLOCK1_DESTROYEDCONNECTION_UNK = 0x40000,
-	BLOCK1_UNK_80000               = 0x80000,
-	BLOCK1_FOUNDATION              = 0x100000,
-	BLOCK1_CLEARED_UNK             = 0x200000,
-	BLOCK1_UNK_400000              = 0x400000,
-	BLOCK1_UNK_800000              = 0x800000,
-	BLOCK1_UNK_1000000             = 0x1000000,
-	BLOCK1_EXPOSED                 = 0x4000000,
-	BLOCK1_BUSY                    = 0x8000000,
-	BLOCK1_UNK_10000000            = 0x10000000,
-	BLOCK1_PATH                    = 0x20000000,
-	BLOCK1_UNK_40000000            = 0x40000000,
-	BLOCK1_UNK_80000000            = 0x80000000,
+	OBJECT_GLOB_FLAG_NONE        = 0,
+	OBJECT_GLOB_FLAG_INITIALISED = 0x1,
+	OBJECT_GLOB_FLAG_UNK_20      = 0x20,
 };
-DEFINE_ENUM_FLAG_OPERATORS(LevelBlockFlags1);
-
-enum LevelBlockFlags2 : uint32 // [LegoRR/Lego.c|flags:0x4|type:uint]
-{
-	BLOCK2_NONE             = 0,
-	BLOCK2_GENERATEPOWER    = 0x1,
-	BLOCK2_UNK_2            = 0x2,
-	BLOCK2_TOOLSTORE_UNK    = 0x4,
-	BLOCK2_FENCEREQUEST     = 0x8,
-	BLOCK2_UNK_10           = 0x10,
-	BLOCK2_SLUGHOLE_EXPOSED = 0x20,
-	BLOCK2_EMERGE_POINT     = 0x40,
-	BLOCK2_EMERGE_TRIGGER   = 0x80,
-	BLOCK2_POWERED          = 0x100,
-	BLOCK2_SLUGHOLE_HIDDEN  = 0x200,
-	BLOCK2_UNK_400          = 0x400,
-};
-DEFINE_ENUM_FLAG_OPERATORS(LevelBlockFlags2);
+DEFINE_ENUM_FLAG_OPERATORS(LegoObject_GlobFlags);
 
 enum LightEffectsFlags : uint32 // [LegoRR/LightEffects.c|flags:0x4|type:uint] LightEffects_GlobFlags, Flags for LightEffectsManager global variable @004ebec8
 {
@@ -1981,6 +2029,7 @@ enum LiveFlags1 : uint32 // [LegoRR/LegoObject.c|flags:0x4|type:uint]
 	LIVEOBJ1_UNK_1000000  = 0x1000000,
 	LIVEOBJ1_CAUGHTINWEB  = 0x2000000,
 	LIVEOBJ1_UNK_4000000  = 0x4000000,
+	LIVEOBJ1_UNK_8000000  = 0x8000000,
 	LIVEOBJ1_UNK_10000000 = 0x10000000,
 	LIVEOBJ1_REST         = 0x20000000,
 	LIVEOBJ1_EATING       = 0x40000000,
@@ -2084,6 +2133,7 @@ enum LiveFlags4 : uint32 // [LegoRR/LegoObject.c|flags:0x4|type:uint]
 	LIVEOBJ4_UNK_80000     = 0x80000,
 	LIVEOBJ4_UNK_100000    = 0x100000,
 	LIVEOBJ4_UNK_200000    = 0x200000,
+	LIVEOBJ4_UNK_400000    = 0x400000,
 };
 DEFINE_ENUM_FLAG_OPERATORS(LiveFlags4);
 
@@ -2098,14 +2148,6 @@ enum LiveFlags5 : uint32 // [LegoRR/LegoObject.c|flags:0x4|type:uint] These flag
 	LIVEOBJ5_ABILITY_SCANNER  = 0x20,
 };
 DEFINE_ENUM_FLAG_OPERATORS(LiveFlags5);
-
-enum LiveManagerFlags : uint32 // [LegoRR/LegoObject.c|flags:0x4|type:uint] LegoObject_GlobFlags, ReservedPool LiveObject INITFLAGS
-{
-	LIVEMANAGER_NONE   = 0,
-	LIVEMANAGER_ISUSED = 0x1,
-	LIVEMANAGER_UNK_20 = 0x20,
-};
-DEFINE_ENUM_FLAG_OPERATORS(LiveManagerFlags);
 
 enum LoaderFlags : uint32 // [LegoRR/Loader.c|flags:0x4|type:uint]
 {
@@ -2151,35 +2193,71 @@ enum LWTEXMAPTYPE : uint32 // [Gods98/Lwt.c|flags:0x4|type:uint]
 };
 DEFINE_ENUM_FLAG_OPERATORS(LWTEXMAPTYPE);
 
+enum MainCLFlags : uint32 // [LegoRR/Lego.c|flags:0x4|type:uint] Flags specified by the "-flags #" command line argument (which has to be in decimal...)
+{
+	CL_FLAG_NONE      = 0,
+	CL_FLAG_BLOCKFADE = 0x8000,
+};
+DEFINE_ENUM_FLAG_OPERATORS(MainCLFlags);
+
 enum MainFlags : uint32 // [Gods98/Main.c|flags:0x4|type:uint] Command line argument flags set when starting the game
 {
-	CMD_NONE               = 0,
-	CMD_D3DRMUPDATED       = 0x1,
-	CMD_FULLSCREEN         = 0x2,
-	CMD_TEXTUREVIDEOMEMORY = 0x4,
-	CMD_MIPMAP             = 0x8,
-	CMD_NOFPSLOCK          = 0x10,
-	CMD_NM                 = 0x20,
-	CMD_BEST               = 0x40,
-	CMD_FPSLOCK30          = 0x80,
-	CMD_WINDOW             = 0x100,
-	CMD_STARTLEVEL         = 0x200,
-	CMD_CLEANSAVES         = 0x400,
-	CMD_DEBUG              = 0x2000,
-	CMD_DUALMOUSE          = 0x4000,
-	CMD_DEBUGCOMPLETE      = 0x8000,
-	CMD_TESTERCALL         = 0x10000,
-	CMD_TESTLEVELS         = 0x20000,
-	CMD_FTM                = 0x40000,
-	CMD_FVF                = 0x80000,
-	CMD_REDUCESAMPLES      = 0x100000,
-	CMD_SHOWVERSION        = 0x200000,
-	CMD_REDUCEANIMATION    = 0x400000,
-	CMD_REDUCEPROMESHES    = 0x800000,
-	CMD_REDUCEFLICS        = 0x1000000,
-	CMD_REDUCEIMAGES       = 0x2000000,
+	MAIN_FLAG_NONE                   = 0,
+	MAIN_FLAG_UPDATED                = 0x1,
+	MAIN_FLAG_FULLSCREEN             = 0x2,
+	MAIN_FLAG_VIDEOTEXTURE           = 0x4,
+	MAIN_FLAG_MIPMAPENABLED          = 0x8,
+	MAIN_FLAG_PAUSED                 = 0x10,
+	MAIN_FLAG_DONTMANAGETEXTURES     = 0x20,
+	MAIN_FLAG_BEST                   = 0x40,
+	MAIN_FLAG_DUMPMODE               = 0x80,
+	MAIN_FLAG_WINDOW                 = 0x100,
+	MAIN_FLAG_STARTLEVEL             = 0x200,
+	MAIN_FLAG_CLEANSAVES             = 0x400,
+	MAIN_FLAG_SAVELANGFILE           = 0x800,
+	MAIN_FLAG_LANGDUMPUNKNOWN        = 0x1000,
+	MAIN_FLAG_DEBUGMODE              = 0x2000,
+	MAIN_FLAG_DUALMOUSE              = 0x4000,
+	MAIN_FLAG_DEBUGCOMPLETE          = 0x8000,
+	MAIN_FLAG_TESTERCALL             = 0x10000,
+	MAIN_FLAG_LEVELSOPEN             = 0x20000,
+	MAIN_FLAG_FORCETEXTUREMANAGEMENT = 0x40000,
+	MAIN_FLAG_FORCEVERTEXFOG         = 0x80000,
+	MAIN_FLAG_REDUCESAMPLES          = 0x100000,
+	MAIN_FLAG_SHOWVERSION            = 0x200000,
+	MAIN_FLAG_REDUCEANIMATION        = 0x400000,
+	MAIN_FLAG_REDUCEPROMESHES        = 0x800000,
+	MAIN_FLAG_REDUCEFLICS            = 0x1000000,
+	MAIN_FLAG_REDUCEIMAGES           = 0x2000000,
 };
 DEFINE_ENUM_FLAG_OPERATORS(MainFlags);
+
+enum Map3D_BlockFlags : uint8 // [LegoRR/Map3D.c|flags:0x1|type:byte] Flags for SurfaceMapStruct_28->byte_19
+{
+	MAP3DBLOCK_FLAG_NONE           = 0,
+	MAP3DBLOCK_FLAG_ROTATED        = 0x1,
+	MAP3DBLOCK_FLAG_VERTEXMODIFIED = 0x4,
+	MAP3DBLOCK_FLAG_VERTEXLEVELED  = 0x8,
+	MAP3DBLOCK_FLAG_UVWOBBLES      = 0x10,
+	MAP3DBLOCK_FLAG_UNK_20         = 0x20,
+	MAP3DBLOCK_FLAG_UNK_40         = 0x40,
+};
+DEFINE_ENUM_FLAG_OPERATORS(Map3D_BlockFlags);
+
+enum Map3D_TransitionFlags : uint8 // [LegoRR/Map3D.c|flags:0x1|type:byte]
+{
+	MAP3DTRANS_FLAG_NONE = 0,
+	MAP3DTRANS_FLAG_USED = 0x1,
+};
+DEFINE_ENUM_FLAG_OPERATORS(Map3D_TransitionFlags);
+
+enum Map3DFlags : uint32 // [LegoRR/Map3D.c|flags:0x4|type:uint]
+{
+	MAP3D_FLAG_NONE           = 0,
+	MAP3D_FLAG_VERTEXMODIFIED = 0x2,
+	MAP3D_FLAG_EMISSIVE_4     = 0x4,
+};
+DEFINE_ENUM_FLAG_OPERATORS(Map3DFlags);
 
 enum Mem_HandleFlags : uint32 // [Gods98/Memory.c|flags:0x4|type:uint] Flags for SharedBuffer struct
 {
@@ -2207,7 +2285,79 @@ enum ObjectiveFlags : uint32 // [LegoRR/Objective.c|flags:0x4|type:uint]
 };
 DEFINE_ENUM_FLAG_OPERATORS(ObjectiveFlags);
 
-enum ObjectStatsFlags1 : uint32 // [LegoRR/Stats.c|flags:0x4|type:uint]
+enum ObjInfoFlags : uint32 // [LegoRR/ObjInfo.c|flags:0x4|type:uint]
+{
+	OBJINFO_NONE               = 0,
+	OBJINFO_HUNGERIMAGES       = 0x1,
+	OBJINFO_HEALTHBAR          = 0x2,
+	OBJINFO_HEALTHBAR_VERTICAL = 0x8,
+	OBJINFO_BUBBLEIMAGES       = 0x10,
+};
+DEFINE_ENUM_FLAG_OPERATORS(ObjInfoFlags);
+
+enum RewardItemFlags : uint32 // [LegoRR/Rewards.c|flags:0x4|type:uint]
+{
+	REWARDITEM_FLAG_NONE               = 0,
+	REWARDITEM_FLAG_VALUETEXT          = 0x1,
+	REWARDITEM_FLAG_IMAGES             = 0x2,
+	REWARDITEM_FLAG_FLIC               = 0x4,
+	REWARDITEM_FLAG_NAMETEXT           = 0x10,
+	REWARDITEM_FLAG_NAMETEXT_HALFTRANS = 0x20,
+	REWARDITEM_FLAG_BOXIMAGES          = 0x40,
+};
+DEFINE_ENUM_FLAG_OPERATORS(RewardItemFlags);
+
+enum RewardScrollFlags : uint32 // [LegoRR/Rewards.c|flags:0x4|type:uint]
+{
+	REWARDSCROLL_NONE  = 0,
+	REWARDSCROLL_UNK_1 = 0x1,
+	REWARDSCROLL_UNK_2 = 0x2,
+};
+DEFINE_ENUM_FLAG_OPERATORS(RewardScrollFlags);
+
+enum RewardScrollLabelFlags : uint32 // [LegoRR/Rewards.c|flags:0x4|type:uint]
+{
+	REWARDSCROLL_LABEL_NONE     = 0,
+	REWARDSCROLL_LABEL_CENTERED = 0x1,
+	REWARDSCROLL_LABEL_NOSCROLL = 0x2,
+};
+DEFINE_ENUM_FLAG_OPERATORS(RewardScrollLabelFlags);
+
+enum RoofFlags : uint32 // [LegoRR/Roof.c|flags:0x4|type:uint]
+{
+	ROOF_NONE          = 0,
+	ROOF_HIDDEN        = 0x1,
+	ROOF_NEEDUPDATE    = 0x2,
+	ROOF_SHIFTVERTICES = 0x4,
+};
+DEFINE_ENUM_FLAG_OPERATORS(RoofFlags);
+
+enum SFX_GlobFlags : uint32 // [LegoRR/SFX.c|flags:0x4|type:uint]
+{
+	SFX_GLOB_FLAG_NONE         = 0,
+	SFX_GLOB_FLAG_SOUNDON      = 0x1,
+	SFX_GLOB_FLAG_POPULATEMODE = 0x2,
+	SFX_GLOB_FLAG_UNK_8        = 0x8,
+};
+DEFINE_ENUM_FLAG_OPERATORS(SFX_GlobFlags);
+
+enum SFX_InstanceFlags : uint32 // [LegoRR/SFX.c|flags:0x4|type:uint]
+{
+	SFX_INSTANCE_FLAG_NONE = 0,
+};
+DEFINE_ENUM_FLAG_OPERATORS(SFX_InstanceFlags);
+
+enum Sound3DFlags : uint32 // [LegoRR/SFX.c|flags:0x4|type:uint]
+{
+	SAMPLE_NONE     = 0,
+	SAMPLE_ISUSED   = 0x1,
+	SAMPLE_VOLUME   = 0x2,
+	SAMPLE_MULTIPLE = 0x4,
+	SAMPLE_STREAMED = 0x8,
+};
+DEFINE_ENUM_FLAG_OPERATORS(Sound3DFlags);
+
+enum StatsFlags1 : uint32 // [LegoRR/Stats.c|flags:0x4|type:uint]
 {
 	STATS1_NONE                  = 0,
 	STATS1_SINGLEWIDTHDIG        = 0x1,
@@ -2243,9 +2393,9 @@ enum ObjectStatsFlags1 : uint32 // [LegoRR/Stats.c|flags:0x4|type:uint]
 	STATS1_BUMPDAMAGE            = 0x40000000,
 	STATS1_MANTELEPORTER         = 0x80000000,
 };
-DEFINE_ENUM_FLAG_OPERATORS(ObjectStatsFlags1);
+DEFINE_ENUM_FLAG_OPERATORS(StatsFlags1);
 
-enum ObjectStatsFlags2 : uint32 // [LegoRR/Stats.c|flags:0x4|type:uint]
+enum StatsFlags2 : uint32 // [LegoRR/Stats.c|flags:0x4|type:uint]
 {
 	STATS2_NONE                   = 0,
 	STATS2_SCAREDBYBIGBANGS       = 0x1,
@@ -2282,9 +2432,9 @@ enum ObjectStatsFlags2 : uint32 // [LegoRR/Stats.c|flags:0x4|type:uint]
 	STATS2_INVISIBLEDRIVER        = 0x40000000,
 	STATS2_UNSELECTABLE           = 0x80000000,
 };
-DEFINE_ENUM_FLAG_OPERATORS(ObjectStatsFlags2);
+DEFINE_ENUM_FLAG_OPERATORS(StatsFlags2);
 
-enum ObjectStatsFlags3 : uint32 // [LegoRR/Stats.c|flags:0x4|type:uint]
+enum StatsFlags3 : uint32 // [LegoRR/Stats.c|flags:0x4|type:uint]
 {
 	STATS3_NONE                = 0,
 	STATS3_CARRYVEHICLES       = 0x1,
@@ -2298,83 +2448,7 @@ enum ObjectStatsFlags3 : uint32 // [LegoRR/Stats.c|flags:0x4|type:uint]
 	STATS3_NEEDSPILOT          = 0x100,
 	STATS3_ENTERTOOLSTORE      = 0x200,
 };
-DEFINE_ENUM_FLAG_OPERATORS(ObjectStatsFlags3);
-
-enum ObjInfoFlags : uint32 // [LegoRR/ObjInfo.c|flags:0x4|type:uint]
-{
-	OBJINFO_NONE               = 0,
-	OBJINFO_HUNGERIMAGES       = 0x1,
-	OBJINFO_HEALTHBAR          = 0x2,
-	OBJINFO_HEALTHBAR_VERTICAL = 0x8,
-	OBJINFO_BUBBLEIMAGES       = 0x10,
-};
-DEFINE_ENUM_FLAG_OPERATORS(ObjInfoFlags);
-
-enum RewardItemFlags : uint32 // [LegoRR/Rewards.c|flags:0x4|type:uint]
-{
-	REWARDITEM_NONE               = 0,
-	REWARDITEM_VALUETEXT          = 0x1,
-	REWARDITEM_IMAGES             = 0x2,
-	REWARDITEM_FLIC               = 0x4,
-	REWARDITEM_NAMETEXT           = 0x10,
-	REWARDITEM_NAMETEXT_HALFTRANS = 0x20,
-	REWARDITEM_BOXIMAGES          = 0x40,
-};
-DEFINE_ENUM_FLAG_OPERATORS(RewardItemFlags);
-
-enum RewardScrollFlags : uint32 // [LegoRR/Rewards.c|flags:0x4|type:uint]
-{
-	REWARDSCROLL_NONE  = 0,
-	REWARDSCROLL_UNK_1 = 0x1,
-	REWARDSCROLL_UNK_2 = 0x2,
-};
-DEFINE_ENUM_FLAG_OPERATORS(RewardScrollFlags);
-
-enum RewardScrollLabelFlags : uint32 // [LegoRR/Rewards.c|flags:0x4|type:uint]
-{
-	REWARDSCROLL_LABEL_NONE     = 0,
-	REWARDSCROLL_LABEL_CENTERED = 0x1,
-	REWARDSCROLL_LABEL_NOSCROLL = 0x2,
-};
-DEFINE_ENUM_FLAG_OPERATORS(RewardScrollLabelFlags);
-
-enum RoofFlags : uint32 // [LegoRR/Roof.c|flags:0x4|type:uint]
-{
-	ROOF_NONE          = 0,
-	ROOF_HIDDEN        = 0x1,
-	ROOF_NEEDUPDATE    = 0x2,
-	ROOF_SHIFTVERTICES = 0x4,
-};
-DEFINE_ENUM_FLAG_OPERATORS(RoofFlags);
-
-enum SampleFlags : uint32 // [LegoRR/SFX.c|flags:0x4|type:uint]
-{
-	SAMPLE_NONE     = 0,
-	SAMPLE_ISUSED   = 0x1,
-	SAMPLE_VOLUME   = 0x2,
-	SAMPLE_MULTIPLE = 0x4,
-	SAMPLE_STREAMED = 0x8,
-};
-DEFINE_ENUM_FLAG_OPERATORS(SampleFlags);
-
-enum SurfaceMapFlags : uint32 // [LegoRR/Map3D.c|flags:0x4|type:uint]
-{
-	SURFMAP_NONE  = 0,
-	SURFMAP_UNK_2 = 0x2,
-};
-DEFINE_ENUM_FLAG_OPERATORS(SurfaceMapFlags);
-
-enum SurfaceMapStruct28Flags : uint8 // [LegoRR/Map3D.c|flags:0x1|type:byte] Flags for SurfaceMapStruct_28->byte_19
-{
-	SURFMAP_STRUCT28_NONE   = 0,
-	SURFMAP_STRUCT28_UNK_1  = 0x1,
-	SURFMAP_STRUCT28_UNK_4  = 0x4,
-	SURFMAP_STRUCT28_UNK_8  = 0x8,
-	SURFMAP_STRUCT28_UNK_10 = 0x10,
-	SURFMAP_STRUCT28_UNK_20 = 0x20,
-	SURFMAP_STRUCT28_UNK_40 = 0x40,
-};
-DEFINE_ENUM_FLAG_OPERATORS(SurfaceMapStruct28Flags);
+DEFINE_ENUM_FLAG_OPERATORS(StatsFlags3);
 
 enum SurfaceMapStruct2A8Flags : uint32 // [LegoRR/???|flags:0x4|type:uint]
 {
@@ -2447,14 +2521,14 @@ enum TutorialFlags : uint32 // [LegoRR/NERPs.c|flags:0x4|type:uint]
 };
 DEFINE_ENUM_FLAG_OPERATORS(TutorialFlags);
 
-enum WadEntryFlags : uint32 // [Gods98/Wad.c|flags:0x4|type:uint]
+enum Wad_EntryFlags : uint32 // [Gods98/Wad.c|flags:0x4|type:uint]
 {
-	WAD_FILE_NONE         = 0,
-	WAD_FILE_UNCOMPRESSED = 0x1,
-	WAD_FILE_RNCOMPRESSED = 0x2,
-	WAD_FILE_IS_IN_WAD    = 0x4,
+	WADENTRY_FLAG_NONE         = 0,
+	WADENTRY_FLAG_UNCOMPRESSED = 0x1,
+	WADENTRY_FLAG_RNCOMPRESSED = 0x2,
+	WADENTRY_FLAG_IS_IN_WAD    = 0x4,
 };
-DEFINE_ENUM_FLAG_OPERATORS(WadEntryFlags);
+DEFINE_ENUM_FLAG_OPERATORS(Wad_EntryFlags);
 
 enum WaterFlags : uint32 // [LegoRR/Water.c|flags:0x4|type:uint]
 {
@@ -2474,13 +2548,13 @@ union File_union // [Gods98/Files.c|union:0x4]
 	/*4*/
 };
 
-union MenuItemData_union // [LegoRR/FrontEnd.c|union:0x4]
+union MenuItem_Data_union // [LegoRR/FrontEnd.c|union:0x4]
 {
-	/*0,4*/	MenuItemCycle* cycle;
-	/*0,4*/	MenuItemTrigger* trigger;
-	/*0,4*/	MenuItemSlider* slider;
-	/*0,4*/	MenuItemRealSlider* realSlider;
-	/*0,4*/	SubMenu* next;
+	/*0,4*/	MenuItem_CycleData* cycle;
+	/*0,4*/	MenuItem_TriggerData* trigger;
+	/*0,4*/	MenuItem_SliderData* slider;
+	/*0,4*/	MenuItem_RealSliderData* realSlider;
+	/*0,4*/	Menu* next;
 	/*4*/
 };
 
@@ -2492,7 +2566,7 @@ struct Advisor_Globs // [LegoRR/Advisor.c|struct:0x410|tags:GLOBS]
 	/*054,2f4*/	AdvisorPositionData advisorPositions[21];
 	/*348,2c*/	char* animName[11];
 	/*374,84*/	AdvisorAnimData advisorAnims[11];
-	/*3f8,4*/	AdvisorType currentType;
+	/*3f8,4*/	Advisor_Type currentType;
 	/*3fc,4*/	Container* cameraCont;
 	/*400,4*/	Viewport* viewMain;
 	/*404,4*/	real32 position_Z; // Always set to 0.96f  (was probably configurable at one point)
@@ -2511,10 +2585,10 @@ struct AdvisorAnimData // [LegoRR/Advisor.c|struct:0xc]
 
 struct AdvisorPositionData // [LegoRR/Advisor.c|struct:0x24]
 {
-	/*00,4*/	AdvisorAnimType animType;
-	/*04,4*/	TextType textType;
+	/*00,4*/	Advisor_Anim animType;
+	/*04,4*/	Text_Type textType;
 	/*08,4*/	sint32 sfxIndex;
-	/*0c,4*/	PanelType panelType;
+	/*0c,4*/	Panel_Type panelType;
 	/*10,8*/	Point2F point1;
 	/*18,8*/	Point2F point2; // Identical to point1
 	/*20,4*/	AdvisorPositionFlags flags; // (init: 0x20000), 0x10000 = NULL panel, 0x40000 = non-NULL text
@@ -2523,17 +2597,17 @@ struct AdvisorPositionData // [LegoRR/Advisor.c|struct:0x24]
 
 struct AI_Globs // [LegoRR/AITask.c|struct:0x4e9c|tags:GLOBS]
 {
-	/*0000,30*/	AITaskData* listSet[12];
-	/*0030,4*/	AITaskData* freeList;
+	/*0000,30*/	AITask* listSet[12];
+	/*0030,4*/	AITask* freeList;
 	/*0034,4*/	uint32 listCount;
 	/*0038,7c*/	char* aitaskName[31];
 	/*00b4,6c*/	char* priorityName[27];
 	/*0120,6c*/	uint32 priorityValues[27];
-	/*018c,4*/	AITaskData* AITaskUnkPtr;
-	/*0190,4*/	AITaskData* AITaskDataNext;
-	/*0194,c8*/	LiveObject* liveObjsTable_1[50];
+	/*018c,4*/	AITask* AITaskUnkPtr;
+	/*0190,4*/	AITask* AITaskDataNext;
+	/*0194,c8*/	LegoObject* liveObjsTable_1[50];
 	/*025c,4*/	uint32 liveObjsCount_1;
-	/*0260,c8*/	LiveObject* liveObjsTable_2[50];
+	/*0260,c8*/	LegoObject* liveObjsTable_2[50];
 	/*0328,4*/	uint32 liveObjsCount_2;
 	/*032c,4b00*/	uint32 requestObjCounts[20][15][16];
 	/*4e2c,6c*/	bool32 disabledPriorities[27];
@@ -2541,32 +2615,32 @@ struct AI_Globs // [LegoRR/AITask.c|struct:0x4e9c|tags:GLOBS]
 	/*4e9c*/
 };
 
-struct AITaskData // [LegoRR/AITask.c|struct:0x68|tags:LISTSET]
+struct AITask // [LegoRR/AITask.c|struct:0x68|tags:LISTSET]
 {
-	/*00,4*/	AITaskType taskType;
+	/*00,4*/	AITask_Type taskType;
 	/*04,4*/	undefined4 field_4;
 	/*08,8*/	Point2I blockPos;
-	/*10,4*/	LiveObject* object_10;
+	/*10,4*/	LegoObject* object_10;
 	/*14,4*/	real32 unkExpiryTime;
 	/*18,4*/	real32 float_18;
 	/*1c,4*/	uint32 priorityValue;
-	/*20,4*/	ObjectType objType;
+	/*20,4*/	LegoObject_Type objType;
 	/*24,4*/	sint32 objIndex;
 	/*28,4*/	sint32 objLevel;
 	/*2c,4*/	undefined4 field_2c;
 	/*30,8*/	Point2F pointf_30; // probably a table
-	/*38,4*/	ToolType toolType;
+	/*38,4*/	LegoObject_ToolType toolType;
 	/*3c,4*/	undefined4 mode_3c;
-	/*40,4*/	void* ptr_40;
-	/*44,4*/	undefined4 field_44;
-	/*48,4*/	LiveObject* object_48;
-	/*4c,4*/	AIPriorityType priorityType;
+	/*40,4*/	LegoObject** unitList;
+	/*44,4*/	uint32 unitListCount;
+	/*48,4*/	LegoObject* object_48;
+	/*4c,4*/	AI_Priority priorityType;
 	/*50,4*/	uint32 taskStartTime;
-	/*54,4*/	MessageType completeAction;
-	/*58,4*/	AITaskData* aiTask_58;
-	/*5c,4*/	uint32 flags_5c; // not set means ptr_40 is assigned
-	/*60,4*/	AITaskData* next; // assigned to DAT_004b4358
-	/*64,4*/	AITaskData* nextFree; // (for listSet)
+	/*54,4*/	Message_Type completeAction;
+	/*58,4*/	AITask* aiTask_58;
+	/*5c,4*/	AITaskFlags flags; // not set means ptr_40 is assigned
+	/*60,4*/	AITask* next; // assigned to DAT_004b4358
+	/*64,4*/	AITask* nextFree; // (for listSet)
 	/*68*/
 };
 
@@ -2636,6 +2710,14 @@ struct BatFlocks_Globs // [LegoRR/Flocks.c|struct:0x10|tags:GLOBS] (struct name 
 	/*10*/
 };
 
+struct BezierCurve // [LegoRR/Routing.c|struct:0x25c]
+{
+	/*000,4*/	uint32 count;
+	/*004,190*/	Point2F points[50];
+	/*194,c8*/	real32 distances[50];
+	/*25c*/
+};
+
 #pragma pack(push, 2)
 struct BITMAP_FILE_INFO_STRUCT // [Gods98/dummy.c|struct:0x3a|pack:2] Helper struct to combine both BITMAPFILEHEADER, BITMAPINFOHEADER, and palette data into one field
 {
@@ -2657,7 +2739,7 @@ struct BlockConstruction // [LegoRR/Construction.c|struct:0xd4]
 	/*1c,8*/	undefined field_0x1c_0x23[8];
 	/*24,4*/	BlockConstruction* next_24;
 	/*28,4*/	undefined field_0x28_0x2b[4];
-	/*2c,4*/	LiveObject* liveObjs_2c[1];
+	/*2c,4*/	LegoObject* liveObjs_2c[1];
 	/*30,9c*/	undefined field_0x30_0xcb[156];
 	/*cc,4*/	uint32 liveObjsCount_cc;
 	/*d0,4*/	uint32 flags;
@@ -2666,7 +2748,7 @@ struct BlockConstruction // [LegoRR/Construction.c|struct:0xd4]
 
 struct BlockElectricFence // [LegoRR/ElectricFence.c|struct:0x14|tags:LISTSET]
 {
-	/*00,4*/	LiveObject* attachedObject;
+	/*00,4*/	LegoObject* attachedObject;
 	/*04,8*/	Point2I blockPos;
 	/*0c,4*/	real32 timer;
 	/*10,4*/	BlockElectricFence* nextFree; // (for listSet)
@@ -2682,10 +2764,35 @@ struct BlockPointer // [LegoRR/NERPs.c|struct:0xc]
 
 struct BlockSpiderWeb // [LegoRR/SpiderWeb.c|struct:0xc]
 {
-	/*0,4*/	LiveObject* object; // "SpiderWeb" LiveObject
+	/*0,4*/	LegoObject* object; // "SpiderWeb" LiveObject
 	/*4,4*/	real32 health; // Assumed as health, init: 100.0f
 	/*8,4*/	BlockSpiderWebFlags flags;
 	/*c*/
+};
+
+struct Box2F // [common.c|struct:0x10]
+{
+	/*00,4*/	real32 x1;
+	/*04,4*/	real32 y1;
+	/*08,4*/	real32 x2;
+	/*0c,4*/	real32 y2;
+	/*10*/
+};
+
+struct Box2I // [common.c|struct:0x10]
+{
+	/*00,4*/	sint32 x1;
+	/*04,4*/	sint32 y1;
+	/*08,4*/	sint32 x2;
+	/*0c,4*/	sint32 y2;
+	/*10*/
+};
+
+struct Box3F // [common.c|struct:0x18] Box3F
+{
+	/*00,c*/	Vector3F min;
+	/*0c,c*/	Vector3F max;
+	/*18*/
 };
 
 struct Bubble_Globs // [LegoRR/Bubble.c|struct:0x4f4|tags:GLOBS]
@@ -2703,7 +2810,7 @@ struct Bubble_Globs // [LegoRR/Bubble.c|struct:0x4f4|tags:GLOBS]
 
 struct BubbleData // [LegoRR/Bubble.c|struct:0x8]
 {
-	/*0,4*/	LiveObject* object_0;
+	/*0,4*/	LegoObject* object_0;
 	/*4,4*/	real32 float_4;
 	/*8*/
 };
@@ -2742,56 +2849,13 @@ struct BuildingData // [LegoRR/Building.c|struct:0x14c]
 	/*14c*/
 };
 
-struct Camera // [LegoRR/LegoCamera.c|struct:0xbc] May be camera data (which is related to- but not the same as viewports)
-{
-	/*00,4*/	CameraType camType;
-	/*04,4*/	LiveObject* trackObj;
-	/*08,4*/	real32 trackRadarFloat_8;
-	/*0c,4*/	real32 trackRadarDist;
-	/*10,4*/	real32 trackRadarYawSpeed; // A constant yaw H rotation speed applied to tracked radar objects
-	/*14,4*/	undefined4 trackFPCameraFrame; // CameraFrameIndex for FP object SwapPolyFP
-	/*18,c*/	Vector3F moveVector; // current 3D (really 2D) movement and directional speed
-	/*24,4*/	Container* contCam; // only cont created for FP type (child of contRoot if FP)
-	/*28,4*/	Container* cont2; // child of contRoot
-	/*2c,4*/	Container* cont3; // child of contRoot
-	/*30,4*/	Container* cont4; // child of cont2
-	/*34,4*/	Container* contListener; // child of cont4 (topdown type only)
-	/*38,40*/	undefined reserved1[64];
-	/*78,4*/	real32 tilt; // (init: 0.0f) current tilt (Pitch, V Rotation)
-	/*7c,8*/	Range2F tiltRange; // min/max tilt (Pitch, V Rotation)
-	/*84,4*/	real32 yaw; // (init: 0.0f) current yaw (Angle, H Rotation)
-	/*88,8*/	Range2F yawRange; // min/max yaw (Angle, H Rotation)
-	/*90,4*/	real32 dist; // (init: 200.0f) current dist (Zoom)
-	/*94,8*/	Range2F distRange; // min/max dist (Zoom)
-	/*9c,4*/	real32 moveSpeed; // current 3D (really 2D) movement speed
-	/*a0,4*/	real32 shakeIntensity;
-	/*a4,4*/	real32 shakeDuration;
-	/*a8,4*/	real32 shakeFloat_a8;
-	/*ac,c*/	Vector3F shakeVector;
-	/*b8,4*/	CameraFlags flags;
-	/*bc*/
-};
-
 struct Camera_Globs // [LegoRR/LegoCamera.c|struct:0x10|tags:GLOBS]
 {
-	/*00,4*/	real32 CameraSpeed; // (cfg: CameraSpeed) maximum move speed of camera
-	/*04,4*/	real32 CameraDropOff; // (cfg: CameraDropOff) movement deceleration
-	/*08,4*/	real32 CameraAcceleration; // (cfg: CameraAcceleration) movement acceleration
-	/*0c,4*/	sint32 MouseScrollIndent; // (cfg: MouseScrollIndent) area around window borders for mouse movement
+	/*00,4*/	real32 maxSpeed; // (cfg: CameraSpeed) maximum move speed of camera
+	/*04,4*/	real32 deceleration; // (cfg: CameraDropOff) movement deceleration
+	/*08,4*/	real32 acceleration; // (cfg: CameraAcceleration) movement acceleration
+	/*0c,4*/	sint32 mouseScrollIndent; // (cfg: MouseScrollIndent) area around window borders for mouse movement
 	/*10*/
-};
-
-struct CFGProperty // [Gods98/Config.c|struct:0x20|tags:LISTSET] CFG file property node
-{
-	/*00,4*/	char* fileData; // Entire file text data for root CFGProperty only
-	/*04,4*/	char* key; // Property or block key name
-	/*08,4*/	char* value; // Property value or block open brace
-	/*0c,4*/	uint32 depth; // Block-depth of property
-	/*10,4*/	uint32 itemHashCode; // Hash of item (unused)
-	/*14,4*/	CFGProperty* linkNext; // Next property in linked list
-	/*18,4*/	CFGProperty* linkPrev; // Previous property in linked list
-	/*1c,4*/	CFGProperty* nextFree; // (internal) used for allocation while reading(?)
-	/*20*/
 };
 
 struct ColourRGBAF // [common.c|struct:0x10]
@@ -2849,13 +2913,26 @@ struct ColourRGBPacked // [common.c|struct:0x3|pack:1]
 };
 #pragma pack(pop)
 
+struct Config // [Gods98/Config.c|struct:0x20|tags:LISTSET] CFG file property node
+{
+	/*00,4*/	char* fileData; // Entire file text data for root CFGProperty only
+	/*04,4*/	char* key; // Property or block key name
+	/*08,4*/	char* value; // Property value or block open brace
+	/*0c,4*/	uint32 depth; // Block-depth of property
+	/*10,4*/	uint32 itemHashCode; // Hash of item (unused)
+	/*14,4*/	Config* linkNext; // Next property in linked list
+	/*18,4*/	Config* linkPrev; // Previous property in linked list
+	/*1c,4*/	Config* nextFree; // (internal) used for allocation while reading(?)
+	/*20*/
+};
+
 struct Config_Globs // [Gods98/Config.c|struct:0x48c|tags:GLOBS]
 {
 	/*000,400*/	char s_JoinPath_string[1024]; // (not part of Manager, static array in JoinPath func)
-	/*400,80*/	CFGProperty* listSet[32];
-	/*480,4*/	CFGProperty* freeList;
+	/*400,80*/	Config* listSet[32];
+	/*480,4*/	Config* freeList;
 	/*484,4*/	uint32 listCount;
-	/*488,4*/	uint32 flags;
+	/*488,4*/	Config_GlobFlags flags;
 	/*48c*/
 };
 
@@ -2976,10 +3053,10 @@ struct Container_TypeData // [Gods98/Containers.c|struct:0x10]
 	/*10*/
 };
 
-struct Coord2I // [common.c|struct:0x4] Point2I structure using short-sized integers (name is based off the WINAPI console structure COORD, using the same ,layout)
+struct Coord2U // [common.c|struct:0x4] Point2U structure using short-sized integers (name is based off the WINAPI console structure COORD, using the same layout)
 {
-	/*0,2*/	sint16 sx;
-	/*2,2*/	sint16 sy;
+	/*0,2*/	uint16 x;
+	/*2,2*/	uint16 y;
 	/*4*/
 };
 
@@ -3003,9 +3080,9 @@ struct CreatureData // [LegoRR/Creature.c|struct:0x74] Possibly alphabetically c
 	/*4c,4*/	Container* cont_4c;
 	/*50,4*/	undefined4 field_50;
 	/*54,10*/	Container* cameraFramesTable_54[4];
-	/*64,4*/	PolyMeshData* polyMedium;
-	/*68,4*/	PolyMeshData* polyHigh;
-	/*6c,4*/	PolyMeshData* polyFP;
+	/*64,4*/	MeshLOD* polyMedium;
+	/*68,4*/	MeshLOD* polyHigh;
+	/*6c,4*/	MeshLOD* polyFP;
 	/*70,4*/	uint32 flags;
 	/*74*/
 };
@@ -3017,29 +3094,25 @@ struct CryTuple_8 // [LegoRR/FrontEnd.c|struct:0x8]
 	/*8*/
 };
 
-struct D3DRMBox // [common.c|struct:0x18] Box3F
-{
-	/*00,c*/	Vector3F min;
-	/*0c,c*/	Vector3F max;
-	/*18*/
-};
-
-struct Vertex3F // [common.c|struct:0x24] Vertex3F, Extension of D3DVertex with color field
-{
-	/*00,c*/	Vector3F position; // Homogeneous coordinates
-	/*0c,c*/	Vector3F normal; // Normal
-	/*18,4*/	real32 tu; // Texture coordinates
-	/*1c,4*/	real32 tv; // Texture coordinates
-	/*20,4*/	DWORD colour;
-	/*24*/
-};
-
 struct DamageFont_Globs // [LegoRR/DamageFont.c|struct:0x16c|tags:GLOBS]
 {
 	/*000,28*/	Container_Texture* fontTextDigitsTable[10];
 	/*028,4*/	Container_Texture* fontTextMinus;
-	/*02c,140*/	HealthFontData instanceTable[10];
+	/*02c,140*/	DamageFontData instanceTable[10];
 	/*16c*/
+};
+
+struct DamageFontData // [LegoRR/DamageFont.c|struct:0x20]
+{
+	/*00,4*/	Container* ownerCont;
+	/*04,4*/	Mesh* mesh;
+	/*08,4*/	uint32 groupCount;
+	/*0c,4*/	real32 float_c;
+	/*10,4*/	real32 float_10;
+	/*14,4*/	real32 timerDown;
+	/*18,4*/	real32 timerUp;
+	/*1c,4*/	uint32 flags;
+	/*20*/
 };
 
 struct Dependencies_Globs // [LegoRR/Dependencies.c|struct:0xe5b4|tags:GLOBS]
@@ -3060,7 +3133,7 @@ struct DependencyData // [LegoRR/Dependencies.c|struct:0xc4]
 
 struct DependencyRequirement // [LegoRR/Dependencies.c|struct:0x10]
 {
-	/*00,4*/	ObjectType objType;
+	/*00,4*/	LegoObject_Type objType;
 	/*04,4*/	sint32 objIndex;
 	/*08,4*/	sint32 objLevel;
 	/*0c,4*/	bool32 hasLevel;
@@ -3069,7 +3142,7 @@ struct DependencyRequirement // [LegoRR/Dependencies.c|struct:0x10]
 
 struct DependencyUnlocks // [LegoRR/Dependencies.c|struct:0x204]
 {
-	/*000,80*/	ObjectType objTypes[32];
+	/*000,80*/	LegoObject_Type objTypes[32];
 	/*080,80*/	sint32 objIndexes[32];
 	/*100,80*/	sint32 objLevels[32];
 	/*180,80*/	bool32 objHasLevels[32]; // (unlocks for a specific level)
@@ -3077,20 +3150,22 @@ struct DependencyUnlocks // [LegoRR/Dependencies.c|struct:0x204]
 	/*204*/
 };
 
-struct DirectDraw_Device // [Gods98/DirectDraw.c|struct:0x114]
+struct Detail_Mesh // [LegoRR/???|struct:0x340]
 {
-	/*000,10*/	GUID guid;
-	/*010,100*/	char desc[256]; // "name (description)"
-	/*110,4*/	DirectDraw_DeviceFlags flags;
-	/*114*/
+	/*000,8*/	Container* promesh_ab[2];
+	/*008,320*/	undefined4 table_ab[2][100];
+	/*328,4*/	real32 BlockSize;
+	/*32c,4*/	undefined4 field_32c;
+	/*330,c*/	undefined field_0x330_0x33b[12];
+	/*33c,4*/	Detail_TextureSet* textureSet;
+	/*340*/
 };
 
-struct DirectDraw_Driver // [Gods98/DirectDraw.c|struct:0x114]
+struct Detail_TextureSet // [LegoRR/???|struct:0xc]
 {
-	/*000,10*/	GUID guid;
-	/*010,100*/	char desc[256]; // "name (description)"
-	/*110,4*/	DirectDraw_DriverFlags flags;
-	/*114*/
+	/*0,8*/	Size2I gridSize;
+	/*8,4*/	Container_Texture** gridSurfaces;
+	/*c*/
 };
 
 struct DirectDraw_Globs // [Gods98/DirectDraw.c|struct:0x48|tags:GLOBS]
@@ -3102,11 +3177,11 @@ struct DirectDraw_Globs // [Gods98/DirectDraw.c|struct:0x48|tags:GLOBS]
 	/*10,4*/	IDirectDrawSurface4* zSurf; // (unused)
 	/*14,4*/	IDirectDrawClipper* lpFrontClipper; // "RenderTarget" clipper
 	/*18,4*/	IDirectDrawClipper* lpBackClipper; // "DrawTarget" clipper
-	/*1c,4*/	DirectDraw_Driver* driverList;
-	/*20,4*/	DirectDraw_Driver* selectedDriver; // (unused)
-	/*24,4*/	DirectDraw_Device* deviceList;
-	/*28,4*/	DirectDraw_Device* selectedDevice; // (unused)
-	/*2c,4*/	DirectDraw_Mode* modeList; // "ScreenModes"
+	/*1c,4*/	Graphics_Driver* driverList;
+	/*20,4*/	Graphics_Driver* selectedDriver; // (unused)
+	/*24,4*/	Graphics_Device* deviceList;
+	/*28,4*/	Graphics_Device* selectedDevice; // (unused)
+	/*2c,4*/	Graphics_Mode* modeList; // "ScreenModes"
 	/*30,4*/	uint32 driverCount;
 	/*34,4*/	uint32 deviceCount;
 	/*38,4*/	uint32 modeCount; // "ScreenModes"
@@ -3114,16 +3189,6 @@ struct DirectDraw_Globs // [Gods98/DirectDraw.c|struct:0x48|tags:GLOBS]
 	/*40,4*/	uint32 width;
 	/*44,4*/	uint32 height;
 	/*48*/
-};
-
-struct DirectDraw_Mode // [Gods98/DirectDraw.c|struct:0x110]
-{
-	/*000,4*/	uint32 width;
-	/*004,4*/	uint32 height;
-	/*008,4*/	uint32 bitDepth;
-	/*00c,100*/	char desc[256]; // "WxH (BPP bit)", "WxH" (windowed)
-	/*10c,4*/	DirectDraw_ModeFlags flags;
-	/*110*/
 };
 
 struct Draw_Globs // [Gods98/Draw.c|struct:0x4c|tags:GLOBS]
@@ -3141,7 +3206,7 @@ struct Draw_Globs // [Gods98/Draw.c|struct:0x4c|tags:GLOBS]
 	/*3c,4*/	uint32 redBits;
 	/*40,4*/	uint32 greenBits;
 	/*44,4*/	uint32 blueBits;
-	/*48,4*/	uint32 flags;
+	/*48,4*/	Draw_GlobFlags flags;
 	/*4c*/
 };
 
@@ -3225,11 +3290,27 @@ struct EffectRockFall // [LegoRR/Effects.c|struct:0xa4]
 struct ElectricFence_Globs // [LegoRR/ElectricFence.c|struct:0x90|tags:GLOBS]
 {
 	/*00,4*/	BlockElectricFence* fenceGrid; // BlockElectricFence[width * height]
-	/*04,4*/	LevelData* level;
+	/*04,4*/	Lego_Level* level;
 	/*08,80*/	BlockElectricFence* listSet[32];
 	/*88,4*/	BlockElectricFence* freeList;
 	/*8c,4*/	uint32 listCount; // (no flags)
 	/*90*/
+};
+
+struct EmergeBlock // [LegoRR/Lego.c|struct:0xc]
+{
+	/*0,8*/	Point2I blockPos;
+	/*8,4*/	bool32 used;
+	/*c*/
+};
+
+struct EmergeTrigger // [LegoRR/Lego.c|struct:0x4c]
+{
+	/*00,4*/	undefined4 field_0;
+	/*04,8*/	Point2I blockPos;
+	/*0c,4*/	real32 timeout;
+	/*10,3c*/	EmergeBlock emergePoints[5];
+	/*4c*/
 };
 
 struct Encyclopedia_Globs // [LegoRR/Encyclopedia.c|struct:0x24|tags:GLOBS]
@@ -3241,7 +3322,7 @@ struct Encyclopedia_Globs // [LegoRR/Encyclopedia.c|struct:0x24|tags:GLOBS]
 	/*10,4*/	File* powercrystalFile;
 	/*14,4*/	File* oreFile;
 	/*18,4*/	File* currentObjFile;
-	/*1c,4*/	LiveObject* currentObj;
+	/*1c,4*/	LegoObject* currentObj;
 	/*20,4*/	uint32 flags;
 	/*24*/
 };
@@ -3284,7 +3365,7 @@ struct Fallin_Globs // [LegoRR/Fallin.c|struct:0x4|tags:GLOBS] Just a single fie
 
 struct File // [Gods98/Files.c|struct:0x8]
 {
-	/*0,4*/	FileSystemType type;
+	/*0,4*/	FileSys type;
 	/*4,4*/	File_union stream;
 	/*8*/
 };
@@ -3431,6 +3512,79 @@ struct Font_Globs // [Gods98/Fonts.c|struct:0x8c|tags:GLOBS]
 	/*8c*/
 };
 
+struct Front_Globs // [LegoRR/FrontEnd.c|struct:0x884|tags:GLOBS]
+{
+	/*000,4*/	MenuSet* pausedMenuSet;
+	/*004,4*/	MenuSet* mainMenuSet;
+	/*008,4*/	MenuSet* optionsMenuSet;
+	/*00c,4*/	MenuSet* saveMenuSet;
+	/*010,14*/	LevelSet tutorialLevels;
+	/*024,14*/	LevelSet missionLevels;
+	/*038,4*/	LevelInfo* startMissionInfo;
+	/*03c,4*/	LevelInfo* startTutorialInfo;
+	/*040,10*/	undefined4 reserved1[4];
+	/*050,4*/	sint32 triggerCredits; // [trigger: 1=play credits]
+	/*054,8*/	undefined4 reserved2[2];
+	/*05c,4*/	sint32 triggerYesQuit; // [trigger: 1=yes, quit game]
+	/*060,4*/	sint32 unusedMissionNumber; // (always -1)
+	/*064,4*/	sint32 unusedTutorialNumber; // (always -1)
+	/*068,4*/	sint32 currLevelSel; // [levelselect: index=hoverLevel?]
+	/*06c,4*/	sint32 triggerContinueMission; // [trigger: 1=close pause menu]
+	/*070,4*/	sint32 sliderGameSpeed; // [slider: 0-5]
+	/*074,4*/	sint32 sliderSFXVolume; // [slider: 0-10]
+	/*078,4*/	sint32 sliderMusicVolume; // [slider: 0-10]
+	/*07c,4*/	sint32 sliderBrightness; // [slider: 0-10]
+	/*080,4*/	sint32 cycleHelpWindow; // [cycle: Off,On]
+	/*084,4*/	sint32 triggerReplayObjective; // [trigger: 1=replay]
+	/*088,4*/	sint32 triggerQuitMission; // [trigger: 1=quit level]
+	/*08c,4*/	sint32 triggerRestartMission; // [trigger: 1=restart level]
+	/*090,4*/	sint32 cycleWallDetail; // [cycle: High,Low]
+	/*094,4*/	sint32 cycleMusicOn; // [cycle: On,Off]
+	/*098,4*/	sint32 cycleSFXOn; // [cycle: On,Off]
+	/*09c,4*/	sint32 cycleAutoGameSpeed; // [cycle: On,Off]
+	/*0a0,4*/	sint32 triggerBackSave; // [trigger: 1=leave save menu]
+	/*0a4,8*/	Point2I overlayPosition;
+	/*0ac,4*/	Flic* overlayImageOrFlic; // Image* or Flic* type
+	/*0b0,4*/	uint32 overlayStartTime; // starting Main_GetTime (millliseconds)
+	/*0b4,4*/	uint32 overlayCurrTime; // current Main_GetTime (millliseconds)
+	/*0b8,4*/	Font* versionFont; // (file: bmpMbriefFONT2)
+	/*0bc,4*/	char* versionString; // (cfg: Main::Version)
+	/*0c0,450*/	SaveData saveData[6];
+	/*510,4*/	sint32 saveNumber;
+	/*514,4*/	char* strDefaultLevelBMPS; // (cfg: Menu::DefaultLevelBMPS) memory storage
+	/*518,4*/	undefined4 reserved3;
+	/*51c,8*/	Point2F scrollOffset; // Offset position in level select (or anywhere else with a larger menu image)
+	/*524,8*/	undefined4 reserved4[2];
+	/*52c,4*/	Container* rockWipeAnim;
+	/*530,1*/	Front_RockWipeFlags rockWipeFlags;
+	/*531,3*/	undefined padding1[3];
+	/*534,4*/	real32 rockWipeSFXTimer;
+	/*538,4*/	real32 rockWipeSFXStartTime;
+	/*53c,4*/	Container* rockWipeLight;
+	/*540,4*/	bool32 saveBool_540;
+	/*544,4*/	bool32 isLoadModeBool_544;
+	/*548,4*/	bool32 saveBool_548;
+	/*54c,8*/	Size2I saveImageBigSize;
+	/*554,40*/	char langLoadGame[64];
+	/*594,40*/	char langSaveGame[64];
+	/*5d4,4*/	MenuTextWindow* saveTextWnd;
+	/*5d8,4*/	MenuTextWindow* saveLevelWnd;
+	/*5dc,80*/	char langOverwriteTitle[128];
+	/*65c,100*/	char langOverwriteMessage[256];
+	/*75c,80*/	char langOverwriteOK[128];
+	/*7dc,80*/	char langOverwriteCancel[128];
+	/*85c,4*/	bool32 saveBool_85c;
+	/*860,4*/	undefined4 reserved5;
+	/*864,4*/	undefined4 unused_zero_864; // (init: 0) Set to 0 and never touched?
+	/*868,4*/	sint32 maxLevelScreens;
+	/*86c,8*/	undefined4 reserved6[2];
+	/*874,4*/	uint32 levelSelectHoverNumber;
+	/*878,4*/	uint32 levelSelectLastNumber;
+	/*87c,4*/	bool32 levelSelectSFXPlaying;
+	/*880,4*/	real32 levelSelectSFXTimer;
+	/*884*/
+};
+
 struct G98CAnimation // [Gods98/Animation.c|struct:0xc4|tags:CLASS,VIRTUAL]
 {
 	/*00,4*/	G98CAnimationVtbl* vftable;
@@ -3523,27 +3677,40 @@ struct GameControl_Globs // [LegoRR/???|struct:0x180|tags:GLOBS]
 	/*158,4*/	bool32 mslr_Last_0;
 	/*15c,4*/	real32 elapsed_15c;
 	/*160,4*/	bool32 bool_160;
-	/*164,4*/	LiveObject* object_164;
+	/*164,4*/	LegoObject* object_164;
 	/*168,4*/	bool32 dbgF10InvertLighting;
-	/*16c,4*/	bool32 dbgF9CameraEditMode;
+	/*16c,4*/	bool32 dbgF9DisableLightEffects;
 	/*170,4*/	undefined4 reserved3;
-	/*174,4*/	LiveObject* dbgGetInVehicle; // (K debug key, assigned to selected vehicle, pressing K with a rock raider will tell them to get in this registered vehicle)
+	/*174,4*/	LegoObject* dbgGetInVehicle; // (K debug key, assigned to selected vehicle, pressing K with a rock raider will tell them to get in this registered vehicle)
 	/*178,4*/	Direction direction_178;
 	/*17c,4*/	real32 timerTutorialBlockFlash;
 	/*180*/
 };
 
-struct HealthFontData // [LegoRR/DamageFont.c|struct:0x20]
+struct Graphics_Device // [Gods98/DirectDraw.c|struct:0x114]
 {
-	/*00,4*/	Container* ownerCont;
-	/*04,4*/	Mesh* mesh;
-	/*08,4*/	uint32 groupCount;
-	/*0c,4*/	real32 float_c;
-	/*10,4*/	real32 float_10;
-	/*14,4*/	real32 timerDown;
-	/*18,4*/	real32 timerUp;
-	/*1c,4*/	uint32 flags;
-	/*20*/
+	/*000,10*/	GUID guid;
+	/*010,100*/	char desc[256]; // "name (description)"
+	/*110,4*/	Graphics_DeviceFlags flags;
+	/*114*/
+};
+
+struct Graphics_Driver // [Gods98/DirectDraw.c|struct:0x114]
+{
+	/*000,10*/	GUID guid;
+	/*010,100*/	char desc[256]; // "name (description)"
+	/*110,4*/	Graphics_DriverFlags flags;
+	/*114*/
+};
+
+struct Graphics_Mode // [Gods98/DirectDraw.c|struct:0x110]
+{
+	/*000,4*/	uint32 width;
+	/*004,4*/	uint32 height;
+	/*008,4*/	uint32 bitDepth;
+	/*00c,100*/	char desc[256]; // "WxH (BPP bit)", "WxH" (windowed)
+	/*10c,4*/	Graphics_ModeFlags flags;
+	/*110*/
 };
 
 struct HelpWindow_Globs // [LegoRR/HelpWindow.c|struct:0xd6c|tags:GLOBS]
@@ -3562,10 +3729,10 @@ struct HelpWindow_Globs // [LegoRR/HelpWindow.c|struct:0xd6c|tags:GLOBS]
 	/*bd4,4*/	char* CanTransportMessage;
 	/*bd8,4*/	char* CanBuildAndTransportMessage;
 	/*bdc,4*/	char* activeObjName;
-	/*be0,4*/	ObjectType activeObjType;
+	/*be0,4*/	LegoObject_Type activeObjType;
 	/*be4,4*/	sint32 activeObjIndex;
 	/*be8,4*/	sint32 activeObjLevel;
-	/*bec,78*/	ObjectType unlockedObjTypes[30];
+	/*bec,78*/	LegoObject_Type unlockedObjTypes[30];
 	/*c64,78*/	sint32 unlockedObjIndexes[30];
 	/*cdc,78*/	sint32 unlockedObjLevels[30];
 	/*d54,4*/	uint32 unlockedCount;
@@ -3589,7 +3756,7 @@ struct HiddenObject // [LegoRR/LegoObject.c|struct:0x2c] Name is only guessed
 	/*08,8*/	Point2F worldPos;
 	/*10,4*/	real32 heading;
 	/*14,4*/	void* objSrcData;
-	/*18,4*/	ObjectType objType;
+	/*18,4*/	LegoObject_Type objType;
 	/*1c,4*/	sint32 objIndex;
 	/*20,4*/	real32 health;
 	/*24,4*/	char* thisOLName;
@@ -3656,7 +3823,7 @@ struct InfoData // [LegoRR/Info.c|struct:0x14]
 {
 	/*00,4*/	char* text;
 	/*04,4*/	void* ptr_4; // struct size of >= 0xc (int field_4, inf field_8)
-	/*08,4*/	SFXType sfxType;
+	/*08,4*/	SFX_Type sfxType;
 	/*0c,4*/	real32 float_c;
 	/*10,4*/	InfoDataFlags flags;
 	/*14*/
@@ -3666,7 +3833,7 @@ struct InfoMessage // [LegoRR/Info.c|struct:0x14]
 {
 	/*00,4*/	InfoMessageInstance* instance;
 	/*04,4*/	uint32 instanceCount;
-	/*08,4*/	InfoType infoType;
+	/*08,4*/	Info_Type infoType;
 	/*0c,4*/	real32 float_c;
 	/*10,4*/	InfoMessage* next;
 	/*14*/
@@ -3675,7 +3842,7 @@ struct InfoMessage // [LegoRR/Info.c|struct:0x14]
 struct InfoMessageInstance // [LegoRR/Info.c|struct:0x14]
 {
 	/*00,8*/	Point2I blockPos; // (-1, -1) for NULL blockPos
-	/*08,4*/	LiveObject* object;
+	/*08,4*/	LegoObject* object;
 	/*0c,4*/	char* text;
 	/*10,4*/	InfoMessageInstance* next;
 	/*14*/
@@ -3686,15 +3853,15 @@ struct Init_Globs // [Gods98Init/Init.c|struct:0x1d444|tags:GLOBS]
 	/*00000,4*/	uint32 driverCount;
 	/*00004,4*/	uint32 deviceCount;
 	/*00008,4*/	uint32 modeCount;
-	/*0000c,1590*/	DirectDraw_Driver drivers[20];
-	/*0159c,1590*/	DirectDraw_Device devices[20];
-	/*02b2c,d480*/	DirectDraw_Mode modes[200];
-	/*0ffac,4*/	DirectDraw_Driver* selDriver;
-	/*0ffb0,4*/	DirectDraw_Device* selDevice;
-	/*0ffb4,4*/	DirectDraw_Mode* selMode;
+	/*0000c,1590*/	Graphics_Driver drivers[20];
+	/*0159c,1590*/	Graphics_Device devices[20];
+	/*02b2c,d480*/	Graphics_Mode modes[200];
+	/*0ffac,4*/	Graphics_Driver* selDriver;
+	/*0ffb0,4*/	Graphics_Device* selDevice;
+	/*0ffb4,4*/	Graphics_Mode* selMode;
 	/*0ffb8,4*/	bool32 selFullScreen;
 	/*0ffbc,4*/	bool32 wasFullScreen; // Previous fullscreen state when Windowed button is disabled due to lack of support
-	/*0ffc0,d480*/	DirectDraw_Mode validModes[200];
+	/*0ffc0,d480*/	Graphics_Mode validModes[200];
 	/*1d440,4*/	uint32 validModeCount;
 	/*1d444*/
 };
@@ -3733,7 +3900,7 @@ struct Input_Globs // [Gods98/Input.c|struct:0x280|tags:GLOBS]
 
 struct InterfaceMenuItem // [LegoRR/Interface.c|struct:0x8]
 {
-	/*0,4*/	MenuIcon* iconList;
+	/*0,4*/	Interface_MenuItem* iconList;
 	/*4,4*/	uint32 numIcons;
 	/*8*/
 };
@@ -3753,30 +3920,63 @@ struct Key_Globs // [Gods98/Keys.c|struct:0x400|tags:GLOBS]
 	/*400*/
 };
 
+#pragma pack(push, 1)
+struct Lego_Block // [LegoRR/Lego.c|struct:0x48|pack:1]
+{
+	/*00,1*/	PredugType predug;
+	/*01,1*/	SurfaceTexture texture;
+	/*02,1*/	TerrainType terrain;
+	/*03,1*/	uint8 direction; // clockwise (does not determine corner/wall type)
+	/*04,1*/	uint8 blockpointer;
+	/*05,1*/	CryOreType cryOre;
+	/*06,1*/	ErodeType erodeSpeed;
+	/*07,1*/	uint8 field_7;
+	/*08,4*/	BlockFlags1 flags1;
+	/*0c,4*/	BlockFlags2 flags2;
+	/*10,4*/	BlockConstruction* construct;
+	/*14,4*/	real32 damage; // drill damage [0.0-1.0]
+	/*18,4*/	LevelStruct_1c* struct1c_18;
+	/*1c,4*/	SurfaceMapStruct_2a8* smokeptr_1c;
+	/*20,2*/	sint16 randomness;
+	/*22,2*/	sint16 short_22; // (some num value, observed: != 4)
+	/*24,4*/	uint32 numLandSlides;
+	/*28,4*/	uint32 clickCount;
+	/*2c,4*/	sint32 generateCrystals;
+	/*30,4*/	sint32 generateOre;
+	/*34,1*/	uint8 aiNode;
+	/*35,3*/	undefined field_0x35_0x37[3];
+	/*38,4*/	bool32 fallinUpper; // (fallin upper: 1 if fallin > 4)
+	/*3c,4*/	sint32 fallinIntensity; // (fallin scale: 1-4)
+	/*40,4*/	real32 fallinTimer; // (randomized with full fallin value)
+	/*44,4*/	undefined4 field_44;
+	/*48*/
+};
+#pragma pack(pop)
+
 struct Lego_Globs // [LegoRR/Lego.c|struct:0xf00|tags:GLOBS]
 {
-	/*000,4*/	CFGProperty* config;
+	/*000,4*/	Config* config;
 	/*004,4*/	char* gameName;
 	/*008,4*/	undefined4 field_8;
 	/*00c,4*/	undefined4 field_c;
-	/*010,4*/	GraphicsQuality Quality;
-	/*014,4*/	LevelData* level;
-	/*018,4*/	Container* contRoot; // containerGlobs.root
+	/*010,4*/	GraphicsQuality quality; // (cfg: Main::Quality)
+	/*014,4*/	Lego_Level* currLevel;
+	/*018,4*/	Container* rootCont; // containerGlobs.root
 	/*01c,4*/	Viewport* viewMain; // Viewport area: (0.0,0.0 - 1.0x1.0)
-	/*020,4*/	Viewport* viewRadar; // Viewport area: (16,14 - 151x151)
-	/*024,4*/	Camera* cameraMain;
-	/*028,4*/	Camera* cameraRadar;
-	/*02c,4*/	Camera* cameraFP;
-	/*030,4*/	Container* contTopSpotlight;
-	/*034,4*/	Container* contTrackSpotlight;
-	/*038,4*/	Container* contFPLight;
-	/*03c,4*/	Container* contFPRotLight;
-	/*040,4*/	Container* contAmbientLight;
-	/*044,4*/	Container* contRootSpotlight;
-	/*048,4*/	Container* contRootLight;
-	/*04c,4*/	Container* contFPRotLightDefault;
-	/*050,4*/	real32 FPClipBlocks;
-	/*054,4*/	real32 TVClipDist;
+	/*020,4*/	Viewport* viewTrack; // Viewport area: (16,14 - 151x151)
+	/*024,4*/	LegoCamera* cameraMain;
+	/*028,4*/	LegoCamera* cameraTrack;
+	/*02c,4*/	LegoCamera* cameraFP;
+	/*030,4*/	Container* spotlightTop;
+	/*034,4*/	Container* spotlightTrack;
+	/*038,4*/	Container* pointLightFP;
+	/*03c,4*/	Container* dirLightFP;
+	/*040,4*/	Container* ambientLight;
+	/*044,4*/	Container* rootSpotlight;
+	/*048,4*/	Container* rootLight;
+	/*04c,4*/	Container* dirLightFPDefault;
+	/*050,4*/	real32 FPClipBlocks; // (cfg: Main::FPClipBlocks)
+	/*054,4*/	real32 TVClipDist; // (cfg: Main::TVClipDist)
 	/*058,4*/	undefined4 field_58;
 	/*05c,4*/	undefined4 field_5c;
 	/*060,4*/	undefined4 field_60;
@@ -3792,7 +3992,7 @@ struct Lego_Globs // [LegoRR/Lego.c|struct:0xf00|tags:GLOBS]
 	/*088,10*/	Point2F gotoPositions_88[2];
 	/*098,4*/	bool32 gotoBool_98;
 	/*09c,4*/	real32 gameSpeed;
-	/*0a0,4*/	LiveObject* objectFP;
+	/*0a0,4*/	LegoObject* objectFP;
 	/*0a4,c*/	Vector3F vectorDragStartUnk_a4;
 	/*0b0,4*/	real32 float_b0;
 	/*0b4,4*/	real32 float_b4;
@@ -3800,54 +4000,54 @@ struct Lego_Globs // [LegoRR/Lego.c|struct:0xf00|tags:GLOBS]
 	/*0bc,4*/	real32 float_bc;
 	/*0c0,8*/	Point2I pointi_c0;
 	/*0c8,4*/	bool32 bool_c8;
-	/*0cc,4*/	char* ObjectNames_PowerCrystal;
-	/*0d0,4*/	char* ObjectNames_Ore;
-	/*0d4,4*/	char* ObjectNames_ProcessedOre;
-	/*0d8,4*/	char* ObjectNames_Dynamite;
-	/*0dc,4*/	char* ObjectNames_Barrier;
-	/*0e0,4*/	char* ObjectNames_ElectricFence;
-	/*0e4,4*/	char* ObjectNames_SpiderWeb;
-	/*0e8,4*/	char* ObjectNames_OohScary;
-	/*0ec,4*/	char* ObjectNames_Path;
-	/*0f0,4*/	char* ObjectTheNames_PowerCrystal;
-	/*0f4,4*/	char* ObjectTheNames_Ore;
-	/*0f8,4*/	char* ObjectTheNames_ProcessedOre;
-	/*0fc,4*/	char* ObjectTheNames_Dynamite;
-	/*100,4*/	char* ObjectTheNames_Barrier;
-	/*104,4*/	char* ObjectTheNames_ElectricFence;
-	/*108,4*/	char* ObjectTheNames_SpiderWeb;
-	/*10c,4*/	char* ObjectTheNames_OohScary;
-	/*110,4*/	char* ObjectTheNames_Path;
-	/*114,4*/	VehicleData* VehicleData_TABLE;
-	/*118,4*/	CreatureData* MiniFigureData_TABLE;
-	/*11c,4*/	CreatureData* RockMonsterData_TABLE;
-	/*120,4*/	BuildingData* BuildingData_TABLE;
-	/*124,4*/	UpgradeData* UpgradeData_TABLE;
-	/*128,4*/	char** VehicleTypes_TABLE;
-	/*12c,4*/	char** MiniFigureTypes_TABLE;
-	/*130,4*/	char** RockMonsterTypes_TABLE;
-	/*134,4*/	char** BuildingTypes_TABLE;
-	/*138,4*/	char** UpgradeTypes_TABLE;
-	/*13c,2c*/	char* ToolTypes_TABLE[11];
-	/*168,2c*/	char* ToolNames_TABLE[11];
-	/*194,4*/	char** ObjectNames_VehicleTypes_TABLE;
-	/*198,4*/	char** ObjectNames_MiniFigureTypes_TABLE;
-	/*19c,4*/	char** ObjectNames_RockMonsterTypes_TABLE;
-	/*1a0,4*/	char** ObjectNames_BuildingTypes_TABLE;
-	/*1a4,4*/	char** ObjectNames_UpgradeTypes_TABLE;
-	/*1a8,4*/	char** ObjectTheNames_VehicleTypes_TABLE;
-	/*1ac,4*/	char** ObjectTheNames_MiniFigureTypes_TABLE;
-	/*1b0,4*/	char** ObjectTheNames_RockMonsterTypes_TABLE;
-	/*1b4,4*/	char** ObjectTheNames_BuildingTypes_TABLE;
-	/*1b8,4*/	char** ObjectTheNames_UpgradeTypes_TABLE;
-	/*1bc,4*/	uint32 VehicleTypes_COUNT;
-	/*1c0,4*/	uint32 MiniFigureTypes_COUNT;
-	/*1c4,4*/	uint32 RockMonsterTypes_COUNT;
-	/*1c8,4*/	uint32 BuildingTypes_COUNT;
-	/*1cc,4*/	uint32 UpgradeTypes_COUNT;
-	/*1d0,48*/	char* SurfaceTypes_TABLE[18];
-	/*218,48*/	char* SurfaceTypeDescriptions_name_TABLE[18];
-	/*260,48*/	SFXType SurfaceTypeDescriptions_sound_TABLE[18];
+	/*0cc,4*/	char* langPowerCrystal_name; // (cfg: ObjectNames)
+	/*0d0,4*/	char* langOre_name; // (cfg: ObjectNames)
+	/*0d4,4*/	char* langProcessedOre_name; // (cfg: ObjectNames)
+	/*0d8,4*/	char* langDynamite_name; // (cfg: ObjectNames)
+	/*0dc,4*/	char* langBarrier_name; // (cfg: ObjectNames)
+	/*0e0,4*/	char* langElectricFence_name; // (cfg: ObjectNames)
+	/*0e4,4*/	char* langSpiderWeb_name; // (cfg: ObjectNames)
+	/*0e8,4*/	char* langOohScary_name; // (cfg: ObjectNames)
+	/*0ec,4*/	char* langPath_name; // (cfg: ObjectNames)
+	/*0f0,4*/	char* langPowerCrystal_theName; // (cfg: ObjectTheNames)
+	/*0f4,4*/	char* langOre_theName; // (cfg: ObjectTheNames)
+	/*0f8,4*/	char* langProcessedOre_theName; // (cfg: ObjectTheNames)
+	/*0fc,4*/	char* langDynamite_theName; // (cfg: ObjectTheNames)
+	/*100,4*/	char* langBarrier_theName; // (cfg: ObjectTheNames)
+	/*104,4*/	char* langElectricFence_theName; // (cfg: ObjectTheNames)
+	/*108,4*/	char* langSpiderWeb_theName; // (cfg: ObjectTheNames)
+	/*10c,4*/	char* langOohScary_theName; // (cfg: ObjectTheNames)
+	/*110,4*/	char* langPath_theName; // (cfg: ObjectTheNames)
+	/*114,4*/	VehicleData* vehicleData; // (cfg: VehicleTypes)
+	/*118,4*/	CreatureData* miniFigureData; // (cfg: MiniFigureTypes)
+	/*11c,4*/	CreatureData* rockMonsterData; // (cfg: RockMonsterTypes)
+	/*120,4*/	BuildingData* buildingData; // (cfg: BuildingTypes)
+	/*124,4*/	UpgradeData* upgradeData; // (cfg: UpgradeTypes)
+	/*128,4*/	char** vehicleName; // (cfg: VehicleTypes)
+	/*12c,4*/	char** miniFigureName; // (cfg: MiniFigureTypes)
+	/*130,4*/	char** rockMonsterName; // (cfg: RockMonsterTypes)
+	/*134,4*/	char** buildingName; // (cfg: BuildingTypes)
+	/*138,4*/	char** upgradeName; // (cfg: UpgradeTypes)
+	/*13c,2c*/	char* toolName[11];
+	/*168,2c*/	char* langTool_name[11]; // (cfg: ToolNames)
+	/*194,4*/	char** langVehicle_name; // (cfg: ObjectNames)
+	/*198,4*/	char** langMiniFigure_name; // (cfg: ObjectNames)
+	/*19c,4*/	char** langRockMonster_name; // (cfg: ObjectNames)
+	/*1a0,4*/	char** langBuilding_name; // (cfg: ObjectNames)
+	/*1a4,4*/	char** langUpgrade_name; // (cfg: ObjectNames) never specified in Lego.cfg
+	/*1a8,4*/	char** langVehicle_theName; // (cfg: ObjectTheNames)
+	/*1ac,4*/	char** langMiniFigure_theName; // (cfg: ObjectTheNames)
+	/*1b0,4*/	char** langRockMonster_theName; // (cfg: ObjectTheNames)
+	/*1b4,4*/	char** langBuilding_theName; // (cfg: ObjectTheNames)
+	/*1b8,4*/	char** langUpgrade_theName; // (cfg: ObjectTheNames) never specified in Lego.cfg
+	/*1bc,4*/	uint32 vehicleCount; // (cfg: VehicleTypes)
+	/*1c0,4*/	uint32 miniFigureCount; // (cfg: MiniFigureTypes)
+	/*1c4,4*/	uint32 rockMonsterCount; // (cfg: RockMonsterTypes)
+	/*1c8,4*/	uint32 buildingCount; // (cfg: BuildingTypes)
+	/*1cc,4*/	uint32 upgradeCount; // (cfg: UpgradeTypes)
+	/*1d0,48*/	char* surfaceName[18];
+	/*218,48*/	char* langSurface_name[18]; // (cfg: SurfaceTypeDescriptions)
+	/*260,48*/	SFX_Type langSurface_sound[18]; // (cfg: SurfaceTypeDescriptions)
 	/*2a8,4*/	Container* contBoulder;
 	/*2ac,4*/	Container* contBoulderExplode;
 	/*2b0,4*/	Container* contBoulderExplodeIce;
@@ -3867,157 +4067,105 @@ struct Lego_Globs // [LegoRR/Lego.c|struct:0xf00|tags:GLOBS]
 	/*2ec,4*/	Container* contSmashPath;
 	/*2f0,4*/	Container* contLaserShot;
 	/*2f4,4*/	SelectPlace* selectPlace;
-	/*2f8,28*/	LiveObject* recordObjs[10];
+	/*2f8,28*/	LegoObject* recordObjs[10];
 	/*320,4*/	uint32 recordObjsCount;
 	/*324,10*/	Area2F radarScreenRect;
 	/*334,4*/	real32 tvTiltOrZoom_334;
 	/*338,8*/	Point2F tvFaceDirection_338;
-	/*340,4*/	real32 MedPolyRange;
-	/*344,4*/	real32 HighPolyRange;
-	/*348,4*/	sint32 HPBlocks;
-	/*34c,c*/	ColourRGBF FogColourRGB;
-	/*358,c*/	ColourRGBF HighFogColourRGB;
+	/*340,4*/	real32 MedPolyRange; // (cfg: Main::MedPolyRange)
+	/*344,4*/	real32 HighPolyRange; // (cfg: Main::HighPolyRange)
+	/*348,4*/	sint32 HPBlocks; // (cfg: Main::HPBlocks)
+	/*34c,c*/	ColourRGBF FogColourRGB; // (cfg: Level::FogColourRGB)
+	/*358,c*/	ColourRGBF HighFogColourRGB; // (cfg: Level::HighFogColourRGB)
 	/*364,4*/	real32 float_364; // level-related?
-	/*368,c*/	ColourRGBF PowerCrystalRGB;
-	/*374,c*/	ColourRGBF UnpoweredCrystalRGB;
-	/*380,4*/	ObjectType placeObjType;
+	/*368,c*/	ColourRGBF PowerCrystalRGB; // (cfg: Main::PowerCrystalRGB)
+	/*374,c*/	ColourRGBF UnpoweredCrystalRGB; // (cfg: Main::UnpoweredCrystalRGB)
+	/*380,4*/	LegoObject_Type placeObjType;
 	/*384,4*/	sint32 placeObjIndex;
 	/*388,4*/	Direction placeObjDirection;
-	/*38c,4*/	LiveObject* placeDestSmallTeleporter;
-	/*390,4*/	LiveObject* placeDestBigTeleporter;
-	/*394,4*/	LiveObject* placeDestWaterTeleporter;
-	/*398,4*/	real32 MinEnergyForEat;
-	/*39c,4*/	Image* TutorialIcon;
+	/*38c,4*/	LegoObject* placeDestSmallTeleporter;
+	/*390,4*/	LegoObject* placeDestBigTeleporter;
+	/*394,4*/	LegoObject* placeDestWaterTeleporter;
+	/*398,4*/	real32 MinEnergyForEat; // (cfg: Main::MinEnergyForEat)
+	/*39c,4*/	Image* TutorialIcon; // (cfg: Main::TutorialIcon)
 	/*3a0,4*/	undefined4 field_3a0;
-	/*3a4,4*/	real32 DynamiteDamageRadius;
-	/*3a8,4*/	real32 DynamiteMaxDamage;
-	/*3ac,4*/	real32 DynamiteWakeRadius;
-	/*3b0,4*/	real32 BirdScarerRadius;
-	/*3b4,50*/	ObjectType objTeleportQueueTypes_TABLE[20];
+	/*3a4,4*/	real32 DynamiteDamageRadius; // (cfg: Main::DynamiteDamageRadius)
+	/*3a8,4*/	real32 DynamiteMaxDamage; // (cfg: Main::DynamiteMaxDamage)
+	/*3ac,4*/	real32 DynamiteWakeRadius; // (cfg: Main::DynamiteWakeRadius)
+	/*3b0,4*/	real32 BirdScarerRadius; // (cfg: Main::BirdScarerRadius)
+	/*3b4,50*/	LegoObject_Type objTeleportQueueTypes_TABLE[20];
 	/*404,50*/	sint32 objTeleportQueueIndexes_TABLE[20];
 	/*454,4*/	uint32 objTeleportQueue_COUNT;
-	/*458,4*/	real32 MiniFigureRunAway;
+	/*458,4*/	real32 MiniFigureRunAway; // (cfg: Main::MiniFigureRunAway)
 	/*45c,c*/	Vector3F vector_45c;
 	/*468,320*/	Point2I blockPts_468[100];
 	/*788,4*/	uint32 blockPtsCount_788;
 	/*78c,640*/	Point2I points2x100_78c[2][100];
 	/*dcc,8*/	uint32 pointsCount2_dcc[2];
-	/*dd4,4*/	uint32 MaxReturnedCrystals;
-	/*dd8,4*/	sint32 MouseScrollBorder;
-	/*ddc,4*/	char* HealthText;
-	/*de0,4*/	char* EnergyText;
-	/*de4,4*/	char* CrystalsText;
-	/*de8,4*/	char* OreText;
-	/*dec,4*/	char* StudsText;
-	/*df0,4*/	char* ToolsText;
-	/*df4,4*/	char* CarryObjectText;
-	/*df8,4*/	char* DrivenByText;
-	/*dfc,4*/	char* OreRequiredText;
-	/*e00,4*/	bool32 IsFallinsEnabled; // (not "NoFallins")
-	/*e04,4*/	real32 MinDistFor3DSoundsOnTopView;
+	/*dd4,4*/	uint32 MaxReturnedCrystals; // (cfg: Main::MaxReturnedCrystals)
+	/*dd8,4*/	sint32 MouseScrollBorder; // (cfg: Main::MouseScrollBorder)
+	/*ddc,4*/	char* langHealth_toolTip; // (cfg: ToolTipInfo::HealthText)
+	/*de0,4*/	char* langEnergy_toolTip; // (cfg: ToolTipInfo::EnergyText)
+	/*de4,4*/	char* langCrystals_toolTip; // (cfg: ToolTipInfo::CrystalsText)
+	/*de8,4*/	char* langOre_toolTip; // (cfg: ToolTipInfo::OreText)
+	/*dec,4*/	char* langStuds_toolTip; // (cfg: ToolTipInfo::StudsText)
+	/*df0,4*/	char* langTools_toolTip; // (cfg: ToolTipInfo::ToolsText)
+	/*df4,4*/	char* langCarryObject_toolTip; // (cfg: ToolTipInfo::CarryObjectText)
+	/*df8,4*/	char* langDrivenBy_toolTip; // (cfg: ToolTipInfo::DrivenByText)
+	/*dfc,4*/	char* langOreRequired_toolTip; // (cfg: ToolTipInfo::OreRequiredText)
+	/*e00,4*/	bool32 IsFallinsEnabled; // (cfg not: Level::NoFallins)
+	/*e04,4*/	real32 MinDistFor3DSoundsOnTopView; // (cfg: Main::MinDistFor3DSoundsOnTopView)
 	/*e08,4*/	ViewMode viewMode; // FirstPerson or TopDown
 	/*e0c,4*/	GameFlags1 flags1;
 	/*e10,4*/	GameFlags2 flags2;
 	/*e14,4*/	GameFlags3 flags3; // only first byte is used(?)
-	/*e18,4*/	real32 InitialSlugTime;
-	/*e1c,8*/	Point2F NextButtonPos;
-	/*e24,8*/	Point2F BackButtonPos;
-	/*e2c,4*/	Image* NextButtonImage;
-	/*e30,4*/	Image* BackButtonImage;
-	/*e34,4*/	Image* BackArrowImage;
-	/*e38,4*/	real32 FogRate;
+	/*e18,4*/	real32 InitialSlugTime; // (cfg: Level::InitialSlugTime)
+	/*e1c,8*/	Point2F NextButtonPos; // (cfg: Main::NextButtonPos<WxH>)
+	/*e24,8*/	Point2F BackButtonPos; // (cfg: Main::BackButtonPos<WxH>)
+	/*e2c,4*/	Image* NextButtonImage; // (cfg: Main::NextButton<WxH>)
+	/*e30,4*/	Image* BackButtonImage; // (cfg: Main::BackButton<WxH>)
+	/*e34,4*/	Image* BackArrowImage; // (cfg: Main::BackArrow<WxH>)
+	/*e38,4*/	real32 FogRate; // (cfg: Level::FogRate)
 	/*e3c,4*/	real32 timerGame_e3c;
 	/*e40,4*/	real32 elapsedAbs;
-	/*e44,4*/	real32 DrainTime;
-	/*e48,4*/	uint32 ReinforceHits;
-	/*e4c,4*/	uint32 CDStartTrack;
-	/*e50,4*/	uint32 CDTracks;
-	/*e54,4*/	uint32 FallinMultiplier;
+	/*e44,4*/	real32 DrainTime; // (cfg: Main::DrainTime)
+	/*e48,4*/	uint32 ReinforceHits; // (cfg: Main::ReinforceHits)
+	/*e4c,4*/	uint32 CDStartTrack; // (cfg: Main::CDStartTrack)
+	/*e50,4*/	uint32 CDTracks; // (cfg: Main::CDTracks)
+	/*e54,4*/	uint32 FallinMultiplier; // (cfg: Level::FallinMultiplier)
 	/*e58,4*/	bool32 hasFallins;
 	/*e5c,8*/	Point2F menuNextPoint;
 	/*e64,8*/	Point2F menuPrevPoint;
-	/*e6c,c*/	ColourRGBF DragBoxRGB;
-	/*e78,4*/	Image* DialogImage;
-	/*e7c,4*/	Image* DialogContrastOverlay;
-	/*e80,4*/	TextWindow* DialogTextWndTitle;
-	/*e84,4*/	TextWindow* DialogTextWndMessage;
-	/*e88,4*/	TextWindow* DialogTextWndOK;
-	/*e8c,4*/	TextWindow* DialogTextWndCancel;
-	/*e90,4*/	char* CreditsTextFile;
-	/*e94,4*/	char* CreditsBackAVI;
-	/*e98,40*/	char* UpgradeNames_TABLE[16];
-	/*ed8,4*/	sint32 BuildingUpgradeCostOre;
-	/*edc,4*/	sint32 BuildingUpgradeCostStuds;
+	/*e6c,c*/	ColourRGBF DragBoxRGB; // (cfg: Level::DragBoxRGB)
+	/*e78,4*/	Image* DialogImage; // (cfg: Dialog::Image)
+	/*e7c,4*/	Image* DialogContrastOverlay; // (cfg: Dialog::ContrastOverlay)
+	/*e80,4*/	TextWindow* DialogTextWndTitle; // (cfg: Dialog::TitleWindow)
+	/*e84,4*/	TextWindow* DialogTextWndMessage; // (cfg: Dialog::TextWindow)
+	/*e88,4*/	TextWindow* DialogTextWndOK; // (cfg: Dialog::OKWindow)
+	/*e8c,4*/	TextWindow* DialogTextWndCancel; // (cfg: Dialog::CancelWindow)
+	/*e90,4*/	char* CreditsTextFile; // (cfg: Main::CreditsTextFile)
+	/*e94,4*/	char* CreditsBackAVI; // (cfg: Main::CreditsBackAVI)
+	/*e98,40*/	char* langUpgradeLevel_name[16]; // (cfg: UpgradeNames)
+	/*ed8,4*/	sint32 BuildingUpgradeCostOre; // (cfg: Main::BuildingUpgradeCostOre)
+	/*edc,4*/	sint32 BuildingUpgradeCostStuds; // (cfg: Main::BuildingUpgradeCostStuds)
 	/*ee0,4*/	char* renameInput;
 	/*ee4,8*/	Point2F renamePosition;
-	/*eec,4*/	char* RenameReplace;
-	/*ef0,4*/	char* EndGameAVI1;
-	/*ef4,4*/	char* EndGameAVI2;
+	/*eec,4*/	char* RenameReplace; // (cfg: Main::RenameReplace)
+	/*ef0,4*/	char* EndGameAVI1; // (cfg: Level::EndGameAVI1)
+	/*ef4,4*/	char* EndGameAVI2; // (cfg: Level::EndGameAVI2)
 	/*ef8,8*/	Point2I s_mouseBlockPos_ef8; // (static, Game_unkGameLoop_FUN_00426450)
 	/*f00*/
 };
 
-struct LegoUpdate_Globs // [LegoRR/Lego.c|struct:0x14|tags:GLOBS] (miscellaneous static function variables used during game update loop)
+struct Lego_Level // [LegoRR/Lego.c|struct:0x284]
 {
-	/*00,4*/	real32 renameInputTimer; // (ram: 12.5)
-	/*04,4*/	real32 dripSFXTimer; // (ram: 75.0)
-	/*08,4*/	real32 ambientSFXTimer; // (ram: 250.0)
-	/*0c,4*/	real32 dbgRollOffFactorValue; // (ram: 1.0)
-	/*10,4*/	real32 currentBaseLightLevel; // (ram: 0.7)
-	/*14*/
-};
-
-#pragma pack(push, 1)
-struct LevelBlock // [LegoRR/Lego.c|struct:0x48|pack:1]
-{
-	/*00,1*/	PredugType predug;
-	/*01,1*/	SurfaceTexture texture;
-	/*02,1*/	TerrainType terrain;
-	/*03,1*/	uint8 field_3; // possibly direction (& 3, and x - 4, etc.)
-	/*04,1*/	uint8 blockpointer;
-	/*05,1*/	CryOreType cryOre;
-	/*06,1*/	ErodeType erodeSpeed;
-	/*07,1*/	uint8 field_7;
-	/*08,4*/	LevelBlockFlags1 flags1;
-	/*0c,4*/	LevelBlockFlags2 flags2;
-	/*10,4*/	BlockConstruction* construct;
-	/*14,4*/	real32 float_14;
-	/*18,4*/	LevelStruct_1c* struct1c_18;
-	/*1c,4*/	SurfaceMapStruct_2a8* smokeptr_1c;
-	/*20,2*/	sint16 randomness;
-	/*22,2*/	sint16 short_22; // (some num value, observed: != 4)
-	/*24,4*/	uint32 numLandSlides;
-	/*28,4*/	uint32 clickCount;
-	/*2c,4*/	sint32 generateCrystals;
-	/*30,4*/	sint32 generateOre;
-	/*34,1*/	uint8 aiNode;
-	/*35,3*/	undefined field_0x35_0x37[3];
-	/*38,4*/	bool32 fallinUpper; // (fallin upper: 1 if fallin > 4)
-	/*3c,4*/	sint32 fallinIntensity; // (fallin scale: 1-4)
-	/*40,4*/	real32 fallinTimer; // (randomized with full fallin value)
-	/*44,4*/	undefined4 field_44;
-	/*48*/
-};
-#pragma pack(pop)
-
-struct LevelCollection // [LegoRR/FrontEnd.c|struct:0x14]
-{
-	/*00,4*/	sint32 count;
-	/*04,4*/	char** LevelNames;
-	/*08,4*/	char** FullNames;
-	/*0c,4*/	LevelIdentifier** LevelList;
-	/*10,4*/	bool32* IsLinked; // True if this level has been loaded from level links (probably makes them require unlock)
-	/*14*/
-};
-
-struct LevelData // [LegoRR/Lego.c|struct:0x284]
-{
-	/*000,4*/	char* levelName; // (format: "Levels::level")
-	/*004,4*/	SurfaceMap* surfaceMap;
-	/*008,4*/	void* ptrtable_8;
-	/*00c,4*/	uint32 count_c;
+	/*000,4*/	char* name; // (format: "Levels::level")
+	/*004,4*/	Map3D* map;
+	/*008,4*/	EmergeTrigger* emergeTriggers;
+	/*00c,4*/	uint32 emergeCount;
 	/*010,4*/	undefined4 field_10;
-	/*014,8*/	Size2I dimensions;
+	/*014,4*/	uint32 width;
+	/*018,4*/	uint32 height;
 	/*01c,4*/	real32 BlockSize;
 	/*020,4*/	real32 DigDepth;
 	/*024,4*/	real32 RoofHeight;
@@ -4040,9 +4188,9 @@ struct LevelData // [LegoRR/Lego.c|struct:0x284]
 	/*068,4*/	undefined4 field_0x68;
 	/*06c,4*/	undefined4 field_0x6c;
 	/*070,4*/	undefined4 field_0x70;
-	/*074,8*/	Size2I surfTextSize; // surface texture width and height
-	/*07c,4*/	SurfaceTextureGrid* surfTextGrid;
-	/*080,4*/	ProMeshData** promeshGrid;
+	/*074,8*/	Size2I textureSetSize; // surface texture width and height
+	/*07c,4*/	Detail_TextureSet* textureSet;
+	/*080,4*/	Detail_Mesh** promeshGrid;
 	/*084,4*/	RadarMap* radarMap;
 	/*088,4*/	LevelStruct_1c* terrain1c_88;
 	/*08c,4*/	sint32 numCrystals; // (init: 0) total number of crystals
@@ -4055,8 +4203,8 @@ struct LevelData // [LegoRR/Lego.c|struct:0x284]
 	/*0a8,4*/	undefined4 field_a8; // (init: 0)
 	/*0ac,4*/	sint32 numProcessedOre;
 	/*0b0,4*/	sint32 EmergeCreature; // (searches for object index by name, expects RockMonsterType)
-	/*0b4,4*/	char* NextLevel;
-	/*0b8,4*/	LevelBlock* blocks; // grid of blocks [y][x]
+	/*0b4,4*/	char* nextLevel; // (cfg: NextLevel)
+	/*0b8,4*/	Lego_Block* blocks; // grid of blocks [y][x]
 	/*0bc,54*/	ObjectiveData objective;
 	/*110,4*/	bool32 hasBlockPointers;
 	/*114,e0*/	BlockPointer* blockPointers[56];
@@ -4075,18 +4223,204 @@ struct LevelData // [LegoRR/Lego.c|struct:0x284]
 	/*270,4*/	char* FullName; // (replace '_' with ' ')
 	/*274,4*/	TextureType BoulderAnimation; // (texture index, hardcoded: Rock, Lava, Ice)
 	/*278,4*/	real32 MaxStolen;
-	/*27c,4*/	LevelCompleteStatus status; // (init: 0) 2 is used for Crystal failure as well
+	/*27c,4*/	LevelStatus status; // (init: 0) 2 is used for Crystal failure as well
 	/*280,4*/	bool32 IsStartTeleportEnabled; // (! DisableStartTeleport)
 	/*284*/
 };
 
-struct LevelIdentifier // [LegoRR/FrontEnd.c|struct:0x14]
+struct LegoCamera // [LegoRR/LegoCamera.c|struct:0xbc] May be camera data (which is related to- but not the same as viewports)
+{
+	/*00,4*/	LegoCamera_Type type;
+	/*04,4*/	LegoObject* trackObj;
+	/*08,4*/	real32 trackRadarZoomSpeed;
+	/*0c,4*/	real32 trackRadarZoom;
+	/*10,4*/	real32 trackRadarRotationSpeed; // A constant yaw H rotation speed applied to tracked radar objects
+	/*14,4*/	sint32 trackFPCameraFrame; // CameraFrameIndex for FP object SwapPolyFP
+	/*18,c*/	Vector3F moveVector; // current 3D (really 2D) movement and directional speed
+	/*24,4*/	Container* contCam; // only cont created for FP type (child of contRoot if FP)
+	/*28,4*/	Container* cont2; // child of contRoot
+	/*2c,4*/	Container* cont3; // child of contRoot
+	/*30,4*/	Container* cont4; // child of cont2
+	/*34,4*/	Container* contListener; // child of cont4 (topdown type only)
+	/*38,40*/	undefined reserved1[64];
+	/*78,4*/	real32 tilt; // (init: 0.0f) current tilt (Pitch, V Rotation)
+	/*7c,8*/	Range2F tiltRange; // min/max tilt (Pitch, V Rotation)
+	/*84,4*/	real32 rotation; // (init: 0.0f) current yaw (Angle, H Rotation)
+	/*88,8*/	Range2F rotationRange; // min/max yaw (Angle, H Rotation)
+	/*90,4*/	real32 zoom; // (init: 200.0f) current dist (Zoom)
+	/*94,8*/	Range2F zoomRange; // min/max dist (Zoom)
+	/*9c,4*/	real32 moveSpeed; // current 3D (really 2D) movement speed
+	/*a0,4*/	real32 shakeIntensity;
+	/*a4,4*/	real32 shakeDuration;
+	/*a8,4*/	real32 shakeTimer; // count-up timer until shakeDuration
+	/*ac,c*/	Vector3F shakeVector;
+	/*b8,4*/	CameraFlags flags;
+	/*bc*/
+};
+
+struct LegoObject // [LegoRR/LegoObject.c|struct:0x40c|tags:LISTSET]
+{
+	/*000,4*/	LegoObject_Type type;
+	/*004,4*/	sint32 id;
+	/*008,4*/	char* customName; // max size is 11 (NOT null-terminated)
+	/*00c,4*/	VehicleData* vehicle;
+	/*010,4*/	CreatureData* miniFigure;
+	/*014,4*/	CreatureData* rockMonster;
+	/*018,4*/	BuildingData* building;
+	/*01c,4*/	Container* other;
+	/*020,4*/	UpgradeData* upgrade;
+	/*024,4*/	RoutingBlock* routeptr_24; // Unknown pointer, likely in large allocated table
+	/*028,4*/	uint32 routingBlocksTotal; // total blocks to travel for current route
+	/*02c,4*/	uint32 routingBlocksCurrent; // number of blocks traveled (up to routingBlocksTotal)
+	/*030,25c*/	BezierCurve routingCurve; // BezierCurve/Catmull-rom spline data
+	/*28c,c*/	Vector3F vector_28c;
+	/*298,8*/	Point2F point_298;
+	/*2a0,c*/	Vector3F vector_2a0;
+	/*2ac,c*/	Vector3F faceDirection; // 1.0 to -1.0 directions that determine rotation with atan2
+	/*2b8,4*/	real32 float_2b8;
+	/*2bc,4*/	sint32 strafeSpeed_2bc;
+	/*2c0,4*/	sint32 forwardSpeed_2c0;
+	/*2c4,4*/	real32 rotateSpeed_2c4;
+	/*2c8,4*/	undefined4 field_2c8;
+	/*2cc,4*/	undefined4 field_2cc;
+	/*2d0,4*/	undefined4 field_2d0;
+	/*2d4,4*/	real32 float_2d4;
+	/*2d8,4*/	bool32 unkbool_2d8;
+	/*2dc,4*/	Container* resData_2dc;
+	/*2e0,4*/	sint32 index_2e0;
+	/*2e4,4*/	Container* resData_2e4;
+	/*2e8,4*/	char* aitaskName1;
+	/*2ec,4*/	char* aitaskName2;
+	/*2f0,4*/	AITask* aitask_2f0;
+	/*2f4,8*/	Point2F point_2f4; // (assigned -1.0f)
+	/*2fc,4*/	LegoObject* object_2fc; // other half of object_300
+	/*300,4*/	LegoObject* object_300; // other half of object_2fc
+	/*304,4*/	LegoObject* carryingThisObject;
+	/*308,1c*/	LegoObject* carriedObjects[7];
+	/*324,4*/	uint32 numCarriedObjects;
+	/*328,4*/	uint32 field_328;
+	/*32c,4*/	Flocks* flocksData_32c;
+	/*330,4*/	uint32 objLevel;
+	/*334,4*/	ObjectStats* stats;
+	/*338,4*/	real32 float_338;
+	/*33c,4*/	real32 float_33c;
+	/*340,4*/	real32 health; // (assigned -1.0f)
+	/*344,4*/	real32 energy; // (assigned -1.0f)
+	/*348,4*/	sint32* stealTableptr_348; // element size is 0x4
+	/*34c,4*/	LOD_PolyLevel polyMode_34c;
+	/*350,4*/	sint32 soundHandle_350;
+	/*354,4*/	SFX_Type soundHandle_354; // (engine sound only?)
+	/*358,4*/	undefined4 field_358;
+	/*35c,4*/	undefined4 field_35c;
+	/*360,4*/	undefined4 field_360;
+	/*364,4*/	LegoObject* object_364;
+	/*368,4*/	real32 float_368;
+	/*36c,4*/	LegoObject* drivenObject; // same as drivingThisObject
+	/*370,14*/	LegoObject_ToolType carriedTools[5];
+	/*384,4*/	uint32 numCarriedTools;
+	/*388,4*/	undefined4 field_388;
+	/*38c,4*/	Image* bubbleImage_38c;
+	/*390,4*/	undefined4 teleporter_field_390;
+	/*394,4*/	undefined4 teleporter_field_394;
+	/*398,4*/	TeleporterService* teleporter_398;
+	/*39c,4*/	undefined4 field_39c;
+	/*3a0,4*/	undefined4 field_3a0;
+	/*3a4,4*/	undefined4 field_3a4;
+	/*3a8,4*/	undefined4 field_3a8;
+	/*3ac,4*/	undefined4 field_3ac;
+	/*3b0,4*/	undefined4 field_3b0;
+	/*3b4,c*/	Vector3F vector_3b4;
+	/*3c0,4*/	LegoObject* object_3c0;
+	/*3c4,4*/	LegoObject* object_3c4;
+	/*3c8,4*/	undefined4 field_3c8;
+	/*3cc,4*/	LegoObject* object_3cc;
+	/*3d0,4*/	undefined4 field_3d0;
+	/*3d4,4*/	real32 elapsedTime1; // elapsed time counter 1
+	/*3d8,4*/	real32 elapsedTime2; // elapsed time counter 2
+	/*3dc,4*/	real32 activityElapsedTime; // elapsed time since last order?
+	/*3e0,4*/	LiveFlags1 flags1;
+	/*3e4,4*/	LiveFlags2 flags2;
+	/*3e8,4*/	LiveFlags3 flags3; // (assigned 0, flags?)
+	/*3ec,4*/	LiveFlags4 flags4;
+	/*3f0,4*/	LiveFlags5 flags5; // ability flags, and saved in ObjectRecall
+	/*3f4,4*/	undefined4 field_3f4;
+	/*3f8,4*/	undefined4 field_3f8;
+	/*3fc,4*/	real32 floatSnd_3fc;
+	/*400,4*/	real32 floatSnd_400;
+	/*404,4*/	undefined4 field_404;
+	/*408,4*/	LegoObject* nextFree; // (for listSet)
+	/*40c*/
+};
+
+struct LegoObject_Globs // [LegoRR/LegoObject.c|struct:0xc644|tags:GLOBS]
+{
+	/*0000,80*/	LegoObject* listSet[32];
+	/*0080,4*/	LegoObject* freeList;
+	/*0084,4b0*/	SFX_Type objectTtSFX[20][15]; // [objType:20][objIndex:15] (cfg: ObjTtSFXs)
+	/*0534,13c*/	char* activityName[79]; // [activityType:79]
+	/*0670,4*/	void* UnkSurfaceGrid_1_TABLE;
+	/*0674,4*/	void* UnkSurfaceGrid_2_TABLE;
+	/*0678,4*/	uint32 UnkSurfaceGrid_COUNT;
+	/*067c,4*/	real32 radarElapsed_67c;
+	/*0680,4*/	uint32 listCount;
+	/*0684,4*/	LegoObject_GlobFlags flags;
+	/*0688,2c*/	sint32 toolNullIndex[11]; // [toolType:11] (tool priorities, behavior types?)
+	/*06b4,4b00*/	uint32 objectTotalLevels[20][15][16]; // [objType:20][objIndex:15][objLevel:16]
+	/*51b4,4b00*/	uint32 objectPrevLevels[20][15][16]; // [objType:20][objIndex:15][objLevel:16]
+	/*9cb4,4*/	uint32 NERPs_TrainFlags;
+	/*9cb8,4*/	LegoObject* minifigureObj_9cb8; // MINIFIGOBJ_004e9448
+	/*9cbc,a0*/	Point2I slugHoleBlocks[20];
+	/*9d5c,50*/	Point2I rechargeSeamBlocks[10];
+	/*9dac,4*/	uint32 slugHoleCount;
+	/*9db0,4*/	uint32 rechargeSeamCount;
+	/*9db4,2260*/	HiddenObject hiddenObjects[200];
+	/*c014,4*/	uint32 hiddenObjectCount;
+	/*c018,4*/	real32 float_c018; // FLOAT_004eb7a8
+	/*c01c,18*/	SaveStruct_18 savestruct18_c01c;
+	/*c034,400*/	LegoObject* liveObjArray256_c034[256]; // PTRLiveObject_ARRAY_004eb7c4
+	/*c434,4*/	uint32 count_c434; // COUNT_004ebbc4
+	/*c438,4*/	uint32 countBuildingsOnly_c438; // COUNTBuildingsOnly_004ebbc8
+	/*c43c,190*/	LegoObject* liveObjArray100_c43c[100]; // Used for water docking vehicles?
+	/*c5cc,4*/	uint32 uintCount_c5cc;
+	/*c5d0,18*/	char* abilityName[6]; // [abilityType:6]
+	/*c5e8,18*/	Image* ToolTipIcons_Abilities[6]; // [abilityType:6] (cfg: ToolTipIcons)
+	/*c600,2c*/	Image* ToolTipIcons_Tools[11]; // [toolType:11] (cfg: ToolTipIcons)
+	/*c62c,4*/	Image* ToolTipIcon_Blank; // (cfg: ToolTipIcons::Blank)
+	/*c630,4*/	Image* ToolTipIcon_Ore; // (cfg: ToolTipIcons::Ore)
+	/*c634,4*/	uint32 BuildingsTeleported;
+	/*c638,4*/	real32 LiveManager_TimerUnk;
+	/*c63c,4*/	undefined4 s_stepCounter_c63c; // (static, counter %4 for step SFX) DAT_004ebdcc
+	/*c640,4*/	void** s_FlocksDestroy_c640; // (static, Struct 0x10, used in Flocks activities (QUICK_DESTROY??)) PTR_004ebdd0
+	/*c644*/
+};
+
+struct LegoUpdate_Globs // [LegoRR/Lego.c|struct:0x14|tags:GLOBS] (miscellaneous static function variables used during game update loop)
+{
+	/*00,4*/	real32 renameInputTimer; // (ram: 12.5)
+	/*04,4*/	real32 dripSFXTimer; // (ram: 75.0)
+	/*08,4*/	real32 ambientSFXTimer; // (ram: 250.0)
+	/*0c,4*/	real32 dbgRollOffFactorValue; // (ram: 1.0)
+	/*10,4*/	real32 currentBaseLightLevel; // (ram: 0.7)
+	/*14*/
+};
+
+struct LevelInfo // [LegoRR/FrontEnd.c|struct:0x14]
 {
 	/*00,4*/	sint32 index; // Index in LevelCollection
-	/*04,4*/	LevelIdentifier** LevelLinks;
+	/*04,4*/	LevelInfo** LevelLinks;
 	/*08,4*/	uint32 NumLinks;
 	/*0c,4*/	undefined4 field_c;
 	/*10,4*/	undefined4 field_10; // (is locked/unlocked?)
+	/*14*/
+};
+
+struct LevelSet // [LegoRR/FrontEnd.c|struct:0x14]
+{
+	/*00,4*/	sint32 count;
+	/*04,4*/	char** LevelNames;
+	/*08,4*/	char** FullNames;
+	/*0c,4*/	LevelInfo** LevelList;
+	/*10,4*/	bool32* IsLinked; // True if this level has been loaded from level links (probably makes them require unlock)
 	/*14*/
 };
 
@@ -4136,147 +4470,9 @@ struct LightEffects_Globs // [LegoRR/LightEffects.c|struct:0xf4|tags:GLOBS] Ligh
 	/*f4*/
 };
 
-struct LiveObject // [LegoRR/LegoObject.c|struct:0x40c|tags:LISTSET]
-{
-	/*000,4*/	ObjectType objType;
-	/*004,4*/	sint32 objIndex;
-	/*008,4*/	char* customName; // max size is 11 (NOT null-terminated)
-	/*00c,4*/	VehicleData* vehicle;
-	/*010,4*/	CreatureData* miniFigure;
-	/*014,4*/	CreatureData* rockMonster;
-	/*018,4*/	BuildingData* building;
-	/*01c,4*/	Container* other;
-	/*020,4*/	UpgradeData* upgrade;
-	/*024,4*/	RoutingBlock* routeptr_24; // Unknown pointer, likely in large allocated table
-	/*028,4*/	uint32 routingBlocksTotal; // total blocks to travel for current route
-	/*02c,4*/	uint32 routingBlocksCurrent; // number of blocks traveled (up to routingBlocksTotal)
-	/*030,4*/	sint32 routing_count_0; // Usually 50 (max), start of RoutingData
-	/*034,190*/	Point2F routing_points_4[50];
-	/*1c4,c8*/	real32 rounting_distances_194[50];
-	/*28c,c*/	Vector3F vector_28c;
-	/*298,8*/	Point2F point_298;
-	/*2a0,c*/	Vector3F vector_2a0;
-	/*2ac,c*/	Vector3F faceDirection; // 1.0 to -1.0 directions that determine rotation with atan2
-	/*2b8,4*/	real32 float_2b8;
-	/*2bc,4*/	sint32 strafeSpeed_2bc;
-	/*2c0,4*/	sint32 forwardSpeed_2c0;
-	/*2c4,4*/	real32 rotateSpeed_2c4;
-	/*2c8,4*/	undefined4 field_2c8;
-	/*2cc,4*/	undefined4 field_2cc;
-	/*2d0,4*/	undefined4 field_2d0;
-	/*2d4,4*/	real32 float_2d4;
-	/*2d8,4*/	bool32 unkbool_2d8;
-	/*2dc,4*/	Container* resData_2dc;
-	/*2e0,4*/	sint32 index_2e0;
-	/*2e4,4*/	Container* resData_2e4;
-	/*2e8,4*/	char* aitaskName1;
-	/*2ec,4*/	char* aitaskName2;
-	/*2f0,4*/	AITaskData* aitask_2f0;
-	/*2f4,8*/	Point2F point_2f4; // (assigned -1.0f)
-	/*2fc,4*/	LiveObject* object_2fc; // other half of object_300
-	/*300,4*/	LiveObject* object_300; // other half of object_2fc
-	/*304,4*/	LiveObject* carryingThisObject;
-	/*308,1c*/	LiveObject* carriedObjects[7];
-	/*324,4*/	uint32 numCarriedObjects;
-	/*328,4*/	uint32 field_328;
-	/*32c,4*/	Flocks* flocksData_32c;
-	/*330,4*/	uint32 objLevel;
-	/*334,4*/	ObjectStats* stats;
-	/*338,4*/	real32 float_338;
-	/*33c,4*/	real32 float_33c;
-	/*340,4*/	real32 health; // (assigned -1.0f)
-	/*344,4*/	real32 energy; // (assigned -1.0f)
-	/*348,4*/	sint32* stealTableptr_348; // element size is 0x4
-	/*34c,4*/	PolyMode polyMode_34c;
-	/*350,4*/	sint32 soundHandle_350;
-	/*354,4*/	SFXType soundHandle_354; // (engine sound only?)
-	/*358,4*/	undefined4 field_358;
-	/*35c,4*/	undefined4 field_35c;
-	/*360,4*/	undefined4 field_360;
-	/*364,4*/	LiveObject* object_364;
-	/*368,4*/	real32 float_368;
-	/*36c,4*/	LiveObject* drivenObject; // same as drivingThisObject
-	/*370,14*/	ToolType carriedTools[5];
-	/*384,4*/	uint32 numCarriedTools;
-	/*388,4*/	undefined4 field_388;
-	/*38c,4*/	Image* bubbleImage_38c;
-	/*390,4*/	undefined4 teleporter_field_390;
-	/*394,4*/	undefined4 teleporter_field_394;
-	/*398,4*/	TeleporterService* teleporter_398;
-	/*39c,4*/	undefined4 field_39c;
-	/*3a0,4*/	undefined4 field_3a0;
-	/*3a4,4*/	undefined4 field_3a4;
-	/*3a8,4*/	undefined4 field_3a8;
-	/*3ac,4*/	undefined4 field_3ac;
-	/*3b0,4*/	undefined4 field_3b0;
-	/*3b4,c*/	Vector3F vector_3b4;
-	/*3c0,4*/	LiveObject* object_3c0;
-	/*3c4,4*/	LiveObject* object_3c4;
-	/*3c8,4*/	undefined4 field_3c8;
-	/*3cc,4*/	LiveObject* object_3cc;
-	/*3d0,4*/	undefined4 field_3d0;
-	/*3d4,4*/	real32 elapsedTime1; // elapsed time counter 1
-	/*3d8,4*/	real32 elapsedTime2; // elapsed time counter 2
-	/*3dc,4*/	real32 activityElapsedTime; // elapsed time since last order?
-	/*3e0,4*/	LiveFlags1 flags1;
-	/*3e4,4*/	LiveFlags2 flags2;
-	/*3e8,4*/	LiveFlags3 flags3; // (assigned 0, flags?)
-	/*3ec,4*/	LiveFlags4 flags4;
-	/*3f0,4*/	LiveFlags5 flags5; // ability flags, and saved in ObjectRecall
-	/*3f4,4*/	undefined4 field_3f4;
-	/*3f8,4*/	undefined4 field_3f8;
-	/*3fc,4*/	real32 floatSnd_3fc;
-	/*400,4*/	real32 floatSnd_400;
-	/*404,4*/	undefined4 field_404;
-	/*408,4*/	LiveObject* nextFree; // (for listSet)
-	/*40c*/
-};
-
-struct LiveObject_Globs // [LegoRR/LegoObject.c|struct:0xc644|tags:GLOBS]
-{
-	/*0000,80*/	LiveObject* listSet[32];
-	/*0080,4*/	LiveObject* freeList;
-	/*0084,4b0*/	sint32 ObjTtSFX_TABLE[20][15]; // [objType:20][objIndex:15]
-	/*0534,13c*/	char* Activities_TABLE[79]; // [activityType:79]
-	/*0670,4*/	void* UnkSurfaceGrid_1_TABLE;
-	/*0674,4*/	void* UnkSurfaceGrid_2_TABLE;
-	/*0678,4*/	uint32 UnkSurfaceGrid_COUNT;
-	/*067c,4*/	real32 radarElapsed_67c;
-	/*0680,4*/	uint32 listCount;
-	/*0684,4*/	LiveManagerFlags flags;
-	/*0688,2c*/	sint32 ToolNullIndexes_TABLE[11]; // [toolType:11] (tool priorities, behavior types?)
-	/*06b4,4b00*/	uint32 ObjectLevels_Current_TABLE[20][15][16]; // [objType:20][objIndex:15][objLevel:16]
-	/*51b4,4b00*/	uint32 ObjectLevels_Previous_TABLE[20][15][16]; // [objType:20][objIndex:15][objLevel:16]
-	/*9cb4,4*/	uint32 NERPs_TrainFlags;
-	/*9cb8,4*/	LiveObject* minifigureObj_9cb8; // MINIFIGOBJ_004e9448
-	/*9cbc,a0*/	Point2I SlugHoles_TABLE[20];
-	/*9d5c,50*/	Point2I RechargeSeams_TABLE[10];
-	/*9dac,4*/	uint32 SlugHoles_COUNT;
-	/*9db0,4*/	uint32 RechargeSeams_COUNT;
-	/*9db4,2260*/	HiddenObject hiddenObjects[200];
-	/*c014,4*/	uint32 hiddenObjectCount;
-	/*c018,4*/	real32 float_c018; // FLOAT_004eb7a8
-	/*c01c,18*/	SaveStruct_18 savestruct18_c01c;
-	/*c034,400*/	LiveObject* liveObjArray256_c034[256]; // PTRLiveObject_ARRAY_004eb7c4
-	/*c434,4*/	uint32 count_c434; // COUNT_004ebbc4
-	/*c438,4*/	uint32 countBuildingsOnly_c438; // COUNTBuildingsOnly_004ebbc8
-	/*c43c,190*/	LiveObject* liveObjArray100_c43c[100]; // Used for water docking vehicles?
-	/*c5cc,4*/	uint32 uintCount_c5cc;
-	/*c5d0,18*/	char* AbilityTypes_TABLE[6]; // [abilityType:6]
-	/*c5e8,18*/	Image* ToolTipIcons_Abilities[6]; // [abilityType:6]
-	/*c600,2c*/	Image* ToolTipIcons_Tools_TABLE[11]; // [toolType:11]
-	/*c62c,4*/	Image* ToolTipIcon_Blank;
-	/*c630,4*/	Image* ToolTipIcon_Ore;
-	/*c634,4*/	uint32 BuildingsTeleported;
-	/*c638,4*/	real32 LiveManager_TimerUnk;
-	/*c63c,4*/	undefined4 s_stepCounter_c63c; // (static, counter %4 for step SFX) DAT_004ebdcc
-	/*c640,4*/	void** s_FlocksDestroy_c640; // (static, Struct 0x10, used in Flocks activities (QUICK_DESTROY??)) PTR_004ebdd0
-	/*c644*/
-};
-
 struct LiveObjectInfo // [LegoRR/search.c|struct:0x1c] This is some search info, that needs to be fixed up. Lot's of assumptions were made when creating this.
 {
-	/*00,4*/	LiveObject* liveObj;
+	/*00,4*/	LegoObject* liveObj;
 	/*04,4*/	bool32 intbool_4;
 	/*08,8*/	Point2F point_8;
 	/*10,c*/	Vector3F vector_10;
@@ -4306,24 +4502,6 @@ struct LoaderSection // [LegoRR/Loader.c|struct:0xc]
 	/*4,4*/	uint32 currentSize; // Current total size of files loaded for this section
 	/*8,4*/	uint32 totalSize; // Predefined total "expected" size for files to load from this section
 	/*c*/
-};
-
-struct LTRBRect2F // [common.c|struct:0x10]
-{
-	/*00,4*/	real32 left;
-	/*04,4*/	real32 top;
-	/*08,4*/	real32 right;
-	/*0c,4*/	real32 bottom;
-	/*10*/
-};
-
-struct LTRBRect2I // [common.c|struct:0x10]
-{
-	/*00,4*/	sint32 left;
-	/*04,4*/	sint32 top;
-	/*08,4*/	sint32 right;
-	/*0c,4*/	sint32 bottom;
-	/*10*/
 };
 
 struct LWPOLY // [Gods98/Lwt.c|struct:0xc]
@@ -4491,7 +4669,7 @@ struct Main_Globs // [Gods98/Main.c|struct:0x898|tags:GLOBS]
 	/*788,4*/	ProgrammerMode programmerLevel;
 	/*78c,80*/	char startLevel[128];
 	/*80c,80*/	char languageName[128];
-	/*88c,4*/	FeatureFlags clFlags;
+	/*88c,4*/	MainCLFlags clFlags;
 	/*890,4*/	HACCEL accels;
 	/*894,4*/	MainWindowCallback windowCallback;
 	/*898*/
@@ -4510,6 +4688,59 @@ struct Main_StateChangeData // [Gods98/Main.c|struct:0x8] The item's render stat
 	/*0,4*/	uint32 origValue; // not restricted to just uint value types, pointers, floats, signed ints, etc.
 	/*4,4*/	bool32 changed;
 	/*8*/
+};
+
+struct Map3D // [LegoRR/Map3D.c|struct:0x73d4]
+{
+	/*0000,4*/	uint32 blockWidth; // gridWidth - 1
+	/*0004,4*/	uint32 blockHeight; // gridHeight - 1
+	/*0008,4*/	uint32 gridWidth; // full map width
+	/*000c,4*/	uint32 gridHeight; // full map height
+	/*0010,4*/	real32 blockSize; // (cfg: BlockSize)
+	/*0014,4*/	real32 roughLevel; // (cfg: RoughLevel)
+	/*0018,8*/	Size2F worldDimensions_fnegx; // (-width, +height) * BlockSize / 2.0f  (smallDimensions)
+	/*0020,4*/	real32 float_20; // (some sort of maximum)
+	/*0024,4*/	Container* mesh; // Mesh for Map3D_Blocks
+	/*0028,4*/	Map3D_Block* blocks3D; // [*:dimensions]
+	/*002c,4*/	Detail_TextureSet* textureSet;
+	/*0030,4*/	IDirect3DRMMaterial2* material; // (UNUSED: And never released!!!)
+	/*0034,4000*/	uint8 texsGrid[128][128]; // [MAP3D_MAXTEXTURES][MAP3D_MAXTEXTURES]
+	/*4034,80*/	uint8 texsNum[128]; // [MAP3D_MAXTEXTURES]
+	/*40b4,200*/	bool32 texsNoFade[128]; // [MAP3D_MAXTEXTURES] True for textures that cannot fade transition
+	/*42b4,7d0*/	Coord2U visibleBlocksTable[500]; // (related to FP detail)
+	/*4a84,4*/	uint32 visibleBlocksNum;
+	/*4a88,2710*/	Coord2U uvBlocksTable[2500]; // Blocks that require UV updates (EMISSIVE or UVWOBBLES)
+	/*7198,4*/	uint32 uvBlocksNum;
+	/*719c,230*/	Map3D_TransitionBlock transBlocks[10]; // [BASEMAPTEXTURES??]
+	/*73cc,4*/	Container* transMesh; // Mesh for Map3D_TransBlocks
+	/*73d0,4*/	Map3DFlags flagsMap;
+	/*73d4*/
+};
+
+struct Map3D_Block // [LegoRR/Map3D.c|struct:0x28]
+{
+	/*00,c*/	Vector3F normalA; // Maths_PlaneNormal of vertex positions 0,1,3
+	/*0c,c*/	Vector3F normalB; // Maths_PlaneNormal of vertex positions 1,2,3
+	/*18,1*/	SurfaceTexture texture;
+	/*19,1*/	Map3D_BlockFlags flags3D;
+	/*1a,1*/	uint8 heightValue; // height block value taken from high.map file
+	/*1b,1*/	undefined1 padding1;
+	/*1c,8*/	Point2F uvCoord;
+	/*24,1*/	uint8 highlight; // (WallHighlightType)
+	/*25,3*/	undefined1 padding2[3];
+	/*28*/
+};
+
+struct Map3D_TransitionBlock // [LegoRR/Map3D.c|struct:0x38]
+{
+	/*00,4*/	D3DRMGroupIndex groupID; // (init: -1, no group created yet)
+	/*04,4*/	real32 timer; // count-up timer [0.05f-1.0f]
+	/*08,8*/	Point2I blockPos;
+	/*10,20*/	Point2F uvCoords[4];
+	/*30,4*/	undefined4 reserved1;
+	/*34,1*/	Map3D_TransitionFlags flags; // (0x1 = visible, only flag)
+	/*35,3*/	undefined1 padding1[3];
+	/*38*/
 };
 
 #pragma pack(push, 2)
@@ -4543,6 +4774,33 @@ struct Mem_Handle // [Gods98/Memory.c|struct:0x8]
 	/*8*/
 };
 
+struct Menu // [LegoRR/FrontEnd.c|struct:0xa0] A singular menu screen contained within a MenuSet structure.
+{
+	/*00,4*/	char* title; // (cfg: Menu::Title)
+	/*04,4*/	char* fullName; // (cfg: Menu::FullName)
+	/*08,4*/	uint32 titleLength; // (init: strlen(title))
+	/*0c,4*/	Font* menuFont; // (cfg: Menu::MenuFont)
+	/*10,4*/	Image* menuImage; // (cfg: Menu::MenuImage)
+	/*14,4*/	Image* menuImageDark; // (cfg: Menu::MenuImageDark)
+	/*18,4*/	MenuItem* items; // (cfg: Menu::Item1, Item2...)
+	/*1c,4*/	sint32 itemCount; // (cfg: Menu::ItemCount) Number of used slots in items
+	/*20,4*/	sint32 itemCapacity; // Total number of slots allocated in items
+	/*24,4*/	sint32 itemFocus; // Index of item with keyboard focus
+	/*28,4*/	bool32 bool_28;
+	/*2c,8*/	Point2I position; // (cfg: Menu::Position)
+	/*34,4*/	uint32 flags_34; // flags [0x1, 0x2, ...]
+	/*38,8*/	Point2F currPosition;
+	/*40,4*/	MenuOverlay* overlays; // (cfg: Menu::Overlay1, Overlay2...)
+	/*44,4*/	bool32 autoCenter; // (cfg: Menu::AutoCenter)
+	/*48,4*/	bool32 displayTitle; // (cfg: Menu::DisplayTitle)
+	/*4c,4*/	bool32 anchored; // (cfg: Menu::Anchored)
+	/*50,8*/	Point2I anchoredPosition; // (cfg: Menu::Anchored)
+	/*58,4*/	sint32 flags_58; // (0x2 = CanScroll)
+	/*5c,40*/	char name[64]; // Name of menu in Lego.cfg
+	/*9c,4*/	BoolTri playRandom; // (cfg: Menu::PlayRandom)
+	/*a0*/
+};
+
 struct MenuButton // [LegoRR/FrontEnd.c|struct:0x1c]
 {
 	/*00,10*/	Area2F window;
@@ -4552,71 +4810,57 @@ struct MenuButton // [LegoRR/FrontEnd.c|struct:0x1c]
 	/*1c*/
 };
 
-struct MenuCollection // [LegoRR/FrontEnd.c|struct:0x8]
-{
-	/*0,4*/	SubMenu** menus;
-	/*4,4*/	uint32 count;
-	/*8*/
-};
-
 struct MenuItem // [LegoRR/FrontEnd.c|struct:0x3c]
 {
-	/*00,4*/	char* banner;
+	/*00,4*/	char* banner; // (cfg: type:[3|5]) Label text
 	/*04,4*/	uint32 length;
-	/*08,4*/	Font* HiFont;
-	/*0c,4*/	Font* LoFont;
-	/*10,4*/	MenuItemData_union itemData;
-	/*14,4*/	MenuItemType itemType;
-	/*18,4*/	sint32 x1;
-	/*1c,4*/	sint32 y1;
-	/*20,4*/	sint32 LoCenterOff;
-	/*24,4*/	sint32 HiCenterOff;
+	/*08,4*/	Font* fontHi; // (cfg: Menu::HiFont)
+	/*0c,4*/	Font* fontLo; // (cfg: Menu::LoFont)
+	/*10,4*/	MenuItem_Data_union itemData; // (cfg: type:[0,*])
+	/*14,4*/	MenuItem_Type itemType; // (cfg: type:[0])
+	/*18,4*/	sint32 x1; // (cfg: type:[1])
+	/*1c,4*/	sint32 y1; // (cfg: type:[2])
+	/*20,4*/	sint32 centerOffLo;
+	/*24,4*/	sint32 centerOffHi;
 	/*28,4*/	bool32 isImageItem; // (1 = hasImages?)
-	/*2c,4*/	Image* LoImage;
-	/*30,4*/	Image* HiImage;
-	/*34,4*/	ToolTipType toolTipType;
-	/*38,4*/	bool32 NotInTuto; // (string value is unchecked, but "NotInTuto" is only seen usage)
+	/*2c,4*/	Image* imageLo;
+	/*30,4*/	Image* imageHi;
+	/*34,4*/	ToolTip_Type toolTipType;
+	/*38,4*/	bool32 notInTuto; // (string value is unchecked, but "NotInTuto" is the only seen usage)
 	/*3c*/
 };
 
-struct MenuItemCallbackPair // [LegoRR/dummy.c|struct:0x8]
+struct MenuItem_CycleData // [LegoRR/FrontEnd.c|struct:0x1c]
 {
-	/*0,4*/	void* value;
-	/*4,4*/	void* callback;
-	/*8*/
-};
-
-struct MenuItemCycle // [LegoRR/FrontEnd.c|struct:0x1c]
-{
-	/*00,4*/	char** nameList;
+	/*00,4*/	char** nameList; // (cfg: Cycle:[7...])
 	/*04,4*/	uint32 cycleCount;
-	/*08,4*/	sint32 nameCount;
+	/*08,4*/	sint32 nameCount; // (cfg: Cycle:[6])
 	/*0c,4*/	sint32* value;
-	/*10,4*/	sint32 x2;
-	/*14,4*/	sint32 y2;
+	/*10,4*/	sint32 x2; // (cfg: Cycle:[3])
+	/*14,4*/	sint32 y2; // (cfg: Cycle:[4])
 	/*18,4*/	MenuItemCycleCallback callback;
 	/*1c*/
 };
 
-struct MenuItemLevelIdentifier // [LegoRR/FrontEnd.c|struct:0x20]
+struct MenuItem_LevelData // [LegoRR/FrontEnd.c|struct:0x20]
 {
-	/*00,4*/	uint32 flags; // [0x1, 0x2, 0x4]
-	/*04,4*/	char* MenuBMPName;
-	/*08,4*/	Image* HiImage;
-	/*0c,4*/	Image* LoImage;
-	/*10,4*/	Image* LockedOverlayImage;
-	/*14,4*/	sint32 FrontEndX;
-	/*18,4*/	sint32 FrontEndY;
-	/*1c,4*/	bool32 FrontEndOpen;
+	/*00,4*/	uint32 flags; // [0x1 = print name over image, 0x2, 0x4]
+	/*04,4*/	char* strImageNames; // memory allocation for cfg: Level::MenuBMP (needed for ImageCache)
+	/*08,4*/	Image* imageHi; // (cfg: Level::MenuBMP[0])
+	/*0c,4*/	Image* imageLo; // (cfg: Level::MenuBMP[1])
+	/*10,4*/	Image* imageLockedOverlay; // (cfg: Level::MenuBMP[2])
+	/*14,4*/	sint32 frontEndX; // (cfg: Level::FrontEndX)
+	/*18,4*/	sint32 frontEndY; // (cfg: Level::FrontEndY)
+	/*1c,4*/	bool32 frontEndOpen; // (cfg: Level::FrontEndOpen)
 	/*20*/
 };
 
-struct MenuItemMissions // [LegoRR/FrontEnd.c|struct:0x5c]
+struct MenuItem_LevelSelectData // [LegoRR/FrontEnd.c|struct:0x5c]
 {
-	/*00,4*/	MenuItemLevelIdentifier* levelsList;
+	/*00,4*/	MenuItem_LevelData* levelsList;
 	/*04,c*/	sint32* widths[3];
 	/*10,c*/	sint32* heights[3];
-	/*1c,4*/	sint32 levelsCount;
+	/*1c,4*/	sint32 levelCount;
 	/*20,4*/	char* string1;
 	/*24,4*/	char* string2;
 	/*28,4*/	sint32* value;
@@ -4629,43 +4873,50 @@ struct MenuItemMissions // [LegoRR/FrontEnd.c|struct:0x5c]
 	/*5c*/
 };
 
-struct MenuItemRealSlider // [LegoRR/FrontEnd.c|struct:0x1c]
+struct MenuItem_RealSliderData // [LegoRR/FrontEnd.c|struct:0x1c]
 {
 	/*00,4*/	real32* value;
-	/*04,4*/	real32 LowLimit;
-	/*08,4*/	real32 HighLimit;
-	/*0c,4*/	real32 Step;
-	/*10,4*/	sint32 x2;
-	/*14,4*/	sint32 y2;
+	/*04,4*/	real32 valueMin; // (cfg: RealSlider:[6])
+	/*08,4*/	real32 valueMax; // (cfg: RealSlider:[7])
+	/*0c,4*/	real32 valueStep; // (cfg: RealSlider:[8])
+	/*10,4*/	sint32 x2; // (cfg: RealSlider:[3])
+	/*14,4*/	sint32 y2; // (cfg: RealSlider:[4])
 	/*18,4*/	MenuItemRealSliderCallback callback;
 	/*1c*/
 };
 
-struct MenuItemSlider // [LegoRR/FrontEnd.c|struct:0x38]
+struct MenuItem_SliderData // [LegoRR/FrontEnd.c|struct:0x38]
 {
 	/*00,4*/	sint32* value;
-	/*04,4*/	sint32 LowLimit;
-	/*08,4*/	sint32 HighLimit;
-	/*0c,4*/	sint32 x2;
-	/*10,4*/	sint32 y2;
+	/*04,4*/	sint32 valueMin; // (cfg: Slider:[6])
+	/*08,4*/	sint32 valueMax; // (cfg: Slider:[7])
+	/*0c,4*/	sint32 x2; // (cfg: Slider:[3])
+	/*10,4*/	sint32 y2; // (cfg: Slider:[4])
 	/*14,4*/	MenuItemSliderCallback callback;
-	/*18,4*/	Image* OffBarImage;
-	/*1c,4*/	Image* OnBarImage;
-	/*20,4*/	Image* LeftCapImage;
-	/*24,4*/	Image* RightCapImage;
-	/*28,4*/	Image* LoPlusImage;
-	/*2c,4*/	Image* LoMinusImage;
-	/*30,4*/	Image* HiPlusImage;
-	/*34,4*/	Image* HiMinusImage;
+	/*18,4*/	Image* imageBarOff; // (cfg: Slider:[8] "OffBar")
+	/*1c,4*/	Image* imageBarOn; // (cfg: Slider:[9] "OnBar")
+	/*20,4*/	Image* imageCapLeft; // (cfg: Slider:[10] "Leftcap")
+	/*24,4*/	Image* imageCapRight; // (cfg: Slider:[11] "Rightcap")
+	/*28,4*/	Image* imagePlusLo; // (cfg: Slider:[12] "Plus")
+	/*2c,4*/	Image* imageMinusLo; // (cfg: Slider:[13] "Minus")
+	/*30,4*/	Image* imagePlusHi; // (cfg: Slider:[14] "PlusHi")
+	/*34,4*/	Image* imageMinusHi; // (cfg: Slider:[15] "MinusHi")
 	/*38*/
 };
 
-struct MenuItemTrigger // [LegoRR/FrontEnd.c|struct:0xc]
+struct MenuItem_TriggerData // [LegoRR/FrontEnd.c|struct:0xc]
 {
 	/*0,4*/	sint32* value;
-	/*4,4*/	bool32 end;
+	/*4,4*/	bool32 end; // (cfg: Trigger:[4]) End/close the current MenuSet
 	/*8,4*/	MenuItemTriggerCallback callback;
 	/*c*/
+};
+
+struct MenuItemCallbackPair // [LegoRR/dummy.c|struct:0x8]
+{
+	/*0,4*/	void* value;
+	/*4,4*/	void* callback;
+	/*8*/
 };
 
 struct MenuOverlay // [LegoRR/FrontEnd.c|struct:0x20]
@@ -4674,10 +4925,17 @@ struct MenuOverlay // [LegoRR/FrontEnd.c|struct:0x20]
 	/*04,4*/	sint32 overlayType; // (bmp, avi, lws, flh?)
 	/*08,4*/	undefined4 field_8;
 	/*0c,8*/	Point2I position;
-	/*14,4*/	SFXType sfxType;
+	/*14,4*/	SFX_Type sfxType;
 	/*18,4*/	MenuOverlay* previous;
 	/*1c,4*/	undefined4 field_1c;
 	/*20*/
+};
+
+struct MenuSet // [LegoRR/FrontEnd.c|struct:0x8] A collection of menus that may interact with one another (i.e. MainMenuFull, PausedMenu)
+{
+	/*0,4*/	Menu** menus; // (cfg: MenuSet::Menu1, Menu2...)
+	/*4,4*/	uint32 menuCount; // (cfg: MenuSet::MenuCount)
+	/*8*/
 };
 
 struct MenuTextWindow // [LegoRR/FrontEnd.c|struct:0x728] Menu/FrontEnd text structure, see CFG blocks: SaveText, LevelText
@@ -4800,12 +5058,23 @@ struct Mesh_Vertex // [Gods98/Mesh.c|struct:0x20] Untransformed/unlit vertices
 	/*20*/
 };
 
+struct MeshLOD // [LegoRR/MeshPoly.c|struct:0x18]
+{
+	/*00,4*/	Container* contMeshOrigin;
+	/*04,4*/	Container* contMeshTarget;
+	/*08,4*/	char* partName; // name of LoadObject file.lwo
+	/*0c,4*/	uint32 index;
+	/*10,4*/	uint32 flags; // (1 = dont free partName/cont_0,  2 = unk dtor behavior)
+	/*14,4*/	MeshLOD* next;
+	/*18*/
+};
+
 struct Message_Globs // [LegoRR/Message.c|struct:0x14380|tags:GLOBS]
 {
 	/*00000,14000*/	MessageAction messageTableX2[2][2048];
 	/*14000,8*/	uint32 messageCountX2[2];
 	/*14008,4*/	bool32 messageX2Bool;
-	/*1400c,190*/	LiveObject* selectedUnitList[100];
+	/*1400c,190*/	LegoObject* selectedUnitList[100];
 	/*1419c,a*/	KeysByte hotkeyList[10];
 	/*141a6,2*/	undefined2 padding1;
 	/*141a8,c8*/	MessageAction hotkeyMessages[10];
@@ -4818,8 +5087,8 @@ struct Message_Globs // [LegoRR/Message.c|struct:0x14380|tags:GLOBS]
 
 struct MessageAction // [LegoRR/Message.c|struct:0x14]
 {
-	/*00,4*/	MessageType event;
-	/*04,4*/	LiveObject* argumentObj; // (this argument is only used for live objects, but it's not necessarily true that it's the same in source)
+	/*00,4*/	Message_Type event;
+	/*04,4*/	LegoObject* argumentObj; // (this argument is only used for live objects, but it's not necessarily true that it's the same in source)
 	/*08,4*/	undefined4 argument2; // (this can be any types, and depends on the message)
 	/*0c,8*/	Point2I position;
 	/*14*/
@@ -4835,9 +5104,9 @@ struct NERPMessageSound // [LegoRR/NERPs.c|struct:0x8]
 struct NERPsFile_Globs // [LegoRR/NERPs.c|struct:0xb4|tags:GLOBS]
 {
 	/*00,4*/	bool32 Camera_IsLockedOn;
-	/*04,4*/	LiveObject* Camera_LockedOnTarget;
+	/*04,4*/	LegoObject* Camera_LockedOnTarget;
 	/*08,8*/	Point2I pointi_8;
-	/*10,4*/	LiveObject* object_10;
+	/*10,4*/	LegoObject* object_10;
 	/*14,4*/	bool32 bool_14;
 	/*18,4*/	real32 float_18;
 	/*1c,4*/	real32 float_1c;
@@ -4916,7 +5185,7 @@ struct ObjectiveData // [LegoRR/???|struct:0x54]
 	/*3c,4*/	uint32 OreObjective; // number of ore needed if non-zero
 	/*40,8*/	Point2I BlockObjective;
 	/*48,4*/	real32 TimerObjective; // (mult: 25.0, flags, format: "time:HitTimeFailObjective")
-	/*4c,4*/	ObjectType ConstructionObjectiveObjType;
+	/*4c,4*/	LegoObject_Type ConstructionObjectiveObjType;
 	/*50,4*/	sint32 ConstructionObjectiveObjIndex;
 	/*54*/
 };
@@ -4964,9 +5233,9 @@ struct ObjectStats // [LegoRR/Stats.c|struct:0x150]
 	/*0b4,4*/	sint32 CostCrystal;
 	/*0b8,4*/	sint32 CostRefinedOre;
 	/*0bc,4*/	sint32 CrystalDrain; // (leveled)
-	/*0c0,4*/	SFXType DrillSound; // (from: FUN_00464f30, invalid: 2 "SFX_Drill")
-	/*0c4,4*/	SFXType DrillFadeSound; // (from: FUN_00464f30, invalid: 3 "SFX_DrillFade")
-	/*0c8,4*/	SFXType EngineSound; // (from: FUN_00464f30, invalid: 0 "SFX_Bodge")
+	/*0c0,4*/	SFX_Type DrillSound; // (from: FUN_00464f30, invalid: 2 "SFX_Drill")
+	/*0c4,4*/	SFX_Type DrillFadeSound; // (from: FUN_00464f30, invalid: 3 "SFX_DrillFade")
+	/*0c8,4*/	SFX_Type EngineSound; // (from: FUN_00464f30, invalid: 0 "SFX_Bodge")
 	/*0cc,4*/	sint32 NumOfToolsCanCarry; // (leveled)
 	/*0d0,4*/	sint32 WaterEntrances;
 	/*0d4,4*/	real32 RubbleCoef; // (default: 1.0)
@@ -4997,9 +5266,9 @@ struct ObjectStats // [LegoRR/Stats.c|struct:0x150]
 	/*138,4*/	real32 Flocks_AttackTime; // (default: 300.0)
 	/*13c,4*/	sint32 Flocks_Size; // (default: 5)
 	/*140,4*/	real32 RandomMoveTime; // (default: 200.0)
-	/*144,4*/	ObjectStatsFlags1 flags1;
-	/*148,4*/	ObjectStatsFlags2 flags2;
-	/*14c,4*/	ObjectStatsFlags3 flags3;
+	/*144,4*/	StatsFlags1 flags1;
+	/*148,4*/	StatsFlags2 flags2;
+	/*14c,4*/	StatsFlags3 flags3;
 	/*150*/
 };
 
@@ -5019,7 +5288,7 @@ struct ObjectUpgradesData // [LegoRR/Upgrade.c|struct:0x14]
 	/*04,4*/	uint32 count;
 	/*08,4*/	sint32 currentLevel;
 	/*0c,4*/	uint32 levelsMask; // [carry][scan][speed][drill]
-	/*10,4*/	LiveObject** upgradeObjs;
+	/*10,4*/	LegoObject** upgradeObjs;
 	/*14*/
 };
 
@@ -5040,30 +5309,12 @@ struct ObjInfo_Globs // [LegoRR/ObjInfo.c|struct:0x78|tags:GLOBS]
 	/*78*/
 };
 
-struct P1P2Rect2F // [common.c|struct:0x10]
-{
-	/*00,4*/	real32 x1;
-	/*04,4*/	real32 y1;
-	/*08,4*/	real32 x2;
-	/*0c,4*/	real32 y2;
-	/*10*/
-};
-
-struct P1P2Rect2I // [common.c|struct:0x10]
-{
-	/*00,4*/	sint32 x1;
-	/*04,4*/	sint32 y1;
-	/*08,4*/	sint32 x2;
-	/*0c,4*/	sint32 y2;
-	/*10*/
-};
-
 struct Panel_Globs // [LegoRR/Panels.c|struct:0x7b8|tags:GLOBS]
 {
 	/*000,30*/	char* panelName[12];
 	/*030,240*/	PanelData panelTable[12];
 	/*270,480*/	char* panelButtonName[12][24];
-	/*6f0,4*/	PanelType currentPanel;
+	/*6f0,4*/	Panel_Type currentPanel;
 	/*6f4,4*/	PanelButtonType currentButton;
 	/*6f8,4*/	PanelTextWindow* infoTextWnd;
 	/*6fc,4*/	PanelTextWindow* encyclopediaTextWnd;
@@ -5135,7 +5386,7 @@ struct Point2I // [common.c|struct:0x8]
 
 struct Pointer_Globs // [LegoRR/Pointer.c|struct:0x468|tags:GLOBS]
 {
-	/*000,4*/	PointerType currentType;
+	/*000,4*/	Pointer_Type currentType;
 	/*004,e0*/	Image* pointerImages[56]; // (each item is either an ImageBMP or ImageFlic)
 	/*0e4,e0*/	bool32 pointerIsFlic[56];
 	/*1c4,1c0*/	Point2I pointerFlicPositions[56];
@@ -5144,27 +5395,16 @@ struct Pointer_Globs // [LegoRR/Pointer.c|struct:0x468|tags:GLOBS]
 	/*468*/
 };
 
-struct PolyMeshData // [LegoRR/MeshPoly.c|struct:0x18]
-{
-	/*00,4*/	Container* contMeshOrigin;
-	/*04,4*/	Container* contMeshTarget;
-	/*08,4*/	char* partName; // name of LoadObject file.lwo
-	/*0c,4*/	uint32 index;
-	/*10,4*/	uint32 flags; // (1 = dont free partName/cont_0,  2 = unk dtor behavior)
-	/*14,4*/	PolyMeshData* next;
-	/*18*/
-};
-
 struct Priorities_Globs // [LegoRR/Priorities.c|struct:0x4c0|tags:GLOBS]
 {
 	/*000,6c*/	char* priorityText[27];
 	/*06c,6c*/	Image* priorityImage[27];
 	/*0d8,6c*/	Image* priorityPressImage[27];
 	/*144,6c*/	Image* priorityOffImage[27];
-	/*1b0,6c*/	SFXType prioritySFX[27];
-	/*21c,6c*/	AIPriorityType priorityTypeTable_1[27];
+	/*1b0,6c*/	SFX_Type prioritySFX[27];
+	/*21c,6c*/	AI_Priority priorityTypeTable_1[27];
 	/*288,d8*/	Point2F priorityPoints[27];
-	/*360,6c*/	AIPriorityType priorityTypeTable_2[27];
+	/*360,6c*/	AI_Priority priorityTypeTable_2[27];
 	/*3cc,6c*/	undefined4 priorityUnk[27];
 	/*438,6c*/	bool32 priorityActive[27];
 	/*4a4,4*/	uint32 count;
@@ -5177,34 +5417,23 @@ struct Priorities_Globs // [LegoRR/Priorities.c|struct:0x4c0|tags:GLOBS]
 	/*4c0*/
 };
 
-struct ProMeshData // [LegoRR/???|struct:0x340]
-{
-	/*000,8*/	Container* promesh_ab[2];
-	/*008,320*/	undefined4 table_ab[2][100];
-	/*328,4*/	real32 BlockSize;
-	/*32c,4*/	undefined4 field_32c;
-	/*330,c*/	undefined field_0x330_0x33b[12];
-	/*33c,4*/	SurfaceTextureGrid* surfTextGrid;
-	/*340*/
-};
-
 struct PTL_Globs // [LegoRR/PTL.c|struct:0x144|tags:GLOBS]
 {
-	/*000,140*/	PTLProperty table[40];
+	/*000,140*/	PTL_Property table[40];
 	/*140,4*/	uint32 count;
 	/*144*/
 };
 
-struct PTLProperty // [LegoRR/PTL.c|struct:0x8] Property loaded from a level's PTL config file (contains lookup index for actions)
+struct PTL_Property // [LegoRR/PTL.c|struct:0x8] Property loaded from a level's PTL config file (contains lookup index for actions)
 {
-	/*0,4*/	MessageType eventIndex;
-	/*4,4*/	MessageType actionIndex;
+	/*0,4*/	Message_Type eventIndex;
+	/*4,4*/	Message_Type actionIndex;
 	/*8*/
 };
 
 struct RadarMap // [LegoRR/RadarMap.c|struct:0x3c]
 {
-	/*00,4*/	SurfaceMap* surfMap;
+	/*00,4*/	Map3D* surfMap;
 	/*04,10*/	Area2F screenRect;
 	/*14,4*/	real32 arrowTiltOrZoom;
 	/*18,4*/	real32 BlockSize;
@@ -5242,6 +5471,24 @@ struct Range2F // [common.c|struct:0x8]
 	/*8*/
 };
 
+struct Area2F // [common.c|struct:0x10]
+{
+	/*00,4*/	real32 left;
+	/*04,4*/	real32 top;
+	/*08,4*/	real32 right;
+	/*0c,4*/	real32 bottom;
+	/*10*/
+};
+
+struct Area2I // [common.c|struct:0x10]
+{
+	/*00,4*/	sint32 left;
+	/*04,4*/	sint32 top;
+	/*08,4*/	sint32 right;
+	/*0c,4*/	sint32 bottom;
+	/*10*/
+};
+
 struct Reward_Globs // [LegoRR/Rewards.c|struct:0x3250|tags:GLOBS]
 {
 	/*0000,4*/	bool32 Display; // is the rewards screen shown on mission end?
@@ -5261,7 +5508,7 @@ struct Reward_Globs // [LegoRR/Rewards.c|struct:0x3250|tags:GLOBS]
 	/*31c8,4*/	Font* TitleFont;
 	/*31cc,4*/	char* BackFontName;
 	/*31d0,4*/	Font* BackFont;
-	/*31d4,4*/	CFGProperty* cfgRoot;
+	/*31d4,4*/	Config* cfgRoot;
 	/*31d8,4*/	char* gameName;
 	/*31dc,4*/	RewardScroll* scroll;
 	/*31e0,8*/	Point2F SaveButtonPosition;
@@ -5454,14 +5701,6 @@ struct RoutingBlock // [LegoRR/Routing.c|struct:0x14]
 	/*14*/
 };
 
-struct RoutingData // [LegoRR/Routing.c|struct:0x25c]
-{
-	/*000,4*/	uint32 count;
-	/*004,190*/	Point2F points[50];
-	/*194,c8*/	real32 distances[50];
-	/*25c*/
-};
-
 struct RROSFileHeader // [LegoRR/ObjectRecall.c|struct:0x8] For .osf Object Recall save files
 {
 	/*0,4*/	char signature[4];
@@ -5469,17 +5708,10 @@ struct RROSFileHeader // [LegoRR/ObjectRecall.c|struct:0x8] For .osf Object Reca
 	/*8*/
 };
 
-struct SampleProperty // [LegoRR/SFX.c|struct:0x8]
-{
-	/*0,4*/	sint32 sampleIndex;
-	/*4,4*/	SampleProperty* next;
-	/*8*/
-};
-
 struct SaveData // [LegoRR/save.c|struct:0xb8]
 {
 	/*00,4*/	undefined4 field_0x0;
-	/*04,4*/	undefined4 field_0x4;
+	/*04,4*/	sint32 SliderMusicVolume;
 	/*08,4*/	sint32 SliderSoundVolume;
 	/*0c,4*/	sint32 SliderGameSpeed;
 	/*10,4*/	sint32 SliderBrightness;
@@ -5543,7 +5775,7 @@ struct ScrollInfoStruct_20 // [LegoRR/ScrollInfo.c|struct:0x20]
 	/*0c,4*/	ScrollInfoSubStruct_1c* ptr1c_c;
 	/*10,4*/	ScrollInfoSubStruct_1c* ptr1c_10;
 	/*14,4*/	ScrollInfoSubStruct_28* substruct28;
-	/*18,4*/	PanelType panelType;
+	/*18,4*/	Panel_Type panelType;
 	/*1c,4*/	uint32 flags; // (1 = used, 4 = hasImage)
 	/*20*/
 };
@@ -5581,10 +5813,10 @@ struct SearchAddCryOre_c // [LegoRR/search.c|struct:0xc]
 
 struct SearchCollision_14 // [LegoRR/search.c|struct:0x14] LiveObject_DoCollisionCallbacks_FUN_00446030
 {
-	/*00,4*/	LiveObject* targetObj;
+	/*00,4*/	LegoObject* targetObj;
 	/*04,4*/	Point2F* pointf_4;
 	/*08,4*/	real32 float_8;
-	/*0c,4*/	LiveObject* result;
+	/*0c,4*/	LegoObject* result;
 	/*10,4*/	bool32 bool_10;
 	/*14*/
 };
@@ -5602,7 +5834,7 @@ struct SearchData18_2 // [LegoRR/search.c|struct:0x18]
 
 struct SearchDynamiteRadius // [LegoRR/search.c|struct:0x18]
 {
-	/*00,4*/	LiveObject* liveObj;
+	/*00,4*/	LegoObject* liveObj;
 	/*04,8*/	Point2F position;
 	/*0c,4*/	real32 damageRadius;
 	/*10,4*/	real32 maxDamage;
@@ -5619,21 +5851,21 @@ struct SearchInfoBlockPos_8 // [LegoRR/search.c|struct:0x8]
 
 struct SearchInfoObject_8 // [LegoRR/search.c|struct:0x8]
 {
-	/*0,4*/	LiveObject* object;
+	/*0,4*/	LegoObject* object;
 	/*4,4*/	uint32 index;
 	/*8*/
 };
 
 struct SearchInfoObjectBlockPos_8 // [LegoRR/search.c|struct:0x8]
 {
-	/*0,4*/	LiveObject* optObject;
+	/*0,4*/	LegoObject* optObject;
 	/*4,4*/	Point2I* optBlockPos;
 	/*8*/
 };
 
 struct SearchLevelIdentifier_10 // [LegoRR/search.c|struct:0x10]
 {
-	/*00,4*/	LevelIdentifier* result; // output level identifier (not modified on failure)
+	/*00,4*/	LevelInfo* result; // output level identifier (not modified on failure)
 	/*04,4*/	sint32 searchIndex; // (target index to search for)
 	/*08,4*/	sint32 currentIndex; // (counter index of individual linked levels)
 	/*0c,4*/	sint32 resultIndex; // (equal to searchIndex on success)
@@ -5649,14 +5881,14 @@ struct SearchNERPsTutorialAction // [LegoRR/search.c|struct:0x2c]
 	/*14,8*/	Point2I blockPos;
 	/*1c,4*/	undefined4 fieldBool_1c;
 	/*20,4*/	undefined4 fieldBool_20;
-	/*24,4*/	LiveObject* object_24;
+	/*24,4*/	LegoObject* object_24;
 	/*28,4*/	sint32 int_28;
 	/*2c*/
 };
 
 struct SearchObjectTypeCount_c // [LegoRR/search.c|struct:0xc]
 {
-	/*0,4*/	ObjectType objType;
+	/*0,4*/	LegoObject_Type objType;
 	/*4,4*/	sint32 objIndex;
 	/*8,4*/	uint32 count;
 	/*c*/
@@ -5664,7 +5896,7 @@ struct SearchObjectTypeCount_c // [LegoRR/search.c|struct:0xc]
 
 struct SearchRadarObjectRadius_10 // [LegoRR/search.c|struct:0x10]
 {
-	/*00,4*/	LiveObject* object;
+	/*00,4*/	LegoObject* object;
 	/*04,8*/	Point2F worldPos;
 	/*0c,4*/	real32 radius; // BlockSize -or- (BlockSize / 6.0)
 	/*10*/
@@ -5672,7 +5904,7 @@ struct SearchRadarObjectRadius_10 // [LegoRR/search.c|struct:0x10]
 
 struct SearchTeleporter_10 // [LegoRR/search.c|struct:0x10] Teleporter_Creat_FUN_0046a7d0
 {
-	/*00,4*/	ObjectType objType;
+	/*00,4*/	LegoObject_Type objType;
 	/*04,4*/	uint32 modeFlags;
 	/*08,4*/	uint32 teleportFlags;
 	/*0c,4*/	TeleporterService* teleporter;
@@ -5696,24 +5928,40 @@ struct SelectPlace // [LegoRR/SelectPlace.c|struct:0x8] Building selection highl
 
 struct SFX_Globs // [LegoRR/SFX.c|struct:0x1770|tags:GLOBS]
 {
-	/*0000,f78*/	SampleProperty samplePropTable[495];
-	/*0f78,640*/	SampleProperty sampleGroupTable[200];
+	/*0000,f78*/	SFX_Property samplePropTable[495];
+	/*0f78,640*/	SFX_Property sampleGroupTable[200];
 	/*15b8,4*/	uint32* hashNameList;
 	/*15bc,4*/	uint32 hashNameCount;
 	/*15c0,4*/	uint32 sampleGroupCount;
-	/*15c4,4*/	AudioFlags audioFlags;
-	/*15c8,f0*/	Sound3DInstance sfxInstanceTable[10];
+	/*15c4,4*/	SFX_GlobFlags flags;
+	/*15c8,f0*/	SFX_Instance sfxInstanceTable[10];
 	/*16b8,4*/	uint32 sfxInstanceCount;
 	/*16bc,4*/	real32 globalSampleDuration; // Duration is multiplied by 25.0
 	/*16c0,4*/	sint32 globalSampleSoundHandle;
-	/*16c4,4*/	SFXType globalSampleSFXType;
-	/*16c8,28*/	SFXType soundQueueSFXTable_1[10];
+	/*16c4,4*/	SFX_Type globalSampleSFXType;
+	/*16c8,28*/	SFX_Type soundQueueSFXTable_1[10];
 	/*16f0,28*/	SoundMode soundQueueModesTable_1[10];
-	/*1718,28*/	SFXType soundQueueSFXTable_2[10];
+	/*1718,28*/	SFX_Type soundQueueSFXTable_2[10];
 	/*1740,28*/	SoundMode soundQueueModesTable_2[10];
 	/*1768,4*/	uint32 soundQueueCount_1;
 	/*176c,4*/	uint32 soundQueueCount_2;
 	/*1770*/
+};
+
+struct SFX_Instance // [LegoRR/SFX.c|struct:0x18]
+{
+	/*00,4*/	sint32 sampleIndex;
+	/*04,4*/	IDirect3DRMFrame3* frame; // what happened to hiding D3DRM behind Containers and 3DSound?
+	/*08,c*/	Vector3F position;
+	/*14,4*/	SFX_InstanceFlags flags;
+	/*18*/
+};
+
+struct SFX_Property // [LegoRR/SFX.c|struct:0x8]
+{
+	/*0,4*/	sint32 sound3DHandle;
+	/*4,4*/	SFX_Property* next; // next group property
+	/*8*/
 };
 
 struct Size2F // [common.c|struct:0x8]
@@ -5779,7 +6027,7 @@ struct Sound3D_SoundData // [Gods98/3DSound.c|struct:0x134]
 	/*11c,4*/	WAVEFORMATEX* waveFormat;
 	/*120,c*/	IDirectSoundBuffer* dSoundBuffers[3]; // ([] = max simultaneous 3D sounds)
 	/*12c,4*/	uint32 bufferIndex; // (official: voice)
-	/*130,4*/	SampleFlags flags;
+	/*130,4*/	Sound3DFlags flags;
 	/*134*/
 };
 
@@ -5826,15 +6074,6 @@ struct Sound3D_WaveData // [Gods98/3DSound.c|struct:0x54]
 	/*54*/
 };
 
-struct Sound3DInstance // [LegoRR/SFX.c|struct:0x18]
-{
-	/*00,4*/	sint32 sampleIndex;
-	/*04,4*/	IDirect3DRMFrame3* frame;
-	/*08,c*/	Vector3F position;
-	/*14,4*/	uint32 flags;
-	/*18*/
-};
-
 struct Sound_Globs // [Gods98/Sound.c|struct:0x1b8|tags:GLOBS]
 {
 	/*000,4*/	uint32 useSound; // Number of sounds in soundList
@@ -5853,7 +6092,7 @@ struct Sound_Globs // [Gods98/Sound.c|struct:0x1b8|tags:GLOBS]
 struct SpiderWeb_Globs // [LegoRR/SpiderWeb.c|struct:0x8|tags:GLOBS]
 {
 	/*0,4*/	BlockSpiderWeb* webBlocks;
-	/*4,4*/	LevelData* level;
+	/*4,4*/	Lego_Level* level;
 	/*8*/
 };
 
@@ -5868,7 +6107,7 @@ struct Stats_Globs // [LegoRR/Stats.c|struct:0x5b0|tags:GLOBS]
 struct Struct_2b0 // [LegoRR/Weapons.c|struct:0x2b0] Seen in a table of [10]. This is likely an extension of the Weapons module.
 {
 	/*000,4*/	undefined4 unseen_0;
-	/*004,25c*/	RoutingData routing;
+	/*004,25c*/	BezierCurve routing;
 	/*260,4*/	undefined4 unseen_260;
 	/*264,4*/	real32 float_264;
 	/*268,c*/	Vector3F vector_268;
@@ -5878,87 +6117,10 @@ struct Struct_2b0 // [LegoRR/Weapons.c|struct:0x2b0] Seen in a table of [10]. Th
 	/*290,c*/	Vector3F vector_290;
 	/*29c,4*/	undefined4 field_29c;
 	/*2a0,4*/	undefined4 field_2a0;
-	/*2a4,4*/	LiveObject* object_2a4;
+	/*2a4,4*/	LegoObject* object_2a4;
 	/*2a8,4*/	sint32 weaponType;
 	/*2ac,4*/	undefined4 field_2ac;
 	/*2b0*/
-};
-
-struct SubMenu // [LegoRR/FrontEnd.c|struct:0xa0]
-{
-	/*00,4*/	char* string_0;
-	/*04,4*/	char* string_4;
-	/*08,4*/	uint32 length_8; // (init: strlen(param_1))
-	/*0c,4*/	Font* MenuFont; // (init: param_3)
-	/*10,4*/	Image* MenuImage;
-	/*14,4*/	Image* MenuImageDark;
-	/*18,4*/	MenuItem* Items;
-	/*1c,4*/	sint32 ItemCount;
-	/*20,4*/	sint32 int_20; // (init: 15)
-	/*24,4*/	undefined4 field_24;
-	/*28,4*/	undefined4 field_28;
-	/*2c,8*/	Point2I Position;
-	/*34,4*/	uint32 uint_34;
-	/*38,8*/	undefined field_0x38_0x3f[8];
-	/*40,4*/	MenuOverlay* Overlays;
-	/*44,4*/	bool32 AutoCenter;
-	/*48,4*/	bool32 DisplayTitle;
-	/*4c,4*/	bool32 isAnchored;
-	/*50,8*/	Point2I AnchoredPosition;
-	/*58,4*/	sint32 flags_58; // (0x2 = CanScroll)
-	/*5c,40*/	char CfgName[64];
-	/*9c,4*/	BoolTri PlayRandom;
-	/*a0*/
-};
-
-struct SurfaceBlock // [LegoRR/Map3D.c|struct:0x28]
-{
-	/*00,c*/	Vector3F vector_0;
-	/*0c,c*/	Vector3F vector_c;
-	/*18,1*/	SurfaceTexture texture;
-	/*19,1*/	SurfaceMapStruct28Flags byteflags_19;
-	/*1a,1*/	uint8 heightValue; // height block value taken from high.map file
-	/*1b,1*/	undefined field_0x1b;
-	/*1c,8*/	Point2F textuv_1c;
-	/*24,1*/	uint8 highlight; // (WallHighlightType)
-	/*25,3*/	undefined field_0x25_0x27[3];
-	/*28*/
-};
-
-struct SurfaceMap // [LegoRR/Map3D.c|struct:0x73d4] size 0x73d4... dear god.... no...
-{
-	/*0000,8*/	Size2I smallDimensions; // full map dimensions - 1
-	/*0008,8*/	Size2I dimensions; // full map dimensions
-	/*0010,4*/	real32 BlockSize;
-	/*0014,4*/	real32 RoughLevel;
-	/*0018,8*/	Size2F worldDimensions_fnegx; // (-width, +height) * BlockSize / 2.0f  (smallDimensions)
-	/*0020,4*/	real32 float_20;
-	/*0024,4*/	Container* contMesh_24;
-	/*0028,4*/	SurfaceBlock* blocks3D; // malloc(dimensions * 0x28)
-	/*002c,4*/	undefined4 field_2c;
-	/*0030,4*/	IDirect3DRMMaterial2* rmMaterial2; // Material related
-	/*0034,4000*/	uint8 texsGrid[128][128];
-	/*4034,80*/	uint8 texsNum[128];
-	/*40b4,200*/	undefined4 flat_40b4[128];
-	/*42b4,7d0*/	Coord2I smallCoordsTable[500];
-	/*4a84,4*/	uint32 smallCoordsNum;
-	/*4a88,2710*/	Coord2I largeCoordsTable[2500];
-	/*7198,4*/	uint32 largeCoordsNum;
-	/*719c,230*/	SurfaceMapStruct38 table38_719c[10];
-	/*73cc,4*/	Container* contMesh_73cc; // (used for table38_719c)
-	/*73d0,4*/	SurfaceMapFlags flags_73d0;
-	/*73d4*/
-};
-
-struct SurfaceMapStruct38 // [LegoRR/Map3D.c|struct:0x38]
-{
-	/*00,4*/	D3DRMGroupIndex groupID;
-	/*04,4*/	real32 timer; // countdown timer
-	/*08,8*/	Point2I blockPos;
-	/*10,20*/	Point2F pointfsTable_10[4];
-	/*30,4*/	undefined field_0x30_0x33[4];
-	/*34,4*/	uint32 flags; // (0x1 = visible?)
-	/*38*/
 };
 
 struct SurfaceMapStruct_2a8 // [LegoRR/Map3D.c|struct:0x2a8]
@@ -5993,13 +6155,6 @@ struct SurfaceMapStruct_3c // [LegoRR/Map3D.c|struct:0x3c]
 	/*34,4*/	sint32 int_34; // (std::rand() % 30) + 40
 	/*38,4*/	undefined4 field_38;
 	/*3c*/
-};
-
-struct SurfaceTextureGrid // [LegoRR/???|struct:0xc]
-{
-	/*0,8*/	Size2I gridSize;
-	/*8,4*/	Container_Texture** gridSurfaces;
-	/*c*/
 };
 
 struct Teleporter_Globs // [LegoRR/Teleporter.c|struct:0x10|tags:GLOBS]
@@ -6037,7 +6192,7 @@ struct Text_Globs // [LegoRR/Text.c|struct:0x4dc|tags:GLOBS]
 	/*068,68*/	char* textMessages[26];
 	/*0d0,68*/	Image* textImages[26];
 	/*138,340*/	char textImagesSFX[26][32];
-	/*478,4*/	TextType currentType;
+	/*478,4*/	Text_Type currentType;
 	/*47c,4*/	uint32 textCount;
 	/*480,4*/	uint32 textFlags;
 	/*484,4*/	undefined4 field_484;
@@ -6076,7 +6231,7 @@ struct TextWindow // [Gods98/TextWindow.c|struct:0x830] Probably a text renderin
 
 struct ToolStats // [LegoRR/Stats.c|struct:0x10]
 {
-	/*00,c*/	AITaskType taskTypes[3]; // Up to 3 AITaskTypes can be associated with a tool
+	/*00,c*/	AITask_Type taskTypes[3]; // Up to 3 AITaskTypes can be associated with a tool
 	/*0c,4*/	uint32 taskCount;
 	/*10*/
 };
@@ -6110,7 +6265,7 @@ struct ToolTipData // [LegoRR/ToolTip.c|struct:0x27c]
 	/*268,4*/	undefined4 field_268;
 	/*26c,4*/	sint32 field_26c; // box width?
 	/*270,4*/	Image* tooltipImage;
-	/*274,4*/	SFXType sfxType;
+	/*274,4*/	SFX_Type sfxType;
 	/*278,4*/	ToolTipFlags flags; // (flag 0x8 IMAGE is not for "iconList")
 	/*27c*/
 };
@@ -6119,7 +6274,7 @@ struct UpgradeData // [LegoRR/Upgrade.c|struct:0x10]
 {
 	/*00,4*/	sint32 objectIndex;
 	/*04,4*/	Container* aeResData; // ACT, true
-	/*08,4*/	LiveObject* object_8;
+	/*08,4*/	LegoObject* object_8;
 	/*0c,4*/	undefined4 field_c;
 	/*10*/
 };
@@ -6180,10 +6335,20 @@ struct VehicleData // [LegoRR/Vehicle.c|struct:0x1ec]
 	/*170,54*/	undefined field_0x170_0x1c3[84];
 	/*1c4,18*/	Container* table6_1c4[6];
 	/*1dc,4*/	undefined4 field_1dc;
-	/*1e0,4*/	PolyMeshData* polyMedium_1;
-	/*1e4,4*/	PolyMeshData* polyMedium_2;
+	/*1e0,4*/	MeshLOD* polyMedium_1;
+	/*1e4,4*/	MeshLOD* polyMedium_2;
 	/*1e8,4*/	uint32 flags; // HoldMissing TRUE -> 0x8
 	/*1ec*/
+};
+
+struct Vertex // [common.c|struct:0x24] Vertex3F, Extension of D3DVertex with color field
+{
+	/*00,c*/	Vector3F position; // Homogeneous coordinates
+	/*0c,c*/	Vector3F normal; // Normal
+	/*18,4*/	real32 tu; // Texture coordinates
+	/*1c,4*/	real32 tv; // Texture coordinates
+	/*20,4*/	uint32 colour;
+	/*24*/
 };
 
 struct Viewport // [Gods98/Viewports.c|struct:0x20|tags:LISTSET]
@@ -6222,6 +6387,15 @@ struct Wad // [Gods98/Wad.c|struct:0x24] LegoRR WAD File information
 	/*24*/
 };
 
+struct Wad_FileHandle // [Gods98/Wad.c|struct:0x10]
+{
+	/*00,4*/	void* data; // Pointer to the file data
+	/*04,4*/	bool32 active; // Is this handle active already
+	/*08,4*/	sint32 wadNo; // Wad file this handle uses
+	/*0c,4*/	sint32 fileNo; // Index of the file in the wad structure
+	/*10*/
+};
+
 struct Wad_Globs // [Gods98/Wad.c|struct:0x7ec|tags:GLOBS]
 {
 	/*000,4*/	DWORD computerNameLength; // (address not known)
@@ -6230,22 +6404,13 @@ struct Wad_Globs // [Gods98/Wad.c|struct:0x7ec|tags:GLOBS]
 	/*00c,168*/	Wad wads[10]; // Wad structures
 	/*174,28*/	sint32 references[10]; // Current count of references to the wad file
 	/*19c,10*/	char computerName[16]; // (address not known)
-	/*1ac,640*/	Wad_Handle fileHandles[100];
+	/*1ac,640*/	Wad_FileHandle fileHandles[100];
 	/*7ec*/
-};
-
-struct Wad_Handle // [Gods98/Wad.c|struct:0x10]
-{
-	/*00,4*/	void* data; // Pointer to the file data
-	/*04,4*/	bool32 active; // Is this handle active already
-	/*08,4*/	sint32 wadFile; // Wad file this handle uses
-	/*0c,4*/	sint32 indexOfFileInWad; // Index of the file in the wad structure
-	/*10*/
 };
 
 struct WadEntry // [Gods98/Wad.c|struct:0x10] WAD file entry metadata contained within LegoWADFile structure
 {
-	/*00,4*/	WadEntryFlags compression; // usually 1, 2 for RNC compression
+	/*00,4*/	Wad_EntryFlags compression; // usually 1, 2 for RNC compression
 	/*04,4*/	sint32 fileLength; // Compressed packed size
 	/*08,4*/	sint32 decompressedLength; // Original unpacked size (same as packedSize when uncompressed)
 	/*0c,4*/	sint32 addr; // absolute file offset
@@ -6308,7 +6473,7 @@ struct Weapon_Globs // [LegoRR/Weapons.c|struct:0x1b90|tags:GLOBS]
 	/*0008,4*/	WeaponStats* weaponStatsList;
 	/*000c,a0*/	ItemStruct_34 ItemStruct34Unk_TABLE[10];
 	/*00ac,1ae0*/	Struct_2b0 Struct2B0Unk_TABLE[10];
-	/*1b8c,4*/	CFGProperty* cfgRoot;
+	/*1b8c,4*/	Config* cfgRoot;
 	/*1b90*/
 };
 
