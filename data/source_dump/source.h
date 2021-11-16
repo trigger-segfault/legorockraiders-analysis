@@ -68,7 +68,7 @@ bool32 __cdecl AIPriority_GetType(char* aiPriorityName, AI_Priority* out_priorit
 // <LegoRR.exe @00401c30>
 void __cdecl AITask_Initialise(void);
 // <LegoRR.exe @00401f40>
-void __cdecl AITask_FUN_00401f40(AITask_Type taskType, LegoObject* liveObj, Point2I* opt_position);
+void __cdecl AITask_FUN_00401f40(AITask_Type taskType, LegoObject* liveObj, Point2I* opt_blockPos);
 // <LegoRR.exe @00401fa0>
 void __cdecl AITask_SetPriorityType(AITask* aiTask, AI_Priority priorityType);
 // <LegoRR.exe @00401fd0>
@@ -104,7 +104,7 @@ bool32 __cdecl AITask_IsCollectAndSameTarget(AITask* aiTask, LegoObject* liveObj
 // <LegoRR.exe @00402650>
 void __cdecl AITask_DoCollect(LegoObject* liveObj, real32 param_2);
 // <LegoRR.exe @004026d0>
-void __cdecl AITask_DoBuildPath_AtPosition(Point2I* position);
+void __cdecl AITask_DoBuildPath_AtPosition(Point2I* blockPos);
 // <LegoRR.exe @00402730>
 void __cdecl AITask_DoGather_Count(sint32 count);
 // <LegoRR.exe @00402780>
@@ -116,25 +116,25 @@ void __cdecl AITask_DoFindDriver_Target(LegoObject* targetObj);
 // <LegoRR.exe @00402970>
 bool32 __cdecl AITask_DoCallbacks_IfAttackPath_FUN_00402970(Point2I* blockPos);
 // <LegoRR.exe @004029a0>
-bool32 __cdecl AITask_Callback_IfAttackPath_FUN_004029a0(AITask* aiTask, Point2I** param_2);
+bool32 __cdecl AITask_Callback_IfAttackPath_FUN_004029a0(AITask* aiTask, Point2I** search);
 // <LegoRR.exe @004029d0>
-bool32 __cdecl AITask_LiveObject_DoCallbacks_FUN_004029d0(LegoObject* liveObj);
+bool32 __cdecl AITask_LiveObject_DoCallbacks_FUN_004029d0(void* liveObj);
 // <LegoRR.exe @004029f0>
 bool32 __cdecl AITask_Callback_FUN_004029f0(AITask* aiTask, LegoObject* liveObj);
 // <LegoRR.exe @00402a10>
-void __cdecl AITask_Block_FUN_00402a10(Point2I* blockPos, sint32 param_2);
+void __cdecl AITask_Block_FUN_00402a10(Point2I* blockPos, undefined4 param_2);
 // <LegoRR.exe @00402a60>
 bool32 __cdecl AITask_Block_FUN_00402a60(Point2I* blockPos);
 // <LegoRR.exe @00402a90>
 bool32 __cdecl AITask_DoCallbacks_Block_FUN_00402a90(Point2I* blockPos, bool32 param_2);
 // <LegoRR.exe @00402ae0>
-bool32 __cdecl AITask_Callback_FUN_00402ae0(AITask* aiTask, Point2I** pBlockPos);
+bool32 __cdecl AITask_Callback_FUN_00402ae0(AITask* aiTask, Point2I** search);
 // <LegoRR.exe @00402b50>
-bool32 __cdecl AITask_Callback_FUN_00402b50(AITask* aiTask, Point2I** param_2);
+bool32 __cdecl AITask_Callback_FUN_00402b50(AITask* aiTask, Point2I** search);
 // <LegoRR.exe @00402ba0>
-bool32 __cdecl AITask_Callback_FUN_00402ba0(AITask* aiTask, Point2I** param_2);
+bool32 __cdecl AITask_Callback_FUN_00402ba0(AITask* aiTask, Point2I** search);
 // <LegoRR.exe @00402bd0>
-bool32 __cdecl AITask_Callback_FUN_00402bd0(AITask* aiTask, Point2I** param_2);
+bool32 __cdecl AITask_Callback_FUN_00402bd0(AITask* aiTask, Point2I** search);
 // <LegoRR.exe @00402c00>
 void __cdecl AITask_Release_2(AITask* aiTask);
 // <LegoRR.exe @00402c60>
@@ -150,11 +150,11 @@ void __cdecl AITask_DoRepair_Target(LegoObject* targetObj, bool32 condition);
 // <LegoRR.exe @00402ea0>
 void __cdecl AITask_DoGotoEat_Target(LegoObject* liveObj, LegoObject* targetObj);
 // <LegoRR.exe @00402ee0>
-void __cdecl AITask_DoElecFence(Point2I* position);
+void __cdecl AITask_DoElecFence(Point2I* blockPos);
 // <LegoRR.exe @00402f60>
 void __cdecl AITask_DoReinforce_AtBlockPos(Point2I* blockPos);
 // <LegoRR.exe @00402fe0>
-void __cdecl AITask_DoClear_AtPosition(Point2I* position, Message_Type completeAction);
+void __cdecl AITask_DoClear_AtPosition(Point2I* blockPos, Message_Type completeAction);
 // <LegoRR.exe @00403010>
 void __cdecl AITask_DoGetTool_FromTask(AITask* in_aiTask);
 // <LegoRR.exe @004030c0>
@@ -162,7 +162,7 @@ bool32 __cdecl AITask_DoGetTool(LegoObject_ToolType toolType);
 // <LegoRR.exe @00403110>
 bool32 __cdecl AITask_Game_SelectedUnits_UnkEquippedTool_FUN_00403110(LegoObject_ToolType toolType);
 // <LegoRR.exe @004031a0>
-void __cdecl AITask_Game_PTL_UserGoto(LegoObject** liveObjsTable, sint32 count, Point2I* position, bool32 param_4);
+void __cdecl AITask_Game_PTL_UserGoto(LegoObject** liveObjsTable, sint32 count, Point2I* blockPos, bool32 param_4);
 // <LegoRR.exe @00403250>
 void __cdecl AITask_DoUpgrade(LegoObject* liveObj, sint32 newObjLevel);
 // <LegoRR.exe @004032f0>
@@ -174,13 +174,13 @@ void __cdecl AITask_StopGoto_Congregate(Point2I* blockPos);
 // <LegoRR.exe @004033d0>
 void __cdecl AITask_DoAttackObject(LegoObject* liveObj);
 // <LegoRR.exe @00403410>
-void __cdecl AITask_DoAttackPath(Point2I* position);
+void __cdecl AITask_DoAttackPath(Point2I* blockPos);
 // <LegoRR.exe @00403450>
 void __cdecl AITask_DoRepair(LegoObject* liveObj);
 // <LegoRR.exe @00403490>
 void __cdecl AITask_LiveObject_FUN_00403490(LegoObject* liveObj);
 // <LegoRR.exe @004034f0>
-void __cdecl AITask_Game_PTL_GotoOrRMGoto(LegoObject* liveObj, Point2I* position, undefined4 param_3);
+void __cdecl AITask_Game_PTL_GotoOrRMGoto(LegoObject* liveObj, Point2I* blockPos, undefined4 param_3);
 // <LegoRR.exe @00403540>
 void __cdecl AITask_Game_PTL_CrystalToRefinery(LegoObject* liveObj, LegoObject* targetObj);
 // <LegoRR.exe @00403580>
@@ -274,7 +274,7 @@ void __cdecl AITask_Remove(AITask* aiTask, bool32 noRelease2);
 // <LegoRR.exe @004063f0>
 void __cdecl AITask_AddList(void);
 // <LegoRR.exe @00406470>
-bool32 __cdecl AITask_DoUnkCallbacks(undefined* taskFunction, LegoObject* liveObj);
+bool32 __cdecl AITask_RunThroughLists(AITask_RunThroughListsCallback callback, void* data);
 // <LegoRR.exe @00406500>
 IDirectDraw4* __cdecl DirectDraw(void);
 // <LegoRR.exe @00406510>
@@ -292,49 +292,49 @@ void __cdecl BezierCurve_BuildPoints(BezierCurve* curve, Point2F* p0, Point2F* p
 // <LegoRR.exe @004067f0>
 uint32 __cdecl BezierCurve_Interpolate(BezierCurve* curve, real32 currentDist, Point2F* out_r);
 // <LegoRR.exe @004068b0>
-bool32 __cdecl Creature_IsCameraFlipDir(CreatureData* creature);
+bool32 __cdecl Creature_IsCameraFlipDir(CreatureModel* creature);
 // <LegoRR.exe @004068c0>
-bool32 __cdecl Creature_LoadActivityFile(CreatureData* creature, sint32 objIndex, Container* resRoot, char* aeFilename, char* rootName);
+bool32 __cdecl Creature_Load(CreatureModel* creature, sint32 objID, Container* root, char* filename, char* gameName);
 // <LegoRR.exe @00406b30>
-void __cdecl Creature_SwapPolyMedium(CreatureData* creature, bool32 swap);
+void __cdecl Creature_SwapPolyMedium(CreatureModel* creature, bool32 swap);
 // <LegoRR.exe @00406b60>
-void __cdecl Creature_SwapPolyHigh(CreatureData* creature, bool32 swap);
+void __cdecl Creature_SwapPolyHigh(CreatureModel* creature, bool32 swap);
 // <LegoRR.exe @00406b90>
-void __cdecl Creature_SwapPolyFP(CreatureData* creature, bool32 swap, sint32 cameraFrameIndex);
+void __cdecl Creature_SwapPolyFP(CreatureModel* creature, bool32 swap, sint32 cameraFrameIndex);
 // <LegoRR.exe @00406bc0>
-void __cdecl Object_HideAll(BasicObjectData* basicObjData, bool32 hide);
+void __cdecl Object_Hide(BasicObjectModel* basicObjData, bool32 hide);
 // <LegoRR.exe @00406be0>
-void __cdecl Creature_Duplicate(CreatureData* in_creature, CreatureData* out_creature);
+void __cdecl Creature_Clone(CreatureModel* srcCreature, CreatureModel* destCreature);
 // <LegoRR.exe @00406c40>
-void __cdecl Creature_DoCallbacks(CreatureData* creature, real32 elapsed);
+void __cdecl Creature_SetAnimationTime(CreatureModel* creature, real32 time);
 // <LegoRR.exe @00406c60>
-float10 __cdecl Creature_FUN_00406c60(CreatureData* creature, real32 elapsed, uint32 param_3);
+float10 __cdecl Creature_MoveAnimation(CreatureModel* creature, real32 elapsed, uint32 unkFrameNo);
 // <LegoRR.exe @00406cd0>
-float10 __cdecl Creature_GetAnimFloat10(CreatureData* creature);
+float10 __cdecl Creature_GetAnimationTime(CreatureModel* creature);
 // <LegoRR.exe @00406cf0>
-void __cdecl Creature_SetOrientation(CreatureData* creature, real32 x, real32 y);
+void __cdecl Creature_SetOrientation(CreatureModel* creature, real32 xDir, real32 yDir);
 // <LegoRR.exe @00406d20>
-void __cdecl Creature_SetPosition(CreatureData* creature, real32 x, real32 y, GetSurfaceZFunc getSurfaceZFunc, Map3D* surfMap);
+void __cdecl Creature_SetPosition(CreatureModel* creature, real32 xPos, real32 yPos, GetWorldZCallback zCallback, Map3D* map);
 // <LegoRR.exe @00406d60>
-Container* __cdecl Object_GetActivityContainer(BasicObjectData* basicObjData);
+Container* __cdecl Object_GetActivityContainer(BasicObjectModel* basicObjData);
 // <LegoRR.exe @00406d70>
-bool32 __cdecl Creature_SetActivity_AndRemoveCarryCameraFrames(CreatureData* creature, char* activityName, real32 elapsed);
+bool32 __cdecl Creature_SetActivity(CreatureModel* creature, char* activityName, real32 elapsed);
 // <LegoRR.exe @00406df0>
-void __cdecl Creature_Destroy(CreatureData* creature);
+void __cdecl Creature_Remove(CreatureModel* creature);
 // <LegoRR.exe @00406e80>
-Container* __cdecl Object_SearchForPartName(BasicObjectData* basicObjData, char* name, sint32 instance);
+Container* __cdecl Object_SearchForPartName(BasicObjectModel* basicObjData, char* name, uint32 frameNo);
 // <LegoRR.exe @00406eb0>
-Container* __cdecl Creature_GetCameraNull(CreatureData* creature, sint32 cameraIndex);
+Container* __cdecl Creature_GetCameraNull(CreatureModel* creature, sint32 cameraIndex);
 // <LegoRR.exe @00406ee0>
-Container* __cdecl Creature_GetDrillNull(CreatureData* creature);
+Container* __cdecl Creature_GetDrillNull(CreatureModel* creature);
 // <LegoRR.exe @00406f10>
-Container* __cdecl Creature_GetCarryNull(CreatureData* creature);
+Container* __cdecl Creature_GetCarryNull(CreatureModel* creature);
 // <LegoRR.exe @00406f40>
-Container* __cdecl Creature_GetDepositNull(CreatureData* creature);
+Container* __cdecl Creature_GetDepositNull(CreatureModel* creature);
 // <LegoRR.exe @00406f70>
-bool32 __cdecl Creature_GetThrowNull(CreatureData* creature);
+bool32 __cdecl Creature_GetThrowNull(CreatureModel* creature);
 // <LegoRR.exe @00406fc0>
-float10 __cdecl Creature_GetTransCoef(CreatureData* creature);
+float10 __cdecl Creature_GetTransCoef(CreatureModel* creature);
 // <LegoRR.exe @00406fe0>
 void __cdecl Bubble_Initialise(void);
 // <LegoRR.exe @00407170>
@@ -362,63 +362,63 @@ void __cdecl Bubble_LiveObject_FUN_00407470(LegoObject* liveObj);
 // <LegoRR.exe @004074d0>
 void __cdecl Bubble_Unk_DrawObjectUIs_FUN_004074d0(real32 elapsedAbs);
 // <LegoRR.exe @004077f0>
-void __cdecl Bubble_LiveObject_GetBubbleImage_FUN_004077f0(LegoObject* liveObj, real32 param_2, Image** out_bubbleImage, Point2F* param_4);
+void __cdecl Bubble_LiveObject_GetBubbleImage_FUN_004077f0(LegoObject* liveObj, real32 param_2, Image** out_bubbleImage, Point2F* out_screenPt);
 // <LegoRR.exe @00407890>
 bool32 __cdecl Bubble_LiveObject_CallbackDraw_FUN_00407890(LegoObject* liveObj, real32* param_2);
 // <LegoRR.exe @00407940>
 void __cdecl Bubble_LiveObject_GetCurrentBubbleImage(LegoObject* liveObj, Image** out_bubbleImage);
 // <LegoRR.exe @00407c90>
-bool32 __cdecl Building_LoadActivityFile(BuildingData* building, sint32 objIndex, Container* resData, char* filename, char* rootName);
+bool32 __cdecl Building_Load(BuildingModel* building, sint32 objID, Container* root, char* filename, char* gameName);
 // <LegoRR.exe @00408210>
-void __cdecl Building_FUN_00408210(BuildingData* building, bool32 unkAddSubInverse);
+void __cdecl Building_AnimatePowerLevelScene(BuildingModel* building, bool32 forward);
 // <LegoRR.exe @00408290>
-Point2I* __cdecl Building_GetShapePoints(BuildingData* building, uint32* out_shapeCount);
+Point2I* __cdecl Building_GetShapePoints(BuildingModel* building, uint32* optout_shapeCount);
 // <LegoRR.exe @004082b0>
-void __cdecl Object_SetOwnerObject(BasicObjectData* basicObjData, LegoObject* liveObj);
+void __cdecl Object_SetOwnerObject(BasicObjectModel* basicObjData, LegoObject* liveObj);
 // <LegoRR.exe @004082d0>
-void __cdecl Building_SetUpgradeActivity(BuildingData* building, char* activityName);
+void __cdecl Building_SetUpgradeActivity(BuildingModel* building, char* activityName);
 // <LegoRR.exe @004084a0>
-bool32 __cdecl Building_SetActivity_AndRemoveCarryCameraFrames(BuildingData* building, char* activityName, real32 elapsed);
+bool32 __cdecl Building_SetActivity(BuildingModel* building, char* activityName, real32 elapsed);
 // <LegoRR.exe @00408520>
-Container* __cdecl Building_GetCameraNull(BuildingData* building, sint32 cameraIndex);
+Container* __cdecl Building_GetCameraNull(BuildingModel* building, uint32 frameNo);
 // <LegoRR.exe @00408550>
-void __cdecl Building_Duplicate(BuildingData* in_building, BuildingData* out_building);
+void __cdecl Building_Clone(BuildingModel* srcBuilding, BuildingModel* destBuilding);
 // <LegoRR.exe @004085a0>
-void __cdecl Building_HideAll(BuildingData* building, bool32 hide);
+void __cdecl Building_Hide(BuildingModel* building, bool32 hide);
 // <LegoRR.exe @004085d0>
-bool32 __cdecl Object_IsHidden(BasicObjectData* basicObjData);
+bool32 __cdecl Object_IsHidden(BasicObjectModel* basicObjData);
 // <LegoRR.exe @004085f0>
-void __cdecl Building_SetOrientation(BuildingData* building, real32 x, real32 y);
+void __cdecl Building_SetOrientation(BuildingModel* building, real32 xDir, real32 yDir);
 // <LegoRR.exe @00408640>
-void __cdecl Building_SetPosition(BuildingData* building, real32 x, real32 y, undefined* getZcallback, Map3D* surfMap);
+void __cdecl Building_SetPosition(BuildingModel* building, real32 xPos, real32 yPos, GetWorldZCallback zCallback, Map3D* map);
 // <LegoRR.exe @004086a0>
-Container* __cdecl Building_GetCarryNull(BuildingData* building, sint32 carryIndex);
+Container* __cdecl Building_GetCarryNull(BuildingModel* building, uint32 frameNo);
 // <LegoRR.exe @004086e0>
-Container* __cdecl Building_GetDepositNull(BuildingData* building);
+Container* __cdecl Building_GetDepositNull(BuildingModel* building);
 // <LegoRR.exe @00408710>
-Container* __cdecl Building_GetEntranceNull(BuildingData* building);
+Container* __cdecl Building_GetEntranceNull(BuildingModel* building);
 // <LegoRR.exe @00408740>
-Container* __cdecl Building_GetToolNull(BuildingData* building, sint32 toolIndex);
+Container* __cdecl Building_GetToolNull(BuildingModel* building, uint32 frameNo);
 // <LegoRR.exe @00408780>
-sint32 __cdecl Building_GetCarryNullFrames(BuildingData* building);
+uint32 __cdecl Building_GetCarryNullFrames(BuildingModel* building);
 // <LegoRR.exe @00408790>
-float10 __cdecl Building_FUN_00408790(BuildingData* building, real32 elapsed, uint32 param_3);
+float10 __cdecl Building_MoveAnimation(BuildingModel* building, real32 elapsed, uint32 unkFrameNo);
 // <LegoRR.exe @00408860>
-float10 __cdecl Building_GetAnimFloat14_zero(BuildingData* building);
+float10 __cdecl Building_GetTransCoef(BuildingModel* building);
 // <LegoRR.exe @00408870>
-void __cdecl Building_Destroy(BuildingData* building);
+void __cdecl Building_Remove(BuildingModel* building);
 // <LegoRR.exe @004088a0>
-bool32 __cdecl Object_Debug_ChangeUpgradeModel(BuildingData* building, sint32 levelBit, bool32 condition);
+bool32 __cdecl Building_CanUpgradeType(BuildingModel* building, LegoObject_UpgradeType upgradeType, bool32 current);
 // <LegoRR.exe @004088d0>
-void __cdecl Building_ChangeUpgradeParts(BuildingData* building, sint32 objLevel);
+void __cdecl Building_SetUpgradeLevel(BuildingModel* building, uint32 objLevel);
 // <LegoRR.exe @00408900>
 float10 __cdecl Collision_Maths_Sub_FUN_00408900(Point2F* param_1, Point2F* param_2, Point2F* param_3);
 // <LegoRR.exe @00408a30>
 float10 __cdecl Collision_Maths_FUN_00408a30(Point2F* point, Point2F* fromList, Point2F* toList, uint32 count);
 // <LegoRR.exe @00408a90>
-Point2F* __cdecl Collision_Maths_FUN_00408a90(Point2F* param_1, Point2F* param_2, Point2F* position, Point2F* out_point);
+Point2F* __cdecl Collision_Maths_FUN_00408a90(Point2F* param_1, Point2F* param_2, Point2F* position, Point2F* result);
 // <LegoRR.exe @00408b20>
-Point2F* __cdecl Collision_MathUnk_Vector2D_FUN_00408b20(Point2F* param_1, Point2F* param_2, Point2F* position, Point2F* out_point);
+Point2F* __cdecl Collision_MathUnk_Vector2D_FUN_00408b20(Point2F* param_1, Point2F* param_2, Point2F* position, Point2F* result);
 // <LegoRR.exe @00408bb0>
 uint32 __cdecl Construction_GetBuildingBase(char* name);
 // <LegoRR.exe @00408c10>
@@ -430,7 +430,7 @@ sint32 __cdecl Construction_FUN_00408d40(BlockConstruction* param_1, LegoObject_
 // <LegoRR.exe @00408d80>
 void __cdecl Construction_SpawnCarryableObject(Point2I* blockPos, LegoObject_Type objType, sint32 objIndex, sint32 objLevel, uint32 count);
 // <LegoRR.exe @00408df0>
-void __cdecl Construction_FUN_00408df0(Point2I* blockPos, uint32* param_2, uint32 param_3);
+void __cdecl Construction_FUN_00408df0(Point2I* blockPos, Point2I* shapePoints, uint32 shapeCount);
 // <LegoRR.exe @00408fd0>
 bool32 __cdecl Construction_BlockCheck_FUN_00408fd0(Point2I* blockPos);
 // <LegoRR.exe @00408ff0>
@@ -528,17 +528,17 @@ bool32 __cdecl Dependencies_Object_GetLevelFlag_100(LegoObject_Type objType, sin
 // <LegoRR.exe @0040b240>
 Detail_TextureSet* __cdecl Detail_LoadTextureSet(char* textureBaseName, uint32 width, uint32 height);
 // <LegoRR.exe @0040b340>
-void __cdecl Detail_FreeTextureSet(Detail_TextureSet* surfTextGrid);
+void __cdecl Detail_FreeTextureSet(Detail_TextureSet* textureSet);
 // <LegoRR.exe @0040b3a0>
 float10 __cdecl Detail_FUN_0040b3a0(sint32 param_1, Viewport* view, Point2F* param_3, bool32 param_4);
 // <LegoRR.exe @0040b520>
 Detail_Mesh* __cdecl Detail_LoadMeshes(Container* cont, char* meshName_a, char* meshName_b, real32 blockSize, Detail_TextureSet* textureSet);
 // <LegoRR.exe @0040b700>
-void __cdecl Detail_FreeMesh(Detail_Mesh* promesh);
+void __cdecl Detail_FreeMesh(Detail_Mesh* detailMesh);
 // <LegoRR.exe @0040b740>
-void __cdecl Detail_RemoveMesh_FUN_0040b740(Detail_Mesh* promesh);
+void __cdecl Detail_RemoveMesh_FUN_0040b740(Detail_Mesh* detailMesh);
 // <LegoRR.exe @0040b780>
-Container_Texture* __cdecl Detail_GetTexture(Detail_TextureSet* param_1, SurfaceTexture coord_4X_0Y);
+Container_Texture* __cdecl Detail_GetTexture(Detail_TextureSet* textureSet, SurfaceTexture coord_4X_0Y);
 // <LegoRR.exe @0040b7b0>
 void __cdecl Detail_FUN_0040b7b0(Detail_Mesh* detailMesh, Vector3F* vectPoses4, SurfaceTexture texture, uint8 param_4, undefined4 param_5, undefined4 param_6);
 // <LegoRR.exe @0040b930>
@@ -610,15 +610,15 @@ void __cdecl ElectricFence_ResetAll(Lego_Level* level);
 // <LegoRR.exe @0040cdd0>
 void __cdecl ElectricFence_UpdateBlockConnections(sint32 bx, sint32 by);
 // <LegoRR.exe @0040ce80>
-void __cdecl ElectricFence_AssignBlockObject(LegoObject* liveObj);
+BlockElectricFence* __cdecl ElectricFence_AssignBlockObject(LegoObject* liveObj);
 // <LegoRR.exe @0040ceb0>
-BlockElectricFence* __cdecl ElectricFence_Create(LegoObject* liveObj, sint32 x, sint32 y);
+BlockElectricFence* __cdecl ElectricFence_Create(LegoObject* liveObj, sint32 bx, sint32 by);
 // <LegoRR.exe @0040cf60>
 void __cdecl ElectricFence_AddList(void);
 // <LegoRR.exe @0040cfd0>
 void __cdecl ElectricFence_LiveObject_Destroy(LegoObject* liveObj);
 // <LegoRR.exe @0040d030>
-void __cdecl ElectricFence_Remove(BlockElectricFence* block, sint32 x, sint32 y);
+void __cdecl ElectricFence_Remove(BlockElectricFence* efence, sint32 bx, sint32 by);
 // <LegoRR.exe @0040d0a0>
 bool32 __cdecl ElectricFence_Debug_PlaceFence(sint32 bx, sint32 by);
 // <LegoRR.exe @0040d120>
@@ -626,13 +626,13 @@ bool32 __cdecl ElectricFence_Debug_RemoveFence(sint32 bx, sint32 by);
 // <LegoRR.exe @0040d170>
 bool32 __cdecl ElectricFence_CanPlaceFenceAtBlock(sint32 bx, sint32 by);
 // <LegoRR.exe @0040d320>
-bool32 __cdecl ElectricFence_Block_FUN_0040d320(Lego_Level* level, sint32 bx, sint32 by, bool32 param_4);
+bool32 __cdecl ElectricFence_CheckBuildingAtBlock(Lego_Level* level, sint32 bx, sint32 by, bool32 checkPowered);
 // <LegoRR.exe @0040d380>
 void __cdecl ElectricFence_Update(real32 elapsedGame);
 // <LegoRR.exe @0040d3c0>
-void __cdecl ElectricFence_EnumerateObjects(ElectricFenceEnumerateCallback callback, void* data);
+void __cdecl ElectricFence_RunThroughLists(ElectricFence_RunThroughListsCallback callback, void* data);
 // <LegoRR.exe @0040d420>
-bool32 __cdecl ElectricFence_FUN_0040d420(LegoObject* liveObj, uint32 param_2, uint32 param_3);
+bool32 __cdecl ElectricFence_FUN_0040d420(LegoObject* liveObj, uint32 bx, uint32 by);
 // <LegoRR.exe @0040d510>
 bool32 __cdecl ElectricFence_Callback_FUN_0040d510(LegoObject* liveObj, real32* pElapsedGame);
 // <LegoRR.exe @0040d650>
@@ -648,11 +648,11 @@ Vector3F* __cdecl ElectricFence_Block_GetDistanceBetweenBlocks(uint32 bxFrom, ui
 // <LegoRR.exe @0040dd70>
 bool32 __cdecl ElectricFence_LiveObject_FUN_0040dd70(LegoObject* liveObj);
 // <LegoRR.exe @0040dff0>
-void __cdecl ElectricFence_LiveObject_SparkBlock_FUN_0040dff0(LegoObject* liveObj, Point2F* param_2, uint32 bx, uint32 by);
+void __cdecl ElectricFence_LiveObject_SparkBlock_FUN_0040dff0(LegoObject* liveObj, Point2F* objWorldPos, uint32 bx, uint32 by);
 // <LegoRR.exe @0040e110>
 bool32 __cdecl ElectricFence_Block_FUN_0040e110(Lego_Level* level, uint32 bx, uint32 by);
 // <LegoRR.exe @0040e280>
-void __cdecl ElectricFence_Block_ElecFenceStud_FUN_0040e280(Lego_Level* level, uint32 bx, uint32 by, sint32 param_4);
+void __cdecl ElectricFence_Block_ElecFenceStud_FUN_0040e280(Lego_Level* level, uint32 bx, uint32 by, bool32 addNew);
 // <LegoRR.exe @0040e390>
 bool32 __cdecl ElectricFence_Block_IsFence(sint32 bx, sint32 by);
 // <LegoRR.exe @0040e3c0>
@@ -674,7 +674,7 @@ bool32 __cdecl Erode_GetFreeActiveIndex(sint32* out_index);
 // <LegoRR.exe @0040e8f0>
 float10 __cdecl Erode_GetBlockErodeRate(Point2I* blockPos);
 // <LegoRR.exe @0040e940>
-void __cdecl Erode_AddActiveBlock(Point2I* position, sint32 unkModulusNum);
+void __cdecl Erode_AddActiveBlock(Point2I* blockPos, sint32 unkModulusNum);
 // <LegoRR.exe @0040e9e0>
 void __cdecl Erode_Update(real32 elapsedGame);
 // <LegoRR.exe @0040ed30>
@@ -684,7 +684,7 @@ void __cdecl Erode_Block_FUN_0040ed80(Point2I* blockPos, bool32 doState2_else_ad
 // <LegoRR.exe @0040eee0>
 bool32 __cdecl Erode_IsBlockLocked(Point2I* blockPos);
 // <LegoRR.exe @0040ef30>
-bool32 __cdecl Erode_FUN_0040ef30(Point2I* blockPos, Point2I* out_blockPos);
+bool32 __cdecl Erode_FindAdjacentBlockPos(Point2I* blockPos, Point2I* out_adjacentblockPos);
 // <LegoRR.exe @0040f010>
 uint32 __cdecl Fallin_Update(real32 elapsedGame);
 // <LegoRR.exe @0040f0c0>
@@ -1296,13 +1296,13 @@ bool32 __cdecl Interface_FUN_0041e8c0(LegoObject_Type objType, sint32 objIndex);
 // <LegoRR.exe @0041e900>
 void __cdecl Interface_SetUnkPositions1(uint32 x1_565, uint32 y1_18, uint32 x2_appWidthPlus10, uint32 y2_18, real32 param_5);
 // <LegoRR.exe @0041e980>
-void __cdecl Interface_UnkSlideOffScreen_FUN_0041e980_internal(Interface_MenuType interfaceMenuType, Point2I* position);
+void __cdecl Interface_UnkSlideOffScreen_FUN_0041e980_internal(Interface_MenuType interfaceMenuType, Point2I* opt_blockPos);
 // <LegoRR.exe @0041e9f0>
 void __cdecl Interface_FUN_0041e9f0(real32 elapsedAbs);
 // <LegoRR.exe @0041eb60>
-void __cdecl Interface_FUN_0041eb60(sint32 param_1, sint32 param_2, Point2F* param_3);
+void __cdecl Interface_DrawTeleportQueueNumber(sint32 param_1, sint32 param_2, Point2F* screenPt);
 // <LegoRR.exe @0041ebd0>
-void __cdecl Interface_FUN_0041ebd0(real32 param_1, real32 param_2);
+void __cdecl Interface_FUN_0041ebd0(real32 xScreen, real32 yScreen);
 // <LegoRR.exe @0041ed90>
 void __cdecl Interface_SetFloatTo25_004df1ec_AndUnsetFlags800_004df1f8(void);
 // <LegoRR.exe @0041edb0>
@@ -1322,7 +1322,7 @@ bool32 __cdecl Interface_FUN_0041f220(undefined4 param_1, undefined4 param_2);
 // <LegoRR.exe @0041f270>
 bool32 __cdecl Interface_FUN_0041f270(undefined4 param_1);
 // <LegoRR.exe @0041f2c0>
-bool32 __cdecl Interface_LiveObject_Callback_FUN_0041f2c0(LegoObject* liveObj, Point2I* param_2);
+bool32 __cdecl Interface_LiveObject_Callback_FUN_0041f2c0(LegoObject* liveObj, Point2I* blockPos);
 // <LegoRR.exe @0041f2f0>
 bool32 __cdecl Interface_ReqestDigBlock(Point2I* blockPos);
 // <LegoRR.exe @0041f310>
@@ -1392,7 +1392,7 @@ float10 __cdecl Game_GetGameSpeed(void);
 // <LegoRR.exe @0041fa80>
 bool32 __cdecl Lego_Initialise(void);
 // <LegoRR.exe @00422780>
-void __cdecl Lego_LoadMiscObjects(Config* root);
+void __cdecl Lego_LoadMiscObjects(Config* config);
 // <LegoRR.exe @00422fb0>
 Container* __cdecl Lego_GetCurrentCamera_Container(void);
 // <LegoRR.exe @00422fe0>
@@ -1424,7 +1424,7 @@ void __cdecl Lego_Shutdown_Debug(void);
 // <LegoRR.exe @00424fd0>
 void __cdecl Lego_Exit(void);
 // <LegoRR.exe @00424ff0>
-bool32 __cdecl Lego_HandleKeys(real32 elapsedGame, real32 param_2, bool32* out_t, bool32* put_r, bool32* out_shift);
+bool32 __cdecl Lego_HandleKeys(real32 elapsedGame, real32 param_2, bool32* out_keyDownT, bool32* out_keyDownR, bool32* out_keyDownShift);
 // <LegoRR.exe @00425a70>
 bool32 __cdecl Lego_UpdateAll3DSounds(bool32 stopAll);
 // <LegoRR.exe @00425a90>
@@ -1462,9 +1462,9 @@ void __cdecl Game_UpdateTopdownCamera(real32 elapsedAbs);
 // <LegoRR.exe @00426450>
 void __cdecl Game_unkGameLoop_FUN_00426450(real32 elapsedGame, real32 elapsedAbs, undefined4 param_3, undefined4 param_4, sint32 param_5);
 // <LegoRR.exe @00427d30>
-void __cdecl Lego_LoadToolTipInfos(Config* root, char* rootPath);
+void __cdecl Lego_LoadToolTipInfos(Config* config, char* gameName_unused);
 // <LegoRR.exe @00427eb0>
-void __cdecl Lego_LoadUpgradeNames(Config* root);
+void __cdecl Lego_LoadUpgradeNames(Config* config);
 // <LegoRR.exe @00427f50>
 void __cdecl Lego_ShowObjectToolTip(LegoObject* liveObj);
 // <LegoRR.exe @00428260>
@@ -1478,13 +1478,13 @@ void __cdecl Lego_HandleDebugKeys(sint32 bx, sint32 by, LegoObject* liveObj);
 // <LegoRR.exe @00429040>
 void __cdecl Lego_XYCallback_AddVisibleSmoke(sint32 bx, sint32 by);
 // <LegoRR.exe @00429090>
-Container_Texture* __cdecl Lego_Detail_GatherRockSurfaceTexture_FUN_00429090(Point2I* textCoord);
+Container_Texture* __cdecl Lego_GetBlockDetail_ContainerTexture(Point2I* blockPos);
 // <LegoRR.exe @004290d0>
 void __cdecl Lego_UnkUpdateMapsWorldUnk_FUN_004290d0(real32 elapsedAbs, bool32 pass2);
 // <LegoRR.exe @004292e0>
 void __cdecl Level_DrawDragSelectionBox(Lego_Level* level);
 // <LegoRR.exe @004293a0>
-void __cdecl Game_MainView_MouseTransform(uint32 mouseX, uint32 mouseY, real32* out_x, real32* out_y);
+void __cdecl Game_MainView_MouseTransform(uint32 mouseX, uint32 mouseY, real32* out_xPos, real32* out_yPos);
 // <LegoRR.exe @004294d0>
 Container* __cdecl Lego_GetCurrentViewLight(void);
 // <LegoRR.exe @004294f0>
@@ -1534,7 +1534,7 @@ void __cdecl Level_FUN_0042c370(Lego_Level* level, real32 elapsedAbs);
 // <LegoRR.exe @0042c3b0>
 bool32 __cdecl Lego_LoadTerrainMap(Lego_Level* level, char* filename, sint32 modifier);
 // <LegoRR.exe @0042c4e0>
-bool32 __cdecl Lego_GetBlockCryOre(Point2I* position, sint32* out_crystal, sint32* out_ore, sint32* out_crystalAlt, sint32* out_oreAlt);
+bool32 __cdecl Lego_GetBlockCryOre(Point2I* blockPos, sint32* out_crystalLv0, sint32* out_oreLv0, sint32* out_crystalLv1, sint32* out_oreLv1);
 // <LegoRR.exe @0042c5d0>
 bool32 __cdecl Lego_LoadCryOreMap(Lego_Level* level, char* filename, char modifier);
 // <LegoRR.exe @0042c690>
@@ -1546,7 +1546,7 @@ void __cdecl Game_UpdateFallins(real32 elapsedGame);
 // <LegoRR.exe @0042cbc0>
 bool32 __cdecl Lego_LoadBlockPointersMap(Lego_Level* level, char* filename, sint32 modifier);
 // <LegoRR.exe @0042cc80>
-UpgradeData* __cdecl Game_GetUpgradeData(char* upgradeName);
+Upgrade_PartModel* __cdecl Game_GetUpgradeData(char* upgradeName);
 // <LegoRR.exe @0042ccd0>
 bool32 __cdecl Lego_LoadVehicleTypes(void);
 // <LegoRR.exe @0042ce80>
@@ -1570,13 +1570,13 @@ bool32 __cdecl Game_GetRecordObject(uint32 recordObjPtr, LegoObject** out_liveOb
 // <LegoRR.exe @0042df50>
 bool32 __cdecl Game_LoadOLObjectList(Lego_Level* level, char* filename);
 // <LegoRR.exe @0042e7e0>
-bool32 __cdecl Object_GetObjectByName(char* objName, LegoObject_Type* out_objType, sint32* out_objIndex, Container** opt_resData);
+bool32 __cdecl Object_GetObjectByName(char* objName, LegoObject_Type* out_objType, LegoObject_ID* out_objID, Container** optout_cont);
 // <LegoRR.exe @0042eca0>
-bool32 __cdecl Object_GetTypeResource(LegoObject_Type objType, sint32 objIndex, Container** out_resData);
+bool32 __cdecl Object_GetTypeActivityContainer(LegoObject_Type objType, LegoObject_ID objID, Container** out_cont);
 // <LegoRR.exe @0042ee70>
 sint32 __cdecl Object_GetTypeCount(LegoObject_Type objType);
 // <LegoRR.exe @0042eef0>
-void __cdecl Lego_PlayMovie_old(char* fName, Point2F* opt_point);
+void __cdecl Lego_PlayMovie_old(char* fName, Point2F* opt_screenPt);
 // <LegoRR.exe @0042eff0>
 char* __cdecl Level_Free(void);
 // <LegoRR.exe @0042f210>
@@ -1588,7 +1588,7 @@ void __cdecl Level_BlockUpdateSurface(Lego_Level* level, sint32 bx, sint32 by, b
 // <LegoRR.exe @004301e0>
 void __cdecl Level_Block_Proc_FUN_004301e0(Point2I* blockPos);
 // <LegoRR.exe @00430250>
-void __cdecl AITask_DoClearTypeAction(Point2I* position, Message_Type completeAction);
+void __cdecl AITask_DoClearTypeAction(Point2I* blockPos, Message_Type completeAction);
 // <LegoRR.exe @004303a0>
 void __cdecl Level_Debug_WKey_NeedsBlockFlags1_8_FUN_004303a0(Lego_Level* level, bool32 unused, uint32 bx, uint32 by);
 // <LegoRR.exe @00430460>
@@ -1714,7 +1714,7 @@ bool32 __cdecl Level_Block_IsNotWallOrGround(uint32 bx, uint32 by);
 // <LegoRR.exe @00432ec0>
 bool32 __cdecl Level_Block_IsSurveyed(uint32 bx, uint32 by);
 // <LegoRR.exe @00432f00>
-bool32 __cdecl Level_Block_IsFlags1_2000(uint32 bx, uint32 by);
+bool32 __cdecl Level_Block_IsGap(uint32 bx, uint32 by);
 // <LegoRR.exe @00432f30>
 bool32 __cdecl Level_Block_IsCornerInner(uint32 bx, uint32 by);
 // <LegoRR.exe @00432f60>
@@ -1744,7 +1744,7 @@ bool32 __cdecl Lego_LoadGraphicsSettings(void);
 // <LegoRR.exe @004336a0>
 bool32 __cdecl Lego_LoadLighting(void);
 // <LegoRR.exe @00433b10>
-bool32 __cdecl Lego_WorldToBlockPos_NoZ(real32 in_x, real32 in_y, sint32* out_bx, sint32* out_by);
+bool32 __cdecl Lego_WorldToBlockPos_NoZ(real32 xPos, real32 yPos, sint32* out_bx, sint32* out_by);
 // <LegoRR.exe @00433b40>
 bool32 __cdecl LiveObject_FUN_00433b40(LegoObject* liveObj, real32 param_2, bool32 param_3);
 // <LegoRR.exe @00433d60>
@@ -1758,27 +1758,27 @@ bool32 __cdecl Level_Block_Detail_FUN_004343b0(Lego_Level* level, uint32 bx, uin
 // <LegoRR.exe @00434460>
 void __cdecl Level_RemoveAll_ProMeshes(void);
 // <LegoRR.exe @004344a0>
-bool32 __cdecl Level_Block_GetUnkField14Test(uint32 bx, uint32 by, real32 param_3, real32 param_4);
+bool32 __cdecl Level_Block_Damage(uint32 bx, uint32 by, real32 param_3, real32 param_4);
 // <LegoRR.exe @00434520>
-void __cdecl Lego_LoadPanels(Config* root, uint32 screenWidth, uint32 screenHeight);
+void __cdecl Lego_LoadPanels(Config* config, uint32 screenWidth, uint32 screenHeight);
 // <LegoRR.exe @00434640>
-void __cdecl Lego_LoadPanelButtons(Config* root, uint32 screenWidth, uint32 screenHeight);
+void __cdecl Lego_LoadPanelButtons(Config* config, uint32 screenWidth, uint32 screenHeight);
 // <LegoRR.exe @00434930>
-void __cdecl Lego_LoadTutorialIcon(Config* root);
+void __cdecl Lego_LoadTutorialIcon(Config* config);
 // <LegoRR.exe @00434980>
-void __cdecl Lego_LoadSamples(Config* root, bool32 noReduceSamples);
+void __cdecl Lego_LoadSamples(Config* config, bool32 noReduceSamples);
 // <LegoRR.exe @00434a20>
-void __cdecl Lego_LoadTextMessages(Config* root);
+void __cdecl Lego_LoadTextMessages(Config* config);
 // <LegoRR.exe @00434b40>
-void __cdecl Lego_LoadInfoMessages(Config* root);
+void __cdecl Lego_LoadInfoMessages(Config* config);
 // <LegoRR.exe @00434cd0>
-void __cdecl Lego_LoadToolTips(Config* root);
+void __cdecl Lego_LoadToolTips(Config* config);
 // <LegoRR.exe @00434db0>
-bool32 __cdecl Game_TryTeleportObject(LegoObject_Type objType, sint32 objIndex);
+bool32 __cdecl Game_TryTeleportObject(LegoObject_Type objType, LegoObject_ID objID);
 // <LegoRR.exe @00434f40>
 void __cdecl Level_Block_UpdateSurveyRadius_FUN_00434f40(Point2I* blockPos, sint32 surveyRadius);
 // <LegoRR.exe @00434fd0>
-void __cdecl Lego_LoadSurfaceTypeDescriptions_sound(Config* root, char* rootPath);
+void __cdecl Lego_LoadSurfaceTypeDescriptions_sound(Config* config, char* gameName);
 // <LegoRR.exe @004350a0>
 char* __cdecl Game_GetSurfaceTypeDescription(Lego_SurfaceType surfaceType);
 // <LegoRR.exe @004350c0>
@@ -1864,51 +1864,51 @@ void __cdecl LegoObject_Initialise(void);
 // <LegoRR.exe @00437310>
 void __cdecl LegoObject_Shutdown(void);
 // <LegoRR.exe @00437370>
-void __cdecl Save_CopyStruct18(SaveStruct_18* out_saveStruct18);
+void __cdecl Object_Save_CopyStruct18(SaveStruct_18* out_saveStruct18);
 // <LegoRR.exe @00437390>
-void __cdecl Save_OverwriteStruct18(SaveStruct_18* saveStruct18);
+void __cdecl Object_Save_OverwriteStruct18(SaveStruct_18* saveStruct18);
 // <LegoRR.exe @004373c0>
-sint32 __cdecl LiveManager_FUN_004373c0(LegoObject_Type objType, bool32 param_2);
+sint32 __cdecl LegoObject_GetObjectsBuilt(LegoObject_Type objType, bool32 excludeToolStore);
 // <LegoRR.exe @00437410>
-void __cdecl LiveManager_LoadToolTipIcons(Config* root);
+void __cdecl Object_LoadToolTipIcons(Config* root);
 // <LegoRR.exe @00437560>
-void __cdecl LiveManager_FUN_00437560(void);
+void __cdecl LegoObject_CleanupLevel(void);
 // <LegoRR.exe @004375c0>
-void __cdecl LiveObject_Weapon_FUN_004375c0(LegoObject* in_liveObj, sint32 weaponType, real32 param_3);
+void __cdecl LegoObject_Weapon_FUN_004375c0(LegoObject* liveObj, sint32 weaponType, real32 param_3);
 // <LegoRR.exe @00437690>
-bool32 __cdecl LiveObject_FUN_00437690(LegoObject* liveObj, bool32 condition);
+bool32 __cdecl LegoObject_DoOpeningClosing(LegoObject* liveObj, bool32 open);
 // <LegoRR.exe @00437700>
-void __cdecl LiveManager_FUN_00437700(void);
+void __cdecl LegoObject_CleanupObjectLevels(void);
 // <LegoRR.exe @00437720>
-uint32 __cdecl LiveObject_GetLevelObjectsBuilt(LegoObject_Type objType, sint32 objIndex, sint32 objLevel, bool32 currentLevel);
+uint32 __cdecl LegoObject_GetLevelObjectsBuilt(LegoObject_Type objType, LegoObject_ID objID, sint32 objLevel, bool32 currentLevel);
 // <LegoRR.exe @00437760>
-uint32 __cdecl LiveObject_GetPreviousLevelObjectsBuilt(LegoObject_Type objType, sint32 objIndex, sint32 objLevel);
+uint32 __cdecl LegoObject_GetPreviousLevelObjectsBuilt(LegoObject_Type objType, LegoObject_ID objID, sint32 objLevel);
 // <LegoRR.exe @00437790>
-void __cdecl LiveObject_IncLevelPathsBuilt(bool32 incCurrent);
+void __cdecl LegoObject_IncLevelPathsBuilt(bool32 incCurrent);
 // <LegoRR.exe @004377b0>
-void __cdecl LiveObject_FUN_004377b0(LegoObject* liveObj);
+void __cdecl LegoObject_FUN_004377b0(LegoObject* liveObj);
 // <LegoRR.exe @004377d0>
-bool32 __cdecl LiveObject_Callback_UnkDoRouting_IfObject2FC(LegoObject* liveObj1, LegoObject* liveObj2);
+bool32 __cdecl LegoObject_Callback_UnkDoRouting_IfObject2FC(LegoObject* liveObj1, LegoObject* liveObj2);
 // <LegoRR.exe @00437800>
-bool32 __cdecl LiveObject_Remove(LegoObject* liveObj);
+bool32 __cdecl LegoObject_Remove(LegoObject* liveObj);
 // <LegoRR.exe @00437a70>
-bool32 __cdecl Search_LiveObjects_SkipIgnoreMes(SearchLiveObjectCallback predicateFunc, void* search);
+bool32 __cdecl LegoObject_RunThroughListsSkipIgnoreMes(LegoObject_RunThroughListsCallback callback, void* search);
 // <LegoRR.exe @00437a90>
-bool32 __cdecl Search_LiveObjects(SearchLiveObjectCallback callback, void* search, bool32 skipIgnoreMeObjs);
+bool32 __cdecl LegoObject_RunThroughLists(LegoObject_RunThroughListsCallback callback, void* search, bool32 skipIgnoreMeObjs);
 // <LegoRR.exe @00437b40>
-void __cdecl LiveObject_SetCustomName(LegoObject* liveObj, char* customName);
+void __cdecl LegoObject_SetCustomName(LegoObject* liveObj, char* opt_customName);
 // <LegoRR.exe @00437ba0>
 void __cdecl HiddenObject_RemoveAll(void);
 // <LegoRR.exe @00437c00>
 void __cdecl HiddenObject_ExposeBlock(Point2I* blockPos);
 // <LegoRR.exe @00437ee0>
-void __cdecl HiddenObject_Add(void* objSrcData, LegoObject_Type objType, sint32 objIndex, Point2F* worldPos, real32 heading, real32 health, char* thisOLName, char* drivingOLName);
+void __cdecl HiddenObject_Add(void* objSrcData, LegoObject_Type objType, LegoObject_ID objID, Point2F* worldPos, real32 heading, real32 health, char* thisOLName, char* drivingOLName);
 // <LegoRR.exe @00437f80>
-bool32 __cdecl LiveObject_CanShootObject(LegoObject* liveObj);
+bool32 __cdecl LegoObject_CanShootObject(LegoObject* liveObj);
 // <LegoRR.exe @00437fc0>
-LegoObject* __cdecl LiveObject_Create(sint32** srcData, LegoObject_Type objType, sint32 objIndex);
+LegoObject* __cdecl LegoObject_Create(sint32** objModel, LegoObject_Type objType, LegoObject_ID objID);
 // <LegoRR.exe @00438580>
-LegoObject* __cdecl LiveObject_Create_internal(void);
+LegoObject* __cdecl LegoObject_Create_internal(void);
 // <LegoRR.exe @004385d0>
 void __cdecl LiveManager_AddList(void);
 // <LegoRR.exe @00438650>
@@ -1916,521 +1916,521 @@ sint32 __cdecl LiveManager_GetNumBuildingsTeleported(sint32* stack);
 // <LegoRR.exe @00438660>
 void __cdecl LiveManager_SetNumBuildingsTeleported(uint32 numTeleported);
 // <LegoRR.exe @00438670>
-void __cdecl LiveObject_SetCrystalPoweredColour(LegoObject* liveObj, bool32 powered);
+void __cdecl LegoObject_SetCrystalPoweredColour(LegoObject* liveObj, bool32 powered);
 // <LegoRR.exe @00438720>
-void __cdecl LiveObject_FUN_00438720(LegoObject* liveObj);
+void __cdecl LegoObject_FUN_00438720(LegoObject* liveObj);
 // <LegoRR.exe @00438840>
-void __cdecl LiveObject_SetFlag3_80000000(LegoObject* liveObj, bool32 state);
+void __cdecl LegoObject_SetPowerOn(LegoObject* liveObj, bool32 on);
 // <LegoRR.exe @00438870>
-bool32 __cdecl LiveObject_CheckCondition_AndIsPowered(LegoObject* liveObj, bool32 state);
+bool32 __cdecl LegoObject_CheckCondition_AndIsPowered(LegoObject* liveObj, bool32 state);
 // <LegoRR.exe @004388d0>
-LegoObject* __cdecl LiveObject_CreateInWorld(void* objSrcData, LegoObject_Type objType, sint32 objIndex, sint32 objLevel, real32 xPos, real32 yPos, real32 heading);
+LegoObject* __cdecl LegoObject_CreateInWorld(void* objSrcData, LegoObject_Type objType, LegoObject_ID objID, sint32 objLevel, real32 xPos, real32 yPos, real32 heading);
 // <LegoRR.exe @00438930>
 LegoObject* __cdecl Game_Unk_DoSearchCallbacks_Unique(Point2I* blockPos);
 // <LegoRR.exe @00438970>
-bool32 __cdecl LiveManage_FUN_00438970(LegoObject* liveObj, LegoObject** param_2);
+bool32 __cdecl LiveManager_FUN_00438970(LegoObject* liveObj, LegoObject** param_2);
 // <LegoRR.exe @004389e0>
-bool32 __cdecl LiveObject_AddThisDrainedCrystals(LegoObject* liveObj, sint32 crystalCount);
+bool32 __cdecl LegoObject_AddThisDrainedCrystals(LegoObject* liveObj, sint32 crystalCount);
 // <LegoRR.exe @00438a30>
-bool32 __cdecl LiveObject_GetBuildingUpgradeCost(LegoObject* liveObj, uint32* out_oreCost);
+bool32 __cdecl LegoObject_GetBuildingUpgradeCost(LegoObject* liveObj, uint32* optout_oreCost);
 // <LegoRR.exe @00438ab0>
-void __cdecl LiveObject_FUN_00438ab0(LegoObject* in_liveObj);
+void __cdecl LegoObject_FUN_00438ab0(LegoObject* in_liveObj);
 // <LegoRR.exe @00438b70>
-bool32 __cdecl LiveObject_HasEnoughOreToUpgrade(LegoObject* liveObj, sint32 objLevel);
+bool32 __cdecl LegoObject_HasEnoughOreToUpgrade(LegoObject* liveObj, sint32 objLevel);
 // <LegoRR.exe @00438c20>
-undefined4 __cdecl LiveObject_Search_FUN_00438c20(LegoObject* opt_liveObj, bool32 param_2);
+undefined4 __cdecl LegoObject_Search_FUN_00438c20(LegoObject* opt_liveObj, bool32 param_2);
 // <LegoRR.exe @00438ca0>
-undefined4 __cdecl LiveObject_Search_FUN_00438ca0(LegoObject* liveObj, bool32 param_2);
+undefined4 __cdecl LegoObject_Search_FUN_00438ca0(LegoObject* liveObj, bool32 param_2);
 // <LegoRR.exe @00438d20>
-LegoObject* __cdecl LiveObject_FUN_00438d20(Point2I* blockPos, LegoObject_Type objType, sint32 objIndex, sint32 objLevel);
+LegoObject* __cdecl LegoObject_FUN_00438d20(Point2I* blockPos, LegoObject_Type objType, sint32 objID, sint32 objLevel);
 // <LegoRR.exe @00438da0>
-LegoObject* __cdecl LiveObject_FUN_00438da0(LegoObject* liveObj, Point2I* blockPos, LegoObject_Type objType, sint32 objLevel);
+LegoObject* __cdecl LegoObject_FUN_00438da0(LegoObject* liveObj, Point2I* blockPos, LegoObject_Type objType, sint32 objLevel);
 // <LegoRR.exe @00438e40>
-undefined4 __cdecl LiveObject_Search_FUN_00438e40(LegoObject* liveObj, undefined4 param_2);
+undefined4 __cdecl LegoObject_Search_FUN_00438e40(LegoObject* liveObj, undefined4 param_2);
 // <LegoRR.exe @00438eb0>
-undefined4 __cdecl LiveObject_Search_FUN_00438eb0(LegoObject* liveObj);
+undefined4 __cdecl LegoObject_Search_FUN_00438eb0(LegoObject* liveObj);
 // <LegoRR.exe @00438f20>
-undefined4 __cdecl LiveObject_Search_FUN_00438f20(LegoObject* liveObj);
+undefined4 __cdecl LegoObject_Search_FUN_00438f20(LegoObject* liveObj);
 // <LegoRR.exe @00438f90>
-LegoObject* __cdecl Game_FindBigTeleporter(Point2F* point);
+LegoObject* __cdecl Game_FindBigTeleporter(Point2F* worldPos);
 // <LegoRR.exe @00438ff0>
-LegoObject* __cdecl Game_FindSmallTeleporter(Point2F* point);
+LegoObject* __cdecl Game_FindSmallTeleporter(Point2F* worldPos);
 // <LegoRR.exe @00439050>
-LegoObject* __cdecl Game_FindWaterTeleporter(Point2F* point);
+LegoObject* __cdecl Game_FindWaterTeleporter(Point2F* worldPos);
 // <LegoRR.exe @004390b0>
-LegoObject* __cdecl Level_GetBuildingAtPosition(Point2F* point);
+LegoObject* __cdecl Level_GetBuildingAtPosition(Point2F* worldPos);
 // <LegoRR.exe @00439110>
-undefined4 __cdecl LiveObject_Search_FUN_00439110(LegoObject* liveObj, Point2F* opt_worldPos, TrainedFlags trainedType);
+undefined4 __cdecl LegoObject_Search_FUN_00439110(LegoObject* liveObj, Point2F* opt_worldPos, TrainedFlags trainedType);
 // <LegoRR.exe @00439190>
-bool32 __cdecl LiveObject_HasTraining(LegoObject* liveObj, TrainedFlags training);
+bool32 __cdecl LegoObject_HasTraining(LegoObject* liveObj, TrainedFlags training);
 // <LegoRR.exe @00439220>
-bool32 __cdecl LiveObject_IsDocksBuilding_Unk(LegoObject* liveObj);
+bool32 __cdecl LegoObject_IsDocksBuilding_Unk(LegoObject* liveObj);
 // <LegoRR.exe @00439270>
-bool32 __cdecl LiveObject_CallbackSearch_FUN_00439270(LegoObject* liveObj, sint32** search);
+bool32 __cdecl LegoObject_CallbackSearch_FUN_00439270(LegoObject* liveObj, sint32** search);
 // <LegoRR.exe @004394c0>
 bool32 __cdecl Game_CanStoredObjectTypeBeSpawned(LegoObject_Type objType);
 // <LegoRR.exe @00439500>
-bool32 __cdecl LiveObject_Callback_CanSpawnStoredObjects(LegoObject* liveObj1, LegoObject* spawnObj);
+bool32 __cdecl LegoObject_Callback_CanSpawnStoredObjects(LegoObject* liveObj1, LegoObject* spawnObj);
 // <LegoRR.exe @00439540>
-void __cdecl Game_PTL_GenerateFromCryOre(Point2I* position);
+void __cdecl Game_PTL_GenerateFromCryOre(Point2I* blockPos);
 // <LegoRR.exe @00439600>
 void __cdecl Game_PTL_GenerateCrystalsAndOre(Point2I* blockPos, uint32 objLevel);
 // <LegoRR.exe @00439630>
 void __cdecl Level_GenerateCrystal(Point2I* blockPos, uint32 objLevel, Point2F* opt_worldPos, bool32 showInfoMessage);
 // <LegoRR.exe @00439770>
-void __cdecl Level_GenerateOre(Point2I* blockPos, uint32 objLevel, Point2F* opt_point, bool32 showInfoMessage);
+void __cdecl Level_GenerateOre(Point2I* blockPos, uint32 objLevel, Point2F* opt_worldPos, bool32 showInfoMessage);
 // <LegoRR.exe @004398a0>
-char* __cdecl LiveObject_GetName(LegoObject* liveObj);
+char* __cdecl LegoObject_GetLangName(LegoObject* liveObj);
 // <LegoRR.exe @00439980>
-char* __cdecl Object_GetTypeName(LegoObject_Type objType, sint32 objIndex);
+char* __cdecl Object_GetTypeName(LegoObject_Type objType, LegoObject_ID objID);
 // <LegoRR.exe @00439a50>
-char* __cdecl Object_GetTheName(LegoObject_Type objType, sint32 objIndex);
+char* __cdecl Object_GetLangTheName(LegoObject_Type objType, LegoObject_ID objID);
 // <LegoRR.exe @00439b20>
-char* __cdecl Object_GetName(LegoObject_Type objType, sint32 objIndex);
+char* __cdecl Object_GetLangName(LegoObject_Type objType, LegoObject_ID objID);
 // <LegoRR.exe @00439bf0>
-void __cdecl LiveObject_GetTypeIndex(LegoObject* param_1, sint32* out_objType, sint32* out_objIndex);
+void __cdecl LegoObject_GetTypeAndID(LegoObject* liveObj, LegoObject_Type* out_objType, LegoObject_ID* out_objID);
 // <LegoRR.exe @00439c10>
-void __cdecl LiveManager_LoadToolNames(Config* root, char* keyBasePath);
+void __cdecl Object_LoadToolNames(Config* config, char* gameName);
 // <LegoRR.exe @00439c50>
 void __cdecl LiveManager_InitFlagsToggle_AndClearNumDrained(void);
 // <LegoRR.exe @00439c80>
-bool32 __cdecl LiveObject_VehicleMaxCarryChecksTime_FUN_00439c80(LegoObject* liveObj);
+bool32 __cdecl LegoObject_VehicleMaxCarryChecksTime_FUN_00439c80(LegoObject* liveObj);
 // <LegoRR.exe @00439ce0>
-bool32 __cdecl LiveObject_TryCollect_FUN_00439ce0(LegoObject* liveObj1, LegoObject* targetObj);
+bool32 __cdecl LegoObject_TryCollectObject(LegoObject* liveObj, LegoObject* targetObj);
 // <LegoRR.exe @00439e40>
-bool32 __cdecl LiveObject_FUN_00439e40(LegoObject* liveObj, LegoObject* otherObj);
+bool32 __cdecl LegoObject_FUN_00439e40(LegoObject* liveObj, LegoObject* otherObj);
 // <LegoRR.exe @00439e90>
-bool32 __cdecl LiveObject_FUN_00439e90(LegoObject* liveObj1, LegoObject* liveObj2, bool32 param_3);
+bool32 __cdecl LegoObject_FUN_00439e90(LegoObject* liveObj, LegoObject* targetObj, bool32 param_3);
 // <LegoRR.exe @00439f40>
-void __cdecl LiveObject_CompleteVehicleUpgrade(LegoObject* liveObj);
+void __cdecl LegoObject_CompleteVehicleUpgrade(LegoObject* liveObj);
 // <LegoRR.exe @00439f90>
-bool32 __cdecl LiveObject_SetLevel_thunk(LegoObject* liveObj, sint32 objLevel);
+bool32 __cdecl LegoObject_SetLevel(LegoObject* liveObj, sint32 objLevel);
 // <LegoRR.exe @00439fb0>
-bool32 __cdecl LiveObject_IsSmallTeleporter(LegoObject* liveObj);
+bool32 __cdecl LegoObject_IsSmallTeleporter(LegoObject* liveObj);
 // <LegoRR.exe @00439fd0>
-bool32 __cdecl LiveObject_IsBigTeleporter(LegoObject* liveObj);
+bool32 __cdecl LegoObject_IsBigTeleporter(LegoObject* liveObj);
 // <LegoRR.exe @00439ff0>
-bool32 __cdecl LiveObject_IsWaterTeleporter(LegoObject* liveObj);
+bool32 __cdecl LegoObject_IsWaterTeleporter(LegoObject* liveObj);
 // <LegoRR.exe @0043a010>
-bool32 __cdecl LiveObject_UnkGetTerrainCrossBlock_FUN_0043a010(LegoObject* liveObj, Point2I* out_blockPos);
+bool32 __cdecl LegoObject_UnkGetTerrainCrossBlock_FUN_0043a010(LegoObject* liveObj, Point2I* optout_blockPos);
 // <LegoRR.exe @0043a0d0>
-bool32 __cdecl LiveObject_UnkGetTerrainGetOutAtLandBlock_FUN_0043a0d0(LegoObject* liveObj, Point2I* out_blockPos);
+bool32 __cdecl LegoObject_UnkGetTerrainGetOutAtLandBlock_FUN_0043a0d0(LegoObject* liveObj, Point2I* out_blockPos);
 // <LegoRR.exe @0043a100>
-bool32 __cdecl LiveObject_CheckUnkGetInAtLand_FUN_0043a100(LegoObject* liveObj, Point2I* param_2);
+bool32 __cdecl LegoObject_CheckUnkGetInAtLand_FUN_0043a100(LegoObject* liveObj, Point2I* blockPos);
 // <LegoRR.exe @0043a130>
-void __cdecl LiveObject_DropCarriedObject_FUN_0043a130(LegoObject* in_liveObj, bool32 param_2);
+void __cdecl LegoObject_DropCarriedObject(LegoObject* liveObj, bool32 putAway);
 // <LegoRR.exe @0043a3e0>
-sint32 __cdecl LiveObject_TryRequestOrDump_FUN_0043a3e0(LegoObject* liveObj, Point2I* blockPos, Point2F* param_3, bool32 param_4, bool32 param_5);
+bool32 __cdecl LegoObject_TryRequestOrDumpCarried(LegoObject* liveObj, Point2I* blockPos, Point2F* worldPos, bool32 place, bool32 setRouteFlag8);
 // <LegoRR.exe @0043a5c0>
-bool32 __cdecl LiveObject_TryDeposit_FUN_0043a5c0(LegoObject* liveObj1, LegoObject* targetObj);
+bool32 __cdecl LegoObject_TryDepositCarried(LegoObject* liveObj, LegoObject* destObj);
 // <LegoRR.exe @0043a8b0>
-Container* __cdecl LiveObject_GetDepositNull(LegoObject* liveObj);
+Container* __cdecl LegoObject_GetDepositNull(LegoObject* liveObj);
 // <LegoRR.exe @0043a910>
-LegoObject* __cdecl LiveObject_FUN_0043a910(LegoObject* liveObj, LegoObject_Type objType, sint32 objIndex, sint32 objLevel);
+LegoObject* __cdecl LegoObject_FUN_0043a910(LegoObject* liveObj, LegoObject_Type objType, sint32 objID, sint32 objLevel);
 // <LegoRR.exe @0043aa80>
-bool32 __cdecl LiveObject_CanSpawnCarryableObject(LegoObject* liveObj, LegoObject_Type objType, sint32 objIndex);
+bool32 __cdecl LegoObject_CanSpawnCarryableObject(LegoObject* liveObj, LegoObject_Type objType, sint32 objID);
 // <LegoRR.exe @0043ab10>
-void __cdecl LiveObject_FUN_0043ab10(LegoObject* liveObj, LegoObject* liveObj2);
+void __cdecl LegoObject_FUN_0043ab10(LegoObject* liveObj, LegoObject* liveObj2);
 // <LegoRR.exe @0043abb0>
-void __cdecl Level_AddCrystals__unusedLiveObject(LegoObject* liveObj_unused, uint32 crystalCount);
+void __cdecl Level_AddCrystals__unusedLegoObject(LegoObject* liveObj_unused, uint32 crystalCount);
 // <LegoRR.exe @0043abd0>
-void __cdecl Level_AddOre__unusedLiveObject(LegoObject* liveObj_unused, uint32 oreCount);
+void __cdecl Level_AddOre__unusedLegoObject(LegoObject* liveObj_unused, uint32 oreCount);
 // <LegoRR.exe @0043abf0>
-void __cdecl LiveObject_WaterVehicle_Unregister(LegoObject* liveObj);
+void __cdecl LegoObject_WaterVehicle_Unregister(LegoObject* liveObj);
 // <LegoRR.exe @0043ac20>
-void __cdecl LiveObject_WaterVehicle_Register(LegoObject* liveObj);
+void __cdecl LegoObject_WaterVehicle_Register(LegoObject* liveObj);
 // <LegoRR.exe @0043aca0>
-void __cdecl LiveObject_RegisterVehicle__callsForWater(LegoObject* liveObj);
+void __cdecl LegoObject_RegisterVehicle__callsForWater(LegoObject* liveObj);
 // <LegoRR.exe @0043acb0>
-void __cdecl LiveObject_FUN_0043acb0(LegoObject* liveObj1, LegoObject* liveObj2);
+void __cdecl LegoObject_FUN_0043acb0(LegoObject* liveObj1, LegoObject* liveObj2);
 // <LegoRR.exe @0043ad70>
-void __cdecl LiveObject_RockMonster_FUN_0043ad70(LegoObject* liveObj);
+void __cdecl LegoObject_RockMonster_FUN_0043ad70(LegoObject* liveObj);
 // <LegoRR.exe @0043aeb0>
-void __cdecl LiveObject_FUN_0043aeb0(LegoObject* liveObj);
+void __cdecl LegoObject_FUN_0043aeb0(LegoObject* liveObj);
 // <LegoRR.exe @0043af50>
-bool32 __cdecl LiveObject_Callback_MiniFigureWithCrystal_InStampRadius_FUN_0043af50(LegoObject* liveObj, LegoObject* otherLiveObj);
+bool32 __cdecl LegoObject_Callback_TryStampMiniFigureWithCrystal(LegoObject* targetObj, LegoObject* stamperObj);
 // <LegoRR.exe @0043b010>
-LegoObject* __cdecl LiveObject_TryGenerateSlug(LegoObject* liveObj, uint32 objIndex);
+LegoObject* __cdecl LegoObject_TryGenerateSlug(LegoObject* originObj, uint32 objID);
 // <LegoRR.exe @0043b160>
-LegoObject* __cdecl Game_PTL_GenerateRockMonster(void);
+LegoObject* __cdecl LegoObject_TryGenerateRMonsterAtRandomBlock(void);
 // <LegoRR.exe @0043b1f0>
-LegoObject* __cdecl Game_TryGeneratedRockMonster(sint32** objSrc, LegoObject_Type objType, sint32 objIndex, uint32 bx, uint32 by);
+LegoObject* __cdecl LegoObject_TryGenerateRMonster(sint32** objModel, LegoObject_Type objType, sint32 objID, uint32 bx, uint32 by);
 // <LegoRR.exe @0043b530>
-void __cdecl LiveManager_UpdateAll(real32 elapsedGame);
+void __cdecl LegoObject_UpdateAll(real32 elapsedGame);
 // <LegoRR.exe @0043b5e0>
-void __cdecl LiveManager_Cleanup_FUN_0043b5e0(void);
+void __cdecl LegoObject_RemoveAll(void);
 // <LegoRR.exe @0043b610>
-bool32 __cdecl LiveObject_Callback_Release(LegoObject* liveObj, void* unused);
+bool32 __cdecl LegoObject_Callback_Remove(LegoObject* liveObj, void* data_unused);
 // <LegoRR.exe @0043b620>
 void __cdecl LiveManager_DoPickSphereCallbacks_MouseXY(uint32 mouseX, uint32 mouseY, undefined4* ref_param_3);
 // <LegoRR.exe @0043b670>
-bool32 __cdecl LiveObject_Callback_FUN_0043b670(LegoObject* liveObj, sint32** param_2);
+bool32 __cdecl LegoObject_Callback_FUN_0043b670(LegoObject* liveObj, sint32** param_2);
 // <LegoRR.exe @0043b980>
 void __cdecl LiveManager_DoSelection(Viewport* view, Point2F* dragStart, Point2F* dragEnd);
 // <LegoRR.exe @0043ba30>
-bool32 __cdecl LiveObject_CallbackDoSelection(LegoObject* liveObj, SearchViewportWindow_14* search);
+bool32 __cdecl LegoObject_CallbackDoSelection(LegoObject* liveObj, SearchViewportWindow_14* search);
 // <LegoRR.exe @0043bae0>
-void __cdecl LiveObject_SwapPolyFP(LegoObject* liveObj, sint32 cameraFrameIndex, bool32 on);
+void __cdecl LegoObject_SwapPolyFP(LegoObject* liveObj, sint32 cameraFrameIndex, bool32 on);
 // <LegoRR.exe @0043bb10>
-void __cdecl LiveObject_FP_SetRanges(LegoObject* liveObj, Container* resData, real32 medPolyRange, real32 highPolyRange, bool32 param_5);
+void __cdecl LegoObject_FP_SetRanges(LegoObject* liveObj, Container* resData, real32 medPolyRange, real32 highPolyRange, bool32 param_5);
 // <LegoRR.exe @0043bb90>
-bool32 __cdecl LiveObject_FP_Callback_SwapPolyMeshParts(LegoObject* liveObj, LiveObjectInfo* liveInfo);
+bool32 __cdecl LegoObject_FP_Callback_SwapPolyMeshParts(LegoObject* liveObj, LiveObjectInfo* liveInfo);
 // <LegoRR.exe @0043bdb0>
-bool32 __cdecl LiveObject_Check_LotsOfFlags1AndFlags2_FUN_0043bdb0(LegoObject* liveObj);
+bool32 __cdecl LegoObject_Check_LotsOfFlags1AndFlags2_FUN_0043bdb0(LegoObject* liveObj);
 // <LegoRR.exe @0043bde0>
-void __cdecl LiveObject_FUN_0043bde0(LegoObject* liveObj);
+void __cdecl LegoObject_FUN_0043bde0(LegoObject* liveObj);
 // <LegoRR.exe @0043be80>
-void __cdecl LiveObject_FUN_0043be80(LegoObject* liveObj);
+void __cdecl LegoObject_FUN_0043be80(LegoObject* liveObj);
 // <LegoRR.exe @0043bf00>
-void __cdecl LiveObject_TeleportUp(LegoObject* liveObj);
+void __cdecl LegoObject_TeleportUp(LegoObject* liveObj);
 // <LegoRR.exe @0043c4c0>
-bool32 __cdecl Object_DoOxygenCheck_FUN_0043c4c0(LegoObject_Type objType1, sint32 objIndex1, LegoObject_Type objType2, sint32 objIndex2);
+bool32 __cdecl Object_DoOxygenCheck_FUN_0043c4c0(LegoObject_Type objType1, LegoObject_ID objID1, LegoObject_Type objType2, LegoObject_ID objID2);
 // <LegoRR.exe @0043c540>
-bool32 __cdecl LiveObject_OxygenCallback_FUN_0043c540(LegoObject* liveObj, real32* param_2);
+bool32 __cdecl LegoObject_OxygenCallback_FUN_0043c540(LegoObject* liveObj, real32* param_2);
 // <LegoRR.exe @0043c570>
 void __cdecl LiveManager_UnkRadar_FUN_0043c570(real32 elapsedGame, bool32 isRadarMapView);
 // <LegoRR.exe @0043c5b0>
-bool32 __cdecl LiveObject_Callback_FUN_0043c5b0(LegoObject* liveObj, bool32* pIsRadarMapView);
+bool32 __cdecl LegoObject_Callback_FUN_0043c5b0(LegoObject* liveObj, bool32* pIsRadarMapView);
 // <LegoRR.exe @0043c6a0>
-bool32 __cdecl LiveObject_FUN_0043c6a0(LegoObject* liveObj);
+bool32 __cdecl LegoObject_FUN_0043c6a0(LegoObject* liveObj);
 // <LegoRR.exe @0043c700>
-uint32 __cdecl LiveObject_GetEquippedBeam(LegoObject* liveObj);
+uint32 __cdecl LegoObject_GetEquippedBeam(LegoObject* liveObj);
 // <LegoRR.exe @0043c750>
-bool32 __cdecl LiveObject_FUN_0043c750(LegoObject* liveObj, LegoObject* object2FC, sint32 param_3);
+bool32 __cdecl LegoObject_FUN_0043c750(LegoObject* liveObj, LegoObject* object2FC, sint32 param_3);
 // <LegoRR.exe @0043c780>
-void __cdecl LiveObject_Proc_FUN_0043c780(LegoObject* liveObj);
+void __cdecl LegoObject_Proc_FUN_0043c780(LegoObject* liveObj);
 // <LegoRR.exe @0043c7f0>
-void __cdecl LiveObject_Proc_FUN_0043c7f0(LegoObject* liveObj);
+void __cdecl LegoObject_Proc_FUN_0043c7f0(LegoObject* liveObj);
 // <LegoRR.exe @0043c830>
-void __cdecl LiveObject_UpdatePowerConsumption(LegoObject* liveObj);
+void __cdecl LegoObject_UpdatePowerConsumption(LegoObject* liveObj);
 // <LegoRR.exe @0043c910>
-bool32 __cdecl LiveObject_CheckCanSteal(LegoObject* liveObj);
+bool32 __cdecl LegoObject_CheckCanSteal(LegoObject* liveObj);
 // <LegoRR.exe @0043c970>
-void __cdecl LiveObject_FUN_0043c970(LegoObject* liveObj, real32 elapsed);
+void __cdecl LegoObject_FUN_0043c970(LegoObject* liveObj, real32 elapsed);
 // <LegoRR.exe @0043cad0>
-bool32 __cdecl Game_LiveObjectLargeCallback(LegoObject* in_liveObj, real32* lpElapsed);
+bool32 __cdecl LegoObject_Callback_Update(LegoObject* in_liveObj, real32* lpElapsed);
 // <LegoRR.exe @0043f160>
-void __cdecl LiveObject_ProcCarriedObjects_FUN_0043f160(LegoObject* in_liveObj);
+void __cdecl LegoObject_ProcCarriedObjects_FUN_0043f160(LegoObject* in_liveObj);
 // <LegoRR.exe @0043f3c0>
-void __cdecl LiveObject_ClearFlags4_40_AndSameForObject2FC(LegoObject* unused_liveObj, LegoObject* liveObj);
+void __cdecl LegoObject_ClearFlags4_40_AndSameForObject2FC(LegoObject* unused_liveObj, LegoObject* liveObj);
 // <LegoRR.exe @0043f3f0>
-void __cdecl Game_Container_TriggerFrameCallback(Container* cont, void* data);
+void __cdecl LegoObject_TriggerFrameCallback(Container* cont, void* data);
 // <LegoRR.exe @0043f410>
-bool32 __cdecl LiveObject_QueueTeleport(LegoObject* liveObj, LegoObject_Type objType, sint32 objIndex);
+bool32 __cdecl LegoObject_QueueTeleport(LegoObject* liveObj, LegoObject_Type objType, sint32 objID);
 // <LegoRR.exe @0043f450>
-void __cdecl LiveObject_FUN_0043f450(LegoObject* liveObj);
+void __cdecl LegoObject_FUN_0043f450(LegoObject* liveObj);
 // <LegoRR.exe @0043f820>
-bool32 __cdecl LiveObject_RemoveObject3CC(LegoObject* liveObj);
+bool32 __cdecl LegoObject_RemoveObject3CC(LegoObject* liveObj);
 // <LegoRR.exe @0043f840>
-bool32 __cdecl LiveObject_CallbackRemoveObject3CC(LegoObject* liveObj, LegoObject* otherObj);
+bool32 __cdecl LegoObject_CallbackRemoveObject3CC(LegoObject* liveObj, LegoObject* otherObj);
 // <LegoRR.exe @0043f870>
-void __cdecl LiveObject_TrainMiniFigure_instantunk(LegoObject* liveObj, TrainedFlags trainFlags);
+void __cdecl LegoObject_TrainMiniFigure_instantunk(LegoObject* liveObj, TrainedFlags trainFlags);
 // <LegoRR.exe @0043f960>
-void __cdecl LiveObject_AddDamage2(LegoObject* liveObj, real32 damage, bool32 param_3, real32 param_4);
+void __cdecl LegoObject_AddDamage2(LegoObject* liveObj, real32 damage, bool32 param_3, real32 param_4);
 // <LegoRR.exe @0043fa90>
-void __cdecl LiveObject_UnkUpdateEnergyHealth(LegoObject* in_liveObj, real32 elapsed);
+void __cdecl LegoObject_UnkUpdateEnergyHealth(LegoObject* in_liveObj, real32 elapsed);
 // <LegoRR.exe @0043fe00>
-bool32 __cdecl LiveObject_MiniFigurePlayHurtSND(LegoObject* in_liveObj, real32 elapsed, real32 damage);
+bool32 __cdecl LegoObject_MiniFigurePlayHurtSND(LegoObject* in_liveObj, real32 elapsed, real32 damage);
 // <LegoRR.exe @0043fee0>
-bool32 __cdecl LiveObject_FUN_0043fee0(LegoObject* carriedObj);
+bool32 __cdecl LegoObject_FUN_0043fee0(LegoObject* carriedObj);
 // <LegoRR.exe @00440080>
-bool32 __cdecl LiveObject_UnkCarryingVehicle_FUN_00440080(LegoObject* liveObj);
+bool32 __cdecl LegoObject_UnkCarryingVehicle_FUN_00440080(LegoObject* liveObj);
 // <LegoRR.exe @00440130>
-bool32 __cdecl LiveObject_TryFindLoad_FUN_00440130(LegoObject* in_liveObj, LegoObject* targetObj);
+bool32 __cdecl LegoObject_TryFindLoad_FUN_00440130(LegoObject* in_liveObj, LegoObject* targetObj);
 // <LegoRR.exe @004402b0>
-bool32 __cdecl LiveObject_TryDock_FUN_004402b0(LegoObject* in_liveObj);
+bool32 __cdecl LegoObject_TryDock_FUN_004402b0(LegoObject* in_liveObj);
 // <LegoRR.exe @004403f0>
-void __cdecl LiveObject_TryDock_AtBlockPos_FUN_004403f0(LegoObject* liveObj, Point2I* blockPos);
+void __cdecl LegoObject_TryDock_AtBlockPos_FUN_004403f0(LegoObject* liveObj, Point2I* blockPos);
 // <LegoRR.exe @00440470>
-bool32 __cdecl LiveObject_FUN_00440470(LegoObject* liveObj, bool32 param_2);
+bool32 __cdecl LegoObject_FUN_00440470(LegoObject* liveObj, bool32 param_2);
 // <LegoRR.exe @00440690>
-bool32 __cdecl LiveObject_TryFindDriver_FUN_00440690(LegoObject* in_liveObj, LegoObject* targetObj);
+bool32 __cdecl LegoObject_TryFindDriver_FUN_00440690(LegoObject* liveObj, LegoObject* drivableObj);
 // <LegoRR.exe @00440a70>
 bool32 __cdecl Game_DoDynamiteExplosionCallbacks(LegoObject* liveObj, real32 damageRadius, real32 maxDamage, real32 wakeRadius);
 // <LegoRR.exe @00440ac0>
-bool32 __cdecl LiveObject_Callback_DynamiteRadius(LegoObject* liveObj, SearchDynamiteRadius* search);
+bool32 __cdecl LegoObject_Callback_DynamiteRadius(LegoObject* liveObj, SearchDynamiteRadius* search);
 // <LegoRR.exe @00440b80>
 void __cdecl Game_DoBirdScarerRadiusCallbacks_FUN_00440b80(LegoObject* optor_liveObj, Point2F* optor_position, real32 radius);
 // <LegoRR.exe @00440be0>
-bool32 __cdecl LiveObject_CallbackProc_FUN_00440be0(LegoObject* liveObj, LegoObject** search);
+bool32 __cdecl LegoObject_CallbackProc_FUN_00440be0(LegoObject* liveObj, LegoObject** search);
 // <LegoRR.exe @00440ca0>
-void __cdecl LiveObject_SetActivityUnk(LegoObject* liveObj, Activity_Type actType, bool32 unkbool2d8);
+void __cdecl LegoObject_SetActivity(LegoObject* liveObj, Activity_Type activityType, uint32 repeatCount);
 // <LegoRR.exe @00440cd0>
-void __cdecl LiveObject_UpdateCarrying(LegoObject* in_liveObj);
+void __cdecl LegoObject_UpdateCarrying(LegoObject* in_liveObj);
 // <LegoRR.exe @00440eb0>
-void __cdecl LiveObject_InitBoulderMesh_FUN_00440eb0(LegoObject* liveObj, Container_Texture* contTexture);
+void __cdecl LegoObject_InitBoulderMesh_FUN_00440eb0(LegoObject* liveObj, Container_Texture* contTexture);
 // <LegoRR.exe @00440ef0>
-bool32 __cdecl LiveObject_FUN_00440ef0(LegoObject* liveObj, undefined4 param_2, undefined4 param_3, undefined4 param_4, undefined4 param_5, undefined4 param_6, undefined4 param_7, undefined4 param_8);
+bool32 __cdecl LegoObject_FUN_00440ef0(LegoObject* liveObj, undefined4 param_2, undefined4 param_3, undefined4 param_4, undefined4 param_5, undefined4 param_6, undefined4 param_7, undefined4 param_8);
 // <LegoRR.exe @00440f30>
-bool32 __cdecl LiveObject_FUN_00440f30(LegoObject* liveObj, uint32 param_2, uint32 param_3, uint32 param_4, uint32 param_5, uint32** param_6, uint32** param_7, uint32* param_8, undefined* param_9, undefined4 param_10);
+bool32 __cdecl LegoObject_FUN_00440f30(LegoObject* liveObj, uint32 param_2, uint32 param_3, uint32 param_4, uint32 param_5, uint32** param_6, uint32** param_7, uint32* param_8, undefined* param_9, undefined4 param_10);
 // <LegoRR.exe @004413b0>
-bool32 __cdecl LiveObject_FUN_004413b0(LegoObject* liveObj, uint32 bx, uint32 by, uint32 param_4, uint32 param_5, uint32** param_6, uint32** param_7, real32* param_8, void* callback, undefined4 param_10);
+bool32 __cdecl LegoObject_FUN_004413b0(LegoObject* liveObj, uint32 bx, uint32 by, uint32 param_4, uint32 param_5, uint32** param_6, uint32** param_7, real32* param_8, void* callback, undefined4 param_10);
 // <LegoRR.exe @004419c0>
-bool32 __cdecl LiveObject_RoutingPtr_Alloc_FUN_004419c0(LegoObject* liveObj, uint32 count, real32* param_3, real32* param_4, real32* param_5);
+bool32 __cdecl LegoObject_RoutingPtr_Alloc_FUN_004419c0(LegoObject* liveObj, uint32 count, real32* param_3, real32* param_4, real32* param_5);
 // <LegoRR.exe @00441c00>
-void __cdecl LiveObject_UnkDoRouting_FUN_00441c00(LegoObject* in_liveObj, bool32 param_2);
+void __cdecl LegoObject_UnkDoRouting_FUN_00441c00(LegoObject* in_liveObj, bool32 param_2);
 // <LegoRR.exe @00441df0>
-void __cdecl LiveObject_FUN_00441df0(LegoObject* liveObj, bool32 param_2, bool32 param_3);
+void __cdecl LegoObject_Interrupt(LegoObject* liveObj, bool32 actStand, bool32 dropCarried);
 // <LegoRR.exe @00442160>
-void __cdecl LiveObject_DestroyBoulder_AndCreateExplode(LegoObject* liveObj);
+void __cdecl LegoObject_DestroyBoulder_AndCreateExplode(LegoObject* liveObj);
 // <LegoRR.exe @00442190>
-bool32 __cdecl LiveObject_Proc_FUN_00442190(LegoObject* liveObj, LegoObject* targetObj, sint32 param_3);
+bool32 __cdecl LegoObject_Proc_FUN_00442190(LegoObject* liveObj, LegoObject* targetObj, sint32 param_3);
 // <LegoRR.exe @00442390>
 void __cdecl Game_GetWeaponUnk(LegoObject* liveObj, sint32 weaponType);
 // <LegoRR.exe @004424d0>
-void __cdecl LiveObject_UnkActivityCrumble_FUN_004424d0(LegoObject* liveObj);
+void __cdecl LegoObject_UnkActivityCrumble_FUN_004424d0(LegoObject* liveObj);
 // <LegoRR.exe @00442520>
-void __cdecl LiveObject_GetPosition(LegoObject* liveObj, real32* out_x, real32* out_y);
+void __cdecl LegoObject_GetPosition(LegoObject* liveObj, real32* out_x, real32* out_y);
 // <LegoRR.exe @00442560>
-void __cdecl LiveObject_GetFaceDirection(LegoObject* liveObj, Point2F* out_direction);
+void __cdecl LegoObject_GetFaceDirection(LegoObject* liveObj, Point2F* out_direction);
 // <LegoRR.exe @004425c0>
-void __cdecl LiveObject_UnkUpdateOrientation(LegoObject* liveObj, real32 theta, Vector3F* dvector);
+void __cdecl LegoObject_UnkUpdateOrientation(LegoObject* liveObj, real32 theta, Vector3F* opt_vecDir);
 // <LegoRR.exe @00442740>
-float10 __cdecl LiveObject_GetHeading(LegoObject* liveObj);
+float10 __cdecl LegoObject_GetHeading(LegoObject* liveObj);
 // <LegoRR.exe @004427b0>
-bool32 __cdecl LiveObject_GetBlockPos(LegoObject* liveObj, sint32* out_bx, sint32* out_by);
+bool32 __cdecl LegoObject_GetBlockPos(LegoObject* liveObj, sint32* out_bx, sint32* out_by);
 // <LegoRR.exe @00442800>
-float10 __cdecl SurfaceMap_GetSurfaceZ(real32 x, real32 y, Map3D* surfMap);
+float10 __cdecl LegoObject_GetWorldZCallback(real32 xPos, real32 yPos, Map3D* map);
 // <LegoRR.exe @00442820>
-float10 __cdecl SurfaceMap_LevelCallback_FUN_00442820(real32 x, real32 y, Map3D* surfMap);
+float10 __cdecl LegoObject_GetWorldZCallback_Lake(real32 xPos, real32 yPos, Map3D* map);
 // <LegoRR.exe @004428b0>
-void __cdecl LiveObject_FUN_004428b0(LegoObject* liveObj, real32 x, real32 y);
+void __cdecl LegoObject_FUN_004428b0(LegoObject* liveObj, real32 xDir, real32 yDir);
 // <LegoRR.exe @00442b60>
-void __cdecl LiveObject_SetPositionAndHeading(LegoObject* liveObj, real32 xPos, real32 yPos, real32 heading, bool32 includeHeading);
+void __cdecl LegoObject_SetPositionAndHeading(LegoObject* liveObj, real32 xPos, real32 yPos, real32 theta, bool32 assignHeading);
 // <LegoRR.exe @00442dd0>
-sint32 __cdecl LiveObject_FUN_00442dd0(LegoObject* in_liveObj, real32 param_2, real32* param_3);
+sint32 __cdecl LegoObject_FP_UpdateMovement(LegoObject* liveObj, real32 elapsed, real32* out_transSpeed);
 // <LegoRR.exe @00443240>
-void __cdecl LiveObject_RockFall_FUN_00443240(LegoObject* in_liveObj, real32 param_2);
+void __cdecl LegoObject_RockFall_FUN_00443240(LegoObject* in_liveObj, real32 param_2);
 // <LegoRR.exe @004437d0>
-void __cdecl LiveObject_UpdateDriverObjectPositions_FUN_004437d0(LegoObject* liveObj);
+void __cdecl LegoObject_UpdateDriverObjectPositions_FUN_004437d0(LegoObject* liveObj);
 // <LegoRR.exe @00443930>
-bool32 __cdecl LiveObject_FUN_00443930(LegoObject* liveObj);
+bool32 __cdecl LegoObject_FUN_00443930(LegoObject* liveObj);
 // <LegoRR.exe @004439b0>
-bool32 __cdecl LiveObject_IsRockMonsterCanGather(LegoObject* liveObj);
+bool32 __cdecl LegoObject_IsRockMonsterCanGather(LegoObject* liveObj);
 // <LegoRR.exe @004439d0>
-bool32 __cdecl LiveObject_FUN_004439d0(LegoObject* liveObj, Point2I* blockPos, Point2I* out_pointUnkForI, undefined4 unused);
+bool32 __cdecl LegoObject_FUN_004439d0(LegoObject* liveObj, Point2I* blockPos, Point2I* out_pointUnkForI, undefined4 unused);
 // <LegoRR.exe @00443ab0>
-void __cdecl LiveObject_RockMonster_DoWakeUp(LegoObject* liveObj);
+void __cdecl LegoObject_RockMonster_DoWakeUp(LegoObject* liveObj);
 // <LegoRR.exe @00443b00>
-bool32 __cdecl LiveObject_FUN_00443b00(LegoObject* liveObj, Point2I* blockPos, bool32* pAlsoCheckBlockFlags1_10Not8);
+bool32 __cdecl LegoObject_FUN_00443b00(LegoObject* liveObj, Point2I* blockPos, bool32* pAlsoCheckBlockFlags1_10Not8);
 // <LegoRR.exe @00443b70>
-real32 __cdecl LiveObject_LargeFlagsSwitch_FUN_00443b70(LegoObject* in_liveObj, real32 param_2);
+void __cdecl LegoObject_LargeFlagsSwitch_FUN_00443b70(LegoObject* in_liveObj, real32 param_2);
 // <LegoRR.exe @00444360>
-void __cdecl LiveObject_TryDock_AtObject2FC(LegoObject* liveObj);
+void __cdecl LegoObject_TryDock_AtObject2FC(LegoObject* liveObj);
 // <LegoRR.exe @004443b0>
-void __cdecl LiveObject_FUN_004443b0(LegoObject* liveObj, real32 elapsed);
+void __cdecl LegoObject_FUN_004443b0(LegoObject* liveObj, real32 elapsed);
 // <LegoRR.exe @00444520>
-bool32 __cdecl LiveObject_FUN_00444520(LegoObject* liveObj);
+bool32 __cdecl LegoObject_FUN_00444520(LegoObject* liveObj);
 // <LegoRR.exe @00444720>
-void __cdecl LiveObject_FUN_00444720(LegoObject* liveObj, Point2F* param_2);
+void __cdecl LegoObject_FUN_00444720(LegoObject* liveObj, Point2F* worldPos);
 // <LegoRR.exe @004448e0>
-void __cdecl AI_LiveObject_DoSlip(LegoObject* liveObj);
+void __cdecl LegoObject_DoSlip(LegoObject* liveObj);
 // <LegoRR.exe @00444940>
-bool32 __cdecl LiveObject_RoutingUnk_FUN_00444940(LegoObject* liveObj, sint32 param_2, sint32 param_3, sint32 param_4);
+bool32 __cdecl LegoObject_RoutingUnk_FUN_00444940(LegoObject* liveObj, sint32 param_2, sint32 param_3, sint32 param_4);
 // <LegoRR.exe @00445270>
-void __cdecl LiveObject_FUN_00445270(LegoObject* liveObj, Point2F* point);
+void __cdecl LegoObject_FUN_00445270(LegoObject* liveObj, Point2F* worldPos);
 // <LegoRR.exe @004454a0>
-void __cdecl LiveObject_FUN_004454a0(LegoObject* in_liveObj);
+void __cdecl LegoObject_FUN_004454a0(LegoObject* in_liveObj);
 // <LegoRR.exe @00445600>
-bool32 __cdecl LiveObject_Callback_FUN_00445600(LegoObject* liveObj1, LegoObject** param_2);
+bool32 __cdecl LegoObject_Callback_FUN_00445600(LegoObject* liveObj1, LegoObject** param_2);
 // <LegoRR.exe @00445860>
-bool32 __cdecl LiveObject_FUN_00445860(LegoObject* liveObj);
+bool32 __cdecl LegoObject_FUN_00445860(LegoObject* liveObj);
 // <LegoRR.exe @004459a0>
-void __cdecl LiveObject_FUN_004459a0(LegoObject* liveObj);
+void __cdecl LegoObject_FUN_004459a0(LegoObject* liveObj);
 // <LegoRR.exe @00445a30>
-bool32 __cdecl LiveObject_Callback_FUN_00445a30(LegoObject* liveObj1, LegoObject* liveObj2);
+bool32 __cdecl LegoObject_Callback_FUN_00445a30(LegoObject* liveObj1, LegoObject* liveObj2);
 // <LegoRR.exe @00445af0>
-bool32 __cdecl LiveObject_Callback_FUN_00445af0(LegoObject* liveObj1, LegoObject* liveObj2);
+bool32 __cdecl LegoObject_Callback_FUN_00445af0(LegoObject* liveObj1, LegoObject* liveObj2);
 // <LegoRR.exe @00446030>
-LegoObject* __cdecl LiveObject_DoCollisionCallbacks_FUN_00446030(LegoObject* liveObj, Point2F* param_2, real32 param_3, bool32 param_4);
+LegoObject* __cdecl LegoObject_DoCollisionCallbacks_FUN_00446030(LegoObject* liveObj, Point2F* param_2, real32 param_3, bool32 param_4);
 // <LegoRR.exe @004460b0>
-bool32 __cdecl LiveObject_CallbackCollisionRadius_FUN_004460b0(LegoObject* in_liveObj, sint32* search);
+bool32 __cdecl LegoObject_CallbackCollisionRadius_FUN_004460b0(LegoObject* in_liveObj, sint32* search);
 // <LegoRR.exe @004463b0>
-bool32 __cdecl LiveObject_CallbackCollisionBox_FUN_004463b0(LegoObject* in_liveObj, SearchCollision_14* search);
+bool32 __cdecl LegoObject_CallbackCollisionBox_FUN_004463b0(LegoObject* in_liveObj, SearchCollision_14* search);
 // <LegoRR.exe @004468d0>
-void __cdecl LiveObject_Callback_FUN_004468d0(LegoObject* in_liveObj, real32 elapsed, real32* param_3, real32* out_float_4);
+void __cdecl LegoObject_CalculateSpeeds(LegoObject* liveObj, real32 elapsed, real32* out_routeSpeed, real32* out_transSpeed);
 // <LegoRR.exe @00446b80>
-bool32 __cdecl LiveObject_RoutingPtr_Realloc_FUN_00446b80(LegoObject* liveObj, uint32 bx, uint32 by);
+bool32 __cdecl LegoObject_RoutingPtr_Realloc_FUN_00446b80(LegoObject* liveObj, uint32 bx, uint32 by);
 // <LegoRR.exe @00446c80>
-bool32 __cdecl LiveObject_BlockRoute_FUN_00446c80(LegoObject* liveObj, uint32 bx, uint32 by, bool32 param_4, uint32* out_param_5, bool32 countIs8);
+bool32 __cdecl LegoObject_BlockRoute_FUN_00446c80(LegoObject* liveObj, uint32 bx, uint32 by, bool32 useWideRange, Direction* optout_direction, bool32 countIs8);
 // <LegoRR.exe @00447100>
-bool32 __cdecl LiveObject_RouteToDig_FUN_00447100(LegoObject* liveObj, uint32 bx, uint32 by, bool32 tunnelDig);
+bool32 __cdecl LegoObject_RouteToDig_FUN_00447100(LegoObject* liveObj, uint32 bx, uint32 by, bool32 tunnelDig);
 // <LegoRR.exe @00447390>
 bool32 __cdecl Game_PTL_GatherRock(LegoObject* in_liveObj);
 // <LegoRR.exe @00447470>
-bool32 __cdecl LiveObject_RoutingNoCarry_FUN_00447470(LegoObject* liveObj, uint32 x, uint32 y, LegoObject* liveObj2);
+bool32 __cdecl LegoObject_RoutingNoCarry_FUN_00447470(LegoObject* liveObj, uint32 bx, uint32 by, LegoObject* boulderObj);
 // <LegoRR.exe @004474d0>
 bool32 __cdecl Game_PTL_AttackBuilding(LegoObject* liveObj1, LegoObject* targetObj);
 // <LegoRR.exe @00447670>
-sint32 __cdecl LiveObject_FUN_00447670(LegoObject* in_liveObj, real32 param_2, real32* param_3, LegoObject* liveObj2);
+sint32 __cdecl LegoObject_FUN_00447670(LegoObject* in_liveObj, sint32 bx, sint32 by, LegoObject* liveObj2);
 // <LegoRR.exe @004477b0>
-void __cdecl LiveObject_FUN_004477b0(LegoObject* in_liveObj);
+void __cdecl LegoObject_FUN_004477b0(LegoObject* in_liveObj);
 // <LegoRR.exe @00447880>
-sint32 __cdecl LiveObject_FUN_00447880(LegoObject* in_liveObj);
+sint32 __cdecl LegoObject_FUN_00447880(LegoObject* in_liveObj);
 // <LegoRR.exe @004479f0>
-bool32 __cdecl LiveObject_Add25EnergyAndSetHealth(LegoObject* liveObj);
+bool32 __cdecl LegoObject_Add25EnergyAndSetHealth(LegoObject* liveObj);
 // <LegoRR.exe @00447a40>
-void __cdecl LiveObject_FUN_00447a40(LegoObject* liveObj);
+void __cdecl LegoObject_FUN_00447a40(LegoObject* liveObj);
 // <LegoRR.exe @00447a90>
-void __cdecl LiveObject_FUN_00447a90(LegoObject* liveObj);
+void __cdecl LegoObject_FUN_00447a90(LegoObject* liveObj);
 // <LegoRR.exe @00447bc0>
-void __cdecl LiveObject_DoBuildingsCallback_AttackByBoulder(LegoObject* liveObj);
+void __cdecl LegoObject_DoBuildingsCallback_AttackByBoulder(LegoObject* liveObj);
 // <LegoRR.exe @00447be0>
-bool32 __cdecl LiveObject_CallbackBoulderAttackBuilding_FUN_00447be0(LegoObject* liveObj, LegoObject* buildingLiveObj);
+bool32 __cdecl LegoObject_CallbackBoulderAttackBuilding_FUN_00447be0(LegoObject* liveObj, LegoObject* buildingLiveObj);
 // <LegoRR.exe @00447c10>
-void __cdecl LiveObject_FUN_00447c10(LegoObject* liveObj, Point2F* param_2, bool32 param_3);
+void __cdecl LegoObject_FUN_00447c10(LegoObject* liveObj, Point2F* param_2, bool32 param_3);
 // <LegoRR.exe @00447dc0>
-void __cdecl LiveObject_TeleportDownBuilding(LegoObject* liveObj);
+void __cdecl LegoObject_TeleportDownBuilding(LegoObject* liveObj);
 // <LegoRR.exe @00447df0>
-float10 __cdecl LiveObject_FUN_00447df0(LegoObject* in_liveObj, real32 elapsed);
+float10 __cdecl LegoObject_FUN_00447df0(LegoObject* liveObj, real32 elapsed);
 // <LegoRR.exe @00447f00>
-bool32 __cdecl LiveObject_Container_ActivityUpdate_Check(LegoObject* liveObj);
+bool32 __cdecl LegoObject_Container_ActivityUpdate_Check(LegoObject* liveObj);
 // <LegoRR.exe @00448160>
-void __cdecl LiveObject_FUN_00448160(LegoObject* in_liveObj, real32 elapsed);
+void __cdecl LegoObject_FUN_00448160(LegoObject* in_liveObj, real32 elapsed);
 // <LegoRR.exe @00448a80>
-void __cdecl LiveObject_Debug_DropActivateDynamite(LegoObject* liveObj);
+void __cdecl LegoObject_Debug_DropActivateDynamite(LegoObject* liveObj);
 // <LegoRR.exe @00448ac0>
-bool32 __cdecl LiveObject_TryDynamite_FUN_00448ac0(LegoObject* liveObj, Point2I* blockPos);
+bool32 __cdecl LegoObject_TryDynamite_FUN_00448ac0(LegoObject* liveObj, Point2I* blockPos);
 // <LegoRR.exe @00448b40>
-bool32 __cdecl LiveObject_PlaceCarriedBirdScarerAt(LegoObject* liveObj, Point2I* blockPos);
+bool32 __cdecl LegoObject_PlaceCarriedBirdScarerAt(LegoObject* liveObj, Point2I* blockPos);
 // <LegoRR.exe @00448c60>
-bool32 __cdecl LiveObject_PlaceBirdScarer_AndTickDown(LegoObject* liveObj);
+bool32 __cdecl LegoObject_PlaceBirdScarer_AndTickDown(LegoObject* liveObj);
 // <LegoRR.exe @00448d20>
-bool32 __cdecl LiveObject_TryElecFence_FUN_00448d20(LegoObject* liveObj, Point2I* blockPos);
+bool32 __cdecl LegoObject_TryElecFence_FUN_00448d20(LegoObject* liveObj, Point2I* blockPos);
 // <LegoRR.exe @00448f10>
-bool32 __cdecl LiveObject_TryBuildPath_FUN_00448f10(LegoObject* liveObj);
+bool32 __cdecl LegoObject_TryBuildPath_FUN_00448f10(LegoObject* liveObj);
 // <LegoRR.exe @00448f50>
-bool32 __cdecl LiveObject_TryUpgrade_FUN_00448f50(LegoObject* in_liveObj, LegoObject* targetObj, sint32 targetObjLevel);
+bool32 __cdecl LegoObject_TryUpgrade_FUN_00448f50(LegoObject* in_liveObj, LegoObject* targetObj, sint32 targetObjLevel);
 // <LegoRR.exe @00449170>
-bool32 __cdecl LiveObject_TryTrain_FUN_00449170(LegoObject* liveObj, LegoObject* targetObj, bool32 set_0xE_or0xF);
+bool32 __cdecl LegoObject_TryTrain_FUN_00449170(LegoObject* liveObj, LegoObject* targetObj, bool32 set_0xE_or0xF);
 // <LegoRR.exe @004492d0>
-bool32 __cdecl LiveObject_TryRecharge_FUN_004492d0(LegoObject* liveObj);
+bool32 __cdecl LegoObject_TryRechargeCarried(LegoObject* liveObj);
 // <LegoRR.exe @00449360>
-bool32 __cdecl LiveObject_TryRepair_FUN_00449360(LegoObject* in_liveObj, LegoObject* targetObj, bool32 param_3, bool32 param_4);
+bool32 __cdecl LegoObject_TryRepairDrainObject(LegoObject* liveObj, LegoObject* targetObj, bool32 setRouteFlag20, bool32 setLive4Flag400000);
 // <LegoRR.exe @00449500>
-bool32 __cdecl LiveObject_TryReinforce_FUN_00449500(LegoObject* liveObj, Point2I* blockPos);
+bool32 __cdecl LegoObject_TryReinforceBlock(LegoObject* liveObj, Point2I* blockPos);
 // <LegoRR.exe @00449570>
-bool32 __cdecl LiveObject_TryClear_FUN_00449570(LegoObject* liveObj, Point2I* blockPos);
+bool32 __cdecl LegoObject_TryClear_FUN_00449570(LegoObject* liveObj, Point2I* blockPos);
 // <LegoRR.exe @004496a0>
-bool32 __cdecl LiveObject_MiniFigureHasBeamEquipped(LegoObject* liveObj);
+bool32 __cdecl LegoObject_MiniFigureHasBeamEquipped(LegoObject* liveObj);
 // <LegoRR.exe @004496f0>
-bool32 __cdecl LiveObject_TryAttackRockMonster_FUN_004496f0(LegoObject* liveObj, LegoObject* targetObj);
+bool32 __cdecl LegoObject_TryAttackRockMonster_FUN_004496f0(LegoObject* liveObj, LegoObject* targetObj);
 // <LegoRR.exe @004497e0>
-bool32 __cdecl LiveObject_TryAttackObject_FUN_004497e0(LegoObject* in_liveObj, LegoObject* targetObj);
+bool32 __cdecl LegoObject_TryAttackObject_FUN_004497e0(LegoObject* in_liveObj, LegoObject* targetObj);
 // <LegoRR.exe @004498d0>
-bool32 __cdecl LiveObject_TryAttackPath_FUN_004498d0(LegoObject* liveObj, Point2I* blockPos);
+bool32 __cdecl LegoObject_TryAttackPath_FUN_004498d0(LegoObject* liveObj, Point2I* blockPos);
 // <LegoRR.exe @004499c0>
-bool32 __cdecl LiveObject_TryDepart_FUN_004499c0(LegoObject* liveObj);
+bool32 __cdecl LegoObject_TryDepart_FUN_004499c0(LegoObject* liveObj);
 // <LegoRR.exe @00449b40>
-bool32 __cdecl LiveObject_RoutingPointerBlocks_FUN_00449b40(LegoObject* liveObj, uint32 x, uint32 y, real32 param_4);
+bool32 __cdecl LegoObject_RouteToFaceBlock(LegoObject* liveObj, uint32 bx, uint32 by, real32 distFrom);
 // <LegoRR.exe @00449c40>
-bool32 __cdecl LiveObject_Reinforcing_FUN_00449c40(LegoObject* liveObj, undefined4 param_2, bool32* out_bool);
+bool32 __cdecl LegoObject_Reinforcing_FUN_00449c40(LegoObject* liveObj, undefined4 param_2, bool32* out_bool);
 // <LegoRR.exe @00449d30>
-void __cdecl LiveObject_GoEat_unk(LegoObject* liveObj);
+void __cdecl LegoObject_GoEat_unk(LegoObject* liveObj);
 // <LegoRR.exe @00449d80>
-bool32 __cdecl LiveObject_TryGoEat_FUN_00449d80(LegoObject* liveObj1, LegoObject* liveObj2);
+bool32 __cdecl LegoObject_TryGoEat_FUN_00449d80(LegoObject* liveObj1, LegoObject* liveObj2);
 // <LegoRR.exe @00449ec0>
-bool32 __cdecl LiveManager_AllCallback_FUN_00449ec0(void);
+void __cdecl LiveManager_AllCallback_FUN_00449ec0(void);
 // <LegoRR.exe @00449ee0>
-void __cdecl LiveObject_FlocksCallback_FUN_00449ee0(Flocks* flockData, FlocksItem* subdata, void* lpContext);
+void __cdecl LegoObject_FlocksCallback_FUN_00449ee0(Flocks* flockData, FlocksItem* subdata, void* data);
 // <LegoRR.exe @00449f90>
-void __cdecl LiveObject_Hide2(LegoObject* liveObj, bool32 hide2);
+void __cdecl LegoObject_Hide2(LegoObject* liveObj, bool32 hide2);
 // <LegoRR.exe @00449fb0>
-bool32 __cdecl LiveObject_Callback_FUN_00449fb0(LegoObject* liveObj, void* unused);
+bool32 __cdecl LegoObject_Callback_FUN_00449fb0(LegoObject* liveObj, void* unused);
 // <LegoRR.exe @0044a210>
-void __cdecl LiveObject_HideAll(LegoObject* liveObj, bool32 hide);
+void __cdecl LegoObject_Hide(LegoObject* liveObj, bool32 hide);
 // <LegoRR.exe @0044a2b0>
-bool32 __cdecl LiveObject_IsHidden(LegoObject* liveObj);
+bool32 __cdecl LegoObject_IsHidden(LegoObject* liveObj);
 // <LegoRR.exe @0044a330>
-void __cdecl LiveObject_FP_GetPositionAndHeading(LegoObject* liveObj, sint32 cameraFrame, Vector3F* out_position, Vector3F* out_dir);
+void __cdecl LegoObject_FP_GetPositionAndHeading(LegoObject* liveObj, sint32 cameraFrame, Vector3F* out_worldPos, Vector3F* out_dir);
 // <LegoRR.exe @0044a4c0>
-Container* __cdecl LiveObject_GetActivityContainer(LegoObject* liveObj);
+Container* __cdecl LegoObject_GetActivityContainer(LegoObject* liveObj);
 // <LegoRR.exe @0044a560>
-bool32 __cdecl LiveObject_GetDrillNullPosition(LegoObject* liveObj, real32* out_x, real32* out_y);
+bool32 __cdecl LegoObject_GetDrillNullPosition(LegoObject* liveObj, real32* out_xPos, real32* out_yPos);
 // <LegoRR.exe @0044a5d0>
-void __cdecl LiveObject_FPMove(LegoObject* liveObj, sint32 forward, sint32 strafe, real32 rotate);
+void __cdecl LegoObject_FP_Move(LegoObject* liveObj, sint32 forward, sint32 strafe, real32 rotate);
 // <LegoRR.exe @0044a650>
 void __cdecl Level_RegisterRechargeSeam(Point2I* blockPos);
 // <LegoRR.exe @0044a690>
-bool32 __cdecl LiveObject_FindRechargeSeam_FUN_0044a690(LegoObject* liveObj, Point2I* out_seamBlockPos);
+bool32 __cdecl LegoObject_FindNearestRechargeSeam(LegoObject* liveObj, Point2I* optout_blockPos);
 // <LegoRR.exe @0044a770>
-void __cdecl Level_RegisterSlimySlugHole(Point2I* position);
+void __cdecl LegoObject_RegisterSlimySlugHole(Point2I* blockPos);
 // <LegoRR.exe @0044a7b0>
-bool32 __cdecl LiveObject_NearestSlugHole_FUN_0044a7b0(LegoObject* liveObj, Point2I* out_blockPos);
+bool32 __cdecl LegoObject_FindNearestSlugHole(LegoObject* liveObj, Point2I* optout_blockPos);
 // <LegoRR.exe @0044a890>
-bool32 __cdecl LiveObject_FUN_0044a890(LegoObject* liveObj, sint32* param_2, sint32* param_3, bool32 param_4, bool32 param_5, bool32 param_6);
+bool32 __cdecl LegoObject_FUN_0044a890(LegoObject* liveObj, sint32* param_2, sint32* param_3, bool32 param_4, bool32 param_5, bool32 param_6);
 // <LegoRR.exe @0044aa60>
 bool32 __cdecl Lego_QsortCompare_FUN_0044aa60(sint32 param_1, sint32 param_2);
 // <LegoRR.exe @0044aa90>
-MeshLOD* __cdecl Res_LoadMeshLOD(Config* aeRoot, char* rootName, char* dirname, LOD_PolyLevel polyMode, uint32 numCameraFrames);
+MeshLOD* __cdecl Res_LoadMeshLOD(Config* act, char* gameName, char* dirname, LOD_PolyLevel polyLOD, uint32 numCameraFrames);
 // <LegoRR.exe @0044abd0>
 bool32 __cdecl Game_UnkBuildingPlaceDirection(LegoObject_Type objType, sint32 objIndex, bool32 param_3, bool32 param_4, Point2F* mouseWorldPos, uint32 mouseBlockX, uint32 mouseBlockY, bool32 param_8, SelectPlace* selectPlace);
 // <LegoRR.exe @0044af80>
 void __cdecl ObjTts_Initialise(Config* root, char* keyBasePath);
 // <LegoRR.exe @0044b040>
-sint32 __cdecl LiveObject_GetObjTtSFX(LegoObject* liveObj);
+sint32 __cdecl LegoObject_GetObjTtSFX(LegoObject* liveObj);
 // <LegoRR.exe @0044b080>
-void __cdecl LiveManager_SetFlag20(bool32 state);
+void __cdecl LegoObject_SetGlobFlag20(bool32 state);
 // <LegoRR.exe @0044b0a0>
-void __cdecl LiveObject_FUN_0044b0a0(LegoObject* liveObj);
+void __cdecl LegoObject_FUN_0044b0a0(LegoObject* liveObj);
 // <LegoRR.exe @0044b110>
-void __cdecl LiveObject_SpawnDropCrystals_FUN_0044b110(LegoObject* in_liveObj, sint32 crystalCount, bool32 param_3);
+void __cdecl LegoObject_SpawnDropCrystals_FUN_0044b110(LegoObject* in_liveObj, sint32 crystalCount, bool32 param_3);
 // <LegoRR.exe @0044b250>
-void __cdecl LiveObject_CallsSpawnDropCrystals_FUN_0044b250(LegoObject* liveObj);
+void __cdecl LegoObject_CallsSpawnDropCrystals_FUN_0044b250(LegoObject* liveObj);
 // <LegoRR.exe @0044b270>
-void __cdecl LiveObject_GenerateTinyRMs_FUN_0044b270(LegoObject* in_liveObj);
+void __cdecl LegoObject_GenerateTinyRMs_FUN_0044b270(LegoObject* in_liveObj);
 // <LegoRR.exe @0044b400>
 void __cdecl Level_GenerateSmallSpiders(uint32 x, uint32 y, uint32 randSeed);
 // <LegoRR.exe @0044b510>
-void __cdecl AI_LiveObject_DoThrowLegoman(LegoObject* liveObj1, LegoObject* liveObj2);
+void __cdecl LegoObject_DoThrowLegoman(LegoObject* liveObj, LegoObject* thrownObj);
 // <LegoRR.exe @0044b610>
 bool32 __cdecl Tool_IsBeamWeapon(LegoObject_ToolType toolType);
 // <LegoRR.exe @0044b630>
 void __cdecl MiniFigure_EquipTool(LegoObject* liveObj, LegoObject_ToolType toolType);
 // <LegoRR.exe @0044b740>
-bool32 __cdecl LiveObject_HasToolEquipped(LegoObject* liveObj, LegoObject_ToolType toolType);
+bool32 __cdecl LegoObject_HasToolEquipped(LegoObject* liveObj, LegoObject_ToolType toolType);
 // <LegoRR.exe @0044b780>
-bool32 __cdecl LiveObject_TaskHasTool_FUN_0044b780(LegoObject* in_liveObj, AITask_Type taskType);
+bool32 __cdecl LegoObject_TaskHasTool_FUN_0044b780(LegoObject* in_liveObj, AITask_Type taskType);
 // <LegoRR.exe @0044b7c0>
-sint32 __cdecl LiveObject_DoGetTool(LegoObject* liveObj, LegoObject_ToolType toolType);
+sint32 __cdecl LegoObject_DoGetTool(LegoObject* liveObj, LegoObject_ToolType toolType);
 // <LegoRR.exe @0044b940>
-void __cdecl LiveObject_Flocks_Initialise(LegoObject* in_liveObj);
+void __cdecl LegoObject_Flocks_Initialise(LegoObject* in_liveObj);
 // <LegoRR.exe @0044ba60>
 void __cdecl FlocksMatrix_FUN_0044ba60(Container* resData, Matrix4F* ref_matrix, real32 scalar);
 // <LegoRR.exe @0044bb10>
 void __cdecl Flocks_Callback_SubdataOrientationAnim(Flocks* flocksData, FlocksItem* subdata, real32* pElapsed);
 // <LegoRR.exe @0044bd70>
-void __cdecl Flocks_Container_ReleaseCallback(Flocks* flockData, FlocksItem* subdata, void* lpContext);
+void __cdecl Flocks_Container_ReleaseCallback(Flocks* flockData, FlocksItem* subdata, void* data);
 // <LegoRR.exe @0044bda0>
 void __cdecl Flocks_Free(Flocks* flockData);
 // <LegoRR.exe @0044bdf0>
-void __cdecl LiveObject_Flocks_SetParameters(LegoObject* liveObj, bool32 additive);
+void __cdecl LegoObject_Flocks_SetParameters(LegoObject* liveObj, bool32 additive);
 // <LegoRR.exe @0044bef0>
-void __cdecl LiveObject_Flocks_FUN_0044bef0(LegoObject* liveObj, real32 elapsed);
+void __cdecl LegoObject_Flocks_FUN_0044bef0(LegoObject* liveObj, real32 elapsed);
 // <LegoRR.exe @0044c0f0>
-void __cdecl LiveObject_FlocksDestroy(LegoObject* liveObj);
+void __cdecl LegoObject_FlocksDestroy(LegoObject* liveObj);
 // <LegoRR.exe @0044c1c0>
 void __cdecl Flocks_Update_FUN_0044c1c0(real32* pElapsed);
 // <LegoRR.exe @0044c290>
-bool32 __cdecl LiveObject_DestroyRockMonster_FUN_0044c290(LegoObject* liveObj);
+bool32 __cdecl LegoObject_DestroyRockMonster_FUN_0044c290(LegoObject* liveObj);
 // <LegoRR.exe @0044c2f0>
-bool32 __cdecl LiveObject_FUN_0044c2f0(LegoObject* liveObj, real32 elapsed);
+bool32 __cdecl LegoObject_FUN_0044c2f0(LegoObject* liveObj, real32 elapsed);
 // <LegoRR.exe @0044c3d0>
-void __cdecl LiveObject_FUN_0044c3d0(LegoObject* liveObj);
+void __cdecl LegoObject_FUN_0044c3d0(LegoObject* liveObj);
 // <LegoRR.exe @0044c410>
-bool32 __cdecl LiveObject_Unk_AndSetVector3B4(LegoObject* liveObj, Point2F* param_2, real32 param_3);
+bool32 __cdecl LegoObject_Push(LegoObject* liveObj, Point2F* pushVec2D, real32 pushDist);
 // <LegoRR.exe @0044c470>
-void __cdecl LiveObject_FUN_0044c470(LegoObject* liveObj, real32 elapsed);
+void __cdecl LegoObject_FUN_0044c470(LegoObject* liveObj, real32 elapsed);
 // <LegoRR.exe @0044c760>
-void __cdecl LiveObject_FUN_0044c760(LegoObject* liveObj);
+void __cdecl LegoObject_FUN_0044c760(LegoObject* liveObj);
 // <LegoRR.exe @0044c7c0>
-bool32 __cdecl LiveObject_Callback_UnkLaserTrackerToggleUnset_FUN_0044c7c0(LegoObject* liveObj, void* unused);
+bool32 __cdecl LegoObject_Callback_UnkLaserTrackerToggleUnset_FUN_0044c7c0(LegoObject* liveObj, void* unused);
 // <LegoRR.exe @0044c7f0>
-bool32 __cdecl LiveObject_MiniFigureHasBeamEquipped2(LegoObject* liveObj);
+bool32 __cdecl LegoObject_MiniFigureHasBeamEquipped2(LegoObject* liveObj);
 // <LegoRR.exe @0044c810>
-void __cdecl LiveManager_CheckMouseIntersections_FUN_0044c810(void);
+void __cdecl LegoObject_CameraCycleUnits(void);
 // <LegoRR.exe @0044c8b0>
-bool32 __cdecl LiveObject_Callback_CheckIntersections_FUN_0044c8b0(LegoObject* liveObj, bool32* pFalseForBuildings);
+bool32 __cdecl LegoObject_Callback_CameraCycleFindUnit(LegoObject* liveObj, bool32* opt_pNoBuildings);
 // <LegoRR.exe @0044c9d0>
 void __cdecl LightEffects_Initialise(Container* resRootSpotlight, Container* resRootLight, real32 initialRed, real32 initialGreen, real32 initialBlue);
 // <LegoRR.exe @0044ca20>
@@ -2438,17 +2438,17 @@ void __cdecl LightEffects_ResetColor(void);
 // <LegoRR.exe @0044ca50>
 void __cdecl LightEffects_SetDisabled(bool32 isDisabled);
 // <LegoRR.exe @0044ca80>
-bool32 __cdecl LightEffects_Load(Config* root, char* rootPath);
+bool32 __cdecl LightEffects_Load(Config* config, char* gameName);
 // <LegoRR.exe @0044cab0>
-bool32 __cdecl LightEffects_LoadBlink(Config* root, char* rootPath);
+bool32 __cdecl LightEffects_LoadBlink(Config* config, char* gameName);
 // <LegoRR.exe @0044cc30>
 void __cdecl LightEffects_SetBlink(real32 red, real32 green, real32 blue, real32 maxChange, real32 minRange, real32 maxRange);
 // <LegoRR.exe @0044cc80>
-bool32 __cdecl LightEffects_LoadFade(Config* root, char* rootPath);
+bool32 __cdecl LightEffects_LoadFade(Config* config, char* gameName);
 // <LegoRR.exe @0044ced0>
 void __cdecl LightEffects_SetFade(real32 minRed, real32 minGreen, real32 minBlue, real32 maxRed, real32 maxGreen, real32 maxBlue, real32 minTime, real32 maxTime, real32 minFade, real32 maxFade, real32 minHold, real32 maxHold);
 // <LegoRR.exe @0044cf60>
-bool32 __cdecl LightEffects_LoadMove(Config* root, char* rootPath);
+bool32 __cdecl LightEffects_LoadMove(Config* config, char* gameName);
 // <LegoRR.exe @0044d1b0>
 void __cdecl LightEffects_SetMove(real32 minTime, real32 maxTime, real32 minSpeed, real32 maxSpeed, real32 minDist, real32 maxDist, real32 limitX, real32 limitY, real32 limitZ);
 // <LegoRR.exe @0044d230>
@@ -2542,7 +2542,7 @@ float10 __cdecl Map3D_GetWorldZ(Map3D* map, real32 xPos, real32 yPos);
 // <LegoRR.exe @0044fd70>
 void __cdecl Map3D_FUN_0044fd70(Map3D* map, real32 in_x, real32 in_y, Vector3F* out_vector);
 // <LegoRR.exe @0044fe50>
-bool32 __cdecl Map3D_FUN_0044fe50(Map3D* map, real32 in_x, real32 in_y, bool32 condition, real32 unkMultiplier, real32* out_x, real32* out_y);
+bool32 __cdecl Map3D_FUN_0044fe50(Map3D* map, real32 in_x, real32 in_y, bool32 gap, real32 unkMultiplier, real32* out_x, real32* out_y);
 // <LegoRR.exe @00450130>
 float10 __cdecl Map3D_UnkCameraXYFunc_RetZunk(Map3D* map, real32 xPos, real32 yPos);
 // <LegoRR.exe @00450320>
@@ -2566,7 +2566,7 @@ void __cdecl Map3D_AddVisibleBlock(Map3D* map, sint32 bx, sint32 by);
 // <LegoRR.exe @00450a40>
 void __cdecl Map3D_HideVisibleBlocksList(Map3D* map);
 // <LegoRR.exe @00450a90>
-void __cdecl Map3D_BlockVertexToWorldPos(Map3D* map, uint32 bx, uint32 by, real32* out_x, real32* out_y, real32* out_z);
+void __cdecl Map3D_BlockVertexToWorldPos(Map3D* map, uint32 bx, uint32 by, real32* out_xPos, real32* out_yPos, real32* out_zPos);
 // <LegoRR.exe @00450b50>
 float10 __cdecl Map3D_BlockSize(Map3D* map);
 // <LegoRR.exe @00450b60>
@@ -2592,21 +2592,21 @@ void __cdecl Map3D_GenerateBlockPlaneNormals(Map3D* map, uint32 bx, uint32 by);
 // <LegoRR.exe @00451860>
 void __cdecl Map3D_MapFileGetSpecs(MapFileInfo* mapFileInfo, uint32* out_width, uint32* out_height);
 // <LegoRR.exe @00451880>
-uint16 __cdecl Map3D_MapFileBlockValue(MapFileInfo* mapFile, uint32 x, uint32 y, uint32 gridWidth);
+uint16 __cdecl Map3D_MapFileBlockValue(MapFileInfo* mapFile, uint32 bx, uint32 by, uint32 gridWidth);
 // <LegoRR.exe @004518a0>
 bool32 __cdecl Map3D_Intersections_Sub2_FUN_004518a0(Map3D* map, uint32 bx, uint32 by, Vector3F* param_4, Vector3F* param_5, Vector3F* out_vector);
 // <LegoRR.exe @00451c70>
-MeshLOD* __cdecl MeshLOD_Create(MeshLOD* lastMeshLOD, char* partName, char* dirname, char* meshFilename, uint32 index);
+MeshLOD* __cdecl MeshLOD_Create(MeshLOD* opt_prevMeshLOD, char* partName, char* dirname, char* meshName, uint32 setID);
 // <LegoRR.exe @00451d70>
-MeshLOD* __cdecl MeshLOD_CreateNull(MeshLOD* lastMeshLOD, char* partName, uint32 index);
+MeshLOD* __cdecl MeshLOD_CreateEmpty(MeshLOD* opt_prevMeshLOD, char* partName, uint32 setID);
 // <LegoRR.exe @00451df0>
-MeshLOD* __cdecl MeshLOD_Duplicate(MeshLOD* origMeshFP);
+MeshLOD* __cdecl MeshLOD_Clone(MeshLOD* srcMeshLOD);
 // <LegoRR.exe @00451e80>
-void __cdecl MeshLOD_Container_SwapFrame(MeshLOD* meshLOD, Container* contAct, bool32 restore, sint32 frameIndex);
+void __cdecl MeshLOD_SwapTarget(MeshLOD* meshLOD, Container* contActTarget, bool32 restore, uint32 setID);
 // <LegoRR.exe @00451ef0>
-void __cdecl MeshLOD_RemoveTarget(MeshLOD* meshLOD);
+void __cdecl MeshLOD_RemoveTargets(MeshLOD* meshLOD);
 // <LegoRR.exe @00451f10>
-void __cdecl MeshLOD_Destroy(MeshLOD* meshLOD);
+void __cdecl MeshLOD_Free(MeshLOD* meshLOD);
 // <LegoRR.exe @00451f90>
 void __cdecl Message_Initialise(void);
 // <LegoRR.exe @00452220>
@@ -4008,77 +4008,77 @@ void __cdecl ToolTip_DrawBox(Area2F valueRect, real32 rcRed, real32 rcGreen, rea
 // <LegoRR.exe @0046bef0>
 void __cdecl ToolTip_Draw(ToolTipData* toolTip, uint32 x, uint32 y);
 // <LegoRR.exe @0046c2f0>
-void __cdecl Upgrade_LoadActivityFile(UpgradeData* out_upgrade, sint32 objIndex, Container* resRoot, char* filename);
+void __cdecl Upgrade_Part_Load(Upgrade_PartModel* upgradePart, sint32 objID, Container* root, char* filename);
 // <LegoRR.exe @0046c370>
-void __cdecl Upgrade_Duplicate(UpgradeData* in_upgrade, UpgradeData* out_upgrade);
+void __cdecl Upgrade_Part_Clone(Upgrade_PartModel* srcUpgradePart, Upgrade_PartModel* destUpgradePart);
 // <LegoRR.exe @0046c3b0>
-void __cdecl Upgrade_Destroy(UpgradeData* upgrade);
+void __cdecl Upgrade_Part_Remove(Upgrade_PartModel* upgradePart);
 // <LegoRR.exe @0046c3d0>
-float10 __cdecl Upgrade_DoAnimElapsedCallbacks(UpgradeData* upgrade, real32 elapsed, bool32 unused_bool);
+float10 __cdecl Upgrade_Part_MoveAnimation(Upgrade_PartModel* upgradePart, real32 elapsed, uint32 unused_unkFrameNo);
 // <LegoRR.exe @0046c3f0>
-bool32 __cdecl Upgrade_SetActivity(UpgradeData* upgrade, char* activityName);
+bool32 __cdecl Upgrade_Part_SetActivity(Upgrade_PartModel* upgradePart, char* activityName);
 // <LegoRR.exe @0046c420>
-void __cdecl Upgrade_LoadUpgradeLevels(ObjectUpgradesData* upgrades, Config* aeRoot, char* rootName);
+void __cdecl Upgrade_Load(UpgradesModel* upgrades, Config* act, char* gameName);
 // <LegoRR.exe @0046c600>
-void __cdecl Upgrade_ChangeUpgradeParts(ObjectUpgradesData* upgrades, sint32 objLevel);
+void __cdecl Upgrade_SetUpgradeLevel(UpgradesModel* upgrades, uint32 objLevel);
 // <LegoRR.exe @0046c690>
-bool32 __cdecl Vehicle_IsCameraFlipDir(VehicleData* vehicle);
+bool32 __cdecl Vehicle_IsCameraFlipDir(VehicleModel* vehicle);
 // <LegoRR.exe @0046c6b0>
-bool32 __cdecl Vehicle_SetActivity_AndRemoveCarryCameraFrames(VehicleData* vehicle, char* activityName, real32 elapsed);
+bool32 __cdecl Vehicle_SetActivity(VehicleModel* vehicle, char* activityName, real32 elapsed);
 // <LegoRR.exe @0046c7d0>
-void __cdecl Vehicle_SetUpgradeActivity(VehicleData* vehicle, char* activityName);
+void __cdecl Vehicle_SetUpgradeActivity(VehicleModel* vehicle, char* activityName);
 // <LegoRR.exe @0046c9b0>
-bool32 __cdecl Vehicle_LoadActivityFile(VehicleData* vehicle, sint32 objIndex, Container* resRoot, char* aeFilename, char* rootName);
+bool32 __cdecl Vehicle_Load(VehicleModel* vehicle, sint32 objID, Container* root, char* aeFilename, char* gameName);
 // <LegoRR.exe @0046d0d0>
-void __cdecl Vehicle_Destroy(VehicleData* vehicle);
+void __cdecl Vehicle_Remove(VehicleModel* vehicle);
 // <LegoRR.exe @0046d190>
-void __cdecl Vehicle_SwapPolyMedium(VehicleData* vehicle, bool32 swap);
+void __cdecl Vehicle_SwapPolyMedium(VehicleModel* vehicle, bool32 swap);
 // <LegoRR.exe @0046d1e0>
-void __cdecl Vehicle_SwapPolyHigh(VehicleData* vehicle, bool32 swap);
+void __cdecl Vehicle_SwapPolyHigh(VehicleModel* vehicle, bool32 swap);
 // <LegoRR.exe @0046d200>
-bool32 __cdecl Vehicle_HasUpgradeLevelMask(VehicleData* vehicle, sint32 levelBit, bool32 condition);
+bool32 __cdecl Vehicle_CanUpgradeType(VehicleModel* vehicle, LegoObject_UpgradeType upgradeType, bool32 current);
 // <LegoRR.exe @0046d240>
-sint32 __cdecl Vehicle_GetUpgradesCurrentLevel(VehicleData* vehicle);
+uint32 __cdecl Vehicle_GetUpgradeLevel(VehicleModel* vehicle);
 // <LegoRR.exe @0046d250>
-void __cdecl Vehicle_ChangeUpgradeParts(VehicleData* vehicle, sint32 objLevel);
+void __cdecl Vehicle_SetUpgradeLevel(VehicleModel* vehicle, uint32 objLevel);
 // <LegoRR.exe @0046d280>
-void __cdecl Vehicle_HideWheels(VehicleData* vehicle, bool32 hide);
+void __cdecl Vehicle_HideWheels(VehicleModel* vehicle, bool32 hide);
 // <LegoRR.exe @0046d2b0>
-bool32 __cdecl Vehicle_Duplicate(VehicleData* in_vehicle, VehicleData* out_vehicle);
+bool32 __cdecl Vehicle_Clone(VehicleModel* srcVehicle, VehicleModel* destVehicle);
 // <LegoRR.exe @0046d400>
-void __cdecl Vehicle_SetOwnerObject(VehicleData* vehicle, void* liveObj);
+void __cdecl Vehicle_SetOwnerObject(VehicleModel* vehicle, LegoObject* liveObj);
 // <LegoRR.exe @0046d460>
-float10 __cdecl Vehicle_GetAnimationTime(VehicleData* vehicle);
+float10 __cdecl Vehicle_GetAnimationTime(VehicleModel* vehicle);
 // <LegoRR.exe @0046d480>
-float10 __cdecl Vehicle_FUN_0046d480(VehicleData* vehicle, real32 elapsed, real32 elapsed2, uint32 param_4);
+float10 __cdecl Vehicle_MoveAnimation(VehicleModel* vehicle, real32 elapsed1, real32 elapsed2, uint32 unkFrameNo);
 // <LegoRR.exe @0046d520>
-void __cdecl Vehicle_Wheels_FUN_0046d520(VehicleData* vehicle);
+void __cdecl Vehicle_PopulateWheels(VehicleModel* vehicle);
 // <LegoRR.exe @0046d580>
-void __cdecl Vehicle_HideAll(VehicleData* vehicle, bool32 hide);
+void __cdecl Vehicle_Hide(VehicleModel* vehicle, bool32 hide);
 // <LegoRR.exe @0046d5f0>
-bool32 __cdecl Vehicle_GetFlag2(VehicleData* vehicle);
+bool32 __cdecl Vehicle_IsHidden(VehicleModel* vehicle);
 // <LegoRR.exe @0046d610>
-void __cdecl Vehicle_SetOrientation(VehicleData* vehicle, real32 x, real32 y, real32 z);
+void __cdecl Vehicle_SetOrientation(VehicleModel* vehicle, real32 xDir, real32 yDir, real32 zDir);
 // <LegoRR.exe @0046d640>
-void __cdecl Vehicle_SetPosition(VehicleData* vehicle, real32 x, real32 y, GetSurfaceZFunc getSurfaceZFunc, Map3D* surfMap);
+void __cdecl Vehicle_SetPosition(VehicleModel* vehicle, real32 xPos, real32 yPos, GetWorldZCallback zCallback, Map3D* map);
 // <LegoRR.exe @0046dca0>
-Container* __cdecl Vehicle_GetActivityContainer(VehicleData* vehicle);
+Container* __cdecl Vehicle_GetActivityContainer(VehicleModel* vehicle);
 // <LegoRR.exe @0046dcb0>
-Container* __cdecl Vehicle_GetNull(VehicleData* vehicle, char* nullName, sint32 nullIndex);
+Container* __cdecl Vehicle_GetNull(VehicleModel* vehicle, char* nullName, uint32 nullFrameNo);
 // <LegoRR.exe @0046dd10>
-Container* __cdecl Vehicle_GetCameraNull(VehicleData* vehicle, sint32 cameraIndex);
+Container* __cdecl Vehicle_GetCameraNull(VehicleModel* vehicle, uint32 frameNo);
 // <LegoRR.exe @0046dd50>
-Container* __cdecl Vehicle_GetDrillNull(VehicleData* vehicle);
+Container* __cdecl Vehicle_GetDrillNull(VehicleModel* vehicle);
 // <LegoRR.exe @0046dd80>
-Container* __cdecl Vehicle_GetDepositNull(VehicleData* vehicle);
+Container* __cdecl Vehicle_GetDepositNull(VehicleModel* vehicle);
 // <LegoRR.exe @0046ddb0>
-Container* __cdecl Vehicle_GetDriverNull(VehicleData* vehicle);
+Container* __cdecl Vehicle_GetDriverNull(VehicleModel* vehicle);
 // <LegoRR.exe @0046dde0>
-Container* __cdecl Vehicle_GetCarryNull(VehicleData* vehicle, sint32 carryIndex);
+Container* __cdecl Vehicle_GetCarryNull(VehicleModel* vehicle, uint32 frameNo);
 // <LegoRR.exe @0046de20>
-sint32 __cdecl Vehicle_GetCarryNullFrames(VehicleData* vehicle);
+uint32 __cdecl Vehicle_GetCarryNullFrames(VehicleModel* vehicle);
 // <LegoRR.exe @0046de30>
-float10 __cdecl Vehicle_GetTransCoef(VehicleData* vehicle);
+float10 __cdecl Vehicle_GetTransCoef(VehicleModel* vehicle);
 // <LegoRR.exe @0046de50>
 void __cdecl Water_Initialise(Container* contRoot, Lego_Level* level);
 // <LegoRR.exe @0046dfd0>
@@ -4118,89 +4118,89 @@ float10 __cdecl Weapon_GetWeaponRange(sint32 weaponType);
 // <LegoRR.exe @0046f460>
 float10 __cdecl Weapon_GetWallDestroyTime(sint32 weaponType, Lego_SurfaceType surfaceType);
 // <LegoRR.exe @0046f490>
-float10 __cdecl Weapon_GetDamageForLiveObject(sint32 weaponType, LegoObject* liveObj);
+float10 __cdecl Weapon_GetDamageForLegoObject(sint32 weaponType, LegoObject* liveObj);
 // <LegoRR.exe @0046f530>
-void __cdecl Weapon_LiveObject_FUN_0046f530(LegoObject* liveObj, sint32 weaponType, bool32 param_3, real32 param_4, Point2F* param_5);
+void __cdecl Weapon_LegoObject_FUN_0046f530(LegoObject* liveObj, sint32 weaponType, bool32 param_3, real32 param_4, Point2F* param_5);
 // <LegoRR.exe @0046f640>
-void __cdecl Weapon_LiveObject_FUN_0046f640(LegoObject* liveObj, real32 param_2, sint32 param_3);
+void __cdecl Weapon_LegoObject_FUN_0046f640(LegoObject* liveObj, real32 param_2, bool32 param_3);
 // <LegoRR.exe @0046f670>
 void __cdecl Weapon_Struct2B0_FUN_0046f670(Struct_2b0* param_1);
 // <LegoRR.exe @0046f810>
 void __cdecl Weapon_Struct2B0_Update_Table_FUN_0046f810(real32 elapsedGame);
 // <LegoRR.exe @0046f8d0>
-bool32 __cdecl Weapon_LiveObject_Callback_FUN_0046f8d0(LegoObject* liveObj, real32* lpElapsed);
+bool32 __cdecl Weapon_LegoObject_Callback_FUN_0046f8d0(LegoObject* liveObj, real32* lpElapsed);
 // <LegoRR.exe @0046fa30>
-void __cdecl Weapon_LiveObject_FUN_0046fa30(LegoObject* liveObj, sint32** param_2, Vector3F* param_3, sint32* param_4, sint32 param_5);
+void __cdecl Weapon_LegoObject_FUN_0046fa30(LegoObject* liveObj, Vector3F* param_2, Vector3F* worldPos, uint32 weaponType, WeaponKnownType knownWeapon);
 // <LegoRR.exe @0046fbe0>
 void __cdecl Weapon_Struct2B0_FUN_0046fbe0(Struct_2b0* param_1, real32 elapsed);
 // <LegoRR.exe @0046fdb0>
-bool32 __cdecl Weapon_Struct2B0_FUN_0046fdb0(LegoObject* liveObj, Vector3F* param_2, Vector3F* param_3, uint32 weaponType, uint32 param_5);
+bool32 __cdecl Weapon_Struct2B0_FUN_0046fdb0(LegoObject* liveObj, Vector3F* param_2, Vector3F* param_3, uint32 weaponType, WeaponKnownType param_5);
 // <LegoRR.exe @0046ff30>
 bool32 __cdecl Weapon_UpdateRoutingUnk_FUN_0046ff30(undefined4 param_1, Vector3F* param_2, Vector3F* param_3, sint32 param_4, WeaponKnownType knownWeapon);
 // <LegoRR.exe @004701b0>
-void __cdecl Weapon_GetObjectTypeIndex_ByKnownWeaponType(WeaponKnownType knownWeapon, LegoObject_Type* out_objType, sint32* out_objIndex);
+void __cdecl Weapon_GetObjectTypeAndID_ByKnownWeaponType(WeaponKnownType knownWeapon, LegoObject_Type* out_objType, sint32* out_objID);
 // <LegoRR.exe @00470230>
-sint32 __cdecl Weapon_Struct2B0_Table_FUN_00504bc0(void);
+sint32 __cdecl Weapon_Struct2B0_GetNextAvailable(void);
 // <LegoRR.exe @00470250>
-sint32 __cdecl Weapon_ItemStruct34_GetTableCount(void);
+sint32 __cdecl Weapon_ItemStruct34_GetNextAvailable(void);
 // <LegoRR.exe @00470270>
 LegoObject* __cdecl Weapon_DoLaserUnk_FUN_00470270(Vector3F* sndPosition, Vector3F* param_2, LegoObject* in_liveObj, real32 param_4, real32 param_5, sint32 weaponType, real32 param_7);
 // <LegoRR.exe @00470520>
-bool32 __cdecl LiveObject_Collision_FUN_00470520(LegoObject* liveObj, Point2F* param_2, Point2F* param_3, bool32 param_4);
+bool32 __cdecl Weapon_LegoObject_Collision_FUN_00470520(LegoObject* liveObj, Point2F* param_2, Point2F* param_3, bool32 param_4);
 // <LegoRR.exe @00470570>
-bool32 __cdecl LiveObject_CollisionBox_FUN_00470570(LegoObject* liveObj, Point2F* param_2, Point2F* param_3, Point2F* optout_point, bool32 param_5);
+bool32 __cdecl Weapon_LegoObject_CollisionBox_FUN_00470570(LegoObject* liveObj, Point2F* param_2, Point2F* param_3, Point2F* optout_point, bool32 param_5);
 // <LegoRR.exe @00470800>
-bool32 __cdecl LiveObject_CollisionRadius_FUN_00470800(LegoObject* liveObj, Point2F* param_2, Point2F* param_3, bool32 param_4);
+bool32 __cdecl Weapon_LegoObject_CollisionRadius_FUN_00470800(LegoObject* liveObj, Point2F* param_2, Point2F* param_3, bool32 param_4);
 // <LegoRR.exe @004708f0>
-bool32 __cdecl LiveObject_TestCollision_FUN_004708f0(LegoObject* liveObj, Point2F* param_2, Point2F* param_3);
+bool32 __cdecl Weapon_LegoObject_TestCollision_FUN_004708f0(LegoObject* liveObj, Point2F* fromPos, Point2F* scalar);
 // <LegoRR.exe @00470950>
-void __cdecl Weapon_ItemStruct34_FUN_00470950(Container* resData, Vector3F* vector1, Vector3F* vector2);
+void __cdecl Weapon_ItemStruct34_FUN_00470950(Container* cont, Vector3F* vector1, Vector3F* vector2);
 // <LegoRR.exe @00470a20>
-void __cdecl Struct34_FUN_00470a20(Mesh* param_1, real32 scalar, Vector3F* vector1, Vector3F* vector2, real32 param_5, real32 param_6, real32 param_7, real32 param_8);
+void __cdecl Weapon_Struct34_FUN_00470a20(Mesh* param_1, real32 scalar, Vector3F* vector1, Vector3F* vector2, real32 param_5, real32 param_6, real32 param_7, real32 param_8);
 // <LegoRR.exe @00471580>
-void* __cdecl LiveObject_GetBuildingVehicleFields_138_a0(LegoObject* liveObj);
+WeaponsModel* __cdecl Weapon_LegoObject_GetWeaponsModel(LegoObject* liveObj);
 // <LegoRR.exe @004715b0>
-float10 __cdecl LiveObject_PtrGetter_FUN_004715b0(LegoObject* liveObj, sint32 param_2);
+float10 __cdecl Weapon_LegoObject_GetWeaponTimer(LegoObject* liveObj, uint32 frameNo);
 // <LegoRR.exe @004715d0>
-void __cdecl LiveObject_PtrSetter_FUN_004715d0(LegoObject* liveObj, undefined4 param_2, sint32 param_3);
+void __cdecl Weapon_LegoObject_SetWeaponTimer(LegoObject* liveObj, real32 timer, uint32 frameNo);
 // <LegoRR.exe @004715f0>
-bool32 __cdecl MathUnk_CheckVectorsZScalar_InRange(Vector3F* vectorPos, Vector3F* vectorScaled, real32 minZ, real32 maxZ, real32 scalar);
+bool32 __cdecl Weapon_MathUnk_CheckVectorsZScalar_InRange(Vector3F* vectorPos, Vector3F* vectorScaled, real32 minZ, real32 maxZ, real32 scalar);
 // <LegoRR.exe @00471630>
-bool32 __cdecl LiveObject_Callback_FUN_00471630(LegoObject* liveObj, SearchData18_2* search);
+bool32 __cdecl Weapon_LegoObject_Callback_FUN_00471630(LegoObject* liveObj, SearchData18_2* search);
 // <LegoRR.exe @004718f0>
-void __cdecl LiveObject_FUN_004718f0(SearchData18_2* search);
+void __cdecl Weapon_LegoObject_FUN_004718f0(SearchData18_2* search);
 // <LegoRR.exe @00471b20>
-bool32 __cdecl Game_DoCallbacksSearch_FUN_00471b20(Vector3F* vecCector, Vector3F* vecDistance, LegoObject** out_liveObj, real32* ref_float_4, undefined4 param_5);
+bool32 __cdecl Weapon_DoCallbacksSearch_FUN_00471b20(Vector3F* vecCector, Vector3F* vecDistance, LegoObject** out_liveObj, real32* ref_float_4, undefined4 param_5);
 // <LegoRR.exe @00471b90>
-bool32 __cdecl LiveObject_DoCallbacksSearch_FUN_00471b90(LegoObject* liveObj1, LegoObject* liveObj2);
+bool32 __cdecl Weapon_LegoObject_DoCallbacksSearch_FUN_00471b90(LegoObject* liveObj, LegoObject* otherObj);
 // <LegoRR.exe @00471c20>
-bool32 __cdecl LiveObject_SeeThroughWalls_FUN_00471c20(LegoObject* liveObj, LegoObject* liveObj2);
+bool32 __cdecl Weapon_LegoObject_SeeThroughWalls_FUN_00471c20(LegoObject* liveObj, LegoObject* otherObj);
 // <LegoRR.exe @00471ce0>
-undefined4 __cdecl UnkStruct_Getter_FUN_00471ce0(sint32 param_1, sint32 param_2, sint32 param_3);
+Container* __cdecl Weapon_GetFireNull(WeaponsModel* weapons, uint32 frameNo, uint32 pairNo);
 // <LegoRR.exe @00471d00>
-undefined4 __cdecl UnkStruct_Getter_FUN_00471d00(sint32 param_1, sint32 param_2);
+Container* __cdecl Weapon_GetXPivotNull(WeaponsModel* weapons, uint32 frameNo);
 // <LegoRR.exe @00471d10>
-undefined4 __cdecl UnkStruct_Getter_FUN_00471d10(sint32 param_1, sint32 param_2);
+Container* __cdecl Weapon_GetYPivotNull(WeaponsModel* weapons, uint32 frameNo);
 // <LegoRR.exe @00471d20>
-void __cdecl UnkStruct_FUN_00471d20(sint32 param_1, undefined4* param_2, real32 param_3, sint32 param_4, sint32 param_5);
+void __cdecl Weapon_UnkStruct_FUN_00471d20(WeaponsModel* weapons, Vector3F* vector68, real32 param_3, bool32 assignVectors68, uint32 frameNo);
 // <LegoRR.exe @00471f30>
-void __cdecl UnkStructC_GetTable44_Vector_FUN_00471f30(sint32 param_1, Vector3F* out_vector44, sint32 index);
+void __cdecl Weapon_GetVectors44(WeaponsModel* weapons, Vector3F* out_vector44, uint32 frameNo);
 // <LegoRR.exe @00471f60>
-bool32 __cdecl LiveObject_GetCollCenterPosition(LegoObject* liveObj, Vector3F* out_vector);
+bool32 __cdecl Weapon_LegoObject_GetCollCenterPosition(LegoObject* liveObj, Vector3F* out_vector);
 // <LegoRR.exe @00471fa0>
-bool32 __cdecl LiveObject_UnkTracker_FUN_00471fa0(LegoObject* liveObj);
+bool32 __cdecl Weapon_LegoObject_IsPoweredTracker(LegoObject* liveObj);
 // <LegoRR.exe @00471fe0>
-bool32 __cdecl LiveObject_FUN_00471fe0(LegoObject* in_liveObj, real32 param_2, real32 param_3);
+bool32 __cdecl Weapon_LegoObject_FUN_00471fe0(LegoObject* liveObj, real32 elapsed, uint32 frameNo);
 // <LegoRR.exe @004721c0>
-bool32 __cdecl LiveObject_FUN_004721c0(LegoObject* liveObj, real32 param_2, sint32 param_3);
+bool32 __cdecl Weapon_LegoObject_FUN_004721c0(LegoObject* liveObj, real32 elapsed, uint32 frameNo);
 // <LegoRR.exe @00472280>
-bool32 __cdecl LiveObject_FUN_00472280(LegoObject* liveObj, real32 param_2);
+bool32 __cdecl Weapon_LegoObject_FUN_00472280(LegoObject* liveObj, real32 elapsed);
 // <LegoRR.exe @00472320>
-bool32 __cdecl LiveObject_SetField_3c4(LegoObject* liveObj, sint32 field3c4);
+bool32 __cdecl Weapon_LegoObject_SetObject_3c4(LegoObject* liveObj, LegoObject* object3c4);
 // <LegoRR.exe @00472340>
-bool32 __cdecl LiveObject_FUN_00472340(LegoObject* liveObj, undefined4* param_2);
+bool32 __cdecl Weapon_LegoObject_WithinWeaponRange(LegoObject* liveObj, LegoObject* otherObj);
 // <LegoRR.exe @004723f0>
-bool32 __cdecl LiveObject_FUN_004723f0(LegoObject* liveObj, undefined4* param_2);
+bool32 __cdecl Weapon_LegoObject_WithinAwarenessRange(LegoObject* liveObj, LegoObject* otherObj);
 // <LegoRR.exe @004724a0>
 bool __thiscall G98CMovie__InitSample(G98CMovie* this, IAMMultiMediaStream* lpAMMMStream);
 // <LegoRR.exe @00472570>

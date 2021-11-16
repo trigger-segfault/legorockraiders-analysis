@@ -1843,7 +1843,7 @@ _CRuntime4_Globs _crt4;
 // <LegoRR.exe @004b3db0>
 Advisor_Globs advisorGlobs;
 // <LegoRR.exe @004b41c8>
-AI_Globs aiGlobs;
+AITask_Globs aiGlobs;
 // <LegoRR.exe @004b9a14>
 char ""/*EMPTYSTR*/[4];
 // <LegoRR.exe @004b9a18>
@@ -2237,7 +2237,7 @@ Lego_Globs legoGlobs;
 // <LegoRR.exe @00557fc0>
 Front_Globs frontGlobs;
 // <LegoRR.exe @00558850>
-BatFlocks_Globs flocksGlobs;
+Flocks_Globs flocksGlobs;
 // <LegoRR.exe @00558860>
 Bubble_Globs bubbleGlobs;
 // <LegoRR.exe @00558d58>

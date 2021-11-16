@@ -1110,19 +1110,21 @@ typedef enum _fpmath_enum { // [tags:HIDDEN,STD]
 	_FPMATH_tanh=33
 } _fpmath_enum;
 
+typedef struct BlockElectricFence BlockElectricFence, *PBlockElectricFence;
+
+typedef void (* ElectricFence_RunThroughListsCallback)(struct BlockElectricFence *, void *);
+
 typedef struct LegoObject LegoObject, *PLegoObject;
 
-typedef BOOL (* SearchLiveObjectCallback)(struct LegoObject *, void *);
+typedef struct VehicleModel VehicleModel, *PVehicleModel;
 
-typedef struct VehicleData VehicleData, *PVehicleData;
+typedef struct CreatureModel CreatureModel, *PCreatureModel;
 
-typedef struct CreatureData CreatureData, *PCreatureData;
-
-typedef struct BuildingData BuildingData, *PBuildingData;
+typedef struct BuildingModel BuildingModel, *PBuildingModel;
 
 typedef struct Container Container, *PContainer;
 
-typedef struct UpgradeData UpgradeData, *PUpgradeData;
+typedef struct Upgrade_PartModel Upgrade_PartModel, *PUpgrade_PartModel;
 
 typedef struct RoutingBlock RoutingBlock, *PRoutingBlock;
 
@@ -1144,9 +1146,12 @@ typedef enum LOD_PolyLevel { // [LegoRR/MeshLOD.c|enum:0x4|type:int]
 } LOD_PolyLevel;
 
 typedef enum LegoObject_ToolType { // [LegoRR/LegoObject.c|enum:0x4|type:int] One of the few enums with extra space before max
+	LegoObject_ToolType_Barrier=8,
 	LegoObject_ToolType_BirdScarer=6,
 	LegoObject_ToolType_Count=11,
+	LegoObject_ToolType_CryOre=10,
 	LegoObject_ToolType_Drill=0,
+	LegoObject_ToolType_Dynamite=9,
 	LegoObject_ToolType_FreezerGun=7,
 	LegoObject_ToolType_Hammer=2,
 	LegoObject_ToolType_Invalid=4294967295,
@@ -1162,6 +1167,8 @@ typedef enum LiveFlags1 { // [LegoRR/LegoObject.c|flags:0x4|type:uint]
 	LIVEOBJ1_CARRYING=1024,
 	LIVEOBJ1_CAUGHTINWEB=33554432,
 	LIVEOBJ1_CLEARING=262144,
+	LIVEOBJ1_DRILLING=8,
+	LIVEOBJ1_DRILLINGSTART=16,
 	LIVEOBJ1_EATING=1073741824,
 	LIVEOBJ1_LIFTING=2,
 	LIVEOBJ1_MOVING=1,
@@ -1169,9 +1176,9 @@ typedef enum LiveFlags1 { // [LegoRR/LegoObject.c|flags:0x4|type:uint]
 	LIVEOBJ1_PLACING=524288,
 	LIVEOBJ1_REINFORCING=64,
 	LIVEOBJ1_REST=536870912,
+	LIVEOBJ1_SLIPPING=67108864,
 	LIVEOBJ1_TURNING=4,
 	LIVEOBJ1_TURNRIGHT=128,
-	LIVEOBJ1_UNK_10=16,
 	LIVEOBJ1_UNK_100=256,
 	LIVEOBJ1_UNK_1000=4096,
 	LIVEOBJ1_UNK_10000=65536,
@@ -1184,8 +1191,6 @@ typedef enum LiveFlags1 { // [LegoRR/LegoObject.c|flags:0x4|type:uint]
 	LIVEOBJ1_UNK_200000=2097152,
 	LIVEOBJ1_UNK_4000=16384,
 	LIVEOBJ1_UNK_400000=4194304,
-	LIVEOBJ1_UNK_4000000=67108864,
-	LIVEOBJ1_UNK_8=8,
 	LIVEOBJ1_UNK_800=2048,
 	LIVEOBJ1_UNK_8000=32768,
 	LIVEOBJ1_UNK_800000=8388608,
@@ -1196,16 +1201,16 @@ typedef enum LiveFlags1 { // [LegoRR/LegoObject.c|flags:0x4|type:uint]
 typedef enum LiveFlags2 { // [LegoRR/LegoObject.c|flags:0x4|type:uint]
 	LIVEOBJ2_DRIVING=8,
 	LIVEOBJ2_NONE=0,
+	LIVEOBJ2_THROWING=1,
+	LIVEOBJ2_THROWN=2,
 	LIVEOBJ2_TRAINING=1024,
-	LIVEOBJ2_UNK_1=1,
+	LIVEOBJ2_TRIGGERFRAMECALLBACK=65536,
 	LIVEOBJ2_UNK_10=16,
 	LIVEOBJ2_UNK_100=256,
 	LIVEOBJ2_UNK_1000=4096,
-	LIVEOBJ2_UNK_10000=65536,
 	LIVEOBJ2_UNK_100000=1048576,
 	LIVEOBJ2_UNK_1000000=16777216,
 	LIVEOBJ2_UNK_10000000=268435456,
-	LIVEOBJ2_UNK_2=2,
 	LIVEOBJ2_UNK_20=32,
 	LIVEOBJ2_UNK_200=512,
 	LIVEOBJ2_UNK_2000=8192,
@@ -1303,9 +1308,30 @@ typedef enum BoolTri { // [common.c|enum:0x4|type:uint] BoolTri, A 3-state boole
 	BOOL3_TRUE=1
 } BoolTri;
 
-typedef struct ObjectUpgradesData ObjectUpgradesData, *PObjectUpgradesData;
+typedef struct UpgradesModel UpgradesModel, *PUpgradesModel;
+
+typedef struct WeaponsModel WeaponsModel, *PWeaponsModel;
 
 typedef struct MeshLOD MeshLOD, *PMeshLOD;
+
+typedef enum VehicleFlags { // [LegoRR/Vehicle.c|flags:0x4|type:uint]
+	VEHICLE_FLAG_HIDDEN=2,
+	VEHICLE_FLAG_HOLDMISSING=8,
+	VEHICLE_FLAG_NOACTIVITY1=4,
+	VEHICLE_FLAG_NONE=0,
+	VEHICLE_FLAG_SOURCE=1
+} VehicleFlags;
+
+typedef enum CreatureFlags { // [LegoRR/Creature.c|flags:0x4|type:uint]
+	CREATURE_FLAG_NONE=0,
+	CREATURE_FLAG_SOURCE=1
+} CreatureFlags;
+
+typedef enum BuildingFlags { // [LegoRR/Building.c|flags:0x4|type:uint]
+	BUILDING_FLAG_NONE=0,
+	BUILDING_FLAG_POWERLEVELSCENE=2,
+	BUILDING_FLAG_SOURCE=1
+} BuildingFlags;
 
 typedef struct IDirect3DRMFrame3 IDirect3DRMFrame3, *PIDirect3DRMFrame3;
 
@@ -1338,6 +1364,43 @@ typedef enum ContainerFlags { // [Gods98/Containers.c|flags:0x4|type:uint]
 typedef void (* ContainerActivityCallback)(struct Container *, void *);
 
 typedef struct Container_CloneData Container_CloneData, *PContainer_CloneData;
+
+typedef struct Upgrade_PartInfo Upgrade_PartInfo, *PUpgrade_PartInfo;
+
+typedef enum RouteFlags { // [LegoRR/LegoObject.c|flags:0x1|type:byte]
+	ROUTE_DIRECTION_MASK=3,
+	ROUTE_FLAG_GOTOBUILDING=4,
+	ROUTE_FLAG_NONE=0,
+	ROUTE_FLAG_UNK_10=16,
+	ROUTE_FLAG_UNK_20=32,
+	ROUTE_FLAG_UNK_40=64,
+	ROUTE_FLAG_UNK_8=8,
+	ROUTE_UNK_MASK_c=12
+} RouteFlags;
+
+typedef enum RouteAction { // [LegoRR/Text.c|enum:0x1|type:byte]
+	ROUTE_ACTION_21=21,
+	ROUTE_ACTION_ATTACK=20,
+	ROUTE_ACTION_BOULDER=3,
+	ROUTE_ACTION_CLEAR=4,
+	ROUTE_ACTION_DOCK=19,
+	ROUTE_ACTION_DROP=8,
+	ROUTE_ACTION_EAT=11,
+	ROUTE_ACTION_PLACE=9,
+	ROUTE_ACTION_RECHARGE=18,
+	ROUTE_ACTION_REINFORCE=2,
+	ROUTE_ACTION_REPAIRDRAIN=6,
+	ROUTE_ACTION_STORE=7,
+	ROUTE_ACTION_TRAIN=14,
+	ROUTE_ACTION_UNK_1=1,
+	ROUTE_ACTION_UNK_10=10,
+	ROUTE_ACTION_UNK_12=12,
+	ROUTE_ACTION_UNK_13=13,
+	ROUTE_ACTION_UNK_16=16,
+	ROUTE_ACTION_UNK_17=17,
+	ROUTE_ACTION_UNK_5=5,
+	ROUTE_ACTION_UPGRADE=15
+} RouteAction;
 
 typedef enum AITask_Type { // [LegoRR/AITask.c|enum:0x4|type:int]
 	AITask_Type_AnimationWait=14,
@@ -1502,7 +1565,20 @@ typedef enum StatsFlags3 { // [LegoRR/Stats.c|flags:0x4|type:uint]
 	STATS3_VEHICLECANBECARRIED=2
 } StatsFlags3;
 
-typedef struct ObjectUpgradePartData ObjectUpgradePartData, *PObjectUpgradePartData;
+typedef enum LegoObject_UpgradeFlags { // [LegoRR/LegoObject.c|flags:0x4|type:uint]
+	UPGRADE_FLAGS_ALL=15,
+	UPGRADE_FLAG_CARRY=8,
+	UPGRADE_FLAG_DRILL=1,
+	UPGRADE_FLAG_NONE=0,
+	UPGRADE_FLAG_SCAN=4,
+	UPGRADE_FLAG_SPEED=2
+} LegoObject_UpgradeFlags;
+
+typedef enum MeshLODFlags { // [LegoRR/MeshLOD.c|flags:0x4|type:uint]
+	MESHLOD_FLAG_CLONED=1,
+	MESHLOD_FLAG_MEMBLOCK=2,
+	MESHLOD_FLAG_NONE=0
+} MeshLODFlags;
 
 typedef struct IDirect3DRMFrame3Vtbl IDirect3DRMFrame3Vtbl, *PIDirect3DRMFrame3Vtbl;
 
@@ -1687,6 +1763,13 @@ typedef struct D3DRMPickDesc D3DRMPickDesc, *PD3DRMPickDesc;
 
 typedef struct IDirect3DViewportVtbl IDirect3DViewportVtbl, *PIDirect3DViewportVtbl;
 
+struct BlockElectricFence { // [LegoRR/ElectricFence.c|struct:0x14|tags:LISTSET]
+	struct LegoObject * attachedObject;
+	struct Point2I blockPos;
+	float timer;
+	struct BlockElectricFence * nextFree; // (for listSet)
+};
+
 struct Mesh_RenderDesc { // [Gods98/Mesh.c|struct:0xc]
 	MeshRenderCallback renderCallback;
 	void * renderCallbackData;
@@ -1696,8 +1779,8 @@ struct Mesh_RenderDesc { // [Gods98/Mesh.c|struct:0xc]
 struct RoutingBlock { // [LegoRR/Routing.c|struct:0x14]
 	struct Point2I blockPos;
 	struct Point2F worldPos;
-	byte flagsByte_10;
-	byte byte_11;
+	enum RouteFlags flagsByte;
+	enum RouteAction actionByte;
 	undefined field_0x12;
 	undefined field_0x13;
 };
@@ -1851,50 +1934,6 @@ struct BezierCurve { // [LegoRR/Routing.c|struct:0x25c]
 	uint count;
 	struct Point2F points[50];
 	float distances[50];
-};
-
-struct CreatureData { // [LegoRR/Creature.c|struct:0x74] Possibly alphabetically correct names: Bipedal, BasicUnit, etc... (has to be before Bubble, and possible after BezierCurve or AI(Task?))
-	int objIndex;
-	struct Container * contAct; // ACT, true
-	undefined4 field_8;
-	undefined field_0xc;
-	undefined field_0xd;
-	undefined field_0xe;
-	undefined field_0xf;
-	undefined field_0x10;
-	undefined field_0x11;
-	undefined field_0x12;
-	undefined field_0x13;
-	undefined field_0x14;
-	undefined field_0x15;
-	undefined field_0x16;
-	undefined field_0x17;
-	undefined field_0x18;
-	undefined field_0x19;
-	undefined field_0x1a;
-	undefined field_0x1b;
-	undefined field_0x1c;
-	undefined field_0x1d;
-	undefined field_0x1e;
-	undefined field_0x1f;
-	char * CameraNullName;
-	uint CameraNullFrames;
-	enum BoolTri CameraFlipDir;
-	char * DrillNullName;
-	char * FootStepNullName;
-	char * CarryNullName;
-	char * ThrowNullName;
-	char * DepositNullName;
-	undefined4 field_40;
-	undefined4 field_44;
-	struct Container * cont_48;
-	struct Container * cont_4c;
-	undefined4 field_50;
-	struct Container * cameraFramesTable_54[4];
-	struct MeshLOD * polyMedium;
-	struct MeshLOD * polyHigh;
-	struct MeshLOD * polyFP;
-	uint flags;
 };
 
 struct IDirect3DRMFrame3Vtbl { // [DirectX/D3DRM.c|struct:0x164|tags:DIRECTX,VFTABLE]
@@ -2117,14 +2156,6 @@ struct IDirect3DRMViewport2Vtbl { // [DirectX/D3DRM.c|struct:0xa4|tags:DIRECTX,V
 	HRESULT (* InverseTransformVectors)(struct IDirect3DRMViewport2 *, DWORD, struct Vector3F *, struct Vector4F *);
 };
 
-struct ObjectUpgradePartData { // [LegoRR/Upgrade.c|struct:0x14]
-	uint level;
-	int NullInstance;
-	char * NullObjectName;
-	char * WeaponName;
-	struct UpgradeData * upgradeData;
-};
-
 struct Mesh { // [Gods98/Mesh.c|struct:0x34|tags:LISTSET]
 	uint groupCount; // seems to be a count
 	uint listSize;
@@ -2176,499 +2207,12 @@ struct IDirect3DRMFrame { // [DirectX/D3DRM.c|struct:0x4|tags:DIRECTX,INTERFACE]
 	struct IDirect3DRMFrameVtbl * lpVtbl;
 };
 
-struct ObjectUpgradesData { // [LegoRR/Upgrade.c|struct:0x14]
-	struct ObjectUpgradePartData * parts; // always ObjectUpgradePartData[200]
-	uint count;
-	int currentLevel;
-	uint levelsMask; // [carry][scan][speed][drill]
-	struct LegoObject * * upgradeObjs;
-};
-
-struct BuildingData { // [LegoRR/Building.c|struct:0x14c]
-	int objIndex;
-	struct Container * contAct; // ACT, true
-	char * CarryNullName;
-	char * CameraNullName;
-	char * DepositNullName;
-	char * EntranceNullName;
-	char * ToolNullName;
-	char * FireNullName; // "fire laser"
-	char * yPivot;
-	char * xPivot;
-	struct Container * carryFramesTable_28[6];
-	struct Container * cameraFramesTable_40[4];
-	undefined field_0x50;
-	undefined field_0x51;
-	undefined field_0x52;
-	undefined field_0x53;
-	undefined field_0x54;
-	undefined field_0x55;
-	undefined field_0x56;
-	undefined field_0x57;
-	undefined field_0x58;
-	undefined field_0x59;
-	undefined field_0x5a;
-	undefined field_0x5b;
-	undefined field_0x5c;
-	undefined field_0x5d;
-	undefined field_0x5e;
-	undefined field_0x5f;
-	undefined field_0x60;
-	undefined field_0x61;
-	undefined field_0x62;
-	undefined field_0x63;
-	undefined field_0x64;
-	undefined field_0x65;
-	undefined field_0x66;
-	undefined field_0x67;
-	undefined4 field_68;
-	undefined4 field_6c;
-	uint CarryNullFrames;
-	uint CameraNullFrames;
-	uint ToolNullFrames;
-	struct Container * contPowerLevelScene; // LWS, true
-	undefined4 field_80;
-	struct Point2I * shapePoints; // Point2I[10]
-	uint shapeCount;
-	struct ObjectUpgradesData upgrades;
-	undefined field_0xa0;
-	undefined field_0xa1;
-	undefined field_0xa2;
-	undefined field_0xa3;
-	undefined field_0xa4;
-	undefined field_0xa5;
-	undefined field_0xa6;
-	undefined field_0xa7;
-	undefined field_0xa8;
-	undefined field_0xa9;
-	undefined field_0xaa;
-	undefined field_0xab;
-	undefined field_0xac;
-	undefined field_0xad;
-	undefined field_0xae;
-	undefined field_0xaf;
-	undefined field_0xb0;
-	undefined field_0xb1;
-	undefined field_0xb2;
-	undefined field_0xb3;
-	undefined field_0xb4;
-	undefined field_0xb5;
-	undefined field_0xb6;
-	undefined field_0xb7;
-	undefined field_0xb8;
-	undefined field_0xb9;
-	undefined field_0xba;
-	undefined field_0xbb;
-	undefined field_0xbc;
-	undefined field_0xbd;
-	undefined field_0xbe;
-	undefined field_0xbf;
-	undefined field_0xc0;
-	undefined field_0xc1;
-	undefined field_0xc2;
-	undefined field_0xc3;
-	undefined field_0xc4;
-	undefined field_0xc5;
-	undefined field_0xc6;
-	undefined field_0xc7;
-	undefined field_0xc8;
-	undefined field_0xc9;
-	undefined field_0xca;
-	undefined field_0xcb;
-	undefined field_0xcc;
-	undefined field_0xcd;
-	undefined field_0xce;
-	undefined field_0xcf;
-	float PivotMaxZ;
-	float PivotMinZ;
-	undefined field_0xd8;
-	undefined field_0xd9;
-	undefined field_0xda;
-	undefined field_0xdb;
-	undefined field_0xdc;
-	undefined field_0xdd;
-	undefined field_0xde;
-	undefined field_0xdf;
-	undefined field_0xe0;
-	undefined field_0xe1;
-	undefined field_0xe2;
-	undefined field_0xe3;
-	undefined field_0xe4;
-	undefined field_0xe5;
-	undefined field_0xe6;
-	undefined field_0xe7;
-	undefined field_0xe8;
-	undefined field_0xe9;
-	undefined field_0xea;
-	undefined field_0xeb;
-	undefined field_0xec;
-	undefined field_0xed;
-	undefined field_0xee;
-	undefined field_0xef;
-	undefined field_0xf0;
-	undefined field_0xf1;
-	undefined field_0xf2;
-	undefined field_0xf3;
-	undefined field_0xf4;
-	undefined field_0xf5;
-	undefined field_0xf6;
-	undefined field_0xf7;
-	undefined field_0xf8;
-	undefined field_0xf9;
-	undefined field_0xfa;
-	undefined field_0xfb;
-	undefined field_0xfc;
-	undefined field_0xfd;
-	undefined field_0xfe;
-	undefined field_0xff;
-	undefined field_0x100;
-	undefined field_0x101;
-	undefined field_0x102;
-	undefined field_0x103;
-	undefined field_0x104;
-	undefined field_0x105;
-	undefined field_0x106;
-	undefined field_0x107;
-	undefined field_0x108;
-	undefined field_0x109;
-	undefined field_0x10a;
-	undefined field_0x10b;
-	undefined field_0x10c;
-	undefined field_0x10d;
-	undefined field_0x10e;
-	undefined field_0x10f;
-	undefined field_0x110;
-	undefined field_0x111;
-	undefined field_0x112;
-	undefined field_0x113;
-	undefined field_0x114;
-	undefined field_0x115;
-	undefined field_0x116;
-	undefined field_0x117;
-	undefined field_0x118;
-	undefined field_0x119;
-	undefined field_0x11a;
-	undefined field_0x11b;
-	undefined field_0x11c;
-	undefined field_0x11d;
-	undefined field_0x11e;
-	undefined field_0x11f;
-	undefined field_0x120;
-	undefined field_0x121;
-	undefined field_0x122;
-	undefined field_0x123;
-	undefined field_0x124;
-	undefined field_0x125;
-	undefined field_0x126;
-	undefined field_0x127;
-	undefined field_0x128;
-	undefined field_0x129;
-	undefined field_0x12a;
-	undefined field_0x12b;
-	undefined field_0x12c;
-	undefined field_0x12d;
-	undefined field_0x12e;
-	undefined field_0x12f;
-	undefined field_0x130;
-	undefined field_0x131;
-	undefined field_0x132;
-	undefined field_0x133;
-	undefined field_0x134;
-	undefined field_0x135;
-	undefined field_0x136;
-	undefined field_0x137;
-	undefined field_0x138;
-	undefined field_0x139;
-	undefined field_0x13a;
-	undefined field_0x13b;
-	undefined field_0x13c;
-	undefined field_0x13d;
-	undefined field_0x13e;
-	undefined field_0x13f;
-	undefined field_0x140;
-	undefined field_0x141;
-	undefined field_0x142;
-	undefined field_0x143;
-	uint count_144;
-	uint flags;
-};
-
-struct VehicleData { // [LegoRR/Vehicle.c|struct:0x1ec]
-	int objIndex;
-	char * WheelNullName;
-	struct Container * contAct_1;
-	struct Container * contAct_2; // Optional second ae file (seen for Grannit Grinder legs)
-	struct Container * WheelMeshes[6]; // LWO, false
-	undefined4 wheel_fields_28[6];
-	uint numWheelNulls;
-	undefined field_0x44;
-	undefined field_0x45;
-	undefined field_0x46;
-	undefined field_0x47;
-	undefined field_0x48;
-	undefined field_0x49;
-	undefined field_0x4a;
-	undefined field_0x4b;
-	undefined field_0x4c;
-	undefined field_0x4d;
-	undefined field_0x4e;
-	undefined field_0x4f;
-	undefined field_0x50;
-	undefined field_0x51;
-	undefined field_0x52;
-	undefined field_0x53;
-	undefined field_0x54;
-	undefined field_0x55;
-	undefined field_0x56;
-	undefined field_0x57;
-	undefined field_0x58;
-	undefined field_0x59;
-	undefined field_0x5a;
-	undefined field_0x5b;
-	undefined4 field_5c;
-	undefined4 field_60;
-	float float_64;
-	float WheelRadius;
-	undefined field_0x6c;
-	undefined field_0x6d;
-	undefined field_0x6e;
-	undefined field_0x6f;
-	undefined field_0x70;
-	undefined field_0x71;
-	undefined field_0x72;
-	undefined field_0x73;
-	undefined field_0x74;
-	undefined field_0x75;
-	undefined field_0x76;
-	undefined field_0x77;
-	undefined field_0x78;
-	undefined field_0x79;
-	undefined field_0x7a;
-	undefined field_0x7b;
-	undefined field_0x7c;
-	undefined field_0x7d;
-	undefined field_0x7e;
-	undefined field_0x7f;
-	undefined field_0x80;
-	undefined field_0x81;
-	undefined field_0x82;
-	undefined field_0x83;
-	undefined field_0x84;
-	undefined field_0x85;
-	undefined field_0x86;
-	undefined field_0x87;
-	undefined field_0x88;
-	undefined field_0x89;
-	undefined field_0x8a;
-	undefined field_0x8b;
-	undefined field_0x8c;
-	undefined field_0x8d;
-	undefined field_0x8e;
-	undefined field_0x8f;
-	undefined field_0x90;
-	undefined field_0x91;
-	undefined field_0x92;
-	undefined field_0x93;
-	undefined field_0x94;
-	undefined field_0x95;
-	undefined field_0x96;
-	undefined field_0x97;
-	undefined field_0x98;
-	undefined field_0x99;
-	undefined field_0x9a;
-	undefined field_0x9b;
-	undefined field_0x9c;
-	undefined field_0x9d;
-	undefined field_0x9e;
-	undefined field_0x9f;
-	undefined field_0xa0;
-	undefined field_0xa1;
-	undefined field_0xa2;
-	undefined field_0xa3;
-	undefined field_0xa4;
-	undefined field_0xa5;
-	undefined field_0xa6;
-	undefined field_0xa7;
-	undefined field_0xa8;
-	undefined field_0xa9;
-	undefined field_0xaa;
-	undefined field_0xab;
-	undefined field_0xac;
-	undefined field_0xad;
-	undefined field_0xae;
-	undefined field_0xaf;
-	undefined field_0xb0;
-	undefined field_0xb1;
-	undefined field_0xb2;
-	undefined field_0xb3;
-	char * DrillNullName;
-	char * DepositNullName;
-	char * FireNullName; // "fire laser"
-	char * DriverNullName;
-	char * yPivot;
-	char * xPivot;
-	undefined4 field_cc;
-	undefined4 field_d0;
-	struct Container * resData_d4;
-	enum BoolTri CameraFlipDir;
-	char * CarryNullName;
-	char * CameraNullName;
-	struct Container * carryFramesTable_e4[7];
-	undefined field_0x100;
-	undefined field_0x101;
-	undefined field_0x102;
-	undefined field_0x103;
-	undefined field_0x104;
-	undefined field_0x105;
-	undefined field_0x106;
-	undefined field_0x107;
-	undefined field_0x108;
-	undefined field_0x109;
-	undefined field_0x10a;
-	undefined field_0x10b;
-	struct Container * cameraFramesTable_10c[4];
-	uint CarryNullFrames;
-	uint CameraNullFrames;
-	struct ObjectUpgradesData upgrades;
-	undefined field_0x138;
-	undefined field_0x139;
-	undefined field_0x13a;
-	undefined field_0x13b;
-	undefined field_0x13c;
-	undefined field_0x13d;
-	undefined field_0x13e;
-	undefined field_0x13f;
-	undefined field_0x140;
-	undefined field_0x141;
-	undefined field_0x142;
-	undefined field_0x143;
-	undefined field_0x144;
-	undefined field_0x145;
-	undefined field_0x146;
-	undefined field_0x147;
-	undefined field_0x148;
-	undefined field_0x149;
-	undefined field_0x14a;
-	undefined field_0x14b;
-	undefined field_0x14c;
-	undefined field_0x14d;
-	undefined field_0x14e;
-	undefined field_0x14f;
-	undefined field_0x150;
-	undefined field_0x151;
-	undefined field_0x152;
-	undefined field_0x153;
-	undefined field_0x154;
-	undefined field_0x155;
-	undefined field_0x156;
-	undefined field_0x157;
-	undefined field_0x158;
-	undefined field_0x159;
-	undefined field_0x15a;
-	undefined field_0x15b;
-	undefined field_0x15c;
-	undefined field_0x15d;
-	undefined field_0x15e;
-	undefined field_0x15f;
-	undefined field_0x160;
-	undefined field_0x161;
-	undefined field_0x162;
-	undefined field_0x163;
-	undefined field_0x164;
-	undefined field_0x165;
-	undefined field_0x166;
-	undefined field_0x167;
-	float PivotMaxZ;
-	float PivotMinZ;
-	undefined field_0x170;
-	undefined field_0x171;
-	undefined field_0x172;
-	undefined field_0x173;
-	undefined field_0x174;
-	undefined field_0x175;
-	undefined field_0x176;
-	undefined field_0x177;
-	undefined field_0x178;
-	undefined field_0x179;
-	undefined field_0x17a;
-	undefined field_0x17b;
-	undefined field_0x17c;
-	undefined field_0x17d;
-	undefined field_0x17e;
-	undefined field_0x17f;
-	undefined field_0x180;
-	undefined field_0x181;
-	undefined field_0x182;
-	undefined field_0x183;
-	undefined field_0x184;
-	undefined field_0x185;
-	undefined field_0x186;
-	undefined field_0x187;
-	undefined field_0x188;
-	undefined field_0x189;
-	undefined field_0x18a;
-	undefined field_0x18b;
-	undefined field_0x18c;
-	undefined field_0x18d;
-	undefined field_0x18e;
-	undefined field_0x18f;
-	undefined field_0x190;
-	undefined field_0x191;
-	undefined field_0x192;
-	undefined field_0x193;
-	undefined field_0x194;
-	undefined field_0x195;
-	undefined field_0x196;
-	undefined field_0x197;
-	undefined field_0x198;
-	undefined field_0x199;
-	undefined field_0x19a;
-	undefined field_0x19b;
-	undefined field_0x19c;
-	undefined field_0x19d;
-	undefined field_0x19e;
-	undefined field_0x19f;
-	undefined field_0x1a0;
-	undefined field_0x1a1;
-	undefined field_0x1a2;
-	undefined field_0x1a3;
-	undefined field_0x1a4;
-	undefined field_0x1a5;
-	undefined field_0x1a6;
-	undefined field_0x1a7;
-	undefined field_0x1a8;
-	undefined field_0x1a9;
-	undefined field_0x1aa;
-	undefined field_0x1ab;
-	undefined field_0x1ac;
-	undefined field_0x1ad;
-	undefined field_0x1ae;
-	undefined field_0x1af;
-	undefined field_0x1b0;
-	undefined field_0x1b1;
-	undefined field_0x1b2;
-	undefined field_0x1b3;
-	undefined field_0x1b4;
-	undefined field_0x1b5;
-	undefined field_0x1b6;
-	undefined field_0x1b7;
-	undefined field_0x1b8;
-	undefined field_0x1b9;
-	undefined field_0x1ba;
-	undefined field_0x1bb;
-	undefined field_0x1bc;
-	undefined field_0x1bd;
-	undefined field_0x1be;
-	undefined field_0x1bf;
-	undefined field_0x1c0;
-	undefined field_0x1c1;
-	undefined field_0x1c2;
-	undefined field_0x1c3;
-	struct Container * table6_1c4[6];
-	undefined4 field_1dc;
-	struct MeshLOD * polyMedium_1;
-	struct MeshLOD * polyMedium_2;
-	uint flags; // HoldMissing TRUE -> 0x8
+struct UpgradesModel { // [LegoRR/Upgrade.c|struct:0x14]
+	struct Upgrade_PartInfo * parts; // always ObjectUpgradePartData[200]
+	uint partCount;
+	uint currentLevel;
+	enum LegoObject_UpgradeFlags levelFlags; // [carry][scan][speed][drill]
+	struct LegoObject * firstObject;
 };
 
 struct IDirect3DRMTexture3Vtbl { // [DirectX/D3DRM.c|struct:0x98|tags:DIRECTX,VFTABLE]
@@ -2742,6 +2286,56 @@ struct Mesh_Group { // [Gods98/Mesh.c|struct:0x70]
 	uint flags;
 };
 
+struct WeaponsModel { // [LegoRR/Weapons.c|struct:0xa8]
+	struct Container * fireNullPairs[3][2];
+	struct Container * xPivotNulls[3];
+	struct Container * yPivotNulls[3];
+	float pivotMaxZ; // (ae: PivotMaxZ)
+	float pivotMinZ; // (ae: PivotMinZ)
+	BOOL fireNullPairFrames[3]; // (valid: [0,1])
+	struct Vector3F vectors3_44[3];
+	struct Vector3F vectors3_68[3];
+	struct Upgrade_PartInfo * weaponParts[3];
+	float weaponTimers[3];
+	uint weaponCount;
+};
+
+struct VehicleModel { // [LegoRR/Vehicle.c|struct:0x1ec]
+	int objID;
+	char * wheelNullName; // (ae: WheelNullName)
+	struct Container * contAct1; // (ACT, true)
+	struct Container * contAct2; // (ACT, true) Optional second ae file (seen for Grannit Grinder legs) This container has priority for finding null frames
+	struct Container * wheelNulls[6]; // (ae:WheelMesh, LWO, false) Table for wheel nulls that are assigned a position calculated by wheelRefNulls
+	struct Container * wheelRefNulls[6]; // Root wheel nulls that are used to calculate terrain-relative positioning
+	uint wheelNullFrames;
+	undefined reserved1[24];
+	struct Vector3F wheelVector_5c; // another vector used in wheelNulls positioning
+	float wheelRadius; // (ae: WheelRadius)
+	struct Vector3F wheelNullPositions[6]; // Live position of wheelNulls
+	char * drillNullName; // (ae: DrillNullName)
+	char * depositNullName; // (ae: DepositNullName)
+	char * fireNullName; // (ae: FireNullName) "fire laser"
+	char * driverNullName; // (ae: DriverNullName) 
+	char * yPivot; // (ae: xPivot)
+	char * xPivot; // (ae: yPivot)
+	struct Container * drillNull;
+	struct Container * depositNull;
+	struct Container * driverNull;
+	enum BoolTri cameraFlipDir; // (ae: CameraFlipDir)
+	char * carryNullName; // (ae: CarryNullName)
+	char * cameraNullName; // (ae: CameraNullName)
+	struct Container * carryNulls[7];
+	undefined reserved2[12];
+	struct Container * cameraNulls[4];
+	uint carryNullFrames; // (ae: CarryNullFrames)
+	uint cameraNullFrames; // (ae: CameraNullFrames)
+	struct UpgradesModel upgrades;
+	struct WeaponsModel weapons;
+	struct MeshLOD * polyMedium1; // (ae: MediumPoly from contAct1)
+	struct MeshLOD * polyMedium2; // (ae: MediumPoly from contAct2)
+	enum VehicleFlags flags; // (0x1: original that holds memory, 0x4: ?, 0x8: HoldMissing TRUE)
+};
+
 struct IDirect3DTexture2Vtbl { // [DirectX/D3D.c|struct:0x18|tags:DIRECTX,VFTABLE]
 	HRESULT (* QueryInterface)(struct IUnknown *, IID *, LPVOID *);
 	ULONG (* AddRef)(struct IUnknown *);
@@ -2751,18 +2345,18 @@ struct IDirect3DTexture2Vtbl { // [DirectX/D3D.c|struct:0x18|tags:DIRECTX,VFTABL
 	pointer Load;
 };
 
+struct Upgrade_PartModel { // [LegoRR/Upgrade.c|struct:0x10]
+	int objID;
+	struct Container * cont; // (LWO|ACT|MESH, true)
+	struct LegoObject * nextObject;
+	struct Upgrade_PartInfo * partInfo; // (not too sure about this type match)
+};
+
 struct Vector4F { // [common.c|struct:0x10] D3DRMVector4D
 	float x;
 	float y;
 	float z;
 	float w;
-};
-
-struct UpgradeData { // [LegoRR/Upgrade.c|struct:0x10]
-	int objectIndex;
-	struct Container * aeResData; // ACT, true
-	struct LegoObject * object_8;
-	undefined4 field_c;
 };
 
 struct IDirect3DRMLightArray { // [DirectX/D3DRM.c|struct:0x4|tags:DIRECTX,INTERFACE]
@@ -2771,6 +2365,30 @@ struct IDirect3DRMLightArray { // [DirectX/D3DRM.c|struct:0x4|tags:DIRECTX,INTER
 
 struct IDirect3DRMVisual { // [DirectX/D3DRM.c|struct:0x4|tags:DIRECTX,INTERFACE] Identical to IDirect3DRMObject
 	struct IDirect3DRMVisualVtbl * lpVtbl;
+};
+
+struct CreatureModel { // [LegoRR/Creature.c|struct:0x74] Possibly alphabetically correct names: Bipedal, BasicUnit, etc... (has to be before Bubble, and possible after BezierCurve or AI(Task?))
+	int objID;
+	struct Container * contAct; // (ACT, true)
+	undefined reserved1[24];
+	char * cameraNullName; // (ae: CameraNullName)
+	uint cameraNullFrames; // (ae: CameraNullFrames)
+	enum BoolTri cameraFlipDir; // (ae: CameraFlipDir)
+	char * drillNullName; // (ae: DrillNullName)
+	char * footStepNullName; // (ae: FootStepNullName)
+	char * carryNullName; // (ae: CarryNullName)
+	char * throwNullName; // (ae: ThrowNullName)
+	char * depositNullName; // (ae: DepositNullName)
+	struct Container * drillNull;
+	struct Container * footStepNull; // (unused)
+	struct Container * carryNull;
+	struct Container * throwNull;
+	struct Container * depositNull;
+	struct Container * cameraNulls[4];
+	struct MeshLOD * polyMedium; // (ae: MediumPoly)
+	struct MeshLOD * polyHigh; // (ae: HighPoly)
+	struct MeshLOD * polyFP; // (ae: FPPoly::Camera#)
+	enum CreatureFlags flags; // (0x1: original that holds memory)
 };
 
 struct Flocks { // [LegoRR/Flocks.c|struct:0x28] The singular flocks unit, which holds all items flying within it.
@@ -2914,6 +2532,34 @@ struct IDirect3DRMLightArrayVtbl { // [DirectX/D3DRM.c|struct:0x14|tags:DIRECTX,
 	HRESULT (* GetElement)(struct IDirect3DRMLightArray *, DWORD, struct IDirect3DRMLight * *);
 };
 
+struct BuildingModel { // [LegoRR/Building.c|struct:0x14c]
+	int objID;
+	struct Container * contAct; // (ACT, true)
+	char * carryNullName; // (ae: CarryNullName)
+	char * cameraNullName; // (ae: CameraNullName)
+	char * depositNullName; // (ae: DepositNullName)
+	char * entranceNullName; // (ae: EntranceNullName)
+	char * toolNullName; // (ae: ToolNullName)
+	char * fireNullName; // (ae: FireNullName) "fire laser"
+	char * yPivot; // (ae: yPivot)
+	char * xPivot; // (ae: xPivot)
+	struct Container * carryNulls[6];
+	struct Container * cameraNulls[4];
+	struct Container * toolNulls[6]; // (note: index five is never observed may be array size [5])
+	struct Container * depositNull;
+	struct Container * entranceNull;
+	uint carryNullFrames; // (ae: CarryNullFrames)
+	uint cameraNullFrames; // (ae: CameraNullFrames)
+	uint toolNullFrames; // (ae: ToolNullFrames)
+	struct Container * powerLevelScene; // (ae: PowerLevelScene, LWS, true)
+	float powerLevelTimer;
+	struct Point2I * shapePoints; // (ae: Shape) Point2I[10]
+	uint shapeCount; // (ae: Shape)
+	struct UpgradesModel upgrades;
+	struct WeaponsModel weapons;
+	enum BuildingFlags flags; // (0x1: original that holds memory [broken], 0x2: PowerLevel scene playing)
+};
+
 struct IDirect3DRMLight { // [DirectX/D3DRM.c|struct:0x4|tags:DIRECTX,INTERFACE]
 	struct IDirect3DRMLightVtbl * lpVtbl;
 };
@@ -3008,12 +2654,20 @@ struct Viewport { // [Gods98/Viewports.c|struct:0x20|tags:LISTSET]
 };
 
 struct MeshLOD { // [LegoRR/MeshPoly.c|struct:0x18]
-	struct Container * contMeshOrigin;
+	struct Container * contMeshOrigin; // (LWO|MESH, true)
 	struct Container * contMeshTarget;
 	char * partName; // name of LoadObject file.lwo
-	uint index;
-	uint flags; // (1 = dont free partName/cont_0,  2 = unk dtor behavior)
+	uint setID; // MeshLOD's may contain multiple sets of the same parts, this specifies which set its from.
+	enum MeshLODFlags flags; // (1 = dont free partName/cont_0,  2 = unk dtor behavior)
 	struct MeshLOD * next;
+};
+
+struct Upgrade_PartInfo { // [LegoRR/Upgrade.c|struct:0x14]
+	uint level; // (ae: key Level%i%i%i%i)
+	uint nullFrameNo; // (ae: value[1])
+	char * nullObjectName; // (ae: value[0])
+	char * weaponName; // (ae: value[2], optional)
+	struct Upgrade_PartModel * upgradeData;
 };
 
 struct IDirectDrawSurface { // [DirectX/DDraw.c|struct:0x4|tags:DIRECTX,INTERFACE]
@@ -3166,51 +2820,51 @@ struct LegoObject { // [LegoRR/LegoObject.c|struct:0x40c|tags:LISTSET]
 	enum LegoObject_Type type;
 	int id;
 	char * customName; // max size is 11 (NOT null-terminated)
-	struct VehicleData * vehicle;
-	struct CreatureData * miniFigure;
-	struct CreatureData * rockMonster;
-	struct BuildingData * building;
+	struct VehicleModel * vehicle;
+	struct CreatureModel * miniFigure;
+	struct CreatureModel * rockMonster;
+	struct BuildingModel * building;
 	struct Container * other;
-	struct UpgradeData * upgrade;
-	struct RoutingBlock * routeptr_24; // Unknown pointer, likely in large allocated table
-	uint routingBlocksTotal; // total blocks to travel for current route
-	uint routingBlocksCurrent; // number of blocks traveled (up to routingBlocksTotal)
-	struct BezierCurve routingCurve; // BezierCurve/Catmull-rom spline data
+	struct Upgrade_PartModel * upgradePart; // First upgrade part model in linked list of parts.
+	struct RoutingBlock * routeBlocks; // Unknown pointer, likely in large allocated table
+	uint routeBlockTotal; // total blocks to travel for current route
+	uint routeBlockeCurrent; // number of blocks traveled (up to routingBlocksTotal)
+	struct BezierCurve routeCurve; // BezierCurve/Catmull-rom spline data
 	struct Vector3F vector_28c;
 	struct Point2F point_298;
-	struct Vector3F vector_2a0;
+	struct Vector3F vector_2a0; // Used with faceDirection calculation.
 	struct Vector3F faceDirection; // 1.0 to -1.0 directions that determine rotation with atan2
-	float float_2b8;
-	int strafeSpeed_2bc;
-	int forwardSpeed_2c0;
-	float rotateSpeed_2c4;
+	float faceDirectionLength_2b8; // faceDirection length (faceDirection may be Vector4F...)
+	int strafeSignFP; // (direction sign only, does higher numbers do not affect speed)
+	int forwardSignFP; // (direction sign only, does higher numbers do not affect speed)
+	float rotateSpeedFP;
 	undefined4 field_2c8;
 	undefined4 field_2cc;
 	undefined4 field_2d0;
-	float float_2d4;
-	BOOL unkbool_2d8;
-	struct Container * resData_2dc;
+	float animTime;
+	uint animRepeat; // Number of times an activity animation is set to repeat (i.e. number of jumping jacks/reinforce hits). Zero is default.
+	struct Container * cont_2dc;
 	int index_2e0;
-	struct Container * resData_2e4;
-	char * aitaskName1;
-	char * aitaskName2;
-	struct AITask * aitask_2f0;
-	struct Point2F point_2f4; // (assigned -1.0f)
-	struct LegoObject * object_2fc; // other half of object_300
-	struct LegoObject * object_300; // other half of object_2fc
+	struct Container * cont_2e4;
+	char * activityName1;
+	char * activityName2; // Seems to be used with related objects like driven, swapped with activityName1.
+	struct AITask * aiTask;
+	struct Point2F point_2f4; // (init: -1.0f, -1.0f)
+	struct LegoObject * boulderObject; // other half of boulderHolderObject
+	struct LegoObject * boulderHolderObject; // other half of boulderObject (todo: better name)
 	struct LegoObject * carryingThisObject;
-	struct LegoObject * carriedObjects[7];
+	struct LegoObject * carriedObjects[7]; // (includes carried vehicles)
 	uint numCarriedObjects;
-	uint field_328;
-	struct Flocks * flocksData_32c;
+	uint carryNullFrames;
+	struct Flocks * flocks;
 	uint objLevel;
 	struct ObjectStats * stats;
 	float float_338;
 	float float_33c;
-	float health; // (assigned -1.0f)
-	float energy; // (assigned -1.0f)
+	float health; // (init: -1.0f)
+	float energy; // (init: -1.0f)
 	int * stealTableptr_348; // element size is 0x4
-	enum LOD_PolyLevel polyMode_34c;
+	enum LOD_PolyLevel polyLOD;
 	int soundHandle_350;
 	enum SFX_Type soundHandle_354; // (engine sound only?)
 	undefined4 field_358;
@@ -3218,22 +2872,23 @@ struct LegoObject { // [LegoRR/LegoObject.c|struct:0x40c|tags:LISTSET]
 	undefined4 field_360;
 	struct LegoObject * object_364;
 	float float_368;
-	struct LegoObject * drivenObject; // same as drivingThisObject
+	struct LegoObject * driveObject; // (bi-directional link between driver and driven)
 	enum LegoObject_ToolType carriedTools[5];
 	uint numCarriedTools;
-	undefined4 field_388;
-	struct Image * bubbleImage_38c;
+	float float_388;
+	struct Image * bubbleImage;
 	undefined4 teleporter_field_390;
 	undefined4 teleporter_field_394;
-	struct TeleporterService * teleporter_398;
+	struct TeleporterService * teleporter;
 	undefined4 field_39c;
 	undefined4 field_3a0;
 	undefined4 field_3a4;
 	undefined4 field_3a8;
 	undefined4 field_3ac;
 	undefined4 field_3b0;
-	struct Vector3F vector_3b4;
-	struct LegoObject * object_3c0;
+	struct Point2F pushingVec2D;
+	float pushingDist;
+	struct LegoObject * throwObject; // (bi-directional link between thrower and thrown)
 	struct LegoObject * object_3c4;
 	undefined4 field_3c8;
 	struct LegoObject * object_3cc;
@@ -3265,9 +2920,15 @@ struct InfoMessageInstance { // [LegoRR/Info.c|struct:0x14]
 	struct InfoMessageInstance * next;
 };
 
+typedef int (* QsortCompare)(void *, void *);
+
+typedef void (* FlocksCallback)(struct Flocks *, struct FlocksItem *, void *);
+
+typedef BOOL (* AITask_RunThroughListsCallback)(struct AITask *, void *);
+
 typedef struct Map3D Map3D, *PMap3D;
 
-typedef float10 (* GetSurfaceZFunc)(float, float, struct Map3D *);
+typedef float10 (* GetWorldZCallback)(float, float, struct Map3D *);
 
 typedef struct Map3D_Block Map3D_Block, *PMap3D_Block;
 
@@ -3448,22 +3109,9 @@ struct IDirect3DRMMaterial2 { // [DirectX/D3DRM.c|struct:0x4|tags:DIRECTX,INTERF
 	struct IDirect3DRMMaterial2Vtbl * lpVtbl;
 };
 
-typedef int (* QsortCompare)(void *, void *);
-
-typedef void (* FlocksCallback)(struct Flocks *, struct FlocksItem *, void *);
-
-typedef struct BlockElectricFence BlockElectricFence, *PBlockElectricFence;
-
-typedef void (* ElectricFenceEnumerateCallback)(struct BlockElectricFence *, void *);
-
-struct BlockElectricFence { // [LegoRR/ElectricFence.c|struct:0x14|tags:LISTSET]
-	struct LegoObject * attachedObject;
-	struct Point2I blockPos;
-	float timer;
-	struct BlockElectricFence * nextFree; // (for listSet)
-};
-
 typedef void (* XYCallback)(int, int);
+
+typedef BOOL (* LegoObject_RunThroughListsCallback)(struct LegoObject *, void *);
 
 typedef struct SFX_Property SFX_Property, *PSFX_Property;
 
@@ -15530,6 +15178,7 @@ typedef enum BlockFlags1 { // [LegoRR/Lego.c|flags:0x4|type:uint]
 	BLOCK1_EXPOSED=67108864,
 	BLOCK1_FLOOR=8,
 	BLOCK1_FOUNDATION=1048576,
+	BLOCK1_GAP=8192,
 	BLOCK1_HIDDEN=131072,
 	BLOCK1_NONE=0,
 	BLOCK1_PATH=536870912,
@@ -15543,7 +15192,6 @@ typedef enum BlockFlags1 { // [LegoRR/Lego.c|flags:0x4|type:uint]
 	BLOCK1_UNK_1000000=16777216,
 	BLOCK1_UNK_10000000=268435456,
 	BLOCK1_UNK_200=512,
-	BLOCK1_UNK_2000=8192,
 	BLOCK1_UNK_4000=16384,
 	BLOCK1_UNK_400000=4194304,
 	BLOCK1_UNK_40000000=1073741824,
@@ -15600,7 +15248,7 @@ struct SpiderWeb_Globs { // [LegoRR/SpiderWeb.c|struct:0x8|tags:GLOBS]
 };
 
 struct BlockConstruction { // [LegoRR/Construction.c|struct:0xd4]
-	int objIndex;
+	int objID;
 	enum Direction direction;
 	int int_8;
 	struct Point2I pointi_c;
@@ -15986,26 +15634,6 @@ struct EmergeTrigger { // [LegoRR/Lego.c|struct:0x4c]
 	struct EmergeBlock emergePoints[5];
 };
 
-typedef struct AI_Globs AI_Globs, *PAI_Globs;
-
-struct AI_Globs { // [LegoRR/AITask.c|struct:0x4e9c|tags:GLOBS]
-	struct AITask * listSet[12];
-	struct AITask * freeList;
-	uint listCount;
-	char * aitaskName[31];
-	char * priorityName[27];
-	uint priorityValues[27];
-	struct AITask * AITaskUnkPtr;
-	struct AITask * AITaskDataNext;
-	struct LegoObject * liveObjsTable_1[50];
-	uint liveObjsCount_1;
-	struct LegoObject * liveObjsTable_2[50];
-	uint liveObjsCount_2;
-	uint requestObjCounts[20][15][16];
-	BOOL disabledPriorities[27];
-	uint flags;
-};
-
 typedef struct Front_Globs Front_Globs, *PFront_Globs;
 
 typedef struct MenuSet MenuSet, *PMenuSet;
@@ -16058,7 +15686,7 @@ typedef struct MenuItem MenuItem, *PMenuItem;
 
 typedef struct MenuOverlay MenuOverlay, *PMenuOverlay;
 
-typedef enum SaveRewardFlags {
+typedef enum SaveRewardFlags { // [LegoRR/Rewards.c|flags:0x4|type:uint]
 	SAVEREWARD_NONE=0,
 	SAVEREWARD_UNK_1=1,
 	SAVEREWARD_UNK_2=2
@@ -17129,6 +16757,26 @@ struct RoofBlock { // [LegoRR/Roof.c|struct:0x8] Mesh group for a single block i
 	enum RoofFlags flags; // (0x1 = hidde, 0x2 = needsUpdate, 0x4 = shiftVertices)
 };
 
+typedef struct AITask_Globs AITask_Globs, *PAITask_Globs;
+
+struct AITask_Globs { // [LegoRR/AITask.c|struct:0x4e9c|tags:GLOBS]
+	struct AITask * listSet[12];
+	struct AITask * freeList;
+	uint listCount;
+	char * aitaskName[31];
+	char * priorityName[27];
+	uint priorityValues[27];
+	struct AITask * AITaskUnkPtr;
+	struct AITask * AITaskDataNext;
+	struct LegoObject * liveObjsTable_1[50];
+	uint liveObjsCount_1;
+	struct LegoObject * liveObjsTable_2[50];
+	uint liveObjsCount_2;
+	uint requestObjCounts[20][15][16];
+	BOOL disabledPriorities[27];
+	uint flags;
+};
+
 typedef struct HelpWindow_Globs HelpWindow_Globs, *PHelpWindow_Globs;
 
 typedef struct MenuButton MenuButton, *PMenuButton;
@@ -17604,11 +17252,11 @@ struct Lego_Globs { // [LegoRR/Lego.c|struct:0xf00|tags:GLOBS]
 	char * langSpiderWeb_theName; // (cfg: ObjectTheNames)
 	char * langOohScary_theName; // (cfg: ObjectTheNames)
 	char * langPath_theName; // (cfg: ObjectTheNames)
-	struct VehicleData * vehicleData; // (cfg: VehicleTypes)
-	struct CreatureData * miniFigureData; // (cfg: MiniFigureTypes)
-	struct CreatureData * rockMonsterData; // (cfg: RockMonsterTypes)
-	struct BuildingData * buildingData; // (cfg: BuildingTypes)
-	struct UpgradeData * upgradeData; // (cfg: UpgradeTypes)
+	struct VehicleModel * vehicleData; // (cfg: VehicleTypes)
+	struct CreatureModel * miniFigureData; // (cfg: MiniFigureTypes)
+	struct CreatureModel * rockMonsterData; // (cfg: RockMonsterTypes)
+	struct BuildingModel * buildingData; // (cfg: BuildingTypes)
+	struct Upgrade_PartModel * upgradeData; // (cfg: UpgradeTypes)
 	char * * vehicleName; // (cfg: VehicleTypes)
 	char * * miniFigureName; // (cfg: MiniFigureTypes)
 	char * * rockMonsterName; // (cfg: RockMonsterTypes)
@@ -18206,9 +17854,9 @@ struct Struct_2b0 { // [LegoRR/Weapons.c|struct:0x2b0] Seen in a table of [10]. 
 };
 
 struct ItemStruct_34 { // [LegoRR/???|struct:0x10]
-	struct Mesh * struct34_1;
-	struct Mesh * struct34_2;
-	struct Container * resData;
+	struct Mesh * mesh1;
+	struct Mesh * mesh2;
+	struct Container * cont;
 	float time;
 };
 
@@ -18218,13 +17866,31 @@ struct Weapon_Globs { // [LegoRR/Weapons.c|struct:0x1b90|tags:GLOBS]
 	struct WeaponStats * weaponStatsList;
 	struct ItemStruct_34 ItemStruct34Unk_TABLE[10];
 	struct Struct_2b0 Struct2B0Unk_TABLE[10];
-	struct Config * cfgRoot;
+	struct Config * config;
 };
 
 typedef struct ElectricFence_Globs ElectricFence_Globs, *PElectricFence_Globs;
 
+typedef struct BlockFenceGrid BlockFenceGrid, *PBlockFenceGrid;
+
+typedef enum BlockFenceGrid_Flags { // [LegoRR/Detail.c|flags:0x4|type:uint]
+	FENCEGRID_DIRECTION_FLAG_1=1,
+	FENCEGRID_DIRECTION_FLAG_2=2,
+	FENCEGRID_DIRECTION_FLAG_4=4,
+	FENCEGRID_DIRECTION_FLAG_8=8,
+	FENCEGRID_DIRECTION_MASK=15,
+	FENCEGRID_FLAG_NONE=0,
+	FENCEGRID_FLAG_UNK_100=256
+} BlockFenceGrid_Flags;
+
+struct BlockFenceGrid { // [LegoRR/ElectricFence.c|struct:0xc|tags:BLOCKGRID] Note that the size when allocating fenceGrid is mistakenly 0x14, but lookup is performed with size 0xc
+	struct BlockElectricFence * efence;
+	struct LegoObject * studObj; // Glowing lime stud  object placed between 2-block-wide connections
+	enum BlockFenceGrid_Flags flags;
+};
+
 struct ElectricFence_Globs { // [LegoRR/ElectricFence.c|struct:0x90|tags:GLOBS]
-	struct BlockElectricFence * fenceGrid; // BlockElectricFence[width * height]
+	struct BlockFenceGrid * fenceGrid; // BlockElectricFence[width * height]
 	struct Lego_Level * level;
 	struct BlockElectricFence * listSet[32];
 	struct BlockElectricFence * freeList;
@@ -18594,9 +18260,9 @@ struct NERPsFile_Globs { // [LegoRR/NERPs.c|struct:0xb4|tags:GLOBS]
 	BOOL AdvisorTalkingMode;
 };
 
-typedef struct BatFlocks_Globs BatFlocks_Globs, *PBatFlocks_Globs;
+typedef struct Flocks_Globs Flocks_Globs, *PFlocks_Globs;
 
-struct BatFlocks_Globs { // [LegoRR/Flocks.c|struct:0x10|tags:GLOBS] (struct name changed to "BatFlocks" instead of "Flocks" to avoid annoying autocorrect when setting type in Ghidra)
+struct Flocks_Globs { // [LegoRR/Flocks.c|struct:0x10|tags:GLOBS] (struct name changed to "BatFlocks" instead of "Flocks" to avoid annoying autocorrect when setting type in Ghidra)
 	float Turn;
 	float Speed;
 	float Tightness;
@@ -18606,23 +18272,28 @@ struct BatFlocks_Globs { // [LegoRR/Flocks.c|struct:0x10|tags:GLOBS] (struct nam
 typedef struct LegoObject_Globs LegoObject_Globs, *PLegoObject_Globs;
 
 typedef enum LegoObject_GlobFlags { // [LegoRR/LegoObject.c|flags:0x4|type:uint] LegoObject_GlobFlags, ReservedPool LiveObject INITFLAGS
+	OBJECT_GLOB_FLAG_CYCLEUNITS=64,
 	OBJECT_GLOB_FLAG_INITIALISED=1,
+	OBJECT_GLOB_FLAG_LEVELENDING=32,
 	OBJECT_GLOB_FLAG_NONE=0,
-	OBJECT_GLOB_FLAG_UNK_20=32
+	OBJECT_GLOB_FLAG_REMOVING=2,
+	OBJECT_GLOB_FLAG_UNK_4=4,
+	OBJECT_GLOB_FLAG_UNK_8=8,
+	OBJECT_GLOB_FLAG_UPDATING=16
 } LegoObject_GlobFlags;
 
 typedef struct HiddenObject HiddenObject, *PHiddenObject;
 
 struct HiddenObject { // [LegoRR/LegoObject.c|struct:0x2c] Name is only guessed
-	struct Point2I blockPos;
-	struct Point2F worldPos;
-	float heading;
-	void * objSrcData;
-	enum LegoObject_Type objType;
-	int objIndex;
-	float health;
-	char * thisOLName;
-	char * drivingOLName;
+	struct Point2I blockPos; // (ol: xPos, yPos -> blockPos)
+	struct Point2F worldPos; // (ol: xPos, yPos)
+	float heading; // (ol: heading -> radians)
+	void * model; // (ol: type)
+	enum LegoObject_Type type; // (ol: type)
+	int id; // (ol: type)
+	float health; // (ol: health)
+	char * olistID; // (ol: Object%i)
+	char * olistDrivingID; // (ol: driving)
 };
 
 struct LegoObject_Globs { // [LegoRR/LegoObject.c|struct:0xc644|tags:GLOBS]
@@ -18636,24 +18307,24 @@ struct LegoObject_Globs { // [LegoRR/LegoObject.c|struct:0xc644|tags:GLOBS]
 	float radarElapsed_67c;
 	uint listCount;
 	enum LegoObject_GlobFlags flags;
-	int toolNullIndex[11]; // [toolType:11] (tool priorities, behavior types?)
+	uint toolNullIndex[11]; // [toolType:11]
 	uint objectTotalLevels[20][15][16]; // [objType:20][objIndex:15][objLevel:16] 
 	uint objectPrevLevels[20][15][16]; // [objType:20][objIndex:15][objLevel:16] 
 	uint NERPs_TrainFlags;
-	struct LegoObject * minifigureObj_9cb8; // MINIFIGOBJ_004e9448
+	struct LegoObject * minifigureObj_9cb8;
 	struct Point2I slugHoleBlocks[20];
 	struct Point2I rechargeSeamBlocks[10];
 	uint slugHoleCount;
 	uint rechargeSeamCount;
 	struct HiddenObject hiddenObjects[200];
 	uint hiddenObjectCount;
-	float float_c018; // FLOAT_004eb7a8
+	float float_c018;
 	struct SaveStruct_18 savestruct18_c01c;
-	struct LegoObject * liveObjArray256_c034[256]; // PTRLiveObject_ARRAY_004eb7c4
-	uint count_c434; // COUNT_004ebbc4
-	uint countBuildingsOnly_c438; // COUNTBuildingsOnly_004ebbc8
+	struct LegoObject * cycleUnits[256];
+	uint cycleUnitCount;
+	uint cycleBuildingCount;
 	struct LegoObject * liveObjArray100_c43c[100]; // Used for water docking vehicles?
-	uint uintCount_c5cc;
+	uint uintCount_c5cc; // Count for liveObjArray100_c43c
 	char * abilityName[6]; // [abilityType:6]
 	struct Image * ToolTipIcons_Abilities[6]; // [abilityType:6] (cfg: ToolTipIcons)
 	struct Image * ToolTipIcons_Tools[11]; // [toolType:11] (cfg: ToolTipIcons)
@@ -18661,8 +18332,8 @@ struct LegoObject_Globs { // [LegoRR/LegoObject.c|struct:0xc644|tags:GLOBS]
 	struct Image * ToolTipIcon_Ore; // (cfg: ToolTipIcons::Ore)
 	uint BuildingsTeleported;
 	float LiveManager_TimerUnk;
-	undefined4 s_stepCounter_c63c; // (static, counter %4 for step SFX) DAT_004ebdcc
-	void * * s_FlocksDestroy_c640; // (static, Struct 0x10, used in Flocks activities (QUICK_DESTROY??)) PTR_004ebdd0
+	undefined4 s_stepCounter_c63c; // (static, counter %4 for step SFX)
+	void * * s_FlocksDestroy_c640; // (static, Struct 0x10, used in Flocks activities (QUICK_DESTROY??))
 };
 
 typedef struct DamageFont_Globs DamageFont_Globs, *PDamageFont_Globs;
@@ -19123,101 +18794,6 @@ typedef enum PathType { // [LegoRR/Lego.c|enum:0x1|type:byte|tags:MAPFILE]
 	PATH_RUBBLE=1
 } PathType;
 
-typedef enum LegoObject_AbilityType { // [LegoRR/LegoObject.c|enum:0x4|type:int]
-	LegoObject_AbilityType_Count=6,
-	LegoObject_AbilityType_Driver=2,
-	LegoObject_AbilityType_Dynamite=3,
-	LegoObject_AbilityType_Invalid=4294967295,
-	LegoObject_AbilityType_Pilot=0,
-	LegoObject_AbilityType_Repair=4,
-	LegoObject_AbilityType_Sailor=1,
-	LegoObject_AbilityType_Scanner=5
-} LegoObject_AbilityType;
-
-typedef enum Activity_Type { // [LegoRR/LegoObject.c|enum:0x4|type:int]
-	Activity_BuildPath=40,
-	Activity_CantDo=11,
-	Activity_Carry=17,
-	Activity_CarryRubble=18,
-	Activity_CarryStand=22,
-	Activity_CarryTurnLeft=20,
-	Activity_CarryTurnRight=21,
-	Activity_Clear=30,
-	Activity_Closing=54,
-	Activity_Collect=15,
-	Activity_Crumble=77,
-	Activity_Deposit=29,
-	Activity_Drill=4,
-	Activity_Dynamite=28,
-	Activity_Eat=35,
-	Activity_Emerge=12,
-	Activity_Enter=13,
-	Activity_EnterRein=14,
-	Activity_Explode=42,
-	Activity_FireLaser=44,
-	Activity_FloatOff=52,
-	Activity_FloatOn=51,
-	Activity_FreezeMelt=47,
-	Activity_FreezeStart=46,
-	Activity_Freezed=45,
-	Activity_Gather=16,
-	Activity_GetUp=39,
-	Activity_HitBack=26,
-	Activity_HitFront=25,
-	Activity_HitHard=27,
-	Activity_HitLeft=23,
-	Activity_HitRight=24,
-	Activity_Open=55,
-	Activity_Opening=53,
-	Activity_Place=31,
-	Activity_Recharge=48,
-	Activity_Reinforce=7,
-	Activity_Repair=32,
-	Activity_Rest=34,
-	Activity_Reverse=8,
-	Activity_Route=1,
-	Activity_RouteRubble=2,
-	Activity_RunPanic=3,
-	Activity_Slip=33,
-	Activity_Stamp=36,
-	Activity_Stand=0,
-	Activity_Teleport=5,
-	Activity_TeleportIn=78,
-	Activity_Throw=19,
-	Activity_ThrowMan=37,
-	Activity_ThrownByRockMonster=38,
-	Activity_Train=50,
-	Activity_TurnLeft=9,
-	Activity_TurnRight=10,
-	Activity_Type_Count=79,
-	Activity_Type_Invalid=4294967295,
-	Activity_Unpowered=43,
-	Activity_Upgrade=41,
-	Activity_Waiting1=56,
-	Activity_Waiting10=65,
-	Activity_Waiting11=66,
-	Activity_Waiting12=67,
-	Activity_Waiting13=68,
-	Activity_Waiting14=69,
-	Activity_Waiting15=70,
-	Activity_Waiting16=71,
-	Activity_Waiting17=72,
-	Activity_Waiting18=73,
-	Activity_Waiting19=74,
-	Activity_Waiting2=57,
-	Activity_Waiting20=75,
-	Activity_Waiting21=76,
-	Activity_Waiting3=58,
-	Activity_Waiting4=59,
-	Activity_Waiting5=60,
-	Activity_Waiting6=61,
-	Activity_Waiting7=62,
-	Activity_Waiting8=63,
-	Activity_Waiting9=64,
-	Activity_WakeUp=49,
-	Activity_Walk=6
-} Activity_Type;
-
 typedef enum Bubble_Type { // [LegoRR/Bubble.c|enum:0x4|type:int]
 	Bubble_BuildPath=35,
 	Bubble_CallToArms=30,
@@ -19261,12 +18837,6 @@ typedef enum Bubble_Type { // [LegoRR/Bubble.c|enum:0x4|type:int]
 	Bubble_Type_Invalid=4294967295,
 	Bubble_Upgrade=34
 } Bubble_Type;
-
-typedef enum LegoObject_ID { // [LegoRR/dummy.c|enum:0x4|type:int|tags:HELPER]
-	LegoObject_ID_Ore=0,
-	LegoObject_ID_Ore_Count=2,
-	LegoObject_ID_ProcessedOre=1
-} LegoObject_ID;
 
 typedef struct SearchRadarObjectRadius_10 SearchRadarObjectRadius_10, *PSearchRadarObjectRadius_10;
 
@@ -22102,12 +21672,120 @@ struct RROSFileHeader { // [LegoRR/ObjectRecall.c|struct:0x8] For .osf Object Re
 	uint count;
 };
 
-typedef struct BasicObjectData BasicObjectData, *PBasicObjectData;
+typedef struct BasicObjectModel BasicObjectModel, *PBasicObjectModel;
 
-struct BasicObjectData { // [LegoRR/dummy.c|struct:0x8] This is a dummy structure that is used for CreatureData, BuildingData, and UpgradeData (for functions using these structures that have been merged together). It's highly likely this similarity is only due to linked functions performing the same behavior and being grouped together.
-	int objIndex;
-	struct Container * aeResData; // ACT, true
+struct BasicObjectModel { // [LegoRR/dummy.c|struct:0x8] This is a dummy structure that is used for CreatureData, BuildingData, and UpgradeData (for functions using these structures that have been merged together). It's highly likely this similarity is only due to linked functions performing the same behavior and being grouped together.
+	int objID;
+	struct Container * contAct; // ACT, true
 };
+
+typedef enum LegoObject_AbilityType { // [LegoRR/LegoObject.c|enum:0x4|type:int]
+	LegoObject_AbilityType_Count=6,
+	LegoObject_AbilityType_Driver=2,
+	LegoObject_AbilityType_Dynamite=3,
+	LegoObject_AbilityType_Invalid=4294967295,
+	LegoObject_AbilityType_Pilot=0,
+	LegoObject_AbilityType_Repair=4,
+	LegoObject_AbilityType_Sailor=1,
+	LegoObject_AbilityType_Scanner=5
+} LegoObject_AbilityType;
+
+typedef enum Activity_Type { // [LegoRR/LegoObject.c|enum:0x4|type:int]
+	Activity_BuildPath=40,
+	Activity_CantDo=11,
+	Activity_Carry=17,
+	Activity_CarryRubble=18,
+	Activity_CarryStand=22,
+	Activity_CarryTurnLeft=20,
+	Activity_CarryTurnRight=21,
+	Activity_Clear=30,
+	Activity_Closing=54,
+	Activity_Collect=15,
+	Activity_Crumble=77,
+	Activity_Deposit=29,
+	Activity_Drill=4,
+	Activity_Dynamite=28,
+	Activity_Eat=35,
+	Activity_Emerge=12,
+	Activity_Enter=13,
+	Activity_EnterRein=14,
+	Activity_Explode=42,
+	Activity_FireLaser=44,
+	Activity_FloatOff=52,
+	Activity_FloatOn=51,
+	Activity_FreezeMelt=47,
+	Activity_FreezeStart=46,
+	Activity_Freezed=45,
+	Activity_Gather=16,
+	Activity_GetUp=39,
+	Activity_HitBack=26,
+	Activity_HitFront=25,
+	Activity_HitHard=27,
+	Activity_HitLeft=23,
+	Activity_HitRight=24,
+	Activity_Open=55,
+	Activity_Opening=53,
+	Activity_Place=31,
+	Activity_Recharge=48,
+	Activity_Reinforce=7,
+	Activity_Repair=32,
+	Activity_Rest=34,
+	Activity_Reverse=8,
+	Activity_Route=1,
+	Activity_RouteRubble=2,
+	Activity_RunPanic=3,
+	Activity_Slip=33,
+	Activity_Stamp=36,
+	Activity_Stand=0,
+	Activity_Teleport=5,
+	Activity_TeleportIn=78,
+	Activity_Throw=19,
+	Activity_ThrowMan=37,
+	Activity_ThrownByRockMonster=38,
+	Activity_Train=50,
+	Activity_TurnLeft=9,
+	Activity_TurnRight=10,
+	Activity_Type_Count=79,
+	Activity_Type_Invalid=4294967295,
+	Activity_Unpowered=43,
+	Activity_Upgrade=41,
+	Activity_Waiting1=56,
+	Activity_Waiting10=65,
+	Activity_Waiting11=66,
+	Activity_Waiting12=67,
+	Activity_Waiting13=68,
+	Activity_Waiting14=69,
+	Activity_Waiting15=70,
+	Activity_Waiting16=71,
+	Activity_Waiting17=72,
+	Activity_Waiting18=73,
+	Activity_Waiting19=74,
+	Activity_Waiting2=57,
+	Activity_Waiting20=75,
+	Activity_Waiting21=76,
+	Activity_Waiting3=58,
+	Activity_Waiting4=59,
+	Activity_Waiting5=60,
+	Activity_Waiting6=61,
+	Activity_Waiting7=62,
+	Activity_Waiting8=63,
+	Activity_Waiting9=64,
+	Activity_WakeUp=49,
+	Activity_Walk=6
+} Activity_Type;
+
+typedef enum LegoObject_ID { // [LegoRR/dummy.c|enum:0x4|type:int|tags:HELPER]
+	LegoObject_ID_Ore=0,
+	LegoObject_ID_Ore_Count=2,
+	LegoObject_ID_ProcessedOre=1
+} LegoObject_ID;
+
+typedef enum LegoObject_UpgradeType { // [LegoRR/LegoObject.c|enum:0x4|type:uint]
+	LegoObject_UpgradeType_Carry=3,
+	LegoObject_UpgradeType_Drill=0,
+	LegoObject_UpgradeType_Scan=2,
+	LegoObject_UpgradeType_Speed=1
+} LegoObject_UpgradeType;
 
 typedef char * va_list;
 
