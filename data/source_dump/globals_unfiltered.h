@@ -1721,7 +1721,7 @@ sint32 g_SaveMenu_INT_004a2f58;
 // <LegoRR.exe @004a2f5c>
 sint32 g_SaveMenu_OutNumber;
 // <LegoRR.exe @004a2f60>
-sint32 c_keyCharMap[256];
+uint32 c_keyCharMap[256];
 // <LegoRR.exe @004a3b58>
 real32 g_Interface_TIMER_004a3b58;
 // <LegoRR.exe @004a3b5c>
@@ -1751,7 +1751,7 @@ sint32 nerpsIconSpace;
 // <LegoRR.exe @004a7768>
 sint32 nerpsUnkSampleIndex;
 // <LegoRR.exe @004a776c>
-addr c_NERPsRuntime_TutorialActionCallback;
+NERPsBlockPointerCallback c_NERPsRuntime_TutorialActionCallback;
 // <LegoRR.exe @004a9ee8>
 AI_Priority s_PriorityList_Type;
 // <LegoRR.exe @004a9eec>
@@ -1865,41 +1865,41 @@ Erode_Globs erodeGlobs;
 // <LegoRR.exe @004d88c4>
 real32 s_Fallin_ElapsedTimer;
 // <LegoRR.exe @004d88c8>
-sint32 POINT_X_ARRAY_004d88c8[16];
+sint32 s_LevelSelect_NameXs[16];
 // <LegoRR.exe @004d8b08>
-Font* FONT_ARRAY_004d8b08[16];
+Font* s_LevelSelectNameFonts[16];
 // <LegoRR.exe @004d8b48>
-char CHAR_ARRAY_ARRAY_004d8b48[15][1024];
+char s_FrontLevelSelectNames[15][1024];
 // <LegoRR.exe @004dc748>
-char CHAR_ARRAY_004dc748[256];
+char s_FrontReplaceSpacesBuff[256];
 // <LegoRR.exe @004dc850>
-sint32 POINT_Y_ARRAY_004dc850[16];
+sint32 s_LevelSelect_NameYs[16];
 // <LegoRR.exe @004dc890>
 Image* g_SaveSlotImages_TABLE[5];
 // <LegoRR.exe @004dc8a4>
 undefined4 DAT_004dc8a4;
 // <LegoRR.exe @004dc8a8>
-void* g_SaveSlotPtrs_TABLE[5];
+uint32 g_SaveSlotPtrs_TABLE[5];
 // <LegoRR.exe @004dc8bc>
-bool32 BOOL_004dc8bc;
+bool32 g_FrontBool_004dc8bc;
 // <LegoRR.exe @004dc8c0>
-bool32 BOOL_004dc8c0;
+bool32 g_FrontBool_004dc8c0;
 // <LegoRR.exe @004dc8c4>
-bool32 BOOL_004dc8c4;
+bool32 g_FrontBool_004dc8c4;
 // <LegoRR.exe @004dc8c8>
-bool32 BOOL_004dc8c8;
+bool32 g_FrontBool_004dc8c8;
 // <LegoRR.exe @004dc8cc>
-ImageCacheItem* g_ImageCache_NEXT;
+Front_Cache* g_ImageCache_NEXT;
 // <LegoRR.exe @004dc8d0>
-uint32 COUNT_004dc8d0;
+uint32 s_LevelSelectNameCount;
 // <LegoRR.exe @004dc8d4>
-bool32 BOOL_004dc8d4;
+bool32 g_FrontBool_004dc8d4;
 // <LegoRR.exe @004dc8dc>
-sint32 COUNT_004dc8dc;
+sint32 g_FrontCount_004dc8dc;
 // <LegoRR.exe @004dc8e0>
-Menu* PTRMenu_004dc8e0;
+Menu* s_FrontOptionsMenu;
 // <LegoRR.exe @004dc8e4>
-MenuSet* PTRMenuSet_004dc8e4;
+MenuSet* s_FrontOptionsMenuSet;
 // <LegoRR.exe @004dc8e8>
 HelpWindow_Globs helpwindowGlobs;
 // <LegoRR.exe @004dd658>
@@ -1907,129 +1907,7 @@ Info_Globs infoGlobs;
 // <LegoRR.exe @004ddd50>
 sint32 INTObjectIndex_004ddd50;
 // <LegoRR.exe @004ddd58>
-Font* PTRImageFont_004ddd58;
-// <LegoRR.exe @004ddd5c>
-Image* g_InterfaceSurroundImages[11];
-// <LegoRR.exe @004ddd88>
-Point2F Point2F_ARRAY_004ddd88[11];
-// <LegoRR.exe @004ddde0>
-Image* g_InterfaceSurroundImagesBack[11];
-// <LegoRR.exe @004dde0c>
-Point2F Point2F_ARRAY_004dde0c[11];
-// <LegoRR.exe @004dde64>
-Image* g_InterfaceBackButton_bmp;
-// <LegoRR.exe @004dde68>
-Image* g_InterfaceBackButton_bmp_pressed;
-// <LegoRR.exe @004dde6c>
-Point2F Point2F_ARRAY_004dde6c[11];
-// <LegoRR.exe @004ddec4>
-Size2I g_InterfaceBackButton_size;
-// <LegoRR.exe @004ddecc>
-char* g_InterfaceBackButton_text;
-// <LegoRR.exe @004dded0>
-char* g_InterfaceMenuItemNames_TABLE[74];
-// <LegoRR.exe @004ddff8>
-Image* PTRImageBMP_ARRAY_004ddff8[74];
-// <LegoRR.exe @004de120>
-Image* PTRImageBMP_ARRAY_004de120[74];
-// <LegoRR.exe @004de248>
-Image* PTRImageBMP_ARRAY_004de248[74];
-// <LegoRR.exe @004de370>
-char* PTRString_ARRAY_004de370[74];
-// <LegoRR.exe @004de498>
-SFX_Type SFX_Type_ARRAY_004de498[74];
-// <LegoRR.exe @004de5c0>
-KeysByte g_InterfaceIcon_Keys_TABLE[74];
-// <LegoRR.exe @004de60c>
-uint32 UINT_ARRAY_004de60c[74];
-// <LegoRR.exe @004de734>
-Image** g_InterfaceBuildImages_Vehicles_normal_TABLE;
-// <LegoRR.exe @004de738>
-Image** g_InterfaceBuildImages_Buildings_normal_TABLE;
-// <LegoRR.exe @004de73c>
-Image** g_InterfaceBuildImages_Vehicles_pressed_TABLE;
-// <LegoRR.exe @004de740>
-Image** g_InterfaceBuildImages_Buildings_pressed_TABLE;
-// <LegoRR.exe @004de744>
-Image** g_InterfaceBuildImages_Vehicles_disabled_TABLE;
-// <LegoRR.exe @004de748>
-Image** g_InterfaceBuildImages_Buildings_disabled_TABLE;
-// <LegoRR.exe @004de99c>
-db* g_InterfaceBuildKeys_Vehicles_TABLE;
-// <LegoRR.exe @004de9a0>
-db* g_InterfaceBuildKeys_Buildings_TABLE;
-// <LegoRR.exe @004de9a4>
-InterfaceIconFlags* g_SubmenuIcons_VehicleTypesFlags_TABLE;
-// <LegoRR.exe @004de9a8>
-InterfaceIconFlags* g_SubmenuIcons_BuildingTypesFlags_TABLE;
-// <LegoRR.exe @004de9ac>
-sint32 g_Interface_Icons_Clicked[74];
-// <LegoRR.exe @004dead4>
-sint32* g_SubmenuIcons_VehicleTypesClicked_TABLE;
-// <LegoRR.exe @004dead8>
-sint32* g_SubmenuIcons_BuildingTypesClicked_TABLE;
-// <LegoRR.exe @004deadc>
-bool32 BOOL_ARRAY_004deadc[74];
-// <LegoRR.exe @004dec04>
-InterfaceMenuItem g_InterfaceMenuItemDefines_TABLE[24];
-// <LegoRR.exe @004decc4>
-Point2I g_Interface_SelectedBlock;
-// <LegoRR.exe @004deccc>
-Interface_MenuType Interface_MenuType_004deccc;
-// <LegoRR.exe @004decd0>
-Point2F Point2F_004decd0;
-// <LegoRR.exe @004decd8>
-LegoObject_Type LegoObject_Type_004decd8;
-// <LegoRR.exe @004decdc>
-sint32 INTObjectIndex_004decdc;
-// <LegoRR.exe @004dece0>
-Point2F Point2F_004dece0;
-// <LegoRR.exe @004dece8>
-Point2F Point2F_004dece8;
-// <LegoRR.exe @004decf0>
-real32 FLOAT_004decf0;
-// <LegoRR.exe @004decf4>
-Point2I Point2IBlockPos_004decf4;
-// <LegoRR.exe @004decfc>
-Interface_MenuType Interface_MenuType_004decfc;
-// <LegoRR.exe @004ded00>
-Interface_MenuItem INTMenuIcon_004ded00;
-// <LegoRR.exe @004ded04>
-undefined4 DAT_004ded04;
-// <LegoRR.exe @004ded08>
-undefined4 DAT_004ded08;
-// <LegoRR.exe @004ded0c>
-Area2F Area2F_004ded0c;
-// <LegoRR.exe @004ded1c>
-bool32 BOOL_004ded1c;
-// <LegoRR.exe @004ded20>
-real32 TIMER_004ded20;
-// <LegoRR.exe @004ded24>
-Advisor_Type Advisor_Type_004ded24;
-// <LegoRR.exe @004ded28>
-Interface_MenuItem Interface_MenuItem_004ded28;
-// <LegoRR.exe @004ded2c>
-LegoObject_Type LegoObject_Type_004ded2c;
-// <LegoRR.exe @004ded30>
-sint32 INT_004ded30;
-// <LegoRR.exe @004ded34>
-undefined4 DAT_004ded34;
-// <LegoRR.exe @004df1e4>
-Image* g_InterfaceDependencies_Plus_bmp;
-// <LegoRR.exe @004df1e8>
-Image* g_InterfaceDependencies_Minus_bmp;
-// <LegoRR.exe @004df1ec>
-real32 FLOAT_004df1ec;
-// <LegoRR.exe @004df1f0>
-WallHighlightType WallHighlightType_004df1f0;
-// <LegoRR.exe @004df1f4>
-SFX_Type SFX_Type_004df1f4;
-// <LegoRR.exe @004df1f8>
-undefined4 FLAGS_004df1f8;
-// <LegoRR.exe @004df1fc>
-SFX_Type SFX_Type_004df1fc;
-// <LegoRR.exe @004df200>
-bool32 BOOLSFXPlaying_004df200;
+Interface_Globs interfaceGlobs;
 // <LegoRR.exe @004df208>
 Point2I s_ShowBlockToolTip_MousePos;
 // <LegoRR.exe @004df410>
@@ -2045,45 +1923,7 @@ Message_Globs messageGlobs;
 // <LegoRR.exe @00500958>
 NERPsRuntime_Globs nerpsruntimeGlobs;
 // <LegoRR.exe @00500bc0>
-ObjectiveFlags g_ObjectiveFlags;
-// <LegoRR.exe @00500bc4>
-File* PTRFileStream_00500bc4;
-// <LegoRR.exe @00500bc8>
-char CHAR_ARRAY_00500bc8[128];
-// <LegoRR.exe @00500c48>
-char* g_Objective_StatusMessages[4];
-// <LegoRR.exe @00500dd8>
-uint32 g_Objective_StatusUnkCounts[4];
-// <LegoRR.exe @00500de8>
-uint32 g_Objective_StatusUnkCounts2[4];
-// <LegoRR.exe @00500df8>
-uint32 g_Objective_StatusBellCounts[4];
-// <LegoRR.exe @00500e08>
-TextWindow* g_Objective_StatusTextWindows[4];
-// <LegoRR.exe @00500e18>
-TextWindow* PTRTextWindow_00500e18;
-// <LegoRR.exe @00500e1c>
-TextWindow* PTRTextWindow_00500e1c;
-// <LegoRR.exe @00500e20>
-TextWindow* PTRTextWindow_00500e20;
-// <LegoRR.exe @00500e24>
-TextWindow* PTRTextWindow_00500e24;
-// <LegoRR.exe @00500e2c>
-bool32 BOOL_00500e2c;
-// <LegoRR.exe @00500e30>
-bool32 g_LevelIsComplete;
-// <LegoRR.exe @00500e34>
-bool32 g_ObjectiveSwitch;
-// <LegoRR.exe @00500e38>
-char* g_StreamObjective_Sample;
-// <LegoRR.exe @00500e3c>
-sint32 INT_00500e3c;
-// <LegoRR.exe @00500e40>
-real32 FLOAT_00500e40;
-// <LegoRR.exe @00500e44>
-bool32 BOOL_00500e44;
-// <LegoRR.exe @00500e48>
-bool32 g_IsEndTeleportEnabled;
+Objective_Globs objectiveGlobs;
 // <LegoRR.exe @00500e50>
 ObjectRecall_Globs objectrecallGlobs;
 // <LegoRR.exe @00500e68>
@@ -2151,77 +1991,7 @@ ScrollInfoStruct_20 g_ScrollInfos[2];
 // <LegoRR.exe @00553180>
 Roof_Globs roofGlobs;
 // <LegoRR.exe @00553980>
-bool32 g_Reward_Display;
-// <LegoRR.exe @00553984>
-bool32 g_Reward_CentreText;
-// <LegoRR.exe @0055398c>
-real32 g_Reward_Timer;
-// <LegoRR.exe @00553990>
-RewardLevel* g_RewardBase;
-// <LegoRR.exe @00553994>
-RewardLevel* g_RewardLevel;
-// <LegoRR.exe @00553998>
-Image* g_Reward_Wallpaper;
-// <LegoRR.exe @0055399c>
-RewardLevel g_RewardCur;
-// <LegoRR.exe @00556b28>
-real32 g_Reward_ScrollSpeed;
-// <LegoRR.exe @00556b2c>
-real32 g_Reward_VertSpacing;
-// <LegoRR.exe @00556b3c>
-char* g_Reward_Font_filename;
-// <LegoRR.exe @00556b40>
-Font* g_Reward_Font;
-// <LegoRR.exe @00556b44>
-char* g_Reward_TitleFont_filename;
-// <LegoRR.exe @00556b48>
-Font* g_Reward_TitleFont;
-// <LegoRR.exe @00556b4c>
-char* g_Reward_BackFont_filename;
-// <LegoRR.exe @00556b50>
-Font* g_Reward_BackFont;
-// <LegoRR.exe @00556b54>
-Config* g_Reward_LegoCfgRoot;
-// <LegoRR.exe @00556b58>
-char* g_Reward_CfgRootName;
-// <LegoRR.exe @00556b5c>
-RewardScroll* g_RewardScroll;
-// <LegoRR.exe @00556b60>
-Point2F g_Reward_SaveButtonPosition;
-// <LegoRR.exe @00556b68>
-Image* g_Reward_SaveButton;
-// <LegoRR.exe @00556b6c>
-Image* g_Reward_SaveButton_hi;
-// <LegoRR.exe @00556b70>
-Image* g_Reward_SaveButton_in;
-// <LegoRR.exe @00556b74>
-Image* g_Reward_SaveButton_dim;
-// <LegoRR.exe @00556b78>
-Point2F g_Reward_AdvanceButtonPosition;
-// <LegoRR.exe @00556b80>
-Image* g_Reward_AdvanceButton;
-// <LegoRR.exe @00556b84>
-Image* g_Reward_AdvanceButton_hi;
-// <LegoRR.exe @00556b88>
-Image* g_Reward_AdvanceButton_in;
-// <LegoRR.exe @00556b8c>
-Image* g_Reward_AdvanceButton_dim;
-// <LegoRR.exe @00556b90>
-char* g_Reward_CompleteText;
-// <LegoRR.exe @00556b94>
-char* g_Reward_FailedText;
-// <LegoRR.exe @00556b98>
-char* g_Reward_QuitText;
-// <LegoRR.exe @00556b9c>
-Point2I g_Reward_TextPos;
-// <LegoRR.exe @00556ba4>
-char g_LevelStatusMessage_text[32];
-// <LegoRR.exe @00556bc4>
-bool32 g_Reward_DisplayText;
-// <LegoRR.exe @00556bc8>
-bool32 g_Reward_DisplayImages;
-// <LegoRR.exe @00556bcc>
-bool32 g_Reward_DisplayFlics;
+Reward_Globs rewardGlobs;
 // <LegoRR.exe @00556be0>
 PTL_Globs ptlGlobs;
 // <LegoRR.exe @00556d40>
