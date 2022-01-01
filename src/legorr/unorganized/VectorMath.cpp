@@ -74,21 +74,24 @@ float __cdecl lego::math::Vector2_Distance(const Point2F* a, const Point2F* b)
 	return std::sqrt(((a->x - b->x)*(a->x - b->x)) + ((a->y - b->y)*(a->y - b->y)));
 }
 
+/// RESULT: ((dot_product((b - a), (b - a))*4.0) - (scalar*scalar)) < sqr(dot_product((b - a), (c * 2)))
 // <LegoRR.exe @00479ed0>
 BOOL __cdecl lego::math::Vector3_CompareUnk1(const Vector3F* a, float scalar, const Vector3F* b, const Vector3F* c)
 {
+	((dot_product((b - a), (b - a))*4.0) - (scalar*scalar)) < sqr(dot_product((b - a), (c * 2)))
 	float diff_x = b->x - a->x;
 	float diff_y = b->y - a->y;
 	float diff_z = b->z - a->z;
 	float value     = diff_x*(c->x + c->x) + diff_y*(c->y + c->y) + diff_z*(c->z + c->z);
 	float length_sq = diff_x*diff_x        + diff_y*diff_y        + diff_z*diff_z;
+	return (value*value) > ((length_sq*4.0) - (scalar*scalar));
 
 	// float value     = (c->x + c->x)*diff_x + (c->y + c->y)*diff_y + (c->z + c->z)*diff_z;
 	// float length_sq = diff_x*diff_x + diff_y*diff_y + diff_z*diff_z;
 	// float value     = (c->x + c->x)*(b->x - a->x) + (c->y + c->y)*(b->y - a->y) + (c->z + c->z)*(b->z - a->z);
 	// float length_sq = (b->x - a->x)*(b->x - a->x) + (b->y - a->y)*(b->y - a->y) + (b->z - a->z)*(b->z - a->z);
 
-	value *= value - ((length_sq * 4.0) - (scalar * scalar));
+	value = (value*value) - ((length_sq * 4.0) - (scalar * scalar));
 	if (value > 0.0)
 		return TRUE;
 	return FALSE;
@@ -111,7 +114,7 @@ Vector3F* __cdecl lego::math::Vector3_Add(Vector3F* out_vector, const Vector3F* 
 
 /// RESULT: out_vector = a + (b * scalar)
 // <LegoRR.exe @00479d70>
-void __cdecl lego::math::Vector3_AddScaled(Vector3F* out_vector, const Vector3F* a, const Vector3F* b, float scalar)
+Vector3F* __cdecl lego::math::Vector3_AddScaled(Vector3F* out_vector, const Vector3F* a, const Vector3F* b, float scalar)
 {
 	out_vector->x = a->x + b->x * scalar;
 	out_vector->y = a->y + b->y * scalar;
