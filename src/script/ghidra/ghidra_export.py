@@ -403,6 +403,7 @@ RE_ARGUMENTS = rf"(?:{RE_ARGUMENTS_BASE})"
 # RE_LINECOMMENT_CAP = r"(?:\/\/+\s*(?:(?P<comment>(?:[^\n]|\\\n)*?))\s*)?(?=\n|$)"
 
 RE_LINECOMMENT_CAP = rf"(?:\/\/+{WS1}*(?:(?P<comment>(?:[^\n]|\\\n)*)))?" #{WS}*(?=\n))?"
+RE_LINECOMMENT_NOCAP = rf"(?:\/\/(?:[^\n]|\\\n)*)"
 
 
 RE_PARSE_SYMBOL = rf"""
@@ -437,7 +438,7 @@ PARSE_TYPE_BLOCK = re.compile(rf"""
     \{{
         {WS}*{RE_LINECOMMENT_CAP}\n
 
-        (?P<textbody> (?:[^}}\n]|\n[^}}])* )  # contents of block
+        (?P<textbody> (?:{RE_LINECOMMENT_NOCAP}|[^}}\n]|\n[^}}])* )  # contents of block (include linecomment to discard unwanted braces)
 
     \n\}} {WS}*  # end of block brace
     (?(1) (?P<typedef>{RE_IDENTIFIER}) (?=[;,])) # optional typedef name
@@ -722,7 +723,22 @@ class Symbol:
         else:
             return ' '.join(filter(bool, (typepart, f'{namepart}{arguments}{arrays}')))
 
+    def format_assert_sizeof(self, **kwargs) -> str:
+        if self.size is not None:
+            assert_name = 'assert_sizeof' if not self.is_flags else 'flags_end'
+            return f'{assert_name}({self.name}, {self.size:#x});'
+        else:
+            return ''
     
+    def print_assert_sizeof(self, **kwargs):
+        print(self.format_assert_sizeof(), **kwargs)
+
+    def format_address(self, *, exename:str='LegoRR.exe', **kwargs) -> str:
+        return f'// <{exename} @{self.address:08x}>'
+    
+    def print_address(self, *, exename:str='LegoRR.exe', **kwargs):
+        print(self.format_address(exename=exename), **kwargs)
+
 
     def print(self, *, pad:bool=PAD_DEFAULT, **kwargs):
         print(str(self), **kwargs)
@@ -739,7 +755,7 @@ class Symbol:
         if not namespace and self.namespace:
             text = text.replace(self.namespace, '')
         if address and self.address is not None:
-            text = f'// <{exename} @{self.address:08x}>\n{text}'
+            text = f'{self.format_address(exename=exename)}\n{text}'
         return text
         
     def print_full(self, *, pad:bool=PAD_DEFAULT, end:Optional[str]=None, **kwargs):
@@ -1000,6 +1016,27 @@ class FunctionSymbol(TypeSymbol):
         return f'{super().__repr__()};' # append semicolon ';'
     def __str__(self):
         return f'{super().__str__()};' # append semicolon ';'
+    
+    def format_define(self, end:Optional[str]=None) -> str:
+        if end is None: end = ''
+        if not self.is_function:
+            args = None
+        elif self.arguments:
+            args = [str(a) for a in self.arguments]
+        else:
+            args = ['void']
+        
+        name = self.display_name # self.name
+        typename = self.display_typename # self.typename
+        return f'#define {name} (({Symbol.format_type(typename, name=None, modifier=self.modifier, decl=self.decl, typeptrs=self.typeptrs, nameptrs=self.nameptrs+1, arrays=self.arrays, arguments=args, namespace=self.namespace)})0x{self.address:08x}){end}'
+
+    def format_define_full(self, *, end:Optional[str]=None, namespace:bool=True, address:bool=True, exename:str='LegoRR.exe', **kwargs) -> str:
+        text = self.format_define(end=end, **kwargs)
+        if not namespace and self.namespace:
+            text = text.replace(self.namespace, '')
+        if address and self.address is not None:
+            text = f'{self.format_address(exename=exename)}\n{text}'
+        return text
 
 class VariableSymbol(TypeSymbol):
     value:Optional[Any]
@@ -1079,11 +1116,16 @@ class ValueSymbol(Symbol):
         # return f'{self.display_name} = {value},{comment}'
     __str__ = __repr__
     
-    def padstring(self, padlength:Optional[int]=None, **kwargs):
+    def padstring(self, padlength:Optional[int]=None, hex_override:Optional[int]=None, **kwargs):
         comment = f' // {self.comment}' if self.comment else ''
         # It's cleaner to format 0 flag values without the hex specified,
         #  since most of the time these values are NONE and not a mask option
-        if self.value == 0:  # '0' for both flags and enums
+        if hex_override is not None:
+            if isinstance(hex_override, int):
+                if hex_override != 0:
+                    hex_override = f'0{hex_override}' # always zero-pad
+            value = f'0x{{self.value:{hex_override}}}'
+        elif self.value == 0:  # '0' for both flags and enums
             value = f'{self.value:d}'
         elif self.is_flags:   # 0x-hex for flags
             value = f'{self.value:#x}'
@@ -1105,11 +1147,16 @@ class DefineValueSymbol(ValueSymbol):
         return self.padstring(None)
     __str__ = __repr__
     
-    def padstring(self, padlength:Optional[int]=None, **kwargs):
+    def padstring(self, padlength:Optional[int]=None, hex_override:Optional[int]=None, **kwargs):
         comment = f' // {self.comment}' if self.comment else ''
         # It's cleaner to format 0 flag values without the hex specified,
         #  since most of the time these values are NONE and not a mask option
-        if self.value == 0:  # '0' for both flags and enums
+        if hex_override is not None:
+            if isinstance(hex_override, int):
+                if hex_override != 0:
+                    hex_override = f'0{hex_override}' # always zero-pad
+            value = f'0x{{self.value:{hex_override}}}'
+        elif self.value == 0:  # '0' for both flags and enums
             value = f'{self.value:d}'
         elif self.is_flags:   # 0x-hex for flags
             value = f'{self.value:#x}'
@@ -1189,12 +1236,15 @@ class BaseEnumSymbol(Symbol):
     @property
     def targetsize(self) -> Optional[int]: return self._targetsize
     
-    def print(self, *, pad:bool=PAD_DEFAULT, **kwargs):
+    def print(self, *, pad:bool=PAD_DEFAULT, assert_sizeof:bool=False, hex_override:Optional[int]=None, **kwargs):
         padlength = None if not pad else max(len(v.display_name) for v in self.values)
-        text = f'{self!s}\n{{\n' + '\n'.join(f'\t{v.padstring(padlength)}' for v in self.values) + f'\n}};'
+        text = f'{self!s}\n{{\n' + '\n'.join(f'\t{v.padstring(padlength, hex_override=hex_override)}' for v in self.values) + f'\n}};'
         #text = f'{self!s}\n{{\n' + '\n'.join(f'\t{v!s}' for v in self.values) + f'\n}};'
         text = 'enum' + text[4:]
-        if self.kind is SymbolKind.FLAGS:
+        if assert_sizeof and self.size is not None:
+            text += f'\n{self.format_assert_sizeof()}'
+        elif self.kind is SymbolKind.FLAGS:
+            # assert_sizeof will use `flags_end` for flags types, so this macro isn't needed.
             text += f'\nDEFINE_ENUM_FLAG_OPERATORS({self.display_name});'
         print(text, **kwargs)
 
@@ -1274,13 +1324,16 @@ class BaseStructSymbol(Symbol):
     @property
     def targetsize(self) -> Optional[int]: return self._targetsize
     
-    def print(self, *, pad:bool=PAD_DEFAULT, **kwargs):
+    def print(self, *, pad:bool=PAD_DEFAULT, assert_sizeof:bool=False, **kwargs):
         size = f'\n\t/*{self.size:x}*/' if self.size is not None else ''
         pack_begin = pack_end = ''
+        assert_size = ''
         if self.pack is not None:
             pack_begin = f'#pragma pack(push, {self.pack:d})\n'
             pack_end   = f'\n#pragma pack(pop)'
-        text = f'{pack_begin}{self!s}\n{{\n' + '\n'.join(f'\t{m!r}' for m in self.members) + f'{size}\n}};{pack_end}'
+        if assert_sizeof and self.size is not None:
+            assert_size = f'\n{self.format_assert_sizeof()}'
+        text = f'{pack_begin}{self!s}\n{{\n' + '\n'.join(f'\t{m!r}' for m in self.members) + f'{size}\n}};{assert_size}{pack_end}'
         print(text, **kwargs)
 
 
@@ -2262,6 +2315,7 @@ class SymbolDatabase:
             SCRIPT_DIR:str = os.path.abspath(os.path.dirname(__file__))
             print(SCRIPT_DIR)
             with open(os.path.join(SCRIPT_DIR, 'ghidra_export.log'), 'wt+', encoding='utf-8') as f:
+                # f.write('\n\n===START===\n')
                 for r in remaining:
                     f.write(repr(r) + '\n')
                 f.flush()
@@ -2374,14 +2428,16 @@ class LegoRRSymbolDatabase(SymbolDatabase):
         self.override_display_name('float',  'real32', optional=optional)
         self.override_display_name('BOOL',   'bool32', optional=optional)
         
+        # All of these have been renamed to the new name in Ghidra project.
         optional_true = True if optional is None else optional
-        self.override_display_name('BOOL3',  'BoolTri', optional=optional_true)
-        self.override_display_name('ImageBMP', 'Image', optional=optional_true)
-        self.override_display_name('ImageFont', 'Font', optional=optional_true)
-        self.override_display_name('ImageFlic', 'Flic', optional=optional_true)
-        self.override_display_name('Rect2I', 'Area2I', optional=optional_true)
-        self.override_display_name('Rect2F', 'Area2F', optional=optional_true)
-        self.override_display_name('D3DRMVertex', 'Vertex3F', optional=optional_true)
+        #self.override_display_name('BOOL3',  'BoolTri', optional=optional_true)
+        #self.override_display_name('ImageBMP', 'Image', optional=optional_true)
+        #self.override_display_name('ImageFont', 'Font', optional=optional_true)
+        #self.override_display_name('ImageFlic', 'Flic', optional=optional_true)
+        #self.override_display_name('D3DRMVertex', 'Vertex3F', optional=optional_true)
+        # These will cause actual issues since Rect2I now signifies a LTRB rect and not a POINTSIZE rect.
+        #self.override_display_name('Rect2I', 'Area2I', optional=optional_true)
+        #self.override_display_name('Rect2F', 'Area2F', optional=optional_true)
 
 
 

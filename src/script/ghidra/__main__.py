@@ -130,6 +130,7 @@ def main(argv:Optional[list]=None) -> int:
     ogroup.add_argument('-b', '--backup', action='store_true', default=False, help=f'overwrite original header and create *{BACKUP_CONST}.h backup')
     
     dtparser.add_argument('-f','--filtered', action='store_true', default=False, help='Remove irrelevant datatypes')
+    dtparser.add_argument('-A','--assert-size', action='store_true', dest='assert_sizeof', default=False, help='Add size assertions for block datatypes')
 
     dtparser.add_argument('-q', '--quiet', action='store_true', default=False, help='don\'t print actions being performed')
     dtparser.add_argument('-T', '--test', action='store_true', default=False, help='test program without saving any changes')
@@ -152,6 +153,7 @@ def main(argv:Optional[list]=None) -> int:
         elif args.rename is not None:
             output = os.path.join(os.path.dirname(input), args.rename)
         elif args.append is not None:
+            # Insert append beteween filename and extension
             output = args.append.join(os.path.splitext(input))
         elif args.replace or args.backup:
             output = input
@@ -192,6 +194,7 @@ def main(argv:Optional[list]=None) -> int:
     
     verbose = args.test or not args.quiet
     filtered = args.filtered
+    assert_sizeof = args.assert_sizeof
 
     #endregion
 
@@ -249,8 +252,8 @@ def main(argv:Optional[list]=None) -> int:
     if output:
         if verbose: print(f'Saving:  {output}')
         if not test:
+            sorted_symbols = filter_symbols(db, predicate=filter_noprimitive, key=sortby_datatypes)
             with open(output, 'wt+', encoding='utf-8') as f:
-                sorted_symbols = filter_symbols(db, predicate=filter_noprimitive, key=sortby_datatypes)
                 total,section, = 0,0
                 for define in sorted(db.defines.values(), key=lambda d: d.name.lower()):
                     if filtered: continue
@@ -281,7 +284,11 @@ def main(argv:Optional[list]=None) -> int:
                 for symbol in sorted_symbols:
                     if is_filtered(symbol): continue
                     if symbol.kind is ge.SymbolKind.ENUM:
-                        f.write(symbol.format_full(namespace=False) + '\n')
+                        if symbol.name == 'SurfaceTexture':
+                            # HACK: ALways output SurfaceTexture enum as 2-digit hex.
+                            f.write(symbol.format_full(namespace=False, assert_sizeof=assert_sizeof, hex_override=2) + '\n')
+                        else:
+                            f.write(symbol.format_full(namespace=False, assert_sizeof=assert_sizeof) + '\n')
                         f.write('\n')
                         section += 1
                 
@@ -290,7 +297,7 @@ def main(argv:Optional[list]=None) -> int:
                 for symbol in sorted_symbols:
                     if is_filtered(symbol): continue
                     if symbol.kind is ge.SymbolKind.FLAGS:
-                        f.write(symbol.format_full(namespace=False) + '\n')
+                        f.write(symbol.format_full(namespace=False, assert_sizeof=assert_sizeof) + '\n')
                         f.write('\n')
                         section += 1
                 
@@ -299,7 +306,7 @@ def main(argv:Optional[list]=None) -> int:
                 for symbol in sorted_symbols:
                     if is_filtered(symbol): continue
                     if symbol.kind is ge.SymbolKind.UNION:
-                        f.write(symbol.format_full(namespace=False) + '\n')
+                        f.write(symbol.format_full(namespace=False, assert_sizeof=assert_sizeof) + '\n')
                         f.write('\n')
                         section += 1
                 
@@ -308,7 +315,7 @@ def main(argv:Optional[list]=None) -> int:
                 for symbol in sorted_symbols:
                     if is_filtered(symbol): continue
                     if symbol.kind is ge.SymbolKind.STRUCT:
-                        f.write(symbol.format_full(namespace=False) + '\n')
+                        f.write(symbol.format_full(namespace=False, assert_sizeof=assert_sizeof) + '\n')
                         f.write('\n')
                         section += 1
                 
@@ -344,6 +351,56 @@ def main(argv:Optional[list]=None) -> int:
                 total,section, = total+section,0
                 
                 f.flush()
+            
+            # declare FUNC
+            sorted_symbols = filter_symbols(db, predicate=filter_noprimitive, key=sortby_datatypes)
+            with open('.functions'.join(os.path.splitext(output)), 'wt+', encoding='utf-8') as f:
+                total,section, = total+section,0
+                for symbol in sorted_symbols:
+                    if is_filtered(symbol): continue
+                    if symbol.kind is ge.SymbolKind.FUNCTION:
+                        f.write(symbol.format_full(namespace=False) + '\n\n')
+                        #f.write('\n')
+                        section += 1
+            
+            # define FUNC_PTR
+            sorted_symbols = filter_symbols(db, predicate=filter_noprimitive, key=sortby_datatypes)
+            with open('.defines'.join(os.path.splitext(output)), 'wt+', encoding='utf-8') as f:
+                total,section, = total+section,0
+                for symbol in sorted_symbols:
+                    if is_filtered(symbol): continue
+                    if symbol.kind is ge.SymbolKind.FUNCTION:
+                        f.write(symbol.format_define_full(namespace=False) + '\n\n')
+                        #f.write('\n')
+                        section += 1
+            
+            # define FUNC_PTR
+            # //declare FUNC
+            sorted_symbols = filter_symbols(db, predicate=filter_noprimitive, key=sortby_datatypes)
+            with open('.combined1'.join(os.path.splitext(output)), 'wt+', encoding='utf-8') as f:
+                total,section, = total+section,0
+                for symbol in sorted_symbols:
+                    if is_filtered(symbol): continue
+                    if symbol.kind is ge.SymbolKind.FUNCTION:
+                        f.write(symbol.format_address() + '\n')
+                        f.write(symbol.format_define_full(namespace=False, address=False) + '\n')
+                        f.write('//' + symbol.format_full(namespace=False, address=False) + '\n\n')
+                        #f.write('\n')
+                        section += 1
+            
+            # //define FUNC_PTR
+            # declare FUNC
+            sorted_symbols = filter_symbols(db, predicate=filter_noprimitive, key=sortby_datatypes)
+            with open('.combined2'.join(os.path.splitext(output)), 'wt+', encoding='utf-8') as f:
+                total,section, = total+section,0
+                for symbol in sorted_symbols:
+                    if is_filtered(symbol): continue
+                    if symbol.kind is ge.SymbolKind.FUNCTION:
+                        f.write(symbol.format_address() + '\n')
+                        f.write('//' + symbol.format_define_full(namespace=False, address=False) + '\n')
+                        f.write(symbol.format_full(namespace=False, address=False) + '\n\n')
+                        #f.write('\n')
+                        section += 1
 
     if verbose: print('Done!')
 
