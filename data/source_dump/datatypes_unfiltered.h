@@ -431,10 +431,12 @@ typedef enum LegoObject_Type { // [LegoRR/LegoObject.c|enum:0x4|type:int]
 	LegoObject_Vehicle=1
 } LegoObject_Type;
 
+typedef uint LegoObject_ID;
+
 struct DependencyRequirement { // [LegoRR/Dependencies.c|struct:0x10]
 	enum LegoObject_Type objType;
-	int objIndex;
-	int objLevel;
+	LegoObject_ID objID;
+	uint objLevel;
 	BOOL hasLevel;
 };
 
@@ -460,7 +462,6 @@ typedef struct AdvisorPositionData AdvisorPositionData, *PAdvisorPositionData;
 
 typedef enum Advisor_Anim { // [LegoRR/Advisor.c|enum:0x4|type:int]
 	Advisor_Anim_Count=11,
-	Advisor_Anim_Invalid=4294967295,
 	Advisor_Anim_PointToMap=0,
 	Advisor_Anim_Point_E=3,
 	Advisor_Anim_Point_N=1,
@@ -475,34 +476,33 @@ typedef enum Advisor_Anim { // [LegoRR/Advisor.c|enum:0x4|type:int]
 } Advisor_Anim;
 
 typedef enum Text_Type { // [LegoRR/Text.c|enum:0x4|type:int]
-	TEXT_AIRSUPPLYLOW=20,
-	TEXT_AIRSUPPLYRUNNINGOUT=21,
-	TEXT_BUILDHELP=10,
-	TEXT_CANNOTPLACEBUILDING=15,
-	TEXT_CANTDRILL=3,
-	TEXT_CANTDRIVE=13,
-	TEXT_CANTREINFORCE=6,
-	TEXT_CAVERNDISCOVERED=18,
-	TEXT_CRYSTALFOUND=17,
-	TEXT_CRYSTALOREDISABLED=16,
-	TEXT_DRILL=1,
-	TEXT_DRIVE=12,
-	TEXT_ENCYCLOPEDIA=8,
-	TEXT_GAMECOMPLETE=23,
-	TEXT_MAKETELEPORTER=14,
-	TEXT_MANTRAINED=24,
-	TEXT_NODRILL=2,
-	TEXT_NOREINFORCE=5,
-	TEXT_OREFOUND=19,
-	TEXT_PICKUPCRYSTAL=7,
-	TEXT_RADARHELP=9,
-	TEXT_REINFORCE=4,
-	TEXT_SELECTIONHELP=11,
-	TEXT_SPACETOCONTINUE=22,
-	TEXT_UNITUPGRADED=25,
-	TEXT_WALK=0,
-	TEXT__COUNT=26,
-	TEXT__INVALID=4294967295
+	Text_AirSupplyLow=20,
+	Text_AirSupplyRunningOut=21,
+	Text_BuildHelp=10,
+	Text_CannotPlaceBuilding=15,
+	Text_CantDrill=3,
+	Text_CantDrive=13,
+	Text_CantReinforce=6,
+	Text_CavernDiscovered=18,
+	Text_CrystalFound=17,
+	Text_CrystalOreDisabled=16,
+	Text_Drill=1,
+	Text_Drive=12,
+	Text_Encyclopedia=8,
+	Text_GameCompleted=23,
+	Text_MakeTeleporter=14,
+	Text_ManTrained=24,
+	Text_NoDrill=2,
+	Text_NoReinforce=5,
+	Text_OreFound=19,
+	Text_PickupCrystal=7,
+	Text_RadarHelp=9,
+	Text_Reinforce=4,
+	Text_SelectionHelp=11,
+	Text_SpaceToContinue=22,
+	Text_Type_Count=26,
+	Text_UnitUpgraded=25,
+	Text_Walk=0
 } Text_Type;
 
 typedef enum SFX_ID { // [LegoRR/SFX.c|enum:0x4|type:int] SFXType is different from actual Sample indexes, these are hardcoded values that can easily be looked up by ID
@@ -568,8 +568,7 @@ typedef enum Panel_Type { // [LegoRR/Panels.c|enum:0x4|type:int]
 	Panel_RadarFill=1,
 	Panel_RadarOverlay=2,
 	Panel_TopPanel=6,
-	Panel_Type_Count=12,
-	Panel_Type_Invalid=4294967295
+	Panel_Type_Count=12
 } Panel_Type;
 
 typedef enum AdvisorFlags { // [LegoRR/Advisor.c|flags:0x4|type:uint]
@@ -814,8 +813,8 @@ typedef struct DependencyUnlocks DependencyUnlocks, *PDependencyUnlocks;
 
 struct DependencyUnlocks { // [LegoRR/Dependencies.c|struct:0x204]
 	enum LegoObject_Type objTypes[32];
-	int objIndexes[32];
-	int objLevels[32];
+	LegoObject_ID objIDs[32];
+	uint objLevels[32];
 	BOOL objHasLevels[32]; // (unlocks for a specific level)
 	uint count;
 };
@@ -826,9 +825,85 @@ struct HelpWindowInfoLevels { // [LegoRR/HelpWindow.c|struct:0x40]
 	char * levels[16];
 };
 
-typedef struct InterfaceMenuItem InterfaceMenuItem, *PInterfaceMenuItem;
+typedef struct PTL_Property PTL_Property, *PPTL_Property;
 
-typedef enum Interface_MenuItem { // [LegoRR/Interface.c|enum:0x4|type:int] "Back" has no official name
+typedef enum Message_Type { // [LegoRR/Message.c|enum:0x4|type:int]
+	Message_AttackBuilding=37,
+	Message_AttackBuildingComplete=38,
+	Message_BuildPath=48,
+	Message_BuildPathComplete=49,
+	Message_Clear=39,
+	Message_ClearBuilding=58,
+	Message_ClearBuildingComplete=59,
+	Message_ClearComplete=40,
+	Message_ClearFallIn=46,
+	Message_ClearFallInComplete=47,
+	Message_ClearInitial=60,
+	Message_ClearInitialComplete=61,
+	Message_ClearRemovePath=62,
+	Message_ClearRemovePathComplete=63,
+	Message_ClearSelection=3,
+	Message_CollectCrystal=23,
+	Message_CollectCrystalComplete=24,
+	Message_CollectOre=29,
+	Message_CollectOreComplete=30,
+	Message_CollectTool=44,
+	Message_CrystalToRefinery=25,
+	Message_CrystalToRefineryComplete=26,
+	Message_Debug_DestroyAll=64,
+	Message_Deselect=4,
+	Message_Dig=13,
+	Message_DigComplete=14,
+	Message_FirstPerson=9,
+	Message_FollowAttack=43,
+	Message_GatherRock=33,
+	Message_GatherRockComplete=34,
+	Message_GenerateCrystal=21,
+	Message_GenerateCrystalAndOre=52,
+	Message_GenerateCrystalAndOreComplete=53,
+	Message_GenerateCrystalComplete=22,
+	Message_GenerateFromCryOre=54,
+	Message_GenerateFromCryOreComplete=55,
+	Message_GenerateOre=27,
+	Message_GenerateOreComplete=28,
+	Message_GenerateRockMonster=31,
+	Message_GenerateRockMonsterComplete=32,
+	Message_GetIn=41,
+	Message_Goto=5,
+	Message_ManSelectedAndMonsterClicked=42,
+	Message_Null=0,
+	Message_PickRandomFloor=35,
+	Message_PickRandomFloorComplete=36,
+	Message_PlaySample=12,
+	Message_ReduceSelection=45,
+	Message_Reinforce=17,
+	Message_ReinforceComplete=18,
+	Message_Repair=15,
+	Message_RepairComplete=16,
+	Message_RockFall=19,
+	Message_RockFallComplete=20,
+	Message_RockMonsterGoto=6,
+	Message_RockMonsterGotoComplete=7,
+	Message_Select=1,
+	Message_Selected=2,
+	Message_TopView=11,
+	Message_TrackObject=10,
+	Message_Train=50,
+	Message_TrainComplete=51,
+	Message_Type_Count=65,
+	Message_Upgrade=56,
+	Message_UpgradeComplete=57,
+	Message_UserGoto=8
+} Message_Type;
+
+struct PTL_Property { // [LegoRR/PTL.c|struct:0x8] Property loaded from a level's PTL config file (contains lookup index for actions)
+	enum Message_Type eventIndex;
+	enum Message_Type actionIndex;
+};
+
+typedef struct Interface_Menu Interface_Menu, *PInterface_Menu;
+
+typedef enum Interface_MenuItemType { // [LegoRR/Interface.c|enum:0x4|type:int] "Back" has no official name
 	Interface_MenuItem_Attack=43,
 	Interface_MenuItem_Back=0,
 	Interface_MenuItem_Build=73,
@@ -905,11 +980,11 @@ typedef enum Interface_MenuItem { // [LegoRR/Interface.c|enum:0x4|type:int] "Bac
 	Interface_MenuItem_VehicleDig=29,
 	Interface_MenuItem_VehicleGoto=28,
 	Interface_MenuItem_VehiclePickUp=20
-} Interface_MenuItem;
+} Interface_MenuItemType;
 
-struct InterfaceMenuItem { // [LegoRR/Interface.c|struct:0x8]
-	enum Interface_MenuItem * iconList;
-	uint numIcons;
+struct Interface_Menu { // [LegoRR/Interface.c|struct:0x8] Simple list of icons-by-enum for an interface menu.
+	enum Interface_MenuItemType * iconList;
+	uint iconCount;
 };
 
 typedef struct ObjectiveData ObjectiveData, *PObjectiveData;
@@ -937,91 +1012,14 @@ struct ObjectiveData { // [LegoRR/???|struct:0x54]
 	struct Point2F failedImagePosition; // (cfg: ObjectiveFailedImage<W>x<H>[1,2]) unused
 	char * achievedVideoName; // (cfg: ObjectiveAcheivedAVI[0]) filename
 	struct Point2F achievedVideoPosition; // (cfg: ObjectiveAcheivedAVI[1,2]) 
-	BOOL noAchievedVideo; // True if cfg:ObjectiveAcheivedAVI was not parsed correct (or does not eixst?)
-	undefined4 achievedVideoPlayed;
+	BOOL noAchievedVideo; // True if cfg:ObjectiveAcheivedAVI was not parsed correctly (or does not eixst?)
+	BOOL achievedVideoPlayed;
 	uint crystals; // (cfg: CrystalObjective) number of crystals needed if non-zero
 	uint ore; // (cfg: OreObjective) number of ore needed if non-zero
 	struct Point2I blockPos; // (cfg: BlockObjective)
 	float timer; // (cfg: TimerObjective, mult: 25.0, flags, format: "time:HitTimeFailObjective")
 	enum LegoObject_Type constructionType; // (cfg: ConstructionObjective)
 	int constructionID; // (cfg: ConstructionObjective)
-};
-
-typedef struct PTL_Property PTL_Property, *PPTL_Property;
-
-typedef enum Message_Type { // [LegoRR/Message.c|enum:0x4|type:int]
-	Message_AttackBuilding=37,
-	Message_AttackBuildingComplete=38,
-	Message_BuildPath=48,
-	Message_BuildPathComplete=49,
-	Message_Clear=39,
-	Message_ClearBuilding=58,
-	Message_ClearBuildingComplete=59,
-	Message_ClearComplete=40,
-	Message_ClearFallIn=46,
-	Message_ClearFallInComplete=47,
-	Message_ClearInitial=60,
-	Message_ClearInitialComplete=61,
-	Message_ClearRemovePath=62,
-	Message_ClearRemovePathComplete=63,
-	Message_ClearSelection=3,
-	Message_CollectCrystal=23,
-	Message_CollectCrystalComplete=24,
-	Message_CollectOre=29,
-	Message_CollectOreComplete=30,
-	Message_CollectTool=44,
-	Message_CrystalToRefinery=25,
-	Message_CrystalToRefineryComplete=26,
-	Message_Debug_DestroyAll=64,
-	Message_Deselect=4,
-	Message_Dig=13,
-	Message_DigComplete=14,
-	Message_FirstPerson=9,
-	Message_FollowAttack=43,
-	Message_GatherRock=33,
-	Message_GatherRockComplete=34,
-	Message_GenerateCrystal=21,
-	Message_GenerateCrystalAndOre=52,
-	Message_GenerateCrystalAndOreComplete=53,
-	Message_GenerateCrystalComplete=22,
-	Message_GenerateFromCryOre=54,
-	Message_GenerateFromCryOreComplete=55,
-	Message_GenerateOre=27,
-	Message_GenerateOreComplete=28,
-	Message_GenerateRockMonster=31,
-	Message_GenerateRockMonsterComplete=32,
-	Message_GetIn=41,
-	Message_Goto=5,
-	Message_ManSelectedAndMonsterClicked=42,
-	Message_Null=0,
-	Message_PickRandomFloor=35,
-	Message_PickRandomFloorComplete=36,
-	Message_PlaySample=12,
-	Message_ReduceSelection=45,
-	Message_Reinforce=17,
-	Message_ReinforceComplete=18,
-	Message_Repair=15,
-	Message_RepairComplete=16,
-	Message_RockFall=19,
-	Message_RockFallComplete=20,
-	Message_RockMonsterGoto=6,
-	Message_RockMonsterGotoComplete=7,
-	Message_Select=1,
-	Message_Selected=2,
-	Message_TopView=11,
-	Message_TrackObject=10,
-	Message_Train=50,
-	Message_TrainComplete=51,
-	Message_Type_Count=65,
-	Message_Type_Invalid=4294967295,
-	Message_Upgrade=56,
-	Message_UpgradeComplete=57,
-	Message_UserGoto=8
-} Message_Type;
-
-struct PTL_Property { // [LegoRR/PTL.c|struct:0x8] Property loaded from a level's PTL config file (contains lookup index for actions)
-	enum Message_Type eventIndex;
-	enum Message_Type actionIndex;
 };
 
 typedef struct MsvcDOSErrnoInfo MsvcDOSErrnoInfo, *PMsvcDOSErrnoInfo;
@@ -1112,9 +1110,9 @@ typedef enum _fpmath_enum { // [tags:HIDDEN,STD]
 	_FPMATH_tanh=33
 } _fpmath_enum;
 
-typedef struct BlockElectricFence BlockElectricFence, *PBlockElectricFence;
+typedef struct ElectricFence_Block ElectricFence_Block, *PElectricFence_Block;
 
-typedef void (* ElectricFence_RunThroughListsCallback)(struct BlockElectricFence *, void *);
+typedef void (* ElectricFence_RunThroughListsCallback)(struct ElectricFence_Block *, void *);
 
 typedef struct LegoObject LegoObject, *PLegoObject;
 
@@ -1147,7 +1145,7 @@ typedef enum LOD_PolyLevel { // [LegoRR/MeshLOD.c|enum:0x4|type:int]
 	LOD_MediumPoly=1
 } LOD_PolyLevel;
 
-typedef enum LegoObject_ToolType { // [LegoRR/LegoObject.c|enum:0x4|type:int] One of the few enums with extra space before max
+typedef enum LegoObject_ToolType { // [LegoRR/LegoObject.c|enum:0x4|type:int] One of the few enums with extra space before max. All items after FreezerGun are special tools.
 	LegoObject_ToolType_Barrier=8,
 	LegoObject_ToolType_BirdScarer=6,
 	LegoObject_ToolType_Count=11,
@@ -1156,7 +1154,6 @@ typedef enum LegoObject_ToolType { // [LegoRR/LegoObject.c|enum:0x4|type:int] On
 	LegoObject_ToolType_Dynamite=9,
 	LegoObject_ToolType_FreezerGun=7,
 	LegoObject_ToolType_Hammer=2,
-	LegoObject_ToolType_Invalid=4294967295,
 	LegoObject_ToolType_Laser=4,
 	LegoObject_ToolType_PusherGun=5,
 	LegoObject_ToolType_Spade=1,
@@ -1176,6 +1173,7 @@ typedef enum LiveFlags1 { // [LegoRR/LegoObject.c|flags:0x4|type:uint]
 	LIVEOBJ1_ENTERING_WALLHOLE=131072,
 	LIVEOBJ1_EXPANDING=256,
 	LIVEOBJ1_GATHERINGROCK=512,
+	LIVEOBJ1_GETTINGHIT=4096,
 	LIVEOBJ1_LIFTING=2,
 	LIVEOBJ1_MOVING=1,
 	LIVEOBJ1_NONE=0,
@@ -1191,7 +1189,6 @@ typedef enum LiveFlags1 { // [LegoRR/LegoObject.c|flags:0x4|type:uint]
 	LIVEOBJ1_TELEPORTINGUP=4194304,
 	LIVEOBJ1_TURNING=4,
 	LIVEOBJ1_TURNRIGHT=128,
-	LIVEOBJ1_UNK_1000=4096,
 	LIVEOBJ1_UNK_10000=65536,
 	LIVEOBJ1_UNK_4000=16384,
 	LIVEOBJ1_UNK_800=2048,
@@ -1229,6 +1226,7 @@ typedef enum LiveFlags2 { // [LegoRR/LegoObject.c|flags:0x4|type:uint]
 	LIVEOBJ2_UNK_40=64,
 	LIVEOBJ2_UNK_40000=262144,
 	LIVEOBJ2_UNK_4000000=67108864,
+	LIVEOBJ2_UNK_80=128,
 	LIVEOBJ2_UNK_800=2048,
 	LIVEOBJ2_UNK_80000=524288,
 	LIVEOBJ2_UNK_80000000=2147483648,
@@ -1240,9 +1238,9 @@ typedef enum LiveFlags3 { // [LegoRR/LegoObject.c|flags:0x4|type:uint]
 	LIVEOBJ3_CANROUTERUBBLE=268435456,
 	LIVEOBJ3_CANSELECT=256,
 	LIVEOBJ3_HASPOWER=536870912,
-	LIVEOBJ3_IGNOREME_UNK=524288,
 	LIVEOBJ3_NONE=0,
 	LIVEOBJ3_POWEROFF=2147483648,
+	LIVEOBJ3_REMOVING=8388608,
 	LIVEOBJ3_SIMPLEOBJECT=131072,
 	LIVEOBJ3_UNK_1=1,
 	LIVEOBJ3_UNK_10=16,
@@ -1266,23 +1264,26 @@ typedef enum LiveFlags3 { // [LegoRR/LegoObject.c|flags:0x4|type:uint]
 	LIVEOBJ3_UNK_8=8,
 	LIVEOBJ3_UNK_80=128,
 	LIVEOBJ3_UNK_8000=32768,
-	LIVEOBJ3_UNK_800000=8388608,
-	LIVEOBJ3_UNK_8000000=134217728
+	LIVEOBJ3_UNK_8000000=134217728,
+	LIVEOBJ3_UPGRADEPART=524288
 } LiveFlags3;
 
 typedef enum LiveFlags4 { // [LegoRR/LegoObject.c|flags:0x4|type:uint]
 	LIVEOBJ4_CALLTOARMS_20=32,
+	LIVEOBJ4_DRILLSOUNDPLAYING=1048576,
+	LIVEOBJ4_ENGINESOUNDPLAYING=524288,
+	LIVEOBJ4_LASERTRACKER=1,
 	LIVEOBJ4_NONE=0,
-	LIVEOBJ4_UNK_1=1,
 	LIVEOBJ4_UNK_10=16,
+	LIVEOBJ4_UNK_100=256,
 	LIVEOBJ4_UNK_1000=4096,
 	LIVEOBJ4_UNK_10000=65536,
-	LIVEOBJ4_UNK_100000=1048576,
 	LIVEOBJ4_UNK_2=2,
 	LIVEOBJ4_UNK_200=512,
 	LIVEOBJ4_UNK_2000=8192,
 	LIVEOBJ4_UNK_20000=131072,
 	LIVEOBJ4_UNK_200000=2097152,
+	LIVEOBJ4_UNK_4=4,
 	LIVEOBJ4_UNK_40=64,
 	LIVEOBJ4_UNK_4000=16384,
 	LIVEOBJ4_UNK_40000=262144,
@@ -1290,19 +1291,18 @@ typedef enum LiveFlags4 { // [LegoRR/LegoObject.c|flags:0x4|type:uint]
 	LIVEOBJ4_UNK_8=8,
 	LIVEOBJ4_UNK_80=128,
 	LIVEOBJ4_UNK_800=2048,
-	LIVEOBJ4_UNK_8000=32768,
-	LIVEOBJ4_UNK_80000=524288
+	LIVEOBJ4_UNK_8000=32768
 } LiveFlags4;
 
-typedef enum LiveFlags5 { // [LegoRR/LegoObject.c|flags:0x4|type:uint] These flags contain LiveObject abilities, and are the one of the fields stored/restored with ObjectRecall.
-	LIVEOBJ5_ABILITY_DRIVER=4,
-	LIVEOBJ5_ABILITY_DYNAMITE=8,
-	LIVEOBJ5_ABILITY_PILOT=1,
-	LIVEOBJ5_ABILITY_REPAIR=16,
-	LIVEOBJ5_ABILITY_SAILOR=2,
-	LIVEOBJ5_ABILITY_SCANNER=32,
-	LIVEOBJ5_NONE=0
-} LiveFlags5;
+typedef enum LegoObject_AbilityFlags { // [LegoRR/LegoObject.c|flags:0x4|type:uint] These can be substituted for LiveFlags5
+	ABILITY_FLAG_DRIVER=4,
+	ABILITY_FLAG_DYNAMITE=8,
+	ABILITY_FLAG_NONE=0,
+	ABILITY_FLAG_PILOT=1,
+	ABILITY_FLAG_REPAIR=16,
+	ABILITY_FLAG_SAILOR=2,
+	ABILITY_FLAG_SCANNER=32
+} LegoObject_AbilityFlags;
 
 typedef enum LegoObject_UpgradeType { // [LegoRR/LegoObject.c|enum:0x4|type:uint]
 	LegoObject_UpgradeType_Carry=3,
@@ -1437,7 +1437,6 @@ typedef enum AITask_Type { // [LegoRR/AITask.c|enum:0x4|type:int]
 	AITask_Type_GetTool=19,
 	AITask_Type_Goto=0,
 	AITask_Type_GotoEat=17,
-	AITask_Type_Invalid=4294967295,
 	AITask_Type_Recharge=27,
 	AITask_Type_Reinforce=11,
 	AITask_Type_Repair=10,
@@ -1446,6 +1445,17 @@ typedef enum AITask_Type { // [LegoRR/AITask.c|enum:0x4|type:int]
 	AITask_Type_Upgrade=21,
 	AITask_Type_Wait=13
 } AITask_Type;
+
+typedef enum LegoObject_AbilityType { // [LegoRR/LegoObject.c|enum:0x4|type:int]
+	LegoObject_AbilityType_Count=6,
+	LegoObject_AbilityType_Driver=2,
+	LegoObject_AbilityType_Dynamite=3,
+	LegoObject_AbilityType_Invalid=4294967295,
+	LegoObject_AbilityType_Pilot=0,
+	LegoObject_AbilityType_Repair=4,
+	LegoObject_AbilityType_Sailor=1,
+	LegoObject_AbilityType_Scanner=5
+} LegoObject_AbilityType;
 
 typedef enum AI_Priority { // [LegoRR/AITask.c|enum:0x4|type:int]
 	AI_Priority_AttackObject=25,
@@ -1465,7 +1475,6 @@ typedef enum AI_Priority { // [LegoRR/AITask.c|enum:0x4|type:int]
 	AI_Priority_Gather=20,
 	AI_Priority_GetIn=12,
 	AI_Priority_HealthLow=11,
-	AI_Priority_Invalid=4294967295,
 	AI_Priority_Ore=1,
 	AI_Priority_Punch=22,
 	AI_Priority_Recharge=18,
@@ -1480,10 +1489,35 @@ typedef enum AI_Priority { // [LegoRR/AITask.c|enum:0x4|type:int]
 } AI_Priority;
 
 typedef enum AITaskFlags { // [LegoRR/AITask.c|flags:0x4|type:uint]
-	AITASK_FLAG_NONE=0
+	AITASK_FLAG_CLONED=512,
+	AITASK_FLAG_DIGCONNECTION=8,
+	AITASK_FLAG_NONE=0,
+	AITASK_FLAG_REMOVING=32,
+	AITASK_FLAG_UNK_1=1,
+	AITASK_FLAG_UNK_10=16,
+	AITASK_FLAG_UNK_100=256,
+	AITASK_FLAG_UNK_1000=4096,
+	AITASK_FLAG_UNK_10000=65536,
+	AITASK_FLAG_UNK_100000=1048576,
+	AITASK_FLAG_UNK_2000=8192,
+	AITASK_FLAG_UNK_20000=131072,
+	AITASK_FLAG_UNK_200000=2097152,
+	AITASK_FLAG_UNK_4=4,
+	AITASK_FLAG_UNK_40=64,
+	AITASK_FLAG_UNK_400=1024,
+	AITASK_FLAG_UNK_40000=262144,
+	AITASK_FLAG_UNK_80=128,
+	AITASK_FLAG_UNK_800=2048,
+	AITASK_FLAG_UNK_8000=32768,
+	AITASK_FLAG_UNK_80000=524288
 } AITaskFlags;
 
 typedef struct FlocksItem FlocksItem, *PFlocksItem;
+
+typedef enum FlocksFlags { // [LegoRR/Flocks.c|flags:0x4|type:uint]
+	FLOCKS_FLAG_NONE=0,
+	FLOCKS_FLAG_UNK_1=1
+} FlocksFlags;
 
 typedef struct Size2F Size2F, *PSize2F;
 
@@ -1771,13 +1805,6 @@ typedef struct IDirect3DRMPickedArrayVtbl IDirect3DRMPickedArrayVtbl, *PIDirect3
 typedef struct D3DRMPickDesc D3DRMPickDesc, *PD3DRMPickDesc;
 
 typedef struct IDirect3DViewportVtbl IDirect3DViewportVtbl, *PIDirect3DViewportVtbl;
-
-struct BlockElectricFence { // [LegoRR/ElectricFence.c|struct:0x14|tags:LISTSET]
-	struct LegoObject * attachedObject;
-	struct Point2I blockPos;
-	float timer;
-	struct BlockElectricFence * nextFree; // (for listSet)
-};
 
 struct Mesh_RenderDesc { // [Gods98/Mesh.c|struct:0xc]
 	MeshRenderCallback renderCallback;
@@ -2165,6 +2192,13 @@ struct IDirect3DRMViewport2Vtbl { // [DirectX/D3DRM.c|struct:0xa4|tags:DIRECTX,V
 	HRESULT (* InverseTransformVectors)(struct IDirect3DRMViewport2 *, DWORD, struct Vector3F *, struct Vector4F *);
 };
 
+struct ElectricFence_Block { // [LegoRR/ElectricFence.c|struct:0x14|tags:LISTSET]
+	struct LegoObject * attachedObject;
+	struct Point2I blockPos;
+	float timer;
+	struct ElectricFence_Block * nextFree; // (for listSet)
+};
+
 struct Mesh { // [Gods98/Mesh.c|struct:0x34|tags:LISTSET]
 	uint groupCount; // seems to be a count
 	uint listSize;
@@ -2310,7 +2344,7 @@ struct WeaponsModel { // [LegoRR/Weapons.c|struct:0xa8]
 };
 
 struct VehicleModel { // [LegoRR/Vehicle.c|struct:0x1ec]
-	int objID;
+	LegoObject_ID objID;
 	char * wheelNullName; // (ae: WheelNullName)
 	struct Container * contAct1; // (ACT, true)
 	struct Container * contAct2; // (ACT, true) Optional second ae file (seen for Grannit Grinder legs) This container has priority for finding null frames
@@ -2355,7 +2389,7 @@ struct IDirect3DTexture2Vtbl { // [DirectX/D3D.c|struct:0x18|tags:DIRECTX,VFTABL
 };
 
 struct Upgrade_PartModel { // [LegoRR/Upgrade.c|struct:0x10]
-	int objID;
+	LegoObject_ID objID;
 	struct Container * cont; // (LWO|ACT|MESH, true)
 	struct LegoObject * nextObject;
 	struct Upgrade_PartInfo * partInfo; // (not too sure about this type match)
@@ -2377,7 +2411,7 @@ struct IDirect3DRMVisual { // [DirectX/D3DRM.c|struct:0x4|tags:DIRECTX,INTERFACE
 };
 
 struct CreatureModel { // [LegoRR/Creature.c|struct:0x74] Possibly alphabetically correct names: Bipedal, BasicUnit, etc... (has to be before Bubble, and possible after BezierCurve or AI(Task?))
-	int objID;
+	LegoObject_ID objID;
 	struct Container * contAct; // (ACT, true)
 	undefined reserved1[24];
 	char * cameraNullName; // (ae: CameraNullName)
@@ -2404,13 +2438,13 @@ struct Flocks { // [LegoRR/Flocks.c|struct:0x28] The singular flocks unit, which
 	struct FlocksItem * flocksSubdata1; // (is this a doubly-linked list?)
 	struct FlocksItem * flocksSubdata2;
 	uint numSubdata;
-	uint hasVector1;
-	uint hasVector2;
+	BOOL hasVector1;
+	BOOL hasVector2;
 	undefined4 field_14;
 	undefined4 field_18;
 	undefined4 field_1c;
 	undefined4 field_20;
-	undefined4 field_24;
+	enum FlocksFlags flags; // (observed flags: 0x1, )
 };
 
 struct IDirect3DRMDevice3Vtbl { // [DirectX/D3DRM.c|struct:0xb0|tags:DIRECTX,VFTABLE]
@@ -2542,7 +2576,7 @@ struct IDirect3DRMLightArrayVtbl { // [DirectX/D3DRM.c|struct:0x14|tags:DIRECTX,
 };
 
 struct BuildingModel { // [LegoRR/Building.c|struct:0x14c]
-	int objID;
+	LegoObject_ID objID;
 	struct Container * contAct; // (ACT, true)
 	char * carryNullName; // (ae: CarryNullName)
 	char * cameraNullName; // (ae: CameraNullName)
@@ -2581,26 +2615,26 @@ struct AITask { // [LegoRR/AITask.c|struct:0x68|tags:LISTSET]
 	enum AITask_Type taskType;
 	undefined4 field_4;
 	struct Point2I blockPos;
-	struct LegoObject * object_10;
-	float unkExpiryTime;
-	float float_18;
-	uint priorityValue;
+	struct LegoObject * targetObject;
+	float unkExpiryTime; // Count-down timer.
+	float float_18; // Count-down timer.
+	int priorityValue; // Field is known to be signed (range: 0,99).
 	enum LegoObject_Type objType;
-	int objIndex;
-	int objLevel;
-	undefined4 field_2c;
-	struct Point2F pointf_30; // probably a table
+	LegoObject_ID objID;
+	uint objLevel;
+	uint constructHandle;
+	struct Point2F pointf_30;
 	enum LegoObject_ToolType toolType;
-	undefined4 mode_3c;
+	enum LegoObject_AbilityType trainFlags;
 	struct LegoObject * * unitList;
 	uint unitListCount;
-	struct LegoObject * object_48;
+	struct LegoObject * object_48; // Likely related to tasks with a two-object relation. Like training at a building.
 	enum AI_Priority priorityType;
-	uint taskStartTime;
+	uint creationTime; // Timestamp of task creation in `AITask_Create`, obtained from `Main_GetTime()`.
 	enum Message_Type completeAction;
-	struct AITask * aiTask_58;
-	enum AITaskFlags flags; // not set means ptr_40 is assigned
-	struct AITask * next; // assigned to DAT_004b4358
+	struct AITask * getToolTask; // (bi-directional link between GetTool and GetTool_FromText)
+	enum AITaskFlags flags;
+	struct AITask * next; // Next in linked lists for `aiGlobs.AITaskUnkPtr`, `aiGlobs.AITaskDataNext`, and `LegoObject::aiTask`.
 	struct AITask * nextFree; // (for listSet)
 };
 
@@ -2783,8 +2817,8 @@ struct FlocksItem { // [LegoRR/Flocks.c|struct:0xa0]  An individual item flying 
 	float Speed2;
 	float Tightness2;
 	struct Matrix4F matrix;
-	struct Container * resData_98;
-	struct FlocksItem * subdataNext_9c;
+	struct Container * cont;
+	struct FlocksItem * subdataNext;
 };
 
 struct IDirect3DRMFrameArrayVtbl { // [DirectX/D3DRM.c|struct:0x14|tags:DIRECTX,VFTABLE] Subclass of IDirect3DRMArrayVtbl
@@ -2827,17 +2861,17 @@ struct Mesh_LightWave_Surface { // [Gods98/Mesh.c|struct:0x3c]
 
 struct LegoObject { // [LegoRR/LegoObject.c|struct:0x40c|tags:LISTSET]
 	enum LegoObject_Type type;
-	int id;
+	LegoObject_ID id;
 	char * customName; // max size is 11 (NOT null-terminated)
-	struct VehicleModel * vehicle;
-	struct CreatureModel * miniFigure;
-	struct CreatureModel * rockMonster;
-	struct BuildingModel * building;
-	struct Container * other;
+	struct VehicleModel * vehicle; // Model for vehicle objects only.
+	struct CreatureModel * miniFigure; // Model for mini-figure objects only.
+	struct CreatureModel * rockMonster; // Model for monster objects only.
+	struct BuildingModel * building; // Model for building objects only.
+	struct Container * other; // Model for simple objects only.
 	struct Upgrade_PartModel * upgradePart; // First upgrade part model in linked list of parts.
 	struct RoutingBlock * routeBlocks; // Unknown pointer, likely in large allocated table
-	uint routeBlockTotal; // total blocks to travel for current route
-	uint routeBlockeCurrent; // number of blocks traveled (up to routingBlocksTotal)
+	uint routeBlocksTotal; // total blocks to travel for current route
+	uint routeBlocksCurrent; // number of blocks traveled (up to routingBlocksTotal)
 	struct BezierCurve routeCurve; // BezierCurve/Catmull-rom spline data
 	struct Vector3F vector_28c;
 	struct Point2F point_298;
@@ -2855,7 +2889,7 @@ struct LegoObject { // [LegoRR/LegoObject.c|struct:0x40c|tags:LISTSET]
 	struct Container * contMiniTeleportUp;
 	char * activityName1;
 	char * activityName2; // Seems to be used with related objects like driven, swapped with activityName1.
-	struct AITask * aiTask;
+	struct AITask * aiTask; // Linked list of tasks (or null). Linked using the `AITask::next` field.
 	struct Point2F point_2f4; // (init: -1.0f, -1.0f)
 	struct LegoObject * routeToObject;
 	struct LegoObject * interactObject; // Used in combination with routeToObject for Upgrade station and RM boulders.
@@ -2873,7 +2907,7 @@ struct LegoObject { // [LegoRR/LegoObject.c|struct:0x40c|tags:LISTSET]
 	int * stolenCrystalLevels; // (alloc: new int[6]) Each element is the count stolen for a level, index 0 only seems to be used for recovery
 	enum LOD_PolyLevel polyLOD;
 	int drillSoundHandle; // Handle returned by SFX_Play functions
-	enum SFX_ID engineSoundHandle; // Handle returned by SFX_Play functions
+	int engineSoundHandle; // Handle returned by SFX_Play functions
 	float weaponSlowDeath;
 	uint weaponID;
 	float weaponRechargeTimer;
@@ -2892,9 +2926,9 @@ struct LegoObject { // [LegoRR/LegoObject.c|struct:0x40c|tags:LISTSET]
 	struct Point2F pushingVec2D;
 	float pushingDist;
 	struct LegoObject * throwObject; // (bi-directional link between thrower and thrown)
-	struct LegoObject * object_3c4;
+	struct LegoObject * projectileObject; // Projectile fired from weapon.
 	undefined4 field_3c8; // (unused?)
-	struct LegoObject * teleportDownObj;
+	struct LegoObject * teleportDownObject;
 	float damageNumbers; // Used to display damage text over objects.
 	float elapsedTime1; // elapsed time counter 1
 	float elapsedTime2; // elapsed time counter 2
@@ -2903,7 +2937,7 @@ struct LegoObject { // [LegoRR/LegoObject.c|struct:0x40c|tags:LISTSET]
 	enum LiveFlags2 flags2;
 	enum LiveFlags3 flags3;
 	enum LiveFlags4 flags4;
-	enum LiveFlags5 flags5; // Ability flags, and saved in ObjectRecall.
+	enum LegoObject_AbilityFlags abilityFlags; // (orig: flags5) Trained ability flags, and saved in ObjectRecall.
 	undefined4 field_3f4; // (set to zero with tool equipped and never read?)
 	BOOL bool_3f8;
 	float floatSnd_3fc;
@@ -3066,7 +3100,7 @@ struct IDirect3DRMMaterial2Vtbl { // [DirectX/D3DRM.c|struct:0x4c|tags:DIRECTX,V
 	HRESULT (* SetAmbient)(struct IDirect3DRMMaterial2 *, float, float, float);
 };
 
-struct Detail_TextureSet { // [LegoRR/???|struct:0xc]
+struct Detail_TextureSet { // [LegoRR/Detail.c|struct:0xc]
 	struct Size2I gridSize;
 	struct Container_Texture * * gridSurfaces;
 };
@@ -3092,7 +3126,7 @@ struct Map3D { // [LegoRR/Map3D.c|struct:0x73d4]
 	struct Coord2U uvBlocksTable[2500]; // Blocks that require UV updates (EMISSIVE or UVWOBBLES)
 	uint uvBlocksNum;
 	struct Map3D_TransitionBlock transBlocks[10]; // [BASEMAPTEXTURES??]
-	struct Container * transMesh; // Mesh for Map3D_TransBlocks
+	struct Container * transMesh; // Mesh for Map3D_TransitionBlocks
 	enum Map3DFlags flagsMap;
 };
 
@@ -15066,14 +15100,14 @@ struct _CRuntime1_Globs { // [tags:HIDDEN,STD,GLOBS] Contains internal C Runtime
 
 typedef struct SpiderWeb_Globs SpiderWeb_Globs, *PSpiderWeb_Globs;
 
-typedef struct BlockSpiderWeb BlockSpiderWeb, *PBlockSpiderWeb;
+typedef struct SpiderWeb_Block SpiderWeb_Block, *PSpiderWeb_Block;
 
 typedef struct Lego_Level Lego_Level, *PLego_Level;
 
-typedef enum BlockSpiderWebFlags { // [LegoRR/SpiderWeb.c|flags:0x4|type:uint]
-	BLOCKWEB_ACTIVE=256,
-	BLOCKWEB_NONE=0
-} BlockSpiderWebFlags;
+typedef enum SpiderWeb_BlockFlags { // [LegoRR/SpiderWeb.c|flags:0x4|type:uint]
+	BLOCKWEB_FLAG_ACTIVE=256,
+	BLOCKWEB_FLAG_NONE=0
+} SpiderWeb_BlockFlags;
 
 typedef struct EmergeTrigger EmergeTrigger, *PEmergeTrigger;
 
@@ -15081,7 +15115,7 @@ typedef struct Detail_Mesh Detail_Mesh, *PDetail_Mesh;
 
 typedef struct RadarMap RadarMap, *PRadarMap;
 
-typedef struct LevelStruct_1c LevelStruct_1c, *PLevelStruct_1c;
+typedef struct Lego_BlockActivity Lego_BlockActivity, *PLego_BlockActivity;
 
 typedef struct Lego_Block Lego_Block, *PLego_Block;
 
@@ -15094,84 +15128,91 @@ typedef enum TextureType { // [LegoRR/dummy.c|enum:0x4|type:int|tags:HELPER,UNUS
 	TEXTURES__INVALID=4294967295
 } TextureType;
 
-typedef enum ObjectiveStatus { // [LegoRR/Objective.c|enum:0x4|type:uint] Not sure if Objective...
-	OBJECTIVE_STATUS_COMPLETED=1,
-	OBJECTIVE_STATUS_FAILED=2,
-	OBJECTIVE_STATUS_FAILED_CRYSTALS=3,
-	OBJECTIVE_STATUS_FAILED_OTHER=4,
-	OBJECTIVE_STATUS_NONE=0
-} ObjectiveStatus;
+typedef enum LevelStatus { // [LegoRR/Objective.c|enum:0x4|type:uint] Not sure if Objective...
+	LEVELSTATUS_COMPLETE=1,
+	LEVELSTATUS_FAILED=2,
+	LEVELSTATUS_FAILED_CRYSTALS=3,
+	LEVELSTATUS_FAILED_OTHER=4,
+	LEVELSTATUS_INCOMPLETE=0
+} LevelStatus;
 
 typedef struct EmergeBlock EmergeBlock, *PEmergeBlock;
 
 typedef struct Draw_Rect Draw_Rect, *PDraw_Rect;
 
-typedef enum PredugType { // [LegoRR/Lego.c|enum:0x1|type:byte|tags:MAPFILE]
-	PREDUG_EXPOSED=1,
-	PREDUG_EXPOSED_SLUGHOLE=3,
-	PREDUG_HIDDEN=2,
-	PREDUG_HIDDEN_SLUGHOLE=4,
-	PREDUG_WALL=0
-} PredugType;
+typedef enum BlockActivityFlags { // [LegoRR/Lego.c|flags:0x1|type:byte] 0x1 does not directly affect other flags, 0x2 is used to remove the activity after destroying has finished.
+	BLOCKACT_FLAG_DESTROYING=4,
+	BLOCKACT_FLAG_NONE=0,
+	BLOCKACT_FLAG_REMOVING=2,
+	BLOCKACT_FLAG_STANDING=1
+} BlockActivityFlags;
 
-typedef enum TerrainType { // [LegoRR/Lego.c|enum:0x1|type:byte|tags:MAPFILE]
-	TERRAIN_CAVERN=17,
-	TERRAIN_CRYSTALSEAM=10,
-	TERRAIN_HARD=2,
-	TERRAIN_IMMOVABLE=1,
-	TERRAIN_LAKE=9,
-	TERRAIN_LAVA=6,
-	TERRAIN_LOOSE=4,
-	TERRAIN_MEDIUM=3,
-	TERRAIN_ORESEAM=8,
-	TERRAIN_PATH=14,
-	TERRAIN_RECHARGESEAM=11,
-	TERRAIN_REINFORCED=13,
-	TERRAIN_RUBBLE=12,
-	TERRAIN_SLUGHOLE=15,
-	TERRAIN_SOIL=5,
-	TERRAIN_TUNNEL=0,
-	TERRAIN_UNDISCOVERED=16,
-	TERRAIN_WATER_unused=7
-} TerrainType;
+typedef enum Lego_PredugType { // [LegoRR/Lego.c|enum:0x1|type:byte|tags:MAPFILE]
+	Lego_PredugType_Cavern_Exposed=1,
+	Lego_PredugType_Cavern_Hidden=2,
+	Lego_PredugType_SlugHole_Exposed=3,
+	Lego_PredugType_SlugHole_Hidden=4,
+	Lego_PredugType_Wall=0
+} Lego_PredugType;
 
-typedef enum CryOreType { // [LegoRR/Lego.c|enum:0x1|type:byte|tags:MAPFILE]
-	CRYORE_CRYSTAL_1=1,
-	CRYORE_CRYSTAL_10=13,
-	CRYORE_CRYSTAL_10_alt=15,
-	CRYORE_CRYSTAL_1_alt=3,
-	CRYORE_CRYSTAL_25=17,
-	CRYORE_CRYSTAL_25_alt=19,
-	CRYORE_CRYSTAL_3=5,
-	CRYORE_CRYSTAL_3_alt=7,
-	CRYORE_CRYSTAL_5=9,
-	CRYORE_CRYSTAL_5_alt=11,
-	CRYORE_NONE=0,
-	CRYORE_ORE_1=2,
-	CRYORE_ORE_10=14,
-	CRYORE_ORE_10_alt=16,
-	CRYORE_ORE_1_alt=4,
-	CRYORE_ORE_25=18,
-	CRYORE_ORE_25_alt=20,
-	CRYORE_ORE_3=6,
-	CRYORE_ORE_3_alt=8,
-	CRYORE_ORE_5=10,
-	CRYORE_ORE_5_alt=12
-} CryOreType;
+typedef enum Lego_SurfaceType8 { // [LegoRR/Lego.c|enum:0x1|type:byte|tags:MAPFILE] byte-sized alias for Lego_SurfaceType
+	Lego_SurfaceType8_Cavern=17,
+	Lego_SurfaceType8_CrystalSeam=10,
+	Lego_SurfaceType8_Hard=2,
+	Lego_SurfaceType8_Immovable=1,
+	Lego_SurfaceType8_Lake=9,
+	Lego_SurfaceType8_Lava=6,
+	Lego_SurfaceType8_Loose=4,
+	Lego_SurfaceType8_Medium=3,
+	Lego_SurfaceType8_OreSeam=8,
+	Lego_SurfaceType8_Path=14,
+	Lego_SurfaceType8_RechargeSeam=11,
+	Lego_SurfaceType8_Reinforcement=13,
+	Lego_SurfaceType8_Rubble=12,
+	Lego_SurfaceType8_SlugHole=15,
+	Lego_SurfaceType8_Soil=5,
+	Lego_SurfaceType8_Tunnel=0,
+	Lego_SurfaceType8_Undiscovered=16,
+	Lego_SurfaceType8_Water=7
+} Lego_SurfaceType8;
 
-typedef enum ErodeType { // [LegoRR/Lego.c|enum:0x1|type:byte|tags:MAPFILE]
-	ERODE_FAST_ALWAYS=8,
-	ERODE_FAST_LAVA=7,
-	ERODE_MEDIUM_ALWAYS=6,
-	ERODE_MEDIUM_LAVA=5,
-	ERODE_NONE=0,
-	ERODE_SLOW_ALWAYS=4,
-	ERODE_SLOW_LAVA=3,
-	ERODE_VERYFAST_ALWAYS=10,
-	ERODE_VERYFAST_LAVA=9,
-	ERODE_VERYSLOW_ALWAYS=2,
-	ERODE_VERYSLOW_LAVA=1
-} ErodeType;
+typedef enum Lego_CryOreType { // [LegoRR/Lego.c|enum:0x1|type:byte|tags:MAPFILE]
+	Lego_CryOreType_None=0,
+	Lego_CryOreType_Ore_Lv01_10=16,
+	Lego_CryOreType_Ore_Lv0_1=2,
+	Lego_CryOreType_Ore_Lv0_10=14,
+	Lego_CryOreType_Ore_Lv0_25=18,
+	Lego_CryOreType_Ore_Lv0_3=6,
+	Lego_CryOreType_Ore_Lv0_5=10,
+	Lego_CryOreType_Ore_Lv1_1=4,
+	Lego_CryOreType_Ore_Lv1_25=20,
+	Lego_CryOreType_Ore_Lv1_3=8,
+	Lego_CryOreType_Ore_Lv1_5=12,
+	Lego_CryOreType_Crystal_Lv0_1=1,
+	Lego_CryOreType_Crystal_Lv0_10=13,
+	Lego_CryOreType_Crystal_Lv0_25=17,
+	Lego_CryOreType_Crystal_Lv0_3=5,
+	Lego_CryOreType_Crystal_Lv0_5=9,
+	Lego_CryOreType_Crystal_Lv1_1=3,
+	Lego_CryOreType_Crystal_Lv1_10=15,
+	Lego_CryOreType_Crystal_Lv1_25=19,
+	Lego_CryOreType_Crystal_Lv1_3=7,
+	Lego_CryOreType_Crystal_Lv1_5=11
+} Lego_CryOreType;
+
+typedef enum Lego_ErodeType { // [LegoRR/Lego.c|enum:0x1|type:byte|tags:MAPFILE]
+	Lego_ErodeType_Adjacent_Fast=7,
+	Lego_ErodeType_Adjacent_Medium=5,
+	Lego_ErodeType_Adjacent_Slow=3,
+	Lego_ErodeType_Adjacent_VeryFast=9,
+	Lego_ErodeType_Adjacent_VerySlow=1,
+	Lego_ErodeType_None=0,
+	Lego_ErodeType_Source_Fast=8,
+	Lego_ErodeType_Source_Medium=6,
+	Lego_ErodeType_Source_Slow=4,
+	Lego_ErodeType_Source_VeryFast=10,
+	Lego_ErodeType_Source_VerySlow=2
+} Lego_ErodeType;
 
 typedef enum BlockFlags1 { // [LegoRR/Lego.c|flags:0x4|type:uint]
 	BLOCK1_BUILDINGPATH=32768,
@@ -15209,6 +15250,7 @@ typedef enum BlockFlags1 { // [LegoRR/Lego.c|flags:0x4|type:uint]
 } BlockFlags1;
 
 typedef enum BlockFlags2 { // [LegoRR/Lego.c|flags:0x4|type:uint]
+	BLOCK2_DRAINPOWER_TEMP=2,
 	BLOCK2_EMERGE_POINT=64,
 	BLOCK2_EMERGE_TRIGGER=128,
 	BLOCK2_FENCEREQUEST=8,
@@ -15219,13 +15261,12 @@ typedef enum BlockFlags2 { // [LegoRR/Lego.c|flags:0x4|type:uint]
 	BLOCK2_SLUGHOLE_HIDDEN=512,
 	BLOCK2_TOOLSTORE=4,
 	BLOCK2_UNK_10=16,
-	BLOCK2_UNK_2=2,
 	BLOCK2_UNK_400=1024
 } BlockFlags2;
 
-typedef struct BlockConstruction BlockConstruction, *PBlockConstruction;
+typedef struct Construction_Zone Construction_Zone, *PConstruction_Zone;
 
-typedef struct SurfaceMapStruct_2a8 SurfaceMapStruct_2a8, *PSurfaceMapStruct_2a8;
+typedef struct Smoke Smoke, *PSmoke;
 
 typedef enum Direction { // [common.c|enum:0x4|type:int]
 	DIRECTION_DOWN=2,
@@ -15235,210 +15276,90 @@ typedef enum Direction { // [common.c|enum:0x4|type:int]
 	DIRECTION__COUNT=4
 } Direction;
 
-typedef struct SurfaceMapStruct_3c SurfaceMapStruct_3c, *PSurfaceMapStruct_3c;
+typedef enum Construction_ZoneFlags { // [LegoRR/Construction.c|flags:0x4|type:uint]
+	CONSTRUCTION_FLAG_LAYPATH=2,
+	CONSTRUCTION_FLAG_NONE=0,
+	CONSTRUCTION_FLAG_READY=1,
+	CONSTRUCTION_FLAG_REQUESTED=4,
+	CONSTRUCTION_FLAG_USESTUDS=8
+} Construction_ZoneFlags;
+
+typedef struct Smoke_Group Smoke_Group, *PSmoke_Group;
 
 typedef struct ColourRGBF ColourRGBF, *PColourRGBF;
 
-typedef enum SurfaceMapStruct2A8Flags { // [LegoRR/???|flags:0x4|type:uint]
-	SURFMAP_STRUCT2A8_HIDDEN=1,
-	SURFMAP_STRUCT2A8_NONE=0,
-	SURFMAP_STRUCT2A8_UNK_10=16,
-	SURFMAP_STRUCT2A8_UNK_2=2,
-	SURFMAP_STRUCT2A8_UNK_4=4,
-	SURFMAP_STRUCT2A8_UNK_8=8
-} SurfaceMapStruct2A8Flags;
+typedef enum SmokeFlags { // [LegoRR/Smoke.c|flags:0x4|type:uint] SMOKE_FLAG_UNK_4 is hopelessly broken, and impossible to reverse.
+	SMOKE_FLAG_BROKEN_UNK_4=4,
+	SMOKE_FLAG_HIDDEN=1,
+	SMOKE_FLAG_NONE=0,
+	SMOKE_FLAG_OWNCONTAINER=2,
+	SMOKE_FLAG_REPEATCOUNT=8,
+	SMOKE_FLAG_REPEATEND=16,
+	SMOKE_FLAG_SFXFAILED=32
+} SmokeFlags;
 
 struct SpiderWeb_Globs { // [LegoRR/SpiderWeb.c|struct:0x8|tags:GLOBS]
-	struct BlockSpiderWeb * webBlocks;
+	struct SpiderWeb_Block * webBlocks;
 	struct Lego_Level * level;
 };
 
-struct BlockConstruction { // [LegoRR/Construction.c|struct:0xd4]
-	int objID;
-	enum Direction direction;
-	int int_8;
-	struct Point2I pointi_c;
-	struct Point2I * shapePoints;
+struct Construction_Zone { // [LegoRR/Construction.c|struct:0xd4]
+	LegoObject_ID objID; // Always used for Buildings, but for only for Paths in shared functions.
+	enum Direction direction; // Direction of Building object when completed.
+	uint handleValue; // Unique handle for this construction zone.
+	struct Point2I originBlockPos; // Alternate handle to construction zone. Used as the primary tile for resource placement. Block position of Building object when completed.
+	struct Point2I * shapeBlocks; // Only used by Buildings, transformed shape to match originBlockPos.
 	uint shapeCount;
-	undefined field_0x1c;
-	undefined field_0x1d;
-	undefined field_0x1e;
-	undefined field_0x1f;
-	undefined field_0x20;
-	undefined field_0x21;
-	undefined field_0x22;
-	undefined field_0x23;
-	struct BlockConstruction * next_24;
-	undefined field_0x28;
-	undefined field_0x29;
-	undefined field_0x2a;
-	undefined field_0x2b;
-	struct LegoObject * liveObjs_2c[1];
-	undefined field_0x30;
-	undefined field_0x31;
-	undefined field_0x32;
-	undefined field_0x33;
-	undefined field_0x34;
-	undefined field_0x35;
-	undefined field_0x36;
-	undefined field_0x37;
-	undefined field_0x38;
-	undefined field_0x39;
-	undefined field_0x3a;
-	undefined field_0x3b;
-	undefined field_0x3c;
-	undefined field_0x3d;
-	undefined field_0x3e;
-	undefined field_0x3f;
-	undefined field_0x40;
-	undefined field_0x41;
-	undefined field_0x42;
-	undefined field_0x43;
-	undefined field_0x44;
-	undefined field_0x45;
-	undefined field_0x46;
-	undefined field_0x47;
-	undefined field_0x48;
-	undefined field_0x49;
-	undefined field_0x4a;
-	undefined field_0x4b;
-	undefined field_0x4c;
-	undefined field_0x4d;
-	undefined field_0x4e;
-	undefined field_0x4f;
-	undefined field_0x50;
-	undefined field_0x51;
-	undefined field_0x52;
-	undefined field_0x53;
-	undefined field_0x54;
-	undefined field_0x55;
-	undefined field_0x56;
-	undefined field_0x57;
-	undefined field_0x58;
-	undefined field_0x59;
-	undefined field_0x5a;
-	undefined field_0x5b;
-	undefined field_0x5c;
-	undefined field_0x5d;
-	undefined field_0x5e;
-	undefined field_0x5f;
-	undefined field_0x60;
-	undefined field_0x61;
-	undefined field_0x62;
-	undefined field_0x63;
-	undefined field_0x64;
-	undefined field_0x65;
-	undefined field_0x66;
-	undefined field_0x67;
-	undefined field_0x68;
-	undefined field_0x69;
-	undefined field_0x6a;
-	undefined field_0x6b;
-	undefined field_0x6c;
-	undefined field_0x6d;
-	undefined field_0x6e;
-	undefined field_0x6f;
-	undefined field_0x70;
-	undefined field_0x71;
-	undefined field_0x72;
-	undefined field_0x73;
-	undefined field_0x74;
-	undefined field_0x75;
-	undefined field_0x76;
-	undefined field_0x77;
-	undefined field_0x78;
-	undefined field_0x79;
-	undefined field_0x7a;
-	undefined field_0x7b;
-	undefined field_0x7c;
-	undefined field_0x7d;
-	undefined field_0x7e;
-	undefined field_0x7f;
-	undefined field_0x80;
-	undefined field_0x81;
-	undefined field_0x82;
-	undefined field_0x83;
-	undefined field_0x84;
-	undefined field_0x85;
-	undefined field_0x86;
-	undefined field_0x87;
-	undefined field_0x88;
-	undefined field_0x89;
-	undefined field_0x8a;
-	undefined field_0x8b;
-	undefined field_0x8c;
-	undefined field_0x8d;
-	undefined field_0x8e;
-	undefined field_0x8f;
-	undefined field_0x90;
-	undefined field_0x91;
-	undefined field_0x92;
-	undefined field_0x93;
-	undefined field_0x94;
-	undefined field_0x95;
-	undefined field_0x96;
-	undefined field_0x97;
-	undefined field_0x98;
-	undefined field_0x99;
-	undefined field_0x9a;
-	undefined field_0x9b;
-	undefined field_0x9c;
-	undefined field_0x9d;
-	undefined field_0x9e;
-	undefined field_0x9f;
-	undefined field_0xa0;
-	undefined field_0xa1;
-	undefined field_0xa2;
-	undefined field_0xa3;
-	undefined field_0xa4;
-	undefined field_0xa5;
-	undefined field_0xa6;
-	undefined field_0xa7;
-	undefined field_0xa8;
-	undefined field_0xa9;
-	undefined field_0xaa;
-	undefined field_0xab;
-	undefined field_0xac;
-	undefined field_0xad;
-	undefined field_0xae;
-	undefined field_0xaf;
-	undefined field_0xb0;
-	undefined field_0xb1;
-	undefined field_0xb2;
-	undefined field_0xb3;
-	undefined field_0xb4;
-	undefined field_0xb5;
-	undefined field_0xb6;
-	undefined field_0xb7;
-	undefined field_0xb8;
-	undefined field_0xb9;
-	undefined field_0xba;
-	undefined field_0xbb;
-	undefined field_0xbc;
-	undefined field_0xbd;
-	undefined field_0xbe;
-	undefined field_0xbf;
-	undefined field_0xc0;
-	undefined field_0xc1;
-	undefined field_0xc2;
-	undefined field_0xc3;
-	undefined field_0xc4;
-	undefined field_0xc5;
-	undefined field_0xc6;
-	undefined field_0xc7;
-	undefined field_0xc8;
-	undefined field_0xc9;
-	undefined field_0xca;
-	undefined field_0xcb;
-	uint liveObjsCount_cc;
-	uint flags;
+	uint requestCount; // Number of resources requested. Must be matched by placeCount to finish construction.
+	uint placedCount;
+	struct Construction_Zone * next; // Next in linked list.
+	float float_28; // (ready: 125.0 , unused, possibly old timer for delay before construction)
+	struct LegoObject * placedObjects[40];
+	uint placedCount2; // Always identical to placedCount, no difference in usage.
+	enum Construction_ZoneFlags flags;
+};
+
+struct ColourRGBF { // [common.c|struct:0xc]
+	float red;
+	float green;
+	float blue;
+};
+
+struct Smoke_Group { // [LegoRR/Smoke.c|struct:0x3c]
+	BOOL used;
+	struct Vector3F randVec; // (init: Smoke_Group_Show, stored randomness applied to dirVec to get moveVec, unused)
+	struct Vector3F moveVec; // (init: Smoke_Group_Show, readonly)
+	struct Vector3F position; // (init: Container_GetPosition, updated)
+	float float_28;
+	float float_2c;
+	float timer_30; // Count-up timer related to alpha (never used for anything).
+	int int_34; // (random: [40,69]) Related to constant scalar 0.7f
+	float timerUp_38; // Count-up timer (used for rendering).
+};
+
+struct Smoke { // [LegoRR/Smoke.c|struct:0x2a8]
+	struct Smoke_Group groupList[10];
+	float newSmokeTimer; // Countdown timer until another smoke group is added.
+	struct Vector3F sfxOrigin; // Originating position of SFX when played in world.
+	struct Vector3F dirVec; // Base move direction vector for smoke groups before randomness is applied.
+	struct ColourRGBF colour;
+	uint groupCount;
+	int numRepeats; // (Dissipate) Number of repeats from 0-4 before vanishing.
+	float animSpeed; // Speed of creating new groups and applied to movement speed.
+	struct Container * cont; // Attached or created container for mesh.
+	struct Mesh * mesh;
+	enum SmokeFlags flags;
+	struct Smoke * next; // Next Smoke in doubly-linked list.
+	struct Smoke * previous; // Previous Smoke in doubly-linked list.
+	enum SFX_ID sfxID;
+	int sound3DPlayHandle;
 };
 
 struct RadarMap { // [LegoRR/RadarMap.c|struct:0x3c]
-	struct Map3D * surfMap;
+	struct Map3D * map;
 	struct Area2F screenRect;
 	float arrowTiltOrZoom;
-	float BlockSize;
+	float blockSize;
 	struct Point2F arrowPos;
 	struct Area2F worldRect;
 	struct Draw_Rect * drawRectList;
@@ -15450,43 +15371,7 @@ struct BlockPointer { // [LegoRR/NERPs.c|struct:0xc]
 	struct BlockPointer * next; // Linked list of BlockPointers with same ID.
 };
 
-struct ColourRGBF { // [common.c|struct:0xc]
-	float red;
-	float green;
-	float blue;
-};
-
-struct SurfaceMapStruct_3c { // [LegoRR/Map3D.c|struct:0x3c]
-	BOOL used_0;
-	struct Vector3F vector_4;
-	struct Vector3F vector_10;
-	struct Vector3F vector_1c;
-	float float_28;
-	float float_2c;
-	float float_30; // timer
-	int int_34; // (std::rand() % 30) + 40
-	undefined4 field_38;
-};
-
-struct SurfaceMapStruct_2a8 { // [LegoRR/Map3D.c|struct:0x2a8]
-	struct SurfaceMapStruct_3c groupList[10];
-	float float_258;
-	struct Vector3F vector_25c;
-	struct Vector3F vector_268;
-	struct ColourRGBF colour;
-	uint groupCount;
-	int int_284;
-	float float_288;
-	struct Container * resData_28c;
-	struct Mesh * mesh;
-	enum SurfaceMapStruct2A8Flags flags_294;
-	struct SurfaceMapStruct_2a8 * next;
-	struct SurfaceMapStruct_2a8 * previous;
-	enum SFX_ID sfxID;
-	int soundHandle;
-};
-
-struct Detail_Mesh { // [LegoRR/???|struct:0x340]
+struct Detail_Mesh { // [LegoRR/Detail.c|struct:0x340]
 	struct Container * promesh_ab[2];
 	struct Container * clones_ab[2][100];
 	float BlockSize;
@@ -15507,21 +15392,21 @@ struct Detail_Mesh { // [LegoRR/???|struct:0x340]
 };
 
 struct Lego_Block { // [LegoRR/Lego.c|struct:0x48|pack:1]
-	enum PredugType predug;
+	enum Lego_PredugType predug;
 	enum SurfaceTexture texture;
-	enum TerrainType terrain;
+	enum Lego_SurfaceType8 terrain;
 	byte direction; // clockwise (does not determine corner/wall type)
 	byte blockpointer;
-	enum CryOreType cryOre;
-	enum ErodeType erodeSpeed;
-	byte field_7;
+	enum Lego_CryOreType cryOre;
+	enum Lego_ErodeType erodeSpeed;
+	byte erodeLevel; // 0 = low, 1 = med, 2 = high, 3 = max, 4 = lava
 	enum BlockFlags1 flags1;
 	enum BlockFlags2 flags2;
-	struct BlockConstruction * construct;
+	struct Construction_Zone * construct;
 	float damage; // drill damage [0.0-1.0]
-	struct LevelStruct_1c * struct1c_18;
-	struct SurfaceMapStruct_2a8 * smokeptr_1c;
-	short randomness;
+	struct Lego_BlockActivity * activity;
+	struct Smoke * smoke;
+	short randomness; // (sometimes sign-extended)
 	short short_22; // (some num value, observed: != 4)
 	uint numLandSlides;
 	uint clickCount;
@@ -15542,21 +15427,12 @@ struct EmergeBlock { // [LegoRR/Lego.c|struct:0xc]
 	BOOL used;
 };
 
-struct LevelStruct_1c { // [LegoRR/Lego.c|struct:0x1c] related to Terrain map?
-	struct Container * resData;
-	struct Point2I blockPos;
-	uint flags;
-	struct LevelStruct_1c * next;
-	struct LevelStruct_1c * previous;
-	BOOL bool_18;
-};
-
 struct Lego_Level { // [LegoRR/Lego.c|struct:0x284]
 	char * name; // (format: "Levels::level")
 	struct Map3D * map;
 	struct EmergeTrigger * emergeTriggers;
 	uint emergeCount;
-	undefined4 field_10;
+	undefined4 unused_rewardID; // Presumably used to lookup level rewards by some constant ID value.
 	uint width;
 	uint height;
 	float BlockSize;
@@ -15585,17 +15461,17 @@ struct Lego_Level { // [LegoRR/Lego.c|struct:0x284]
 	struct Detail_TextureSet * textureSet;
 	struct Detail_Mesh * * promeshGrid;
 	struct RadarMap * radarMap;
-	struct LevelStruct_1c * terrain1c_88;
-	int numCrystals; // (init: 0) total number of crystals
-	undefined4 field_90; // (init: 0)
-	undefined4 field_94; // (init: 0)
-	int numUnusedCrystals; // crystals available for use (not powering buildings)
-	undefined4 field_9c;
-	int numOre; // (init: 0)
-	undefined4 field_a4; // (init: 0)
-	undefined4 field_a8; // (init: 0)
-	int numProcessedOre;
-	int EmergeCreature; // (searches for object index by name, expects RockMonsterType)
+	struct Lego_BlockActivity * blockActLast; // Tail of doubly-linked list of block effects.
+	int crystals; // (init: 0) Total number of Crystals stored.
+	undefined4 unused_crystals_90; // (init: 0, unused) Presumably once for Crystals.
+	int crystalsPickedUp; // (init: 0) Used by NERPs:GetCrystalsPickedUp.
+	int crystalsDrained; // Crystals stored, but in-use powering buildings.
+	int crystalsStolen; // For checking MaxStolen failure condition.
+	int ore; // (init: 0) Total number of normal Ore stored. (EXCLUDES STUDS)
+	undefined4 unused_ore_a4; // (init: 0, unused) Presumably once for Ore.
+	int orePickedUp; // (init: 0) Used by NERPs:GetOrePickedUp.
+	int studs; // (init: 0) Total number of Studs stored. (1 stud == 5 ore)
+	int EmergeCreature; // (searches for Object ID by name, expects RockMonsterType)
 	char * nextLevelID; // (cfg: NextLevel)
 	struct Lego_Block * blocks; // grid of blocks [y][x]
 	struct ObjectiveData objective;
@@ -15605,7 +15481,7 @@ struct Lego_Level { // [LegoRR/Lego.c|struct:0x284]
 	BOOL NoDrain;
 	float oxygenLevel; // (init: 100.0, Oxygen level?)
 	float OxygenRate;
-	float float_204; // (init: 100.0, Oxygen level?)
+	float oxygenLevelMessage; // Tracks change in oxygen since the last message (new message after change of 5%).
 	float BuildingTolerance; // (default: 4.0)
 	float BuildingMaxVariation; // (default: 6.0)
 	float UpgradeTimes[20]; // [objType] (mult: 25.0, 1:Vehicle, 2:MiniFigure, 3:Building)
@@ -15616,8 +15492,14 @@ struct Lego_Level { // [LegoRR/Lego.c|struct:0x284]
 	char * FullName; // (replace '_' with ' ')
 	enum TextureType BoulderAnimation; // (texture index, hardcoded: Rock, Lava, Ice)
 	float MaxStolen;
-	enum ObjectiveStatus status; // (init: 0) 2 is used for Crystal failure as well
+	enum LevelStatus status; // (init: 0) 2 is used for Crystal failure as well
 	BOOL IsStartTeleportEnabled; // (! DisableStartTeleport)
+};
+
+struct SpiderWeb_Block { // [LegoRR/SpiderWeb.c|struct:0xc]
+	struct LegoObject * object; // "SpiderWeb" LiveObject
+	float health; // Assumed as health, init: 100.0f
+	enum SpiderWeb_BlockFlags flags;
 };
 
 struct Draw_Rect { // [Gods98/Draw.c|struct:0x1c]
@@ -15627,10 +15509,16 @@ struct Draw_Rect { // [Gods98/Draw.c|struct:0x1c]
 	float b;
 };
 
-struct BlockSpiderWeb { // [LegoRR/SpiderWeb.c|struct:0xc]
-	struct LegoObject * object; // "SpiderWeb" LiveObject
-	float health; // Assumed as health, init: 100.0f
-	enum BlockSpiderWebFlags flags;
+struct Lego_BlockActivity { // [LegoRR/Lego.c|struct:0x1c] An effect or activity container attached to an individual block (only one per block max).
+	struct Container * cont;
+	struct Point2I blockPos;
+	enum BlockActivityFlags flags; // (0x1=?, 0x2=?, 0x4=?)
+	undefined field_0xd;
+	undefined field_0xe;
+	undefined field_0xf;
+	struct Lego_BlockActivity * next;
+	struct Lego_BlockActivity * previous;
+	BOOL staticEffect; // (0 = reinforcement, 1 = recharge seam twinkle?)
 };
 
 struct EmergeTrigger { // [LegoRR/Lego.c|struct:0x4c]
@@ -16814,10 +16702,10 @@ typedef struct Roof_Globs Roof_Globs, *PRoof_Globs;
 typedef struct RoofBlock RoofBlock, *PRoofBlock;
 
 typedef enum RoofFlags { // [LegoRR/Roof.c|flags:0x4|type:uint]
-	ROOF_HIDDEN=1,
-	ROOF_NEEDUPDATE=2,
-	ROOF_NONE=0,
-	ROOF_SHIFTVERTICES=4
+	ROOF_FLAG_HIDDEN=1,
+	ROOF_FLAG_NEEDUPDATE=2,
+	ROOF_FLAG_NONE=0,
+	ROOF_FLAG_SHIFTVERTICES=4
 } RoofFlags;
 
 struct Roof_Globs { // [LegoRR/Roof.c|struct:0x7f0|tags:GLOBS] A level's roof mesh displayed in the world (only when in FP)
@@ -16838,13 +16726,21 @@ struct RoofBlock { // [LegoRR/Roof.c|struct:0x8] Mesh group for a single block i
 
 typedef struct AITask_Globs AITask_Globs, *PAITask_Globs;
 
+typedef enum AITask_GlobFlags { // [LegoRR/AITask.c|flags:0x4|type:uint]
+	AITASK_GLOB_FLAG_DISABLEUPDATES=2147483648,
+	AITASK_GLOB_FLAG_INITIALISED=1,
+	AITASK_GLOB_FLAG_NONE=0,
+	AITASK_GLOB_FLAG_REMOVING=2,
+	AITASK_GLOB_FLAG_UNK_4=4
+} AITask_GlobFlags;
+
 struct AITask_Globs { // [LegoRR/AITask.c|struct:0x4e9c|tags:GLOBS]
 	struct AITask * listSet[12];
 	struct AITask * freeList;
 	uint listCount;
 	char * aitaskName[31];
 	char * priorityName[27];
-	uint priorityValues[27];
+	int priorityValues[27];
 	struct AITask * AITaskUnkPtr;
 	struct AITask * AITaskDataNext;
 	struct LegoObject * liveObjsTable_1[50];
@@ -16853,23 +16749,23 @@ struct AITask_Globs { // [LegoRR/AITask.c|struct:0x4e9c|tags:GLOBS]
 	uint liveObjsCount_2;
 	uint requestObjCounts[20][15][16];
 	BOOL disabledPriorities[27];
-	uint flags;
+	enum AITask_GlobFlags flags;
 };
 
 typedef struct HelpWindow_Globs HelpWindow_Globs, *PHelpWindow_Globs;
 
 typedef struct MenuButton MenuButton, *PMenuButton;
 
-typedef enum HelpWindowFlags { // [LegoRR/HelpWindow.c|flags:0x4|type:uint]
-	HELPWINDOW_ENABLED=64,
-	HELPWINDOW_NONE=0,
-	HELPWINDOW_UNK_1=1,
-	HELPWINDOW_UNK_10=16,
-	HELPWINDOW_UNK_2=2,
-	HELPWINDOW_UNK_20=32,
-	HELPWINDOW_UNK_4=4,
-	HELPWINDOW_UNK_8=8
-} HelpWindowFlags;
+typedef enum HelpWindow_GlobFlags { // [LegoRR/HelpWindow.c|flags:0x4|type:uint]
+	HELPWINDOW_GLOB_FLAG_ENABLED=64,
+	HELPWINDOW_GLOB_FLAG_NONE=0,
+	HELPWINDOW_GLOB_FLAG_UNK_1=1,
+	HELPWINDOW_GLOB_FLAG_UNK_10=16,
+	HELPWINDOW_GLOB_FLAG_UNK_2=2,
+	HELPWINDOW_GLOB_FLAG_UNK_20=32,
+	HELPWINDOW_GLOB_FLAG_UNK_4=4,
+	HELPWINDOW_GLOB_FLAG_UNK_8=8
+} HelpWindow_GlobFlags;
 
 struct MenuButton { // [LegoRR/FrontEnd.c|struct:0x1c]
 	struct Area2F window;
@@ -16894,17 +16790,17 @@ struct HelpWindow_Globs { // [LegoRR/HelpWindow.c|struct:0xd6c|tags:GLOBS]
 	char * CanBuildAndTransportMessage;
 	char * activeObjName;
 	enum LegoObject_Type activeObjType;
-	int activeObjIndex;
-	int activeObjLevel;
+	LegoObject_ID activeObjID;
+	uint activeObjLevel;
 	enum LegoObject_Type unlockedObjTypes[30];
-	int unlockedObjIndexes[30];
-	int unlockedObjLevels[30];
+	LegoObject_ID unlockedObjIndexes[30];
+	uint unlockedObjLevels[30];
 	uint unlockedCount;
 	float float_d58;
 	float float_d5c;
 	uint count_d60;
 	undefined4 field_d64;
-	enum HelpWindowFlags flags;
+	enum HelpWindow_GlobFlags flags;
 };
 
 typedef struct Stats_Globs Stats_Globs, *PStats_Globs;
@@ -16960,35 +16856,35 @@ struct SFX_Globs { // [LegoRR/SFX.c|struct:0x1770|tags:GLOBS]
 typedef struct Construction_Globs Construction_Globs, *PConstruction_Globs;
 
 struct Construction_Globs { // [LegoRR/Construction.c|struct:0x38|tags:GLOBS]
-	uint uint_0; // (related to Construction->int_8)
-	struct BlockConstruction * construct_4;
-	undefined4 reserved1Table[5]; // (probably related to unused buildingBaseTable)
-	char * buildingBaseTable[5];
+	uint nextHandleValue; // Next handle value used when creating a construction zone.
+	struct Construction_Zone * constructList; // Head of linked list.
+	undefined4 unused_buildingBaseTable[5]; // (probably related to unused buildingBaseTable)
+	char * buildingBaseName[5]; // empty table, no names
 	uint buildingBaseCount;
 	BOOL disableCryOreDrop;
 };
 
 typedef struct Objective_Globs Objective_Globs, *PObjective_Globs;
 
-typedef enum ObjectiveFlags { // [LegoRR/Objective.c|flags:0x4|type:uint] STATUSREADY means next status has been set, but has not been "updated" yet? HITTIMEFAIL is unused and replaced by SHOWACHIEVEDADVISOR.
-	OBJECTIVE_FLAG_BLOCK=1024,
-	OBJECTIVE_FLAG_BRIEFING=1,
-	OBJECTIVE_FLAG_COMPLETED=2,
-	OBJECTIVE_FLAG_CONSTRUCTION=4096,
-	OBJECTIVE_FLAG_CRYSTAL=256,
-	OBJECTIVE_FLAG_FAILED=4,
-	OBJECTIVE_FLAG_HITTIMEFAIL=64,
-	OBJECTIVE_FLAG_ORE=512,
-	OBJECTIVE_FLAG_SHOWACHIEVEDADVISOR=32,
-	OBJECTIVE_FLAG_SHOWBRIEFINGADVISOR=16,
-	OBJECTIVE_FLAG_SHOWFAILEDADVISOR=128,
-	OBJECTIVE_FLAG_STATUSREADY=8,
-	OBJECTIVE_FLAG_TIMER=2048,
-	OBJECTIVE_NONE=0
-} ObjectiveFlags;
+typedef enum Objective_GlobFlags { // [LegoRR/Objective.c|flags:0x4|type:uint] STATUSREADY means next status has been set, but has not been "updated" yet? HITTIMEFAIL is unused and replaced by SHOWACHIEVEDADVISOR.
+	OBJECTIVE_GLOB_FLAG_BLOCK=1024,
+	OBJECTIVE_GLOB_FLAG_BRIEFING=1,
+	OBJECTIVE_GLOB_FLAG_COMPLETED=2,
+	OBJECTIVE_GLOB_FLAG_CONSTRUCTION=4096,
+	OBJECTIVE_GLOB_FLAG_CRYSTAL=256,
+	OBJECTIVE_GLOB_FLAG_FAILED=4,
+	OBJECTIVE_GLOB_FLAG_HITTIMEFAIL=64,
+	OBJECTIVE_GLOB_FLAG_NONE=0,
+	OBJECTIVE_GLOB_FLAG_ORE=512,
+	OBJECTIVE_GLOB_FLAG_SHOWACHIEVEDADVISOR=32,
+	OBJECTIVE_GLOB_FLAG_SHOWBRIEFINGADVISOR=16,
+	OBJECTIVE_GLOB_FLAG_SHOWFAILEDADVISOR=128,
+	OBJECTIVE_GLOB_FLAG_STATUSREADY=8,
+	OBJECTIVE_GLOB_FLAG_TIMER=2048
+} Objective_GlobFlags;
 
 struct Objective_Globs { // [LegoRR/Objective.c|struct:0x28c|tags:GLOBS] Globals for objective messages (Chief briefing, etc).
-	enum ObjectiveFlags flags;
+	enum Objective_GlobFlags flags;
 	struct File * file; // PTRFileStream_00500bc4
 	char filename[128]; // CHAR_ARRAY_00500bc8
 	char * messages[4]; // [Briefing,Completion,Failure,CrystalFailure] Strings containing text of entire status message (pages are separated with '\a').
@@ -17014,11 +16910,19 @@ typedef struct Panel_Globs Panel_Globs, *PPanel_Globs;
 
 typedef struct PanelData PanelData, *PPanelData;
 
-typedef enum PanelButtonType { // [LegoRR/Panels.c|enum:0x4|type:int|tags:REALENUM]
-	PANELBUTTON__COUNT=24
+typedef enum PanelButtonType { // [LegoRR/Panels.c|enum:0x4|type:int|tags:REALENUM] DEFINE ONLY
+	PANELBUTTON_TYPE_COUNT=24
 } PanelButtonType;
 
 typedef struct PanelTextWindow PanelTextWindow, *PPanelTextWindow;
+
+typedef enum Panel_GlobFlags { // [LegoRR/Panels.c|flags:0x4|type:uint] Todo...
+	PANEL_GLOB_FLAG_NONE=0
+} Panel_GlobFlags;
+
+typedef enum PanelDataFlags { // [LegoRR/Panels.c|flags:0x4|type:uint] Todo...
+	PANELTYPE_FLAG_NONE=0
+} PanelDataFlags;
 
 struct PanelData { // [LegoRR/Panels.c|struct:0x30]
 	struct Image * imageOrFlic;
@@ -17029,7 +16933,7 @@ struct PanelData { // [LegoRR/Panels.c|struct:0x30]
 	undefined4 field_20;
 	void * buttonList;
 	uint buttonCount;
-	uint flags;
+	enum PanelDataFlags flags;
 };
 
 struct Panel_Globs { // [LegoRR/Panels.c|struct:0x7b8|tags:GLOBS]
@@ -17049,7 +16953,7 @@ struct Panel_Globs { // [LegoRR/Panels.c|struct:0x7b8|tags:GLOBS]
 	struct Point2F airMeterJuiceOffset; // Hard: (85, 6) Offset relative to top-left corner of MsgPanel
 	uint airMeterJuiceLength; // Hard: 236
 	struct Point2F airMeterNoAirOffset; // Hard: (21, 0) Offset relative to top-left corner of MsgPanel
-	BOOL airMeterUnkBeatBool;
+	BOOL airMeterOxygenLow; // Oxygen level is 10% or less.
 	struct Image * cryOreSideBarImage; // Hard: "Interface\\RightPanel\\crystalsidebar_ore.bmp"
 	struct Point2F cryOreSideBarOffset; // Hard: (615, 434)
 	uint cryOreMeterOffset; // Hard: 423
@@ -17064,7 +16968,7 @@ struct Panel_Globs { // [LegoRR/Panels.c|struct:0x7b8|tags:GLOBS]
 	struct Image * rotateDownImage;
 	struct Image * rotateLeftImage;
 	struct Image * rotateRightImage;
-	uint flags;
+	enum Panel_GlobFlags flags;
 	undefined4 reserved;
 	uint s_crystalShifts[2][6]; // static function variable for delayed change in crystal meter
 };
@@ -17109,7 +17013,7 @@ struct GameControl_Globs { // [LegoRR/???|struct:0x180|tags:GLOBS]
 	float dbgUpgradeChangeTimer;
 	float dbgSpeedChangeTimer;
 	float dbgRollOffChangeTimer;
-	float float_12c;
+	float sceneFogDelta; // Delta value used in Lego_UpdateSceneFog ((M_PI*2)/fogRate * elapsed).
 	int msbl_last_2_unknum;
 	float dbgCursorLightLevel;
 	BOOL isGameSpeedLocked; // When this is TRUE, game speed can only be lowered when calling `Game_SetGameSpeed`.
@@ -17122,7 +17026,7 @@ struct GameControl_Globs { // [LegoRR/???|struct:0x180|tags:GLOBS]
 	BOOL mslr_Last_0;
 	float elapsed_15c;
 	BOOL bool_160;
-	struct LegoObject * object_164;
+	struct LegoObject * toolTipObject;
 	BOOL dbgF10InvertLighting;
 	BOOL dbgF9DisableLightEffects;
 	undefined4 reserved3;
@@ -17135,29 +17039,29 @@ typedef struct Smoke_Globs Smoke_Globs, *PSmoke_Globs;
 
 struct Smoke_Globs { // [LegoRR/Smoke.c|struct:0x34|tags:GLOBS]
 	struct Container_Texture * textureList[10];
-	struct SurfaceMapStruct_2a8 * firstSmoke; // A doublely-linked list, each node has next/previous as well
-	struct SurfaceMapStruct_2a8 * lastSmoke;
-	uint count;
+	struct Smoke * firstSmoke; // A doublely-linked list, each node has next/previous as well
+	struct Smoke * lastSmoke;
+	uint textureCount;
 };
 
 typedef struct LightEffects_Globs LightEffects_Globs, *PLightEffects_Globs;
 
 typedef struct Range2F Range2F, *PRange2F;
 
-typedef enum LightEffectsFlags { // [LegoRR/LightEffects.c|flags:0x4|type:uint] LightEffects_GlobFlags, Flags for LightEffectsManager global variable @004ebec8
-	LIGHTEFFECTS_DIMIN_DONE=1024,
-	LIGHTEFFECTS_DIMOUT=512,
-	LIGHTEFFECTS_DIMOUT_DONE=4096,
-	LIGHTEFFECTS_DISABLED=256,
-	LIGHTEFFECTS_FADE_FORWARD=16,
-	LIGHTEFFECTS_FADE_REVERSE=32,
-	LIGHTEFFECTS_FADING=8,
-	LIGHTEFFECTS_HASBLINK=1,
-	LIGHTEFFECTS_HASFADE=4,
-	LIGHTEFFECTS_HASMOVE=64,
-	LIGHTEFFECTS_MOVING=128,
-	LIGHTEFFECTS_NONE=0
-} LightEffectsFlags;
+typedef enum LightEffects_GlobFlags { // [LegoRR/LightEffects.c|flags:0x4|type:uint] LightEffects_GlobFlags, Flags for LightEffectsManager global variable @004ebec8
+	LIGHTFX_GLOB_FLAG_DIMIN_DONE=1024,
+	LIGHTFX_GLOB_FLAG_DIMOUT=512,
+	LIGHTFX_GLOB_FLAG_DIMOUT_DONE=4096,
+	LIGHTFX_GLOB_FLAG_DISABLED=256,
+	LIGHTFX_GLOB_FLAG_FADE_FORWARD=16,
+	LIGHTFX_GLOB_FLAG_FADE_REVERSE=32,
+	LIGHTFX_GLOB_FLAG_FADING=8,
+	LIGHTFX_GLOB_FLAG_HASBLINK=1,
+	LIGHTFX_GLOB_FLAG_HASFADE=4,
+	LIGHTFX_GLOB_FLAG_HASMOVE=64,
+	LIGHTFX_GLOB_FLAG_MOVING=128,
+	LIGHTFX_GLOB_FLAG_NONE=0
+} LightEffects_GlobFlags;
 
 struct Range2F { // [common.c|struct:0x8]
 	float min;
@@ -17165,46 +17069,47 @@ struct Range2F { // [common.c|struct:0x8]
 };
 
 struct LightEffects_Globs { // [LegoRR/LightEffects.c|struct:0xf4|tags:GLOBS] LightEffects module globals @004ebdd8
-	struct Container * resSpotlight; // [Res+Move] init
-	struct Container * resRootLight; // [Move] init
+	struct Container * rootSpotlight; // [Cont+Move] init
+	struct Container * rootLight; // [Move] init (Reference used when getting position of rootSpotlight)
 	struct ColourRGBF initialRGB; // [Color] init
 	struct ColourRGBF currentRGB; // [Color+Blink+Fade] init+update
-	struct ColourRGBF BlinkRGBMax; // [Blink] init
-	float blinkTime; // [Blink] update
-	struct Range2F RandomRangeForTimeBetweenBlinks; // [Blink] init
+	struct ColourRGBF blinkRGBMax; // [Blink] init (cfg: BlinkRGBMax)
+	float blinkWait; // [Blink] update. Time between end of blink and next blink.
+	struct Range2F blinkWaitRange; // [Blink] init (cfg: RandomRangeForTimeBetweenBlinks, mult: 25.0)
 	float blinkChange; // [Blink] update
-	float MaxChangeAllowed; // [Blink] init
+	float blinkChangeMax; // [Blink] init (cfg: MaxChangeAllowed, div: 255.0)
 	struct ColourRGBF fadeDestRGB; // [Fade] update
-	struct ColourRGBF FadeRGBMin; // [Fade] init
-	struct ColourRGBF FadeRGBMax; // [Fade] init
-	float fadeTime; // [Fade] update
-	struct Range2F RandomRangeForTimeBetweenFades; // [Fade] init
+	struct ColourRGBF fadeRGBMin; // [Fade] init (cfg: FadeRGBMin)
+	struct ColourRGBF fadeRGBMax; // [Fade] init (cfg: FadeRGBMax)
+	float fadeWait; // [Fade] update. Time between end of fade and next fade.
+	struct Range2F fadeWaitRange; // [Fade] init (cfg: RandomRangeForTimeBetweenFades, mult: 25.0)
 	struct ColourRGBF fadeSpeedRGB; // [Fade] update
-	struct Range2F RandomRangeForFadeTimeFade; // [Fade] init
-	float fadeHoldTime; // [Fade] update
-	struct Range2F RandomRangeForHoldTimeOfFade; // [Fade] init
+	struct Range2F fadeSpeedRange; // [Fade] init (cfg: RandomRangeForFadeTimeFade, mult: 25.0)
+	float fadeHold; // [Fade] update. Time between peak of fade before reversing.
+	struct Range2F fadeHoldRange; // [Fade] init (cfg: RandomRangeForHoldTimeOfFade, mult: 25.0)
 	struct ColourRGBF fadePosRGB; // [Fade] update
-	struct Vector3F resPosition; // [Move] init+update
-	struct Vector3F MoveLimit; // [Move] init
-	float moveTime; // [Move] update
-	struct Range2F RandomRangeForTimeBetweenMoves; // [Move] init
+	struct Vector3F movePosition; // [Move] init+update (3D position of rootSpotlight)
+	struct Vector3F moveLimit; // [Move] init (cfg: MoveLimit)
+	float moveWait; // [Move] update. Time between end of move and next move.
+	struct Range2F moveWaitRange; // [Move] init (cfg: RandomRangeForTimeBetweenMoves, mult: 25.0)
 	float moveSpeed; // [Move] update
-	struct Range2F RandomRangeForSpeedOfMove; // [Move] init
-	struct Vector3F vectorMove; // [Move] update
+	struct Range2F moveSpeedRange; // [Move] init (cfg: RandomRangeForSpeedOfMove, mult: 25.0)
+	struct Vector3F moveVector; // [Move] update
 	float moveDist; // [Move] update
-	struct Range2F RandomRangeForDistOfMove; // [Move] init
+	struct Range2F moveDistRange; // [Move] init (cfg: RandomRangeForDistOfMove)
 	undefined1 reserved1[12]; // possibly an unused Vector3F/ColourRGBF
-	enum LightEffectsFlags flags; // [all] init+update
+	enum LightEffects_GlobFlags flags; // [all] init+update
 };
 
 typedef struct Lego_Globs Lego_Globs, *PLego_Globs;
 
-typedef enum GraphicsQuality { // [Gods98/Main.c|enum:0x4|type:uint]
-	QUALITY_FLAT=2,
-	QUALITY_GOURAUD=3,
-	QUALITY_UNLITFLAT=1,
-	QUALITY_WIREFRAME=0
-} GraphicsQuality;
+typedef enum Graphics_Quality { // [Gods98/Main.c|enum:0x4|type:uint] Phong is unused.
+	Flat=2,
+	Gouraud=3,
+	Phong=4,
+	UnlitFlat=1,
+	Wireframe=0
+} Graphics_Quality;
 
 typedef struct LegoCamera LegoCamera, *PLegoCamera;
 
@@ -17217,15 +17122,17 @@ typedef enum ViewMode { // [LegoRR/Lego.c|enum:0x4|type:int]
 
 typedef enum GameFlags1 { // [LegoRR/Lego.c|flags:0x4|type:uint]
 	GAME1_ALWAYSROCKFALL=8388608,
-	GAME1_CAMERADISABLED=1048576,
+	GAME1_CAMERAGOTO=2097152,
 	GAME1_DDRAWCLEAR=1024,
 	GAME1_DEBUG_NOCLIP_FPS=1073741824,
 	GAME1_DEBUG_NONERPS=16777216,
 	GAME1_DEBUG_SHOWVERTEXMODE=536870912,
 	GAME1_DYNAMICPM=524288,
 	GAME1_FOGCOLOURRGB=32768,
+	GAME1_FREEZEINTERFACE=1048576,
 	GAME1_HIGHFOGCOLOURRGB=65536,
 	GAME1_LASERTRACKER=268435456,
+	GAME1_LEVELENDING=134217728,
 	GAME1_LEVELSTART=4,
 	GAME1_MULTISELECT=256,
 	GAME1_NONE=0,
@@ -17233,16 +17140,14 @@ typedef enum GameFlags1 { // [LegoRR/Lego.c|flags:0x4|type:uint]
 	GAME1_PAUSED=33554432,
 	GAME1_RADARON=2,
 	GAME1_RADAR_MAPVIEW=4096,
+	GAME1_RADAR_NOTRACKOBJECT=131072,
 	GAME1_RADAR_TRACKOBJECTVIEW=8192,
 	GAME1_RADAR_UNK_4000=16384,
 	GAME1_RENDERPANELS=2048,
 	GAME1_SHOWFPS=64,
 	GAME1_SHOWMEMORY=128,
-	GAME1_SMOOTHCAMERAGOTO=2097152,
 	GAME1_STREAMNERPSSPEACH=67108864,
 	GAME1_UNK_200=512,
-	GAME1_UNK_20000=131072,
-	GAME1_UNK_8000000=134217728,
 	GAME1_UNK_80000000=2147483648,
 	GAME1_USEDETAIL=32,
 	GAME1_USEMUSIC=8,
@@ -17306,7 +17211,7 @@ typedef enum CameraFlags { // [LegoRR/LegoCamera.c|flags:0x4|type:uint]
 
 struct SelectPlace { // [LegoRR/SelectPlace.c|struct:0x8] Building selection highlight shown on map when placing
 	struct Container * contMesh;
-	float floatValue; // (init: 5.0)
+	float tileDepth; // (init: 5.0) Z height of each coloured square when drawing the building placement grid.
 };
 
 struct Lego_Globs { // [LegoRR/Lego.c|struct:0xf00|tags:GLOBS]
@@ -17314,7 +17219,7 @@ struct Lego_Globs { // [LegoRR/Lego.c|struct:0xf00|tags:GLOBS]
 	char * gameName;
 	undefined4 field_8;
 	undefined4 field_c;
-	enum GraphicsQuality quality; // (cfg: Main::Quality)
+	enum Graphics_Quality quality; // (cfg: Main::Quality)
 	struct Lego_Level * currLevel;
 	struct Container * rootCont; // containerGlobs.root
 	struct Viewport * viewMain; // Viewport area: (0.0,0.0 - 1.0x1.0)
@@ -17329,7 +17234,7 @@ struct Lego_Globs { // [LegoRR/Lego.c|struct:0xf00|tags:GLOBS]
 	struct Container * ambientLight;
 	struct Container * rootSpotlight;
 	struct Container * rootLight;
-	struct Container * dirLightFPDefault;
+	struct Container * dirLightCallToArms;
 	float FPClipBlocks; // (cfg: Main::FPClipBlocks)
 	float TVClipDist; // (cfg: Main::TVClipDist)
 	undefined4 field_58;
@@ -17344,8 +17249,9 @@ struct Lego_Globs { // [LegoRR/Lego.c|struct:0xf00|tags:GLOBS]
 	struct Font * bmpRSFont;
 	struct TextWindow * textWnd_80;
 	struct TextWindow * textWnd_84;
-	struct Point2F gotoPositions_88[2];
-	BOOL gotoBool_98;
+	struct Point2F gotoNewPos; // Upcoming/current 2D world position used when programatically moving the camera.
+	struct Point2F gotoTargetPos; // Desired 2D world position used when programatically moving the camera (using Smooth option)
+	BOOL gotoSmooth; // When false, gotoNewPos is the target position (aka, camera smoothing).
 	float gameSpeed;
 	struct LegoObject * objectFP;
 	struct Vector3F vectorDragStartUnk_a4;
@@ -17436,7 +17342,7 @@ struct Lego_Globs { // [LegoRR/Lego.c|struct:0xf00|tags:GLOBS]
 	struct ColourRGBF PowerCrystalRGB; // (cfg: Main::PowerCrystalRGB)
 	struct ColourRGBF UnpoweredCrystalRGB; // (cfg: Main::UnpoweredCrystalRGB)
 	enum LegoObject_Type placeObjType;
-	int placeObjIndex;
+	LegoObject_ID placeObjID;
 	enum Direction placeObjDirection;
 	struct LegoObject * placeDestSmallTeleporter;
 	struct LegoObject * placeDestBigTeleporter;
@@ -17449,13 +17355,13 @@ struct Lego_Globs { // [LegoRR/Lego.c|struct:0xf00|tags:GLOBS]
 	float DynamiteWakeRadius; // (cfg: Main::DynamiteWakeRadius)
 	float BirdScarerRadius; // (cfg: Main::BirdScarerRadius)
 	enum LegoObject_Type objTeleportQueueTypes_TABLE[20];
-	int objTeleportQueueIndexes_TABLE[20];
+	LegoObject_ID objTeleportQueueIDs_TABLE[20];
 	uint objTeleportQueue_COUNT;
 	float MiniFigureRunAway; // (cfg: Main::MiniFigureRunAway)
-	struct Vector3F vector_45c;
-	struct Point2I blockPts_468[100];
-	uint blockPtsCount_788;
-	struct Point2I points2x100_78c[2][100];
+	struct Vector3F mouseWorldPos;
+	struct Point2I powerDrainBlocks[100]; // Temporary list used during powergrid calculation.
+	uint powerDrainCount;
+	struct Point2I points2x100_78c[2][100]; // Related to power grid calculation.
 	uint pointsCount2_dcc[2];
 	uint MaxReturnedCrystals; // (cfg: Main::MaxReturnedCrystals)
 	int MouseScrollBorder; // (cfg: Main::MouseScrollBorder)
@@ -17508,7 +17414,7 @@ struct Lego_Globs { // [LegoRR/Lego.c|struct:0xf00|tags:GLOBS]
 	char * RenameReplace; // (cfg: Main::RenameReplace)
 	char * EndGameAVI1; // (cfg: Level::EndGameAVI1)
 	char * EndGameAVI2; // (cfg: Level::EndGameAVI2)
-	struct Point2I s_mouseBlockPos_ef8; // (static, Game_unkGameLoop_FUN_00426450)
+	struct Point2I mouseBlockPos; // (static, Game_unkGameLoop_FUN_00426450)
 };
 
 struct LegoCamera { // [LegoRR/LegoCamera.c|struct:0xbc] May be camera data (which is related to- but not the same as viewports)
@@ -17519,7 +17425,7 @@ struct LegoCamera { // [LegoRR/LegoCamera.c|struct:0xbc] May be camera data (whi
 	float trackRadarRotationSpeed; // A constant yaw H rotation speed applied to tracked radar objects
 	int trackFPCameraFrame; // CameraFrameIndex for FP object SwapPolyFP
 	struct Vector3F moveVector; // current 3D (really 2D) movement and directional speed
-	struct Container * contCam; // only cont created for FP type (child of contRoot if FP)
+	struct Container * contCam; // only cont parented for FP type (child of contRoot if FP)
 	struct Container * cont2; // child of contRoot
 	struct Container * cont3; // child of contRoot
 	struct Container * cont4; // child of cont2
@@ -17542,19 +17448,20 @@ struct LegoCamera { // [LegoRR/LegoCamera.c|struct:0xbc] May be camera data (whi
 typedef struct NERPsRuntime_Globs NERPsRuntime_Globs, *PNERPsRuntime_Globs;
 
 typedef enum TutorialFlags { // [LegoRR/NERPs.c|flags:0x4|type:uint]
-	TUTORIAL_NONE=0,
-	TUTORIAL_UNK_10=16,
-	TUTORIAL_UNK_100=256,
-	TUTORIAL_UNK_1000=4096,
-	TUTORIAL_UNK_2=2,
-	TUTORIAL_UNK_20=32,
-	TUTORIAL_UNK_200=512,
-	TUTORIAL_UNK_4=4,
-	TUTORIAL_UNK_40=64,
-	TUTORIAL_UNK_400=1024,
-	TUTORIAL_UNK_8=8,
-	TUTORIAL_UNK_80=128,
-	TUTORIAL_UNK_800=2048
+	TUTORIAL_FLAG_UNK_1=1,
+	TUTORIAL_FLAG_UNK_10=16,
+	TUTORIAL_FLAG_UNK_100=256,
+	TUTORIAL_FLAG_UNK_1000=4096,
+	TUTORIAL_FLAG_UNK_2=2,
+	TUTORIAL_FLAG_UNK_20=32,
+	TUTORIAL_FLAG_UNK_200=512,
+	TUTORIAL_FLAG_UNK_4=4,
+	TUTORIAL_FLAG_UNK_40=64,
+	TUTORIAL_FLAG_UNK_400=1024,
+	TUTORIAL_FLAG_UNK_8=8,
+	TUTORIAL_FLAG_UNK_80=128,
+	TUTORIAL_FLAG_UNK_800=2048,
+	TUTORIAL_NONE=0
 } TutorialFlags;
 
 struct NERPsRuntime_Globs { // [LegoRR/NERPs.c|struct:0x68|tags:GLOBS]
@@ -17603,8 +17510,7 @@ typedef enum Advisor_Type { // [LegoRR/Advisor.c|enum:0x4|type:int] "Acheived" i
 	Advisor_PanelPoint_TopPanelOptions=14,
 	Advisor_PanelPoint_TopPanelPriorities=15,
 	Advisor_TalkInGame=20,
-	Advisor_Type_Count=21,
-	Advisor_Type_Invalid=4294967295
+	Advisor_Type_Count=21
 } Advisor_Type;
 
 typedef enum Advisor_GlobFlags { // [LegoRR/Advisor.c|flags:0x4|type:uint]
@@ -17819,8 +17725,8 @@ struct ToolTip_Globs { // [LegoRR/ToolTip.c|struct:0x61c4|tags:GLOBS]
 	int int32_18; // (init only)
 	float hoverTime; // Duration before showing tooltip  (init only)
 	float rgbFloats[9]; // [r:g:b(3)][norm:hi:lo(3)]  (init only)
-	char * toolTipTexts[39]; // (init only)
-	struct ToolTipData toolTipDatas[39];
+	char * toolTipName[39]; // (init only)
+	struct ToolTipData toolTipData[39];
 };
 
 typedef struct Info_Globs Info_Globs, *PInfo_Globs;
@@ -17829,14 +17735,14 @@ typedef struct InfoData InfoData, *PInfoData;
 
 typedef struct InfoMessage InfoMessage, *PInfoMessage;
 
-typedef enum InfoMessageFlags { // [LegoRR/Info.c|flags:0x4|type:uint]
-	INFO_FLAG_AUTOGAMESPEED=16,
-	INFO_FLAG_NONE=0,
-	INFO_FLAG_UNK_1=1,
-	INFO_FLAG_UNK_2=2,
-	INFO_FLAG_UNK_4=4,
-	INFO_FLAG_UNK_8=8
-} InfoMessageFlags;
+typedef enum Info_GlobFlags { // [LegoRR/Info.c|flags:0x4|type:uint]
+	INFO_GLOB_FLAG_AUTOGAMESPEED=16,
+	INFO_GLOB_FLAG_NONE=0,
+	INFO_GLOB_FLAG_UNK_1=1,
+	INFO_GLOB_FLAG_UNK_2=2,
+	INFO_GLOB_FLAG_UNK_4=4,
+	INFO_GLOB_FLAG_UNK_8=8
+} Info_GlobFlags;
 
 typedef enum InfoDataFlags { // [LegoRR/Info.c|flags:0x4|type:uint]
 	INFOTYPE_FLAG_CHANGEGAMESPEED=65536,
@@ -17882,7 +17788,6 @@ typedef enum Info_Type { // [LegoRR/Info.c|enum:0x4|type:int]
 	Info_TrainSailor=24,
 	Info_TrainScanner=25,
 	Info_Type_Count=40,
-	Info_Type_Invalid=4294967295,
 	Info_UnderAttack=5,
 	Info_VehicleDeath=11,
 	Info_WallDug=27,
@@ -17913,7 +17818,7 @@ struct Info_Globs { // [LegoRR/Info.c|struct:0x6f4|tags:GLOBS]
 	struct Font * font;
 	struct Image * OverFlowImage;
 	int int_6ec;
-	enum InfoMessageFlags flags;
+	enum Info_GlobFlags flags;
 };
 
 typedef struct RadarMap_Globs RadarMap_Globs, *PRadarMap_Globs;
@@ -17940,81 +17845,89 @@ typedef struct Weapon_Globs Weapon_Globs, *PWeapon_Globs;
 
 typedef struct WeaponStats WeaponStats, *PWeaponStats;
 
-typedef struct ItemStruct_34 ItemStruct_34, *PItemStruct_34;
+typedef struct Weapon_Lazer Weapon_Lazer, *PWeapon_Lazer;
 
-typedef struct Struct_2b0 Struct_2b0, *PStruct_2b0;
+typedef struct Weapon_Projectile Weapon_Projectile, *PWeapon_Projectile;
 
-struct WeaponStats { // [LegoRR/Weapons.c|struct:0x4b68]
-	float ObjectRatios[20][15][16]; // (inits: -1.0f)
-	BOOL isSlowDeath; // (init: false)
-	float SlowDeath_initial; // Initial damage percent
-	float SlowDeath_duration;
-	float RechargeTime; // (init: 0.0f)
-	float DefaultDamage; // (init: 0.0f)
-	float DischargeRate;
-	int Ammo;
-	float WeaponRange; // (init: 150.0f)
-	float WallDestroyTimes[18]; // (defaults: 5.0f)
-};
+typedef enum WeaponKnownType { // [LegoRR/Weapons.c|enum:0x4|type:int|tags:UNKNOWN] This is not the same as WeponTypes defined in Lego.cfg, these are fixed ID's that are then looked up by value
+	WEAPONKNOWN_FREEZER=3,
+	WEAPONKNOWN_LAZER_1=1,
+	WEAPONKNOWN_LAZER_4=4,
+	WEAPONKNOWN_PUSHER=2,
+	WEAPONKNOWN_UNK_0=0
+} WeaponKnownType;
 
-struct Struct_2b0 { // [LegoRR/Weapons.c|struct:0x2b0] Seen in a table of [10]. This is likely an extension of the Weapons module.
-	undefined4 unseen_0;
-	struct BezierCurve routing;
-	undefined4 unseen_260;
-	float float_264;
+struct Weapon_Projectile { // [LegoRR/Weapons.c|struct:0x2b0] Seen in a table of [10]. This is likely an extension of the Weapons module.
+	BOOL isCurvedPath;
+	struct BezierCurve curve;
+	float totalDistance; // Curved paths only.
+	float currDistance; // Curved paths only.
 	struct Vector3F vector_268;
 	struct Vector3F vector_274;
 	struct Vector3F position_280;
-	float float_28c;
+	float speed;
 	struct Vector3F vector_290;
 	undefined4 field_29c;
-	undefined4 field_2a0;
+	struct LegoObject * weaponObj;
 	struct LegoObject * object_2a4;
-	int weaponType;
-	undefined4 field_2ac;
+	int weaponID;
+	enum WeaponKnownType knownWeapon;
 };
 
-struct ItemStruct_34 { // [LegoRR/???|struct:0x10]
-	struct Mesh * mesh1;
-	struct Mesh * mesh2;
+struct WeaponStats { // [LegoRR/Weapons.c|struct:0x4b68]
+	float objectCoefs[20][15][16]; // (cfg: [object] l:e:v:e:l:s, inits: -1.0f)
+	BOOL isSlowDeath; // (cfg: SlowDeath exists)
+	float slowDeathInitialCoef; // (cfg: SlowDeath[0]) Initial damage multiplier.
+	float slowDeathDuration; // (cfg: SlowDeath[1])
+	float rechargeTime; // (cfg: RechargeTime, default: 0.0f)
+	float damage; // (cfg: DefaultDamage, default: 0.0f)
+	float dischargeRate; // (cfg: DischargeRate)
+	int ammo; // (cfg: Ammo, unused?)
+	float weaponRange; // (cfg: WeaponRange, default: 150.0f)
+	float wallDestroyTimes[18]; // (cfg: WallDestroyTime_[surface], defaults: 5.0f)
+};
+
+struct Weapon_Lazer { // [LegoRR/???|struct:0x10]
+	struct Mesh * innerMesh; // Inner bright beam.
+	struct Mesh * outerMesh; // Outer blue-ish beam glow.
 	struct Container * cont;
-	float time;
+	float timer; // Countdown duration in frames.
 };
 
 struct Weapon_Globs { // [LegoRR/Weapons.c|struct:0x1b90|tags:GLOBS]
 	uint weaponCount;
 	char * * weaponNameList;
 	struct WeaponStats * weaponStatsList;
-	struct ItemStruct_34 ItemStruct34Unk_TABLE[10];
-	struct Struct_2b0 Struct2B0Unk_TABLE[10];
+	struct Weapon_Lazer lazerList[10];
+	struct Weapon_Projectile projectileList[10];
 	struct Config * config;
 };
 
 typedef struct ElectricFence_Globs ElectricFence_Globs, *PElectricFence_Globs;
 
-typedef struct BlockFenceGrid BlockFenceGrid, *PBlockFenceGrid;
+typedef struct ElectricFence_GridBlock ElectricFence_GridBlock, *PElectricFence_GridBlock;
 
-typedef enum BlockFenceGrid_Flags { // [LegoRR/Detail.c|flags:0x4|type:uint]
-	FENCEGRID_DIRECTION_FLAG_1=1,
-	FENCEGRID_DIRECTION_FLAG_2=2,
-	FENCEGRID_DIRECTION_FLAG_4=4,
-	FENCEGRID_DIRECTION_FLAG_8=8,
+typedef enum ElectricFence_GridFlags { // [LegoRR/ElectricFence.c|flags:0x4|type:uint]
+	FENCEGRID_DIRECTION_FLAG_DOWN=4,
+	FENCEGRID_DIRECTION_FLAG_LEFT=8,
+	FENCEGRID_DIRECTION_FLAG_RIGHT=2,
+	FENCEGRID_DIRECTION_FLAG_UP=1,
 	FENCEGRID_DIRECTION_MASK=15,
 	FENCEGRID_FLAG_NONE=0,
 	FENCEGRID_FLAG_UNK_100=256
-} BlockFenceGrid_Flags;
+} ElectricFence_GridFlags;
 
-struct BlockFenceGrid { // [LegoRR/ElectricFence.c|struct:0xc|tags:BLOCKGRID] Note that the size when allocating fenceGrid is mistakenly 0x14, but lookup is performed with size 0xc
-	struct BlockElectricFence * efence;
+struct ElectricFence_GridBlock { // [LegoRR/ElectricFence.c|struct:0xc|tags:BLOCKGRID] Note that the size when allocating fenceGrid is mistakenly 0x14, but lookup is performed with size 0xc
+	struct ElectricFence_Block * efence;
 	struct LegoObject * studObj; // Glowing lime stud  object placed between 2-block-wide connections
-	enum BlockFenceGrid_Flags flags;
+	enum ElectricFence_GridFlags flags;
 };
 
 struct ElectricFence_Globs { // [LegoRR/ElectricFence.c|struct:0x90|tags:GLOBS]
-	struct BlockFenceGrid * fenceGrid; // BlockElectricFence[width * height]
+	struct ElectricFence_GridBlock * fenceGrid; // BlockElectricFence[width * height]
 	struct Lego_Level * level;
-	struct BlockElectricFence * listSet[32];
-	struct BlockElectricFence * freeList;
+	struct ElectricFence_Block * listSet[32];
+	struct ElectricFence_Block * freeList;
 	uint listCount; // (no flags)
 };
 
@@ -18029,10 +17942,10 @@ struct Camera_Globs { // [LegoRR/LegoCamera.c|struct:0x10|tags:GLOBS]
 
 typedef struct Loader_Globs Loader_Globs, *PLoader_Globs;
 
-typedef enum LoaderFlags { // [LegoRR/Loader.c|flags:0x4|type:uint]
-	LOADER_FLAG_ENABLED=1,
-	LOADER_FLAG_NONE=0
-} LoaderFlags;
+typedef enum Loader_GlobFlags { // [LegoRR/Loader.c|flags:0x4|type:uint]
+	LOADER_GLOB_FLAG_ENABLED=1,
+	LOADER_GLOB_FLAG_NONE=0
+} Loader_GlobFlags;
 
 struct Loader_Globs { // [LegoRR/Loader.c|struct:0x290|tags:GLOBS]
 	struct Image * LoadScreen;
@@ -18046,12 +17959,12 @@ struct Loader_Globs { // [LegoRR/Loader.c|struct:0x290|tags:GLOBS]
 	char * LoadingText;
 	uint LoadingWidth; // measured width of font with LoadingText
 	float progressLast; // percentage of filesize for section (stores percent of last render)
-	enum LoaderFlags flags; // (1 = show loading bar)
+	enum Loader_GlobFlags flags; // (1 = show loading bar)
 };
 
 typedef struct Interface_Globs Interface_Globs, *PInterface_Globs;
 
-typedef enum KeysByte { // [Gods98/Input.c|enum:0x1|type:byte]
+typedef enum Keys8 { // [Gods98/Input.c|enum:0x1|type:byte] Byte-sized Keys enum
 	KEYPAD_0=82,
 	KEYPAD_1=79,
 	KEYPAD_2=80,
@@ -18153,12 +18066,15 @@ typedef enum KeysByte { // [Gods98/Input.c|enum:0x1|type:byte]
 	KEY_Z=44,
 	KEY_ZERO=11,
 	KEY__NONE=0
-} KeysByte;
+} Keys8;
 
-typedef enum InterfaceIconFlags { // [LegoRR/Interface.c|flags:0x4|type:uint]
+typedef enum Interface_MenuItemFlags { // [LegoRR/Interface.c|flags:0x4|type:uint]
 	INTERFACE_MENUITEM_FLAG_FLASH=4,
-	INTERFACE_MENUITEM_FLAG_NONE=0
-} InterfaceIconFlags;
+	INTERFACE_MENUITEM_FLAG_NONE=0,
+	INTERFACE_MENUITEM_FLAG_UNK_1=1,
+	INTERFACE_MENUITEM_FLAG_UNK_2=2,
+	INTERFACE_MENUITEM_FLAG_UNK_8=8
+} Interface_MenuItemFlags;
 
 typedef enum Interface_MenuType { // [LegoRR/Interface.c|enum:0x4|type:int]
 	Interface_Menu_BuildBuilding=19,
@@ -18178,7 +18094,6 @@ typedef enum Interface_MenuType { // [LegoRR/Interface.c|enum:0x4|type:int]
 	Interface_Menu_Tracker=8,
 	Interface_Menu_TrainSkill=17,
 	Interface_Menu_Type_Count=22,
-	Interface_Menu_Type_Invalid=4294967295,
 	Interface_Menu_UNK_6=6,
 	Interface_Menu_UnmannedVehicle=12,
 	Interface_Menu_UpgradeVehicle=18,
@@ -18196,8 +18111,23 @@ typedef enum WallHighlightType { // [LegoRR/Lego.c|enum:0x4|type:int|tags:BIGENU
 	WALLHIGHLIGHT_TUTORIAL=5
 } WallHighlightType;
 
+typedef enum Interface_GlobFlags { // [LegoRR/Interface.c|flags:0x4|type:uint]
+	INTERFACE_GLOB_FLAG_NONE=0,
+	INTERFACE_GLOB_FLAG_UNK_100=256,
+	INTERFACE_GLOB_FLAG_UNK_1000=4096,
+	INTERFACE_GLOB_FLAG_UNK_20=32,
+	INTERFACE_GLOB_FLAG_UNK_200=512,
+	INTERFACE_GLOB_FLAG_UNK_2000=8192,
+	INTERFACE_GLOB_FLAG_UNK_4=4,
+	INTERFACE_GLOB_FLAG_UNK_40=64,
+	INTERFACE_GLOB_FLAG_UNK_400=1024,
+	INTERFACE_GLOB_FLAG_UNK_4000=16384,
+	INTERFACE_GLOB_FLAG_UNK_80=128,
+	INTERFACE_GLOB_FLAG_UNK_800=2048
+} Interface_GlobFlags;
+
 struct Interface_Globs { // [LegoRR/Interface.c|struct:0x14ac|tags:GLOBS]
-	struct Font * font; // PTRImageFont_004ddd58
+	struct Font * font;
 	struct Image * iconPanelImages[11]; // (cfg: InterfaceSurroundImages[0]) g_InterfaceSurroundImages
 	struct Point2F iconPanelIconOffsets[11]; // (cfg: InterfaceSurroundImages[1,2]) 
 	struct Image * iconPanelNoBackImages[11]; // (cfg: InterfaceSurroundImages[5]) 
@@ -18213,9 +18143,9 @@ struct Interface_Globs { // [LegoRR/Interface.c|struct:0x14ac|tags:GLOBS]
 	struct Image * menuItemIcons_pr[74];
 	char * langMenuItemTexts[74];
 	enum SFX_ID sfxMenuItemTexts[74];
-	enum KeysByte menuItemF2keys[74];
+	enum Keys8 menuItemF2keys[74];
 	undefined2 padding1;
-	uint menuItemFlags[74]; // (0x4: flashing)
+	enum Interface_MenuItemFlags menuItemFlags[74]; // (0x4: flashing)
 	struct Image * * vehicleItemIcons;
 	struct Image * * buildingItemIcons;
 	struct Image * * vehicleItemIcons_no;
@@ -18224,42 +18154,42 @@ struct Interface_Globs { // [LegoRR/Interface.c|struct:0x14ac|tags:GLOBS]
 	struct Image * * buildingItemIcons_pr;
 	char * langMenuItemTexts_no[74];
 	enum SFX_ID sfxMenuItemTexts_no[74];
-	enum KeysByte * vehicleItemF2Keys;
-	enum KeysByte * buildingItemF2Keys;
-	enum InterfaceIconFlags * vehicleItemFlags;
-	enum InterfaceIconFlags * buildingItemFlags;
+	enum Keys8 * vehicleItemF2Keys;
+	enum Keys8 * buildingItemF2Keys;
+	enum Interface_MenuItemFlags * vehicleItemFlags;
+	enum Interface_MenuItemFlags * buildingItemFlags;
 	uint menuItemClicks[74];
 	uint * vehicleItemClicks;
 	uint * buildingItemClicks;
 	BOOL menuItemUnkBools[74]; // (default: false)
-	struct InterfaceMenuItem currMenuItems[24];
+	struct Interface_Menu menuList[24];
 	struct Point2I selBlockPos;
 	enum Interface_MenuType currMenuType;
 	struct Point2F currMenuPosition; // (init: 565,18) Current sliding position of menu. Point2F_004decd0
 	enum LegoObject_Type objType_f80;
-	int objID_f84;
+	LegoObject_ID objID_f84;
 	struct Point2F slideStartPosition; // Point2F_004dece0
 	struct Point2F slideEndPosition; // (init: pointf_f78) Point2F_004dece8
 	float slideSpeed; // (init: 750.0f / 25.0f)
 	struct Point2I highlightBlockPos;
 	enum Interface_MenuType menuType_fa4;
-	enum Interface_MenuItem menuItemType_fa8;
+	enum Interface_MenuItemType menuItemType_fa8;
 	undefined4 field_fac;
 	undefined4 field_fb0;
 	struct Area2F areaf_fb4;
 	BOOL bool_fc4;
 	float timer_fc8;
 	enum Advisor_Type advisorType_fcc;
-	enum Interface_MenuItem menuItemType_fd0;
+	enum Interface_MenuItemType menuItemType_fd0;
 	enum LegoObject_Type objType_fd4;
-	int objID_fd8;
+	LegoObject_ID objID_fd8;
 	BOOL objectBools[20][15];
 	struct Image * dependenciesPlusImage;
 	struct Image * dependenciesMinusImage;
 	float float_1494;
 	enum WallHighlightType origWallHighlight; // (backup for when a wall has a queued action, but we want it to show the selected colour)
 	enum SFX_ID sfxType_149c;
-	uint flags;
+	enum Interface_GlobFlags flags;
 	enum SFX_ID sfxType_14a4;
 	BOOL sfxPlaying;
 };
@@ -18295,7 +18225,7 @@ struct Message_Globs { // [LegoRR/Message.c|struct:0x14380|tags:GLOBS]
 	uint messageCountX2[2];
 	BOOL messageX2Bool;
 	struct LegoObject * selectedUnitList[100];
-	enum KeysByte hotkeyList[10];
+	enum Keys8 hotkeyList[10];
 	undefined2 padding1;
 	struct MessageAction hotkeyMessages[10];
 	char * messageName[65];
@@ -18306,6 +18236,12 @@ struct Message_Globs { // [LegoRR/Message.c|struct:0x14380|tags:GLOBS]
 
 typedef struct Encyclopedia_Globs Encyclopedia_Globs, *PEncyclopedia_Globs;
 
+typedef enum Encyclopedia_GlobFlags { // [LegoRR/Encyclopedia.c|flags:0x4|type:uint]
+	ENCYCLOPEDIA_GLOB_FLAG_NONE=0,
+	ENCYCLOPEDIA_GLOB_FLAG_UNK_1=1,
+	ENCYCLOPEDIA_GLOB_FLAG_UNK_2=2
+} Encyclopedia_GlobFlags;
+
 struct Encyclopedia_Globs { // [LegoRR/Encyclopedia.c|struct:0x24|tags:GLOBS]
 	struct File * * vehicleFiles;
 	struct File * * minifigureFiles;
@@ -18315,7 +18251,7 @@ struct Encyclopedia_Globs { // [LegoRR/Encyclopedia.c|struct:0x24|tags:GLOBS]
 	struct File * oreFile;
 	struct File * currentObjFile;
 	struct LegoObject * currentObj;
-	uint flags;
+	enum Encyclopedia_GlobFlags flags;
 };
 
 typedef struct Pointer_Globs Pointer_Globs, *PPointer_Globs;
@@ -18370,7 +18306,6 @@ typedef enum Pointer_Type { // [LegoRR/Pointer.c|enum:0x4|type:int]
 	Pointer_TrackObject=13,
 	Pointer_TutorialBlockInfo=19,
 	Pointer_Type_Count=56,
-	Pointer_Type_Invalid=4294967295,
 	Pointer_VehicleCantDig=30,
 	Pointer_VehicleCantGo=38,
 	Pointer_VehicleCantPickUp=34,
@@ -18409,21 +18344,21 @@ struct Erode_Globs { // [LegoRR/Erode.c|struct:0xfa14|tags:GLOBS]
 
 typedef struct ObjectRecall_Globs ObjectRecall_Globs, *PObjectRecall_Globs;
 
-typedef struct SaveObjectRecall SaveObjectRecall, *PSaveObjectRecall;
+typedef struct ObjectRecallEntry ObjectRecallEntry, *PObjectRecallEntry;
 
-struct ObjectRecall_Globs { // [LegoRR/ObjectRecall.c|struct:0x18|tags:GLOBS]
-	struct SaveObjectRecall * recallList;
-	uint recallUsed;
-	uint recallCapacity;
-	struct SaveObjectRecall * recallNewList;
-	uint recallNewCount;
-	BOOL loaded;
-};
-
-struct SaveObjectRecall { // [LegoRR/ObjectRecall.c|struct:0x14] Object recall structure (for .osf file)
-	enum LiveFlags5 flags5;
+struct ObjectRecallEntry { // [LegoRR/ObjectRecall.c|struct:0x14] Object recall structure (for .osf file)
+	enum LegoObject_AbilityFlags abilityFlags; // LiveFlags5
 	uint level;
 	char customName[12];
+};
+
+struct ObjectRecall_Globs { // [LegoRR/ObjectRecall.c|struct:0x18|tags:GLOBS]
+	struct ObjectRecallEntry * recallList;
+	uint recallUsed;
+	uint recallCapacity;
+	struct ObjectRecallEntry * recallNewList;
+	uint recallNewCount;
+	BOOL loaded;
 };
 
 typedef struct Text_Globs Text_Globs, *PText_Globs;
@@ -18516,7 +18451,7 @@ struct NERPsFile_Globs { // [LegoRR/NERPs.c|struct:0xb4|tags:GLOBS]
 
 typedef struct Flocks_Globs Flocks_Globs, *PFlocks_Globs;
 
-struct Flocks_Globs { // [LegoRR/Flocks.c|struct:0x10|tags:GLOBS] (struct name changed to "BatFlocks" instead of "Flocks" to avoid annoying autocorrect when setting type in Ghidra)
+struct Flocks_Globs { // [LegoRR/Flocks.c|struct:0x10|tags:GLOBS]
 	float Turn;
 	float Speed;
 	float Tightness;
@@ -18530,9 +18465,9 @@ typedef enum LegoObject_GlobFlags { // [LegoRR/LegoObject.c|flags:0x4|type:uint]
 	OBJECT_GLOB_FLAG_INITIALISED=1,
 	OBJECT_GLOB_FLAG_LEVELENDING=32,
 	OBJECT_GLOB_FLAG_NONE=0,
+	OBJECT_GLOB_FLAG_POWERNEEDSUPDATE=8,
+	OBJECT_GLOB_FLAG_POWERUPDATING=4,
 	OBJECT_GLOB_FLAG_REMOVING=2,
-	OBJECT_GLOB_FLAG_UNK_4=4,
-	OBJECT_GLOB_FLAG_UNK_8=8,
 	OBJECT_GLOB_FLAG_UPDATING=16
 } LegoObject_GlobFlags;
 
@@ -18544,7 +18479,7 @@ struct HiddenObject { // [LegoRR/LegoObject.c|struct:0x2c] Name is only guessed
 	float heading; // (ol: heading -> radians)
 	void * model; // (ol: type)
 	enum LegoObject_Type type; // (ol: type)
-	int id; // (ol: type)
+	LegoObject_ID id; // (ol: type)
 	float health; // (ol: health)
 	char * olistID; // (ol: Object%i)
 	char * olistDrivingID; // (ol: driving)
@@ -18623,24 +18558,27 @@ struct LegoUpdate_Globs { // [LegoRR/Lego.c|struct:0x14|tags:GLOBS] (miscellaneo
 
 typedef struct Priorities_Globs Priorities_Globs, *PPriorities_Globs;
 
+typedef enum Priorities_GlobFlags { // [LegoRR/Priorities.c|flags:0x4|type:uint]
+	PRIORITIES_GLOB_FLAG_HOVER=1,
+	PRIORITIES_GLOB_FLAG_NONE=0,
+	PRIORITIES_GLOB_FLAG_PRESSED=2
+} Priorities_GlobFlags;
+
 struct Priorities_Globs { // [LegoRR/Priorities.c|struct:0x4c0|tags:GLOBS]
-	char * priorityText[27];
-	struct Image * priorityImage[27];
-	struct Image * priorityPressImage[27];
-	struct Image * priorityOffImage[27];
-	enum SFX_ID prioritySFX[27];
-	enum AI_Priority priorityTypeTable_1[27];
-	struct Point2F priorityPoints[27];
-	enum AI_Priority priorityTypeTable_2[27];
-	undefined4 priorityUnk[27];
-	BOOL priorityActive[27];
-	uint count;
-	float float_4a8;
-	float float_4ac;
-	float float_4b0;
-	float float_4b4;
-	undefined4 field_4b8;
-	uint flags;
+	char * langPriorityName[27]; // [AI_Priority_Count]
+	struct Image * priorityImage[27]; // [AI_Priority_Count]
+	struct Image * priorityPressImage[27]; // [AI_Priority_Count]
+	struct Image * priorityOffImage[27]; // [AI_Priority_Count]
+	enum SFX_ID sfxPriorityName[27]; // [AI_Priority_Count]
+	enum AI_Priority buttonTypes[27]; // Priority types for each button at index.
+	struct Point2F buttonPoints[27]; // Positions for each button at index.
+	enum AI_Priority initialTypes[27]; // Initial button positions on level start, and when reset.
+	uint initialValues[27]; // Initial values set by AITask_Game_SetPriorityValue for each button at index
+	BOOL initialOff[27]; // Initial OFF state for each button at index
+	uint count; // Number of priority buttons for level.
+	struct Area2F hoverArea;
+	uint pressIndex;
+	enum Priorities_GlobFlags flags;
 };
 
 typedef struct PTL_Globs PTL_Globs, *PPTL_Globs;
@@ -18742,16 +18680,16 @@ struct RewardScrollLabel { // [LegoRR/Rewards.c|struct:0x20]
 
 typedef struct ObjInfo_Globs ObjInfo_Globs, *PObjInfo_Globs;
 
-typedef enum ObjInfoFlags { // [LegoRR/ObjInfo.c|flags:0x4|type:uint]
-	OBJINFO_BUBBLEIMAGES=16,
-	OBJINFO_HEALTHBAR=2,
-	OBJINFO_HEALTHBAR_VERTICAL=8,
-	OBJINFO_HUNGERIMAGES=1,
-	OBJINFO_NONE=0
-} ObjInfoFlags;
+typedef enum ObjInfo_GlobFlags { // [LegoRR/ObjInfo.c|flags:0x4|type:uint]
+	OBJINFO_GLOB_FLAG_BUBBLEIMAGES=16,
+	OBJINFO_GLOB_FLAG_HEALTHBAR=2,
+	OBJINFO_GLOB_FLAG_HEALTHBAR_VERTICAL=8,
+	OBJINFO_GLOB_FLAG_HUNGERIMAGES=1,
+	OBJINFO_GLOB_FLAG_NONE=0
+} ObjInfo_GlobFlags;
 
 struct ObjInfo_Globs { // [LegoRR/ObjInfo.c|struct:0x78|tags:GLOBS]
-	enum ObjInfoFlags flags;
+	enum ObjInfo_GlobFlags flags;
 	struct Point2F HealthBarPosition;
 	struct Size2F HealthBarWidthHeight;
 	uint HealthBarBorderSize;
@@ -18764,16 +18702,6 @@ struct ObjInfo_Globs { // [LegoRR/ObjInfo.c|struct:0x78|tags:GLOBS]
 	struct Image * HungerImages[5];
 	struct Point2F BubblePosition;
 };
-
-typedef enum TrainedFlags { // [LegoRR/LegoObject.c|flags:0x4|type:uint|tags:DUPLICATE] These can be substituted for LiveFlags5
-	TRAINED_DRIVER=4,
-	TRAINED_DYNAMITE=8,
-	TRAINED_NONE=0,
-	TRAINED_PILOT=1,
-	TRAINED_REPAIR=16,
-	TRAINED_SAILOR=2,
-	TRAINED_SCANNER=32
-} TrainedFlags;
 
 typedef enum TeleportObjectType { // [LegoRR/Teleporter.c|flags:0x4|type:uint|tags:FLAGASENUM]
 	TELEPORT_SERVIVE_BARRIER=256,
@@ -18804,15 +18732,6 @@ typedef enum LegoRRResources { // [Gods98init/resource.rc|enum:0x4|type:int|tags
 	LEGORR_MODESELECTION_DIALOG=101
 } LegoRRResources;
 
-typedef enum WallHighlightByte { // [LegoRR/Lego.c|enum:0x1|type:byte] Byte-sized WallHighlightType (white, gray, red, green, blue, dark-yellow)
-	WALLHIGHLIGHTBYTE_DIG=1,
-	WALLHIGHLIGHTBYTE_DYNAMITE=2,
-	WALLHIGHLIGHTBYTE_NONE=0,
-	WALLHIGHLIGHTBYTE_REINFORCE=3,
-	WALLHIGHLIGHTBYTE_SELECTED=4,
-	WALLHIGHLIGHTBYTE_TUTORIAL=5
-} WallHighlightByte;
-
 typedef enum CLGenDialogControls { // [CLGen/resource.rc|enum:0x4|type:int|tags:RESOURCE]
 	CLGEN_ID_CANCEL=2,
 	CLGEN_ID_OK=1,
@@ -18837,14 +18756,6 @@ typedef enum RockFallType { // [LegoRR/Effects.c|enum:0x4|type:int]
 	ROCKFALL_VTUNNEL=2
 } RockFallType;
 
-typedef enum WeaponKnownType { // [LegoRR/Weapons.c|enum:0x4|type:int|tags:UNKNOWN] This is not the same as WeponTypes defined in Lego.cfg, these are fixed ID's that are then looked up by value
-	WEAPONKNOWN_FREEZER=3,
-	WEAPONKNOWN_LAZER_1=1,
-	WEAPONKNOWN_LAZER_4=4,
-	WEAPONKNOWN_PUSHER=2,
-	WEAPONKNOWN_UNK_0=0
-} WeaponKnownType;
-
 typedef enum MiscEffectType { // [LegoRR/Effects.c|enum:0x4|type:int] Need a better name for this.
 	MISCOBJECT_BIRDSCARER=8,
 	MISCOBJECT_FREEZERHIT=2,
@@ -18867,6 +18778,15 @@ typedef enum Menu_ScreenType { // [LegoRR/FrontEnd.c|enum:0x4|type:uint] Types o
 	Menu_Screen_Training=2
 } Menu_ScreenType;
 
+typedef enum WallHighlightType8 { // [LegoRR/Lego.c|enum:0x1|type:byte] Byte-sized WallHighlightType (white, gray, red, green, blue, dark-yellow)
+	WALLHIGHLIGHT8_DIG=1,
+	WALLHIGHLIGHT8_DYNAMITE=2,
+	WALLHIGHLIGHT8_NONE=0,
+	WALLHIGHLIGHT8_REINFORCE=3,
+	WALLHIGHLIGHT8_SELECTED=4,
+	WALLHIGHLIGHT8_TUTORIAL=5
+} WallHighlightType8;
+
 typedef enum PointerSFX_Type { // [LegoRR/Lego.c|enum:0x4|type:uint] Argument for Lego_SetPointerSFX (FUN_00428730)
 	PointerSFX_NotOkay=1,
 	PointerSFX_NotOkay_ImmovableRock=2,
@@ -18882,81 +18802,123 @@ typedef enum BlockOrientation { // [LegoRR/dummy.c|enum:0x1|type:byte|tags:UNFIN
 } BlockOrientation;
 
 typedef enum PanelButtonRadar { // [LegoRR/Panels.c|enum:0x4|type:int|tags:PANELBUTTON]
-	PANELBUTTON_RADAR_MAPVIEW=4,
-	PANELBUTTON_RADAR_TAGGEDOBJECTVIEW=1,
-	PANELBUTTON_RADAR_TOGGLE=0,
-	PANELBUTTON_RADAR_ZOOMIN=2,
-	PANELBUTTON_RADAR_ZOOMOUT=3,
-	PANELBUTTON_RADAR__COUNT=5,
-	PANELBUTTON_RADAR__INVALID=4294967295
+	PanelButton_Radar_Count=5,
+	PanelButton_Radar_MapView=4,
+	PanelButton_Radar_TaggedObjectView=1,
+	PanelButton_Radar_Toggle=0,
+	PanelButton_Radar_ZoomIn=2,
+	PanelButton_Radar_ZoomOut=3
 } PanelButtonRadar;
 
 typedef enum PanelButtonInformation { // [LegoRR/Panels.c|enum:0x4|type:int|tags:PANELBUTTON]
-	PANELBUTTON_INFORMATION_FUNCTION=1,
-	PANELBUTTON_INFORMATION_TOGGLE=0,
-	PANELBUTTON_INFORMATION__COUNT=2,
-	PANELBUTTON_INFORMATION__INVALID=4294967295
+	PanelButton_Information_Count=2,
+	PanelButton_Information_Function=1,
+	PanelButton_Information_Toggle=0
 } PanelButtonInformation;
 
 typedef enum PanelButtonCameraControl { // [LegoRR/Panels.c|enum:0x4|type:int|tags:PANELBUTTON]
-	PANELBUTTON_CAMERACONTROL_CYCLEBUILDINGS=2,
-	PANELBUTTON_CAMERACONTROL_ROTATE=3,
-	PANELBUTTON_CAMERACONTROL_ZOOMIN=0,
-	PANELBUTTON_CAMERACONTROL_ZOOMOUT=1,
-	PANELBUTTON_CAMERACONTROL__COUNT=4,
-	PANELBUTTON_CAMERACONTROL__INVALID=4294967295
+	PanelButton_CameraControl_Count=4,
+	PanelButton_CameraControl_CycleBuildings=2,
+	PanelButton_CameraControl_Rotate=3,
+	PanelButton_CameraControl_ZoomIn=0,
+	PanelButton_CameraControl_ZoomOut=1
 } PanelButtonCameraControl;
 
+typedef enum PanelButton_Type { // [LegoRR/Panels.c|enum:0x4|type:int|tags:PANELBUTTON]
+	PanelButton_CameraControl_Count=4,
+	PanelButton_CameraControl_CycleBuildings=2,
+	PanelButton_CameraControl_Rotate=3,
+	PanelButton_CameraControl_ZoomIn=0,
+	PanelButton_CameraControl_ZoomOut=1,
+	PanelButton_CrystalSideBar_Count=2,
+	PanelButton_CrystalSideBar_Crystals=1,
+	PanelButton_CrystalSideBar_Ore=0,
+	PanelButton_Encyclopedia_Close=0,
+	PanelButton_Encyclopedia_Count=1,
+	PanelButton_InfoDock_Close=1,
+	PanelButton_InfoDock_Count=2,
+	PanelButton_InfoDock_Goto=0,
+	PanelButton_Information_Count=2,
+	PanelButton_Information_Function=1,
+	PanelButton_Information_Toggle=0,
+	PanelButton_PriorityList_Close=17,
+	PanelButton_PriorityList_Count=19,
+	PanelButton_PriorityList_Disable1=0,
+	PanelButton_PriorityList_Disable2=1,
+	PanelButton_PriorityList_Disable3=2,
+	PanelButton_PriorityList_Disable4=3,
+	PanelButton_PriorityList_Disable5=4,
+	PanelButton_PriorityList_Disable6=5,
+	PanelButton_PriorityList_Disable7=6,
+	PanelButton_PriorityList_Disable8=7,
+	PanelButton_PriorityList_Disable9=8,
+	PanelButton_PriorityList_Reset=18,
+	PanelButton_PriorityList_UpOne1=9,
+	PanelButton_PriorityList_UpOne2=10,
+	PanelButton_PriorityList_UpOne3=11,
+	PanelButton_PriorityList_UpOne4=12,
+	PanelButton_PriorityList_UpOne5=13,
+	PanelButton_PriorityList_UpOne6=14,
+	PanelButton_PriorityList_UpOne7=15,
+	PanelButton_PriorityList_UpOne8=16,
+	PanelButton_Radar_Count=5,
+	PanelButton_Radar_MapView=4,
+	PanelButton_Radar_TaggedObjectView=1,
+	PanelButton_Radar_Toggle=0,
+	PanelButton_Radar_ZoomIn=2,
+	PanelButton_Radar_ZoomOut=3,
+	PanelButton_TopPanel_CallToArms=2,
+	PanelButton_TopPanel_Count=3,
+	PanelButton_TopPanel_Options=0,
+	PanelButton_TopPanel_Priorities=1,
+	PanelButton_Type_Count=24
+} PanelButton_Type;
+
 typedef enum PanelButtonInfoDock { // [LegoRR/Panels.c|enum:0x4|type:int|tags:PANELBUTTON]
-	PANELBUTTON_INFODOCK_CLOSE=1,
-	PANELBUTTON_INFODOCK_GOTO=0,
-	PANELBUTTON_INFODOCK__COUNT=2,
-	PANELBUTTON_INFODOCK__INVALID=4294967295
+	PanelButton_InfoDock_Close=1,
+	PanelButton_InfoDock_Count=2,
+	PanelButton_InfoDock_Goto=0
 } PanelButtonInfoDock;
 
 typedef enum PanelButtonPriorityList { // [LegoRR/Panels.c|enum:0x4|type:int|tags:PANELBUTTON]
-	PANELBUTTON_PRIORITYLIST_CLOSE=17,
-	PANELBUTTON_PRIORITYLIST_DISABLE1=0,
-	PANELBUTTON_PRIORITYLIST_DISABLE2=1,
-	PANELBUTTON_PRIORITYLIST_DISABLE3=2,
-	PANELBUTTON_PRIORITYLIST_DISABLE4=3,
-	PANELBUTTON_PRIORITYLIST_DISABLE5=4,
-	PANELBUTTON_PRIORITYLIST_DISABLE6=5,
-	PANELBUTTON_PRIORITYLIST_DISABLE7=6,
-	PANELBUTTON_PRIORITYLIST_DISABLE8=7,
-	PANELBUTTON_PRIORITYLIST_DISABLE9=8,
-	PANELBUTTON_PRIORITYLIST_RESET=18,
-	PANELBUTTON_PRIORITYLIST_UPONE1=9,
-	PANELBUTTON_PRIORITYLIST_UPONE2=10,
-	PANELBUTTON_PRIORITYLIST_UPONE3=11,
-	PANELBUTTON_PRIORITYLIST_UPONE4=12,
-	PANELBUTTON_PRIORITYLIST_UPONE5=13,
-	PANELBUTTON_PRIORITYLIST_UPONE6=14,
-	PANELBUTTON_PRIORITYLIST_UPONE7=15,
-	PANELBUTTON_PRIORITYLIST_UPONE8=16,
-	PANELBUTTON_PRIORITYLIST__COUNT=19,
-	PANELBUTTON_PRIORITYLIST__INVALID=4294967295
+	PanelButton_PriorityList_Close=17,
+	PanelButton_PriorityList_Count=19,
+	PanelButton_PriorityList_Disable1=0,
+	PanelButton_PriorityList_Disable2=1,
+	PanelButton_PriorityList_Disable3=2,
+	PanelButton_PriorityList_Disable4=3,
+	PanelButton_PriorityList_Disable5=4,
+	PanelButton_PriorityList_Disable6=5,
+	PanelButton_PriorityList_Disable7=6,
+	PanelButton_PriorityList_Disable8=7,
+	PanelButton_PriorityList_Disable9=8,
+	PanelButton_PriorityList_Reset=18,
+	PanelButton_PriorityList_UpOne1=9,
+	PanelButton_PriorityList_UpOne2=10,
+	PanelButton_PriorityList_UpOne3=11,
+	PanelButton_PriorityList_UpOne4=12,
+	PanelButton_PriorityList_UpOne5=13,
+	PanelButton_PriorityList_UpOne6=14,
+	PanelButton_PriorityList_UpOne7=15,
+	PanelButton_PriorityList_UpOne8=16
 } PanelButtonPriorityList;
 
 typedef enum PanelButtonEncyclopedia { // [LegoRR/Panels.c|enum:0x4|type:int|tags:PANELBUTTON]
-	PANELBUTTON_ENCYCLOPEDIA_CLOSE=0,
-	PANELBUTTON_ENCYCLOPEDIA__COUNT=1,
-	PANELBUTTON_ENCYCLOPEDIA__INVALID=4294967295
+	PanelButton_Encyclopedia_Close=0,
+	PanelButton_Encyclopedia_Count=1
 } PanelButtonEncyclopedia;
 
 typedef enum PanelButtonCrystalSideBar { // [LegoRR/Panels.c|enum:0x4|type:int|tags:PANELBUTTON]
-	PANELBUTTON_CRYSTALSIDEBAR_CRYSTALS=1,
-	PANELBUTTON_CRYSTALSIDEBAR_ORE=0,
-	PANELBUTTON_CRYSTALSIDEBAR__COUNT=2,
-	PANELBUTTON_CRYSTALSIDEBAR__INVALID=4294967295
+	PanelButton_CrystalSideBar_Count=2,
+	PanelButton_CrystalSideBar_Crystals=1,
+	PanelButton_CrystalSideBar_Ore=0
 } PanelButtonCrystalSideBar;
 
 typedef enum PanelButtonTopPanel { // [LegoRR/Panels.c|enum:0x4|type:int|tags:PANELBUTTON]
-	PANELBUTTON_TOPPANEL_CALLTOARMS=2,
-	PANELBUTTON_TOPPANEL_OPTIONS=0,
-	PANELBUTTON_TOPPANEL_PRIORITIES=1,
-	PANELBUTTON_TOPPANEL__COUNT=3,
-	PANELBUTTON_TOPPANEL__INVALID=4294967295
+	PanelButton_TopPanel_CallToArms=2,
+	PanelButton_TopPanel_Count=3,
+	PanelButton_TopPanel_Options=0,
+	PanelButton_TopPanel_Priorities=1
 } PanelButtonTopPanel;
 
 typedef enum Lego_SurfaceType { // [LegoRR/Lego.c|enum:0x4|type:int|tags:BIGENUMALIAS] See TerrainType for byte-sized enum version.
@@ -18965,7 +18927,6 @@ typedef enum Lego_SurfaceType { // [LegoRR/Lego.c|enum:0x4|type:int|tags:BIGENUM
 	Lego_SurfaceType_CrystalSeam=10,
 	Lego_SurfaceType_Hard=2,
 	Lego_SurfaceType_Immovable=1,
-	Lego_SurfaceType_Invalid=4294967295,
 	Lego_SurfaceType_Lake=9,
 	Lego_SurfaceType_Lava=6,
 	Lego_SurfaceType_Loose=4,
@@ -18982,23 +18943,23 @@ typedef enum Lego_SurfaceType { // [LegoRR/Lego.c|enum:0x4|type:int|tags:BIGENUM
 	Lego_SurfaceType_Water=7
 } Lego_SurfaceType;
 
-typedef enum FallinType { // [LegoRR/Lego.c|enum:0x1|type:byte|tags:MAPFILE]
-	FALLIN_CAVEIN_HIGH=7,
-	FALLIN_CAVEIN_LOW=5,
-	FALLIN_CAVEIN_MEDIUM=6,
-	FALLIN_CAVEIN_VERYHIGH=8,
-	FALLIN_HIGH=3,
-	FALLIN_LOW=1,
-	FALLIN_MEDIUM=2,
-	FALLIN_NONE=0,
-	FALLIN_VERYHIGH=4
-} FallinType;
+typedef enum Lego_FallInType { // [LegoRR/Lego.c|enum:0x1|type:byte|tags:MAPFILE]
+	Lego_FallInType_Danger_High=7,
+	Lego_FallInType_Danger_Low=5,
+	Lego_FallInType_Danger_Medium=6,
+	Lego_FallInType_Danger_VeryHigh=8,
+	Lego_FallInType_None=0,
+	Lego_FallInType_Normal_High=3,
+	Lego_FallInType_Normal_Low=1,
+	Lego_FallInType_Normal_Medium=2,
+	Lego_FallInType_Normal_VeryHigh=4
+} Lego_FallInType;
 
-typedef enum PathType { // [LegoRR/Lego.c|enum:0x1|type:byte|tags:MAPFILE]
-	PATH_NONE=0,
-	PATH_POWERPATH=2,
-	PATH_RUBBLE=1
-} PathType;
+typedef enum Lego_PathType { // [LegoRR/Lego.c|enum:0x1|type:byte|tags:MAPFILE]
+	Lego_PathType_None=0,
+	Lego_PathType_Path=2,
+	Lego_PathType_Rubble=1
+} Lego_PathType;
 
 typedef enum Bubble_Type { // [LegoRR/Bubble.c|enum:0x4|type:int]
 	Bubble_BuildPath=35,
@@ -19040,7 +19001,6 @@ typedef enum Bubble_Type { // [LegoRR/Bubble.c|enum:0x4|type:int]
 	Bubble_Request=38,
 	Bubble_Train=36,
 	Bubble_Type_Count=39,
-	Bubble_Type_Invalid=4294967295,
 	Bubble_Upgrade=34
 } Bubble_Type;
 
@@ -19176,6 +19136,13 @@ struct SearchLevelSelectAdd { // [LegoRR/search.c|struct:0x10]
 	struct SaveData * currSave; // param_5
 };
 
+typedef struct SearchAITaskDeselect_8 SearchAITaskDeselect_8, *PSearchAITaskDeselect_8;
+
+struct SearchAITaskDeselect_8 { // [LegoRR/search.c|struct:0x8]
+	struct Point2I * blockPos;
+	BOOL digConnection; // If the task is AITask_Type_Dig, then this must match flag 0x8 (DIGCONNECTION).
+};
+
 typedef struct SearchInfoBlockPos_8 SearchInfoBlockPos_8, *PSearchInfoBlockPos_8;
 
 struct SearchInfoBlockPos_8 { // [LegoRR/search.c|struct:0x8]
@@ -19187,10 +19154,10 @@ typedef struct SearchInterfaceFindObject SearchInterfaceFindObject, *PSearchInte
 
 struct SearchInterfaceFindObject { // [LegoRR/search.c|struct:0x18]
 	enum LegoObject_Type objType; // (condition: flags & 0x1)
-	int objID; // (condition: flags & 0x1)
+	LegoObject_ID objID; // (condition: flags & 0x1)
 	enum StatsFlags1 statsFlags1; // (condition: nonzero)
 	enum StatsFlags2 statsFlags2; // (condition: nonzero)
-	enum LiveFlags5 abilityFlags; // (condition: flags & 0x2)
+	enum LegoObject_AbilityFlags abilityFlags; // (condition: flags & 0x2)
 	uint flags; // (0x1: objType/objID, 0x2: abilityFlags)
 };
 
@@ -19204,17 +19171,17 @@ struct SearchViewportWindow_14 { // [LegoRR/search.c|struct:0x14]
 
 typedef struct SearchSetObjectsLevel_8c SearchSetObjectsLevel_8c, *PSearchSetObjectsLevel_8c;
 
-typedef enum LegoObject_ID { // [LegoRR/dummy.c|enum:0x4|type:int|tags:HELPER]
+typedef enum LegoObject_IDs { // [LegoRR/dummy.c|enum:0x4|type:int|tags:HELPER]
 	LegoObject_ID_Ore=0,
 	LegoObject_ID_Ore_Count=2,
 	LegoObject_ID_ProcessedOre=1
-} LegoObject_ID;
+} LegoObject_IDs;
 
 struct SearchSetObjectsLevel_8c { // [LegoRR/search.c|struct:0x8c]
 	char objName[128];
 	uint objLevel;
 	enum LegoObject_Type objType;
-	enum LegoObject_ID objID;
+	enum LegoObject_IDs objID;
 };
 
 typedef struct SearchObjectBlockXY_c SearchObjectBlockXY_c, *PSearchObjectBlockXY_c;
@@ -19300,6 +19267,12 @@ struct MapFileInfo { // [LegoRR/dummy.c|struct:0x12|pack:2]
 	struct Size2I dimensions;
 	ushort blocks[1];
 };
+
+typedef enum Smoke_Type { // [LegoRR/Smoke.c|enum:0x4|type:uint]
+	Smoke_Type_Attach=1,
+	Smoke_Type_Dissipate=2,
+	Smoke_Type_Looping=0
+} Smoke_Type;
 
 typedef enum Detail_TransformFlags { // [LegoRR/Detail.c|flags:0x1|type:byte]
 	DETAIL_ROTATE_FLAG_X1_DEG90=1,
@@ -21724,7 +21697,7 @@ struct Rect2F { // [common.c|struct:0x10]
 	float bottom;
 };
 
-typedef enum Keys { // [Gods98/Input.c|enum:0x4|type:int|tags:HELPER]
+typedef enum Keys32 { // [Gods98/Input.c|enum:0x4|type:int|tags:HELPER] 32-bit sized Keys enum
 	KEYPAD_0=82,
 	KEYPAD_1=79,
 	KEYPAD_2=80,
@@ -21826,7 +21799,7 @@ typedef enum Keys { // [Gods98/Input.c|enum:0x4|type:int|tags:HELPER]
 	KEY_Z=44,
 	KEY_ZERO=11,
 	KEY__NONE=0
-} Keys;
+} Keys32;
 
 typedef struct Main_StateChangeData Mesh_TextureStateChangeData;
 
@@ -21931,20 +21904,9 @@ struct RROSFileHeader { // [LegoRR/ObjectRecall.c|struct:0x8] For .osf Object Re
 typedef struct BasicObjectModel BasicObjectModel, *PBasicObjectModel;
 
 struct BasicObjectModel { // [LegoRR/dummy.c|struct:0x8] This is a dummy structure that is used for CreatureData, BuildingData, and UpgradeData (for functions using these structures that have been merged together). It's highly likely this similarity is only due to linked functions performing the same behavior and being grouped together.
-	int objID;
+	LegoObject_ID objID;
 	struct Container * contAct; // ACT, true
 };
-
-typedef enum LegoObject_AbilityType { // [LegoRR/LegoObject.c|enum:0x4|type:int]
-	LegoObject_AbilityType_Count=6,
-	LegoObject_AbilityType_Driver=2,
-	LegoObject_AbilityType_Dynamite=3,
-	LegoObject_AbilityType_Invalid=4294967295,
-	LegoObject_AbilityType_Pilot=0,
-	LegoObject_AbilityType_Repair=4,
-	LegoObject_AbilityType_Sailor=1,
-	LegoObject_AbilityType_Scanner=5
-} LegoObject_AbilityType;
 
 typedef enum Activity_Type { // [LegoRR/LegoObject.c|enum:0x4|type:int]
 	Activity_BuildPath=40,
@@ -22002,7 +21964,6 @@ typedef enum Activity_Type { // [LegoRR/LegoObject.c|enum:0x4|type:int]
 	Activity_TurnLeft=9,
 	Activity_TurnRight=10,
 	Activity_Type_Count=79,
-	Activity_Type_Invalid=4294967295,
 	Activity_Unpowered=43,
 	Activity_Upgrade=41,
 	Activity_Waiting1=56,
@@ -22029,6 +21990,16 @@ typedef enum Activity_Type { // [LegoRR/LegoObject.c|enum:0x4|type:int]
 	Activity_WakeUp=49,
 	Activity_Walk=6
 } Activity_Type;
+
+typedef enum LiveFlags5 { // [LegoRR/LegoObject.c|flags:0x4|type:uint] These flags contain LiveObject abilities, and are the one of the fields stored/restored with ObjectRecall.
+	LIVEOBJ5_ABILITY_DRIVER=4,
+	LIVEOBJ5_ABILITY_DYNAMITE=8,
+	LIVEOBJ5_ABILITY_PILOT=1,
+	LIVEOBJ5_ABILITY_REPAIR=16,
+	LIVEOBJ5_ABILITY_SAILOR=2,
+	LIVEOBJ5_ABILITY_SCANNER=32,
+	LIVEOBJ5_NONE=0
+} LiveFlags5;
 
 typedef char * va_list;
 

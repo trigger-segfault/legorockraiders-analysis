@@ -1310,6 +1310,8 @@ GUID IID_IDirectXFileData;
 GUID IID_IDirectXFileDataReference;
 // <LegoRR.exe @004a0fb8>
 GUID IID_IDirectXFileBinary;
+// <LegoRR.exe @004a0fc8>
+GUID IID_IDirectXFileObject__DUPLICATE;
 // <LegoRR.exe @004a0fd8>
 GUID CLSID_DirectInput;
 // <LegoRR.exe @004a0fe8>
@@ -1753,9 +1755,9 @@ sint32 nerpsUnkSampleIndex;
 // <LegoRR.exe @004a776c>
 NERPsBlockPointerCallback c_NERPsRuntime_TutorialActionCallback;
 // <LegoRR.exe @004a9ee8>
-AI_Priority s_PriorityList_Type;
+uint32 s_PriorityList_Index;
 // <LegoRR.exe @004a9eec>
-char* s_PriorityList_Name;
+AI_Priority s_PriorityList_Type;
 // <LegoRR.exe @004a9f28>
 RadarMap_Globs radarmapGlobs;
 // <LegoRR.exe @004aa7a0>
@@ -1925,7 +1927,7 @@ NERPsRuntime_Globs nerpsruntimeGlobs;
 // <LegoRR.exe @00500bc0>
 Objective_Globs objectiveGlobs;
 // <LegoRR.exe @00500e50>
-ObjectRecall_Globs objectrecallGlobs;
+ObjectRecall_Globs objectRecallGlobs;
 // <LegoRR.exe @00500e68>
 ObjInfo_Globs objinfoGlobs;
 // <LegoRR.exe @005010e0>

@@ -10,7 +10,7 @@ typedef void (__cdecl* ContainerSoundTriggerCallback)(char*, Container*, void*);
 typedef void (__cdecl* ContainerTriggerFrameCallback)(Container*, void*);
 typedef bool32 (__cdecl* ContainerWalkTreeCallback)(IDirect3DRMFrame3*, void*);
 typedef void (__cdecl* DrawPixelFunc)(sint32, sint32, uint32);
-typedef void (__cdecl* ElectricFence_RunThroughListsCallback)(BlockElectricFence*, void*);
+typedef void (__cdecl* ElectricFence_RunThroughListsCallback)(ElectricFence_Block*, void*);
 typedef void (__cdecl* FileLoadCallback)(char*, uint32, void*);
 typedef void (__cdecl* FlocksCallback)(Flocks*, FlocksItem*, void*);
 typedef float10 (__cdecl* GetWorldZCallback)(real32, real32, Map3D*);
