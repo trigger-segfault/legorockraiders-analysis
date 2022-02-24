@@ -17,7 +17,7 @@ import struct               # used by `def signed(value:int, byteSize:int) -> in
 
 from collections import namedtuple
 from enum import auto
-from typing import Any, Callable, Dict, Iterable, Iterator, List, Match, Optional, Pattern, Tuple, Type, Union
+from typing import Any, Callable, Dict, Iterable, Iterator, List, Match, Optional, Pattern, Set, Tuple, Type, Union
 
 # <https://pypi.org/project/regex/>
 # import regex  # PyPy regex with \G pattern meta escape
@@ -334,12 +334,6 @@ def split_functionglobalspans(s:str) -> Tuple[str,str]: # (functions, globals)
 #region BIG LIST OF UNORGANIZED REGEX PATTERNS
 
 ###########################################################################
-
-# GHIDRA_ALLOWED_TYPEDEFS = {'byte', 'uchar', 'ushort', 'uint', 'ulong', 'longlong', 'ulonglong', 'undefined', 'undefined1', 'undefined2', 'undefined4', 'undefined8', 'float10'}
-
-ALLOWED_TYPEDEFS = {'Mesh_TextureStateChangeData', 'Mesh_Texture', 'Material', 'Animation_t', 'Movie_t', 'Material_t'}
-
-EXCLUDE_FUNCTYPEDEFS = {'QsortCompare', 'PTOP_LEVEL_EXCEPTION_FILTER', '_PNH', 'WNDPROC', 'DLGPROC', 'MMIOPROC', 'FARPROC'}
 
 # RE_SYM    = r"A-Za-z_0-9"
 # # RE_NSYM    = r"[^A-Za-z_0-9]"
@@ -1721,14 +1715,14 @@ class HeaderParser(BaseParser):
             is_function = m['arguments'] is not None
 
             if is_function:
-                if name not in EXCLUDE_FUNCTYPEDEFS:
+                if name not in self.db.exclude_functypedefs:
                     ##HACK: only __cdecl function typedefs are defined for OpenLRR,
                     ##      and ghidra doesn't display calling conventions on function typedefs...
                     if decl is None: decl = '__cdecl'
 
-                hide = name in EXCLUDE_FUNCTYPEDEFS
+                hide = name in self.db.exclude_functypedefs
             else:
-                hide = name not in ALLOWED_TYPEDEFS
+                hide = name not in self.db.allowed_typedefs
 
             self.db.add(self.parse_symbol_type(TypedefSymbol, m, hide=hide, nocomment=True, default_decl=decl, **kwargs))
 
@@ -2105,11 +2099,17 @@ class SymbolDatabase:
     ##HACK: Awkward way of handling ellipsis '...' arguments without rewrites
     ellipsis:PrimitiveSymbol
 
+    allowed_typedefs:Set[str]
+    exclude_functypedefs:Set[str]
+
     def __init__(self, symbols:Optional[Dict[str,Symbol]]=None, defines:Optional[Dict[str,Symbol]]=None, convert_defines:bool=True): #*args, **kwargs):
         self.symbols = dict(symbols) if symbols is not None else {}
         self.defines = dict(defines) if defines is not None else {}
         self.convert_defines = bool(convert_defines)
         self.ellipsis = PrimitiveSymbol('...', 0,  evaled=True, hide=True)
+
+        self.allowed_typedefs = set()
+        self.exclude_functypedefs = {'PTOP_LEVEL_EXCEPTION_FILTER', '_PNH', 'WNDPROC', 'DLGPROC', 'MMIOPROC', 'FARPROC'}
 
     def add(self, symbol:Symbol) -> bool:
         define = self.get_define(symbol.name, None)
@@ -2356,12 +2356,16 @@ class SymbolDatabase:
         self.add_typedef('va_list', 'char', pointers=1)
 
 class LegoRRSymbolDatabase(SymbolDatabase):
-    ALLOWED_TYPEDEFS = {'Mesh_TextureStateChangeData', 'Mesh_Texture', 'Material', 'Animation_t', 'Movie_t', 'Material_t'}
-    EXCLUDE_FUNCTYPEDEFS = {'QsortCompare', 'PTOP_LEVEL_EXCEPTION_FILTER', '_PNH', 'WNDPROC', 'DLGPROC', 'MMIOPROC', 'FARPROC'}
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.allowed_typedefs.update({'Mesh_TextureStateChangeData', 'Mesh_Texture', 'Material', 'Animation_t', 'Movie_t', 'Material_t', 'LegoObject_ID', 'ObjectModel'})
+        self.exclude_functypedefs.update({'QsortCompare'})
+
 
     def hide_typedefs(self, hide:bool=..., namelist:List[str]=...) -> None:
         if hide is Ellipsis and namelist is Ellipsis:
-            hide, namelist = False, self.ALLOWED_TYPEDEFS
+            hide, namelist = False, self.allowed_typedefs
         
         hide = bool(hide)
         for typedef in (s for s in self.symbols if isinstance(s, TypedefSymbol) and not s.is_function):
@@ -2369,7 +2373,7 @@ class LegoRRSymbolDatabase(SymbolDatabase):
 
     def hide_funcdefs(self, hide:bool=..., namelist:List[str]=...) -> None:
         if hide is Ellipsis and namelist is Ellipsis:
-            hide, namelist = True, self.EXCLUDE_FUNCTYPEDEFS
+            hide, namelist = True, self.exclude_functypedefs
         
         hide = bool(hide)
         for typedef in (s for s in self.symbols if isinstance(s, TypedefSymbol) and s.is_function):
@@ -2414,6 +2418,30 @@ class LegoRRSymbolDatabase(SymbolDatabase):
         # self.add_typedef('ds',   'char', arrays=[1], hide=True)
         # self.add_typedef('db',   'byte', arrays=[1], hide=True)
     
+    def override_legorr_float10_returns(self) -> None:
+        # float10 returns are a major pain when porting functions to OpenLRR.
+        # This type is used for ALL floating point function return types, float -or- double.
+        # For LRR we can assume all return types from its own functions are float and not double.
+        
+        float_type = self.get_symbol('float')
+        if float_type is None: raise ValueError('float type not found')
+
+        float10_type = self.get_symbol('float10')
+        if float10_type is None: raise ValueError('float10 type not found')
+
+        #IGNORE_TAGS = {'STD', 'HIDDEN'}
+        for s in self.symbols.values():
+            if s.kind is SymbolKind.FUNCTION and (s.type_symbol is float10_type or (s.type_symbol is None and s.typename == 'float10')):
+                s = s  # type: TypeSymbol
+                # We want to exclude standard library functions, since they may return a double.
+                # All LRR functions have been given the namespace "lego::", so bank off this when identifying outliers.
+                #if not s.tagged or not IGNORE_TAGS.intersection(s.tagged.tags):
+                if not s.name.startswith('__') and s.namespace and not s.namespace.startswith('std::'):
+                    if s.type_symbol is not None:
+                        s.type_symbol = float_type
+                    elif s.typename is not None:
+                        s.typename = float_type.name
+    
     def override_openlrr_display_names(self, *, optional:Optional[bool]=None) -> None:
         self.override_display_name('byte',   'uint8',  optional=optional)
         self.override_display_name('short',  'sint16', optional=optional)
@@ -2448,17 +2476,17 @@ class LegoRRSymbolDatabase(SymbolDatabase):
 
 #region Setup global variables
 
-db = LegoRRSymbolDatabase()
-# Symbol.DB = db
+#db = LegoRRSymbolDatabase()
+#Symbol.DB = db
 
-db.populate_ghidra_primitives(preprocessor=True)
+#db.populate_ghidra_primitives(preprocessor=True)
 
 
 # GHIDRA_ALLOWED_TYPEDEFS = {'byte', 'uchar', 'ushort', 'uint', 'ulong', 'longlong', 'ulonglong', 'undefined', 'undefined1', 'undefined2', 'undefined4', 'undefined8', 'float10'}
 
-ALLOWED_TYPEDEFS = {'Mesh_TextureStateChangeData', 'Mesh_Texture', 'Material', 'Animation_t', 'Movie_t', 'Material_t'}
+#ALLOWED_TYPEDEFS = {'Mesh_TextureStateChangeData', 'Mesh_Texture', 'Material', 'Animation_t', 'Movie_t', 'Material_t', 'LegoObject_ID', 'ObjectModel'}
 
-EXCLUDE_FUNCTYPEDEFS = {'QsortCompare', 'PTOP_LEVEL_EXCEPTION_FILTER', '_PNH', 'WNDPROC', 'DLGPROC', 'MMIOPROC', 'FARPROC'}
+#EXCLUDE_FUNCTYPEDEFS = {'QsortCompare', 'PTOP_LEVEL_EXCEPTION_FILTER', '_PNH', 'WNDPROC', 'DLGPROC', 'MMIOPROC', 'FARPROC'}
 
 #region OLD TYPEDEF'ING
 
