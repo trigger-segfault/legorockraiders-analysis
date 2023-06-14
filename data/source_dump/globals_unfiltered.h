@@ -1711,17 +1711,17 @@ real32 FLOAT_004a2ef4;
 // <LegoRR.exe @004a2ef8>
 real32 FLOAT_004a2ef8;
 // <LegoRR.exe @004a2f48>
-sint32 g_SaveMenu_INDEX_004a2f48;
+sint32 g_frontSelectHoverIndex;
 // <LegoRR.exe @004a2f4c>
-sint32 g_SaveMenu_INT_004a2f4c;
+sint32 g_saveMenuSelectedIndex;
 // <LegoRR.exe @004a2f50>
-sint32 g_SaveMenu_INDEX_004a2f50;
+sint32 g_saveMenuOverlayState;
 // <LegoRR.exe @004a2f54>
-sint32 g_SaveMenu_INDEX_004a2f54;
+sint32 g_saveMenuSelectingIndex;
 // <LegoRR.exe @004a2f58>
-sint32 g_SaveMenu_INT_004a2f58;
+sint32 g_saveMenuOverwriteResult;
 // <LegoRR.exe @004a2f5c>
-sint32 g_SaveMenu_OutNumber;
+sint32 g_saveMenuOutputSelectedIndex;
 // <LegoRR.exe @004a2f60>
 uint32 c_keyCharMap[256];
 // <LegoRR.exe @004a3b58>
@@ -1731,7 +1731,7 @@ uint32 g_Interface_UINT_004a3b5c;
 // <LegoRR.exe @004a4558>
 LegoUpdate_Globs updateGlobs;
 // <LegoRR.exe @004a58b0>
-real32 s_LiveObjectLargeCallback_FLOAT_004a58b0;
+real32 s_objectDamageShakeTimer;
 // <LegoRR.exe @004a62c0>
 ColourRGBF c_wallHighlightColours[6];
 // <LegoRR.exe @004a6948>
@@ -1771,7 +1771,7 @@ ObjectStats c_ObjectStats_Other;
 // <LegoRR.exe @004ab450>
 Teleporter_Globs teleporterGlobs;
 // <LegoRR.exe @004ab64c>
-bool32 g_ToolTipIsSFXPlaying;
+bool32 s_ToolTip_sfxStopped;
 // <LegoRR.exe @004abba4>
 ds s_Dev_SourceSafe__Viewports_c;
 // <LegoRR.exe @004abc34>
@@ -1849,7 +1849,7 @@ AITask_Globs aiGlobs;
 // <LegoRR.exe @004b9a14>
 char ""/*EMPTYSTR*/[4];
 // <LegoRR.exe @004b9a18>
-real32 s_Bubble_ElapsedTimer;
+real32 s_Bubble_PowerOffFlashTimer;
 // <LegoRR.exe @004b9a20>
 Construction_Globs constructionGlobs;
 // <LegoRR.exe @004b9a58>
@@ -1877,27 +1877,27 @@ char s_FrontReplaceSpacesBuff[256];
 // <LegoRR.exe @004dc850>
 sint32 s_LevelSelect_NameYs[16];
 // <LegoRR.exe @004dc890>
-Image* g_SaveSlotImages_TABLE[5];
+Image* g_saveMenuImages[5];
 // <LegoRR.exe @004dc8a4>
 undefined4 DAT_004dc8a4;
 // <LegoRR.exe @004dc8a8>
-uint32 g_SaveSlotPtrs_TABLE[5];
+uint32 g_saveMenuCompletionPercents[5];
 // <LegoRR.exe @004dc8bc>
-bool32 g_FrontBool_004dc8bc;
+bool32 g_saveMenuOverwriteShowing;
 // <LegoRR.exe @004dc8c0>
-bool32 g_FrontBool_004dc8c0;
+bool32 g_saveMenuOverlayPlaying;
 // <LegoRR.exe @004dc8c4>
-bool32 g_FrontBool_004dc8c4;
+bool32 g_levelSelectPrinting;
 // <LegoRR.exe @004dc8c8>
-bool32 g_FrontBool_004dc8c8;
+Menu* g_saveMenu_UnkNextMenu;
 // <LegoRR.exe @004dc8cc>
 Front_Cache* g_ImageCache_NEXT;
 // <LegoRR.exe @004dc8d0>
 uint32 s_LevelSelectNameCount;
 // <LegoRR.exe @004dc8d4>
-bool32 g_FrontBool_004dc8d4;
+bool32 s_frontMousePressedState;
 // <LegoRR.exe @004dc8dc>
-sint32 g_FrontCount_004dc8dc;
+sint32 s_frontTextInputCaretBlinker;
 // <LegoRR.exe @004dc8e0>
 Menu* s_FrontOptionsMenu;
 // <LegoRR.exe @004dc8e4>
@@ -2001,7 +2001,7 @@ NERPsFile_Globs nerpsfileGlobs;
 // <LegoRR.exe @00556e00>
 Loader_Globs loaderGlobs;
 // <LegoRR.exe @00557090>
-LegoObject* PTRLiveObject_00557090;
+LegoObject* s_currentUpdateObject;
 // <LegoRR.exe @005570a0>
 Camera_Globs cameraGlobs;
 // <LegoRR.exe @005570c0>
