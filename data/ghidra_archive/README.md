@@ -5,7 +5,7 @@ Contained in `LegoRR.gar` is an archived copy of the project used for researchin
 **Ghidra archive version:** 10.0.4 PUBLIC
 
 
-<p align="center"><img src="https://i.imgur.com/Wlg7fhX.png"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/trigger-segfault/legorockraiders-analysis/main/data/ghidra_archive/preview.png"></p>
 
 ### Contents
 
@@ -18,6 +18,8 @@ Contained in `LegoRR.gar` is an archived copy of the project used for researchin
 * `Community/LegoRRCE.exe` - Community Edition version of `LegoRR.exe` (contains modified icon, and supplies hook for `lrrce.dll`)
 
 * `Community/lrrce.dll` - Community Edition dll injection and code that replaces `LegoRR.exe` functionality.
+
+* `Languages/Korean/LegoRR.exe` - Korean build of LRR for studying multi-byte character encoding support.
 
 * `Masterpiece/LegoRR.exe` - Masterpiece release executable that all research and address locations are based on.
 
